@@ -1,0 +1,17 @@
+appName: "Server Monitoring"
+
+onDemandCollectors:
+  - klass: "loader.monitor.collector.DFCollector"
+    name: "df"
+    requiredParams: []
+  - klass: "loader.monitor.collector.jmx.JMXCollector"
+    name: "jmx"
+    requiredParams: ["host","port"]
+
+http:
+  port: 7777
+  adminPort: 7771
+  rootPath: "/monitoring-service/*"
+
+logging:
+  level: INFO
