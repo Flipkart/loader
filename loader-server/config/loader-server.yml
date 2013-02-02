@@ -1,0 +1,24 @@
+appName: "Loader Server"
+
+libStorageConfig:
+  libPath: "/usr/share/loader-server/libs"
+  platformLibPath: "/usr/share/loader-server/platformLibs"
+  mappingFile: "/usr/share/loader-server/config/mapping.properties"
+
+agentConfig:
+  platformLibResource: "/loader-agent/deploy/platformLibs"
+  classLibResource: "/loader-agent/deploy/libs"
+  jobResource: "/loader-agent/jobs"
+  agentPort: 8888
+
+jobStatsConfig:
+  jobStatsFolder: "/var/log/loader-server/jobs/$JOB_ID/jobStats"
+  jobMonitoringStats: "/var/log/loader-server/jobs/$JOB_ID/monitoringAgents/$AGENT_IP/Resources/$RESOURCE"
+
+http:
+  port: 9999
+  adminPort: 9991
+  rootPath: "/loader-server/*"
+
+logging:
+  level: INFO

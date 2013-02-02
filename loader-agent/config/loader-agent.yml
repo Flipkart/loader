@@ -1,0 +1,30 @@
+appName: "Loader Agent"
+
+serverInfo:
+  baseUrl: "http://localhost:8888/loader-agent/dummy"
+  jobFetchResource: "/pendingJobs"
+  jobStatsSyncResource: "/jobs/$JOB_ID/stats?file=$FILE"
+
+libStorageConfig:
+  libPath: "/usr/share/loader-agent/libs"
+  platformLibPath: "/usr/share/loader-agent/platformLibs"
+  mappingFile: "/usr/share/loader-agent/config/mapping.properties"
+
+jobProcessorConfig:
+  maxJobs: 1
+  checkInterval: 5000
+  jobCLIFormat: "java -cp $CLASSPATH com.open.perf.main.Main -f $JOB_JSON $JOB_ID"
+
+jobStatSyncConfig:
+  jobBasePath: "/var/log/loader-agent/jobs"
+  syncInterval: 10000
+  #Per File
+  linesToSyncInOneGo: 100
+
+http:
+  port: 8888
+  adminPort: 8881
+  rootPath: "/loader-agent/*"
+
+logging:
+  level: INFO
