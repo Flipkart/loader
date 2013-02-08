@@ -1,6 +1,6 @@
 package loader.monitor.collector;
 
-import loader.monitor.domain.Metric;
+import loader.monitor.domain.ResourceCollectionInstance;
 import loader.monitor.exception.ProcessExcutionFailedException;
 import loader.monitor.util.ProcessHelper;
 
@@ -73,16 +73,9 @@ public class DFCollector extends NativeCmdBaseCollector {
             }
 
             collectionInstance.
-                    addMetric(new Metric().
-                            setName(String.format(KEY_FORMAT, fsType, mount, "total")).
-                            setValue(total)).
-                    addMetric(new Metric().
-                            setName(String.format(KEY_FORMAT, fsType, mount, "used")).
-                            setValue(used)).
-                    addMetric(new Metric().
-                            setName(String.format(KEY_FORMAT, fsType, mount, "free")).
-                            setValue(free));
-
+                    addMetric(String.format(KEY_FORMAT, fsType, mount, "total"), total).
+                    addMetric(String.format(KEY_FORMAT, fsType, mount, "used"), used).
+                    addMetric(String.format(KEY_FORMAT, fsType, mount, "free"), free);
         }
         return collectionInstance;
     }

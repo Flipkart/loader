@@ -1,6 +1,6 @@
 package loader.monitor.cache;
 
-import loader.monitor.collector.ResourceCollectionInstance;
+import loader.monitor.domain.ResourceCollectionInstance;
 
 import java.util.*;
 

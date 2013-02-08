@@ -1,5 +1,6 @@
 package loader.monitor.collector;
 
+import loader.monitor.domain.ResourceCollectionInstance;
 import loader.monitor.exception.ProcessExcutionFailedException;
 import loader.monitor.util.ProcessHelper;
 

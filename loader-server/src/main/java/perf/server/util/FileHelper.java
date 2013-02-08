@@ -16,10 +16,14 @@ import java.util.zip.ZipInputStream;
  */
 public class FileHelper {
     public static String persistStream(InputStream libStream, String targetFile) throws IOException {
+        return persistStream(libStream, targetFile, false);
+    }
+
+    public static String persistStream(InputStream libStream, String targetFile, boolean appeand) throws IOException {
         byte[] buffer = new byte[8024];
         createFile(targetFile);
         BufferedInputStream bis = new BufferedInputStream(libStream);
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(targetFile));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(targetFile, appeand));
 
         int bytesRead;
         while((bytesRead = bis.read(buffer)) > 0) {
@@ -151,8 +155,8 @@ public class FileHelper {
     }
 
     // Chane it to use Byte data instead of line. Would work for binary data as well
-    public static String readContent(InputStream stats) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(stats));
+    public static String readContent(InputStream stream) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
         StringBuffer content = new StringBuffer();
         String line = null;
         try {
@@ -172,5 +176,14 @@ public class FileHelper {
         File srcFile = new File(src);
         if(srcFile.exists())
             srcFile.renameTo(new File(target));
+    }
+
+    /**
+     * Assumption is the input path contains the file name aswell.
+     * @param statFilePath
+     */
+    public static void createFilePath(String statFilePath) {
+        String parentPath = new File(statFilePath).getParent();
+        createFolder(parentPath);
     }
 }

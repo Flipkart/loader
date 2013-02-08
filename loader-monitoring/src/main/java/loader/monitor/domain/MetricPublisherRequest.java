@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import loader.monitor.cache.ResourceCache;
-import loader.monitor.collector.ResourceCollectionInstance;
 
 import java.io.IOException;
 import java.util.*;
@@ -19,7 +18,7 @@ import java.util.concurrent.Future;
  * Time: 4:17 PM
  * To change this template use File | Settings | File Templates.
  */
-public class PublisherRequest {
+public class MetricPublisherRequest {
     private String requestId;
     private Set<String> resources;
     private int lastHowManyInstances;
@@ -32,7 +31,7 @@ public class PublisherRequest {
         return requestId;
     }
 
-    public PublisherRequest setRequestId(String requestId) {
+    public MetricPublisherRequest setRequestId(String requestId) {
         this.requestId = requestId;
         return this;
     }
@@ -41,7 +40,7 @@ public class PublisherRequest {
         return resources;
     }
 
-    public PublisherRequest setResources(Set<String> resources) {
+    public MetricPublisherRequest setResources(Set<String> resources) {
         this.resources = resources;
         return this;
     }
@@ -50,7 +49,7 @@ public class PublisherRequest {
         return lastHowManyInstances;
     }
 
-    public PublisherRequest setLastHowManyInstances(int lastHowManyInstances) {
+    public MetricPublisherRequest setLastHowManyInstances(int lastHowManyInstances) {
         this.lastHowManyInstances = lastHowManyInstances;
         return this;
     }
@@ -59,7 +58,7 @@ public class PublisherRequest {
         return publishUrl;
     }
 
-    public PublisherRequest setPublishUrl(String publishUrl) {
+    public MetricPublisherRequest setPublishUrl(String publishUrl) {
         this.publishUrl = publishUrl;
         return this;
     }
@@ -68,7 +67,7 @@ public class PublisherRequest {
         return forHowLong;
     }
 
-    public PublisherRequest setForHowLong(long forHowLong) {
+    public MetricPublisherRequest setForHowLong(long forHowLong) {
         this.forHowLong = forHowLong;
         return this;
     }

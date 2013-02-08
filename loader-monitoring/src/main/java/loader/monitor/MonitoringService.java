@@ -9,9 +9,8 @@ import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 import loader.monitor.collector.CollectorThread;
 import loader.monitor.config.ServerMonitoringConfig;
-import loader.monitor.publisher.PublisherThread;
+import loader.monitor.publisher.MetricPublisherThread;
 import loader.monitor.resource.CollectorResource;
-import loader.monitor.resource.DummyResource;
 import loader.monitor.resource.OnDemandCollectorResource;
 import loader.monitor.resource.PublishRequestResource;
 
@@ -27,18 +26,17 @@ public class MonitoringService extends Service<ServerMonitoringConfig> {
     @Override
     public void run(ServerMonitoringConfig configuration, Environment environment) throws Exception {
         CollectorThread collectorThread = startCollectorThread(1000);
-        PublisherThread publisherThread = startStartThread(1000);
+        MetricPublisherThread metricPublisherThread = startStartThread(1000);
         environment.addResource(new CollectorResource());
-        environment.addResource(new PublishRequestResource(publisherThread));
-        environment.addResource(new DummyResource());
+        environment.addResource(new PublishRequestResource(metricPublisherThread));
         environment.addResource(new OnDemandCollectorResource(configuration.getOnDemandCollectors(),
                 collectorThread));
     }
 
-    private PublisherThread startStartThread(int publisherCheckInterval) {
-        PublisherThread publisherThread = new PublisherThread(publisherCheckInterval);
-        publisherThread.start();
-        return publisherThread;
+    private MetricPublisherThread startStartThread(int publisherCheckInterval) {
+        MetricPublisherThread metricPublisherThread = new MetricPublisherThread(publisherCheckInterval);
+        metricPublisherThread.start();
+        return metricPublisherThread;
     }
 
     private CollectorThread startCollectorThread(int collectionCheckInterval) throws InvocationTargetException,

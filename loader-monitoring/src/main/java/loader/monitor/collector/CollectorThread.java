@@ -1,13 +1,11 @@
 package loader.monitor.collector;
 
 import loader.monitor.cache.ResourceCache;
-import loader.monitor.config.OnDemandCollectorConfig;
+import loader.monitor.domain.ResourceCollectionInstance;
 import org.apache.log4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,9 +47,12 @@ public class CollectorThread extends Thread{
 
                         // Keep in Cache
                         ResourceCache.addStats(instanceResource);
-                        this.collectorLastExecutionTimeMap.put(collectorName, System.currentTimeMillis());
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e) {
                         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    }
+                    finally {
+                        this.collectorLastExecutionTimeMap.put(collectorName, System.currentTimeMillis());
                     }
                 }
             }

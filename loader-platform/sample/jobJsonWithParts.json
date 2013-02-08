@@ -1,7 +1,8 @@
 {
-    "jobParts": [
+    "jobs": [
         {
             "agent" : "127.0.0.1",
+            "classList" : ["com.open.perf.test.TestClass"],
             "jobPartInfo" : {
                 "name":"test-load",
                 "groups":{"groupList":[
@@ -9,10 +10,10 @@
                         "name":"Test-setup",
                         "graphTab":"Test-setup",
                         "groupStartDelay":0,
-                        "dumpDataAfterRepeats":1,
+                        "dumpDataAfterRepeats":1000,
                         "threadStartDelay":1000,
-                        "repeats":10,
-                        "life":60000,
+                        "repeats":5,
+                        "life":120000,
                         "threads":1,
                         "functions":[
                             {
@@ -33,11 +34,11 @@
                     {
                         "name":"Test-Dependent",
                         "graphTab":"Test-Dependent",
-                        "groupStartDelay":15000,
-                        "dumpDataAfterRepeats":1,
+                        "groupStartDelay":2000,
+                        "dumpDataAfterRepeats":1000,
                         "threadStartDelay":1000,
-                        "repeats":100,
-                        "life":60000,
+                        "repeats":5,
+                        "life":120000,
                         "threads":2,
                         "functions":[
                             {
@@ -54,6 +55,33 @@
                 }
             }
 
+        }
+    ],
+    "onDemandResourcesRequests": [
+        {
+            "agent" : "127.0.0.1",
+            "collectors":[
+                {
+                    "name":"jmx1",
+                    "klass":"loader.monitor.collector.jmx.JMXCollector",
+                    "interval":30000,
+                    "params" : {
+                        "host" : "localhost",
+                        "port" : 4444
+                    }
+                }
+            ]
+        }
+    ],
+    "resourcePublishRequests": [
+        {
+            "agent" : "127.0.0.1",
+            "request" : {
+                "resources" : ["cpu.total","jmx1"],
+                "lastHowManyInstances" : 1,
+                "publishUrl" : "http://localhost:9999/loader-server/jobs/{jobId}/monitoringStats",
+                "interval" : 10000
+            }
         }
     ]
 }

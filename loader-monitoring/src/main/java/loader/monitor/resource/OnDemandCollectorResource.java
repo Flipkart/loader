@@ -1,5 +1,7 @@
 package loader.monitor.resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import loader.monitor.collector.BaseCollector;
 import loader.monitor.collector.CollectorFactory;
 import loader.monitor.collector.CollectorThread;
@@ -90,6 +92,11 @@ public class OnDemandCollectorResource {
     }
 
     private void startcollection(OnDemandCollectorRequest request) throws InvocationTargetException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException {
+        try {
+            log.info("Request :"+new ObjectMapper().writeValueAsString(request));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
         List<BaseCollector> collectors = new ArrayList<BaseCollector>();
         for(OnDemandCollector collectorInfo : request.getCollectors()) {
             BaseCollector collector = CollectorFactory.buildCollector(collectorInfo);

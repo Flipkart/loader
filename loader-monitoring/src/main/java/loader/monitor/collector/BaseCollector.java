@@ -1,6 +1,7 @@
 package loader.monitor.collector;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import loader.monitor.domain.ResourceCollectionInstance;
 import org.apache.log4j.Logger;
 
 import java.util.*;

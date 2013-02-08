@@ -1,9 +1,13 @@
 package perf.agent.job;
 
 import org.apache.log4j.Logger;
+import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobProcessorConfig;
+import perf.agent.config.ServerInfo;
 
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -13,28 +17,30 @@ import java.util.concurrent.LinkedBlockingDeque;
  * Time: 7:59 PM
  * To change this template use File | Settings | File Templates.
  */
-public class JobProcesser extends Thread{
+public class JobProcessor extends Thread{
 
     private Map<String, JobRunner> jobRunners;
     private Queue<JobInfo> pendingJobs;
-    private static Logger log = Logger.getLogger(JobProcesser.class);
+    private static Logger log = Logger.getLogger(JobProcessor.class);
     private JobProcessorConfig config;
-    private static JobProcesser jobProcessor;
+    private static JobProcessor jobProcessor;
+    private final LoaderServerClient serverClient;
 
-    private JobProcesser(JobProcessorConfig jobProcessorConfig) {
+    private JobProcessor(JobProcessorConfig jobProcessorConfig, ServerInfo serverInfo) {
         this.config = jobProcessorConfig;
         this.jobRunners = new HashMap<String, JobRunner>();
         this.pendingJobs = new LinkedBlockingDeque<JobInfo>();
+        this.serverClient = new LoaderServerClient(serverInfo.getHost(), serverInfo.getPort());
         start();
     }
 
-    public static JobProcesser initialize(JobProcessorConfig jobProcessorConfig) {
+    public static JobProcessor initialize(JobProcessorConfig jobProcessorConfig, ServerInfo serverInfo) {
         if(jobProcessor == null)
-            jobProcessor = new JobProcesser(jobProcessorConfig);
+            jobProcessor = new JobProcessor(jobProcessorConfig, serverInfo);
         return jobProcessor;
     }
 
-    public static JobProcesser getInstance() {
+    public static JobProcessor getInstance() {
         return jobProcessor;
     }
 
@@ -47,51 +53,58 @@ public class JobProcesser extends Thread{
 
     public void run() {
         while(true) {
-            clearFinishedJobs();
-            triggerNewJobs();
-            waitForNextIteration();
+            try {
+                clearFinishedJobs();
+                triggerNewJobs();
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+            catch (ExecutionException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+            catch (IOException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+            finally {
+                waitForNextIteration();
+            }
         }
     }
 
-    private void clearFinishedJobs() {
+    private void clearFinishedJobs() throws InterruptedException, ExecutionException, IOException {
         synchronized (jobRunners) {
             for(String jobId : jobIds()) {
                 JobRunner jobRunner = jobRunners.get(jobId);
 
                 if(!jobRunner.running()) {
                     jobRunners.remove(jobId);
-                    log.debug("Clearing Completed Job With Id :"+jobId);
                     StatSyncThread.getInstance().removeJob(jobId);
+                    this.serverClient.notifyJobIsOver(jobId);
+                    // Make a Post Call to let loader-server know that job is over
+
                 }
             }
             log.debug("Jobs Still Running :"+jobRunners.size());
         }
     }
 
-    private Set<String> jobIds() {
-        Set<String> jobIds = new HashSet<String>();
-        for(String jobId : jobRunners.keySet())
-            jobIds.add(jobId);
-        return jobIds;
-
-    }
-
     private void triggerNewJobs() {
-        if(jobRunners.size() < config.getMaxJobs())
-            triggerPendingJobs(config.getMaxJobs() - jobRunners.size());
-    }
+        if(jobRunners.size() < config.getMaxJobs()) {
+            int howMany = config.getMaxJobs() - jobRunners.size();
 
-    private void triggerPendingJobs(int howMany) {
-        synchronized (pendingJobs) {
-            for(int i=1; i <= howMany; i++) {
-                JobInfo jobInfo = pendingJobs.poll();
-                if(jobInfo == null)
-                    break;
-                jobRunners.put(jobInfo.getJobId(), new JobRunner(jobInfo));
-                StatSyncThread.getInstance().addJobToSync(jobInfo.getJobId());
+            synchronized (pendingJobs) {
+                for(int i=1; i <= howMany; i++) {
+                    JobInfo jobInfo = pendingJobs.poll();
+                    if(jobInfo == null)
+                        break;
+                    jobRunners.put(jobInfo.getJobId(), new JobRunner(jobInfo));
+                    StatSyncThread.getInstance().addJobToSync(jobInfo.getJobId());
+                }
             }
+            log.debug("Jobs Still Pending :"+pendingJobs.size());
+
         }
-        log.debug("Jobs Still Pending :"+pendingJobs.size());
     }
 
     private void waitForNextIteration() {
@@ -103,7 +116,16 @@ public class JobProcesser extends Thread{
         }
     }
 
-    public void jobRequest(JobInfo jobInfo) {
+    public String killJob(String jobId) {
+        JobRunner jobRunner = jobRunners.get(jobId);
+        if(jobRunner != null) {
+            jobRunner.getJobProcess().destroy();
+            return "Job Killed Successfully";
+        }
+        return "Job Not Running";
+    }
+
+    public void addJobRequest(JobInfo jobInfo) {
         synchronized (pendingJobs) {
             pendingJobs.add(jobInfo);
         }
@@ -140,12 +162,11 @@ public class JobProcesser extends Thread{
         }
     }
 
-    public String killJob(String jobId) {
-        JobRunner jobRunner = jobRunners.get(jobId);
-        if(jobRunner != null) {
-            jobRunner.getJobProcess().destroy();
-            return "Job Killed Successfully";
-        }
-        return "Job Not Running";
+    private Set<String> jobIds() {
+        Set<String> jobIds = new HashSet<String>();
+        for(String jobId : jobRunners.keySet())
+            jobIds.add(jobId);
+        return jobIds;
+
     }
 }

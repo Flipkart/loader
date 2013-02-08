@@ -1,12 +1,12 @@
 package perf.agent.resource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
-import org.apache.log4j.Logger;
 import perf.agent.cache.LibCache;
 import perf.agent.config.JobProcessorConfig;
 import perf.agent.job.JobInfo;
-import perf.agent.job.JobProcesser;
+import perf.agent.job.JobProcessor;
 import perf.agent.job.StatSyncThread;
 import perf.agent.util.FileHelper;
 
@@ -14,9 +14,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import perf.agent.util.FileHelper;
 
 /**
  * Created by IntelliJ IDEA.
@@ -28,9 +27,10 @@ import perf.agent.util.FileHelper;
 @Path("/jobs")
 
 public class JobResource {
-    private JobProcesser jobProcesser = JobProcesser.getInstance();
+    private JobProcessor jobProcessor = JobProcessor.getInstance();
     private JobProcessorConfig jobProcessorConfig;
     private StatSyncThread statsSyncThread;
+    private static ObjectMapper mapper = new ObjectMapper();
 
     public JobResource(JobProcessorConfig jobProcessorConfig) {
         this.jobProcessorConfig = jobProcessorConfig;
@@ -44,8 +44,10 @@ public class JobResource {
             @FormDataParam("jobJson") InputStream jobJson,
             @FormDataParam("classList") String classListStr) throws IOException {
 
+        List<String> classList = mapper.readValue(classListStr, List.class);
+
         String jobClassPath = LibCache.getInstance().
-                buildJobClassPath(classListStr);
+                buildJobClassPath(classList);
         String jobCMD = this.jobProcessorConfig.getJobCLIFormat().
                 replace("$CLASSPATH", jobClassPath).
                 replace("$JOB_JSON", ""+FileHelper.persistStream(jobJson,"/tmp/"+System.currentTimeMillis())).
@@ -55,7 +57,7 @@ public class JobResource {
                 setJobCmd(jobCMD).
                 setJobId(jobId);
 
-        jobProcesser.jobRequest(jobInfo);
+        jobProcessor.addJobRequest(jobInfo);
         return jobInfo.getJobId();
     }
 
@@ -63,7 +65,7 @@ public class JobResource {
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
     public Map getJobs(@QueryParam("status") @DefaultValue("") String jobStatus) {
-        return jobProcesser.
+        return jobProcessor.
                 getJobs(jobStatus);
     }
 
@@ -71,7 +73,7 @@ public class JobResource {
     @PUT
     @Timed
     public String pause(@PathParam("jobId") String jobId) {
-        String killStatus = jobProcesser.killJob(jobId);
+        String killStatus = jobProcessor.killJob(jobId);
         statsSyncThread.removeJob(jobId);
         return "{'message' : '"+killStatus+"'}";
     }

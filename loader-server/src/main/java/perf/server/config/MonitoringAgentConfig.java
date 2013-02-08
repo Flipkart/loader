@@ -7,7 +7,7 @@ package perf.server.config;
  * Time: 3:31 PM
  * To change this template use File | Settings | File Templates.
  */
-public class AgentConfig {
+public class MonitoringAgentConfig {
     private int agentPort;
 
     public int getAgentPort() {

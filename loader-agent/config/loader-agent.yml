@@ -1,9 +1,8 @@
 appName: "Loader Agent"
 
 serverInfo:
-  baseUrl: "http://localhost:8888/loader-agent/dummy"
-  jobFetchResource: "/pendingJobs"
-  jobStatsSyncResource: "/jobs/$JOB_ID/stats?file=$FILE"
+  host: "localhost"
+  port: 9999
 
 libStorageConfig:
   libPath: "/usr/share/loader-agent/libs"

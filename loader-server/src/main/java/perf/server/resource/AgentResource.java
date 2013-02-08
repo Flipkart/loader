@@ -8,6 +8,7 @@ import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
 import perf.server.cache.LibCache;
+import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
 import perf.server.util.FileHelper;
 
@@ -36,7 +37,7 @@ public class AgentResource {
     synchronized public void deployPlatformLib(
             @PathParam("agentIPs") String agentIPs) throws IOException, ExecutionException, InterruptedException {
         for(String agentIP : agentIPs.split(","))
-            deployPlatformLibs(agentIP);
+            new LoaderAgentClient(agentIP, agentConfig.getAgentPort()).deployPlatformLibs();
     }
 
 /*
@@ -57,55 +58,6 @@ public class AgentResource {
             @PathParam("agentIPs") String agentIPs) throws IOException, ExecutionException, InterruptedException {
         String classes = FileHelper.readContent(classListInputStream);
         for(String agentIP : agentIPs.split(","))
-            deployibs(agentIP, classes);
-    }
-
-
-    private void deployPlatformLibs(String agentIP) throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
-                preparePost("http://"+agentIP+":" + agentConfig.getAgentPort() + agentConfig.getPlatformLibResource()).
-                setHeader("Content-Type", "multipart/form-data").
-                addBodyPart(new FilePart("lib",new File(libCache.getPlatformLibPath())));
-
-        Future<Response> r = b.execute();
-        if(!r.isDone())
-            r.get();
-
-        asyncHttpClient.close();
-    }
-
-    private void deployibs(String agentIP, String classList) throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        Map<String,String> libClassListMap = makeLibClassListMap(classList);
-
-        for(String lib : libClassListMap.keySet()) {
-            AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
-                    preparePost("http://" + agentIP + ":" + agentConfig.getAgentPort() + agentConfig.getClassLibResource()).
-                    setHeader("Content-Type", "multipart/form-data").
-                    addBodyPart(new FilePart("lib", new File(lib))).
-                    addBodyPart(new StringPart("classList", libClassListMap.get(lib)));
-
-            Future<Response> r = b.execute();
-            r.get();
-        }
-        asyncHttpClient.close();
-    }
-
-    private Map<String, String> makeLibClassListMap(String classList) {
-        Map<String,String> libClassListMap = new HashMap<String, String>();
-        List<String> libsRequired = new ArrayList<String>();
-        for(String className : classList.split("\n")) {
-            libsRequired.add(libCache.getLibsMapWithClassAsKey().get(className));
-        }
-
-        for(String libRequired : libsRequired) {
-            String libClassListStr = "";
-            List<String> libClassList = libCache.getLibsMapWithLibAsKey().get(libRequired);
-            for(String libClass : libClassList)
-                libClassListStr += libClass + "\n";
-            libClassListMap.put(libRequired, libClassListStr.trim());
-        }
-        return libClassListMap;
+            new LoaderAgentClient(agentIP, agentConfig.getAgentPort()).deployOperationLibs(classes);
     }
 }
