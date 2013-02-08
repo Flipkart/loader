@@ -8,34 +8,24 @@ package perf.agent.config;
  * To change this template use File | Settings | File Templates.
  */
 public class ServerInfo {
-    private String baseUrl;
-    private String jobFetchResource;
-    private String jobStatsSyncResource;
+    private String host;
+    private int port;
 
-    public String getBaseUrl() {
-        return baseUrl;
+    public String getHost() {
+        return host;
     }
 
-    public ServerInfo setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
+    public ServerInfo setHost(String host) {
+        this.host = host;
         return this;
     }
 
-    public String getJobFetchResource() {
-        return jobFetchResource;
+    public int getPort() {
+        return port;
     }
 
-    public ServerInfo setJobFetchResource(String jobFetchResource) {
-        this.jobFetchResource = jobFetchResource;
-        return this;
-    }
-
-    public String getJobStatsSyncResource() {
-        return jobStatsSyncResource;
-    }
-
-    public ServerInfo setJobStatsSyncResource(String jobStatsSyncResource) {
-        this.jobStatsSyncResource = jobStatsSyncResource;
+    public ServerInfo setPort(int port) {
+        this.port = port;
         return this;
     }
 }

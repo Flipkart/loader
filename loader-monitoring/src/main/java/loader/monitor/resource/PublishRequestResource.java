@@ -1,14 +1,9 @@
 package loader.monitor.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yammer.dropwizard.jersey.params.IntParam;
 import com.yammer.metrics.annotation.Timed;
-import loader.monitor.cache.ResourceCache;
-import loader.monitor.collector.ResourceCollectionInstance;
-import loader.monitor.domain.Metric;
-import loader.monitor.domain.PublisherRequest;
-import loader.monitor.publisher.PublisherThread;
-import loader.monitor.util.FileHelper;
+import loader.monitor.domain.MetricPublisherRequest;
+import loader.monitor.publisher.MetricPublisherThread;
 import org.apache.log4j.Logger;
 
 import javax.validation.Valid;
@@ -26,16 +21,16 @@ import java.util.*;
  */
 @Path("/publishResourcesRequests")
 public class PublishRequestResource {
-    private static Map<String, PublisherRequest> publisherRequestMap;
+    private static Map<String, MetricPublisherRequest> publisherRequestMap;
     private static Logger log;
-    private PublisherThread publisherThread;
+    private MetricPublisherThread metricPublisherThread;
 
-    public PublishRequestResource(PublisherThread publisherThread) {
-        this.publisherThread = publisherThread;
+    public PublishRequestResource(MetricPublisherThread metricPublisherThread) {
+        this.metricPublisherThread = metricPublisherThread;
     }
 
     static {
-        publisherRequestMap = new HashMap<String, PublisherRequest>();
+        publisherRequestMap = new HashMap<String, MetricPublisherRequest>();
         log = Logger.getLogger(PublishRequestResource.class);
     }
 
@@ -53,18 +48,21 @@ public class PublishRequestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @POST
     @Timed
-    synchronized public void addRequest(@Valid PublisherRequest publisherRequest) throws IOException, InterruptedException {
-        publisherThread.addRequest(publisherRequest);
-        publisherRequestMap.put(publisherRequest.getRequestId(), publisherRequest);
+    synchronized public void addRequest(@Valid MetricPublisherRequest metricPublisherRequest) throws IOException, InterruptedException {
+        log.info("Publisher Request :"+new ObjectMapper().writeValueAsString(metricPublisherRequest));
+        metricPublisherThread.addRequest(metricPublisherRequest);
+        publisherRequestMap.put(metricPublisherRequest.getRequestId(), metricPublisherRequest);
+        log.info("All Publisher Requests :"+publisherRequestMap.toString());
     }
 
-    @Path("requestId")
+    @Path("/{requestId}")
     @DELETE
     @Timed
     synchronized public void removeRequest(@PathParam("requestId") String requestId) throws IOException, InterruptedException {
-        PublisherRequest publisherRequest = publisherRequestMap.remove(requestId);
-        if(publisherRequest != null)
-            publisherThread.removeRequest(publisherRequest);
+        log.info("All Publisher Requests :"+publisherRequestMap.toString());
+        MetricPublisherRequest metricPublisherRequest = publisherRequestMap.remove(requestId);
+        if(metricPublisherRequest != null)
+            metricPublisherThread.removeRequest(metricPublisherRequest);
         else
             throw new WebApplicationException(404);
     }

@@ -1,5 +1,6 @@
 package perf.agent.cache;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import perf.agent.config.LibStorageConfig;
 
 import javax.xml.ws.WebServiceException;
@@ -71,9 +72,10 @@ public class LibCache {
         }
     }
 
-    public String buildJobClassPath(String classListStr) throws IOException {
+    public String buildJobClassPath(List<String> classList) throws IOException {
+//        List<String> classList = new ObjectMapper().readValue(classListStr, List.class);
         Set<String> libs = new HashSet<String>();
-        String[] classList = classListStr.split("\n");
+//        String[] classList = classListStr.split("\n");
 
         String classPath = platformLibClassPath + File.pathSeparator;
 

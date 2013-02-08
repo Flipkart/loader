@@ -14,6 +14,8 @@ public class LoaderServerConfiguration extends Configuration {
     private String appName;
     private LibStorageConfig libStorageConfig;
     private AgentConfig agentConfig;
+    private MonitoringAgentConfig monitoringAgentConfig;
+    private JobStatsConfig jobStatsConfig;
 
     public String getAppName() {
         return appName;
@@ -37,5 +39,21 @@ public class LoaderServerConfiguration extends Configuration {
 
     public void setAgentConfig(AgentConfig agentConfig) {
         this.agentConfig = agentConfig;
+    }
+
+    public JobStatsConfig getJobStatsConfig() {
+        return jobStatsConfig;
+    }
+
+    public void setJobStatsConfig(JobStatsConfig jobStatsConfig) {
+        this.jobStatsConfig = jobStatsConfig;
+    }
+
+    public MonitoringAgentConfig getMonitoringAgentConfig() {
+        return monitoringAgentConfig;
+    }
+
+    public void setMonitoringAgentConfig(MonitoringAgentConfig monitoringAgentConfig) {
+        this.monitoringAgentConfig = monitoringAgentConfig;
     }
 }

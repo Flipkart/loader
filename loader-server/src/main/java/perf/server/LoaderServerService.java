@@ -27,7 +27,9 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
 
         environment.addResource(new DeployLibResource(configuration.getLibStorageConfig()));
         environment.addResource(new AgentResource(configuration.getAgentConfig()));
-        environment.addResource(new JobResource(configuration.getAgentConfig()));
+        environment.addResource(new JobResource(configuration.getAgentConfig(),
+                configuration.getMonitoringAgentConfig(),
+                configuration.getJobStatsConfig()));
     }
 
 

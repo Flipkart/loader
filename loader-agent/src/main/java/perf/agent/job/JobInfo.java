@@ -1,11 +1,8 @@
 package perf.agent.job;
 
 /**
- * Created by IntelliJ IDEA.
- * User: nitinka
- * Date: 30/12/12
- * Time: 8:08 PM
- * To change this template use File | Settings | File Templates.
+ * nitinka
+ * Information about the job that is being executed.
  */
 public class JobInfo {
     private String jobId, jobCmd;

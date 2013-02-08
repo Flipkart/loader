@@ -6,14 +6,14 @@ libStorageConfig:
   mappingFile: "/usr/share/loader-server/config/mapping.properties"
 
 agentConfig:
-  platformLibResource: "/loader-agent/deploy/platformLibs"
-  classLibResource: "/loader-agent/deploy/libs"
-  jobResource: "/loader-agent/jobs"
   agentPort: 8888
 
+monitoringAgentConfig:
+  agentPort: 7777
+
 jobStatsConfig:
-  jobStatsFolder: "/var/log/loader-server/jobs/$JOB_ID/jobStats"
-  jobMonitoringStats: "/var/log/loader-server/jobs/$JOB_ID/monitoringAgents/$AGENT_IP/Resources/$RESOURCE"
+  jobStatsFolder: "/var/log/loader-server/jobs/$JOB_ID/agents/$AGENT_IP/jobStats"
+  jobMonitoringStats: "/var/log/loader-server/jobs/$JOB_ID/agents/$AGENT_IP/Resources/$RESOURCE.txt"
 
 http:
   port: 9999

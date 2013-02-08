@@ -2,8 +2,7 @@ package loader.monitor.collector.jmx;
 
 import com.sun.management.GarbageCollectorMXBean;
 import loader.monitor.collector.BaseCollector;
-import loader.monitor.collector.ResourceCollectionInstance;
-import loader.monitor.domain.Metric;
+import loader.monitor.domain.ResourceCollectionInstance;
 
 import javax.management.MalformedObjectNameException;
 import java.io.IOException;
@@ -18,7 +17,6 @@ import java.util.*;
  * To change this template use File | Settings | File Templates.
  */
 public class JMXCollector extends BaseCollector {
-    public static final String  JVM                = "jvm";
     public static final String  MEMORY             = "memory";
     public static final String  HEAP_MEMORY        = "heapMemory";
     public static final String  NON_HEAP_MEMORY    = "nonHeapMemory";
@@ -65,33 +63,33 @@ public class JMXCollector extends BaseCollector {
         return collectionInstance.setTime(System.currentTimeMillis());
     }
 
-    private List<Metric> getOSMetrics(JVMInfo jvmInfo) throws IOException {
-        List<Metric> metrics = new ArrayList<Metric>();
+    private Map<String, Double> getOSMetrics(JVMInfo jvmInfo) throws IOException {
+        Map<String, Double> metrics = new HashMap<String, Double>();
         if(jvmInfo.getImplementationVersion().startsWith("1.6")) {
             OperatingSystemMXBean   osMXBean        = jvmInfo.getOperatingSystemMXBean();
-            metrics.add(new Metric().setName(OS+"." + SYSTEM_AVERAGE_LOAD).setValue((double) osMXBean.getSystemLoadAverage()));
+            metrics.put(OS + "." + SYSTEM_AVERAGE_LOAD, osMXBean.getSystemLoadAverage());
         }
 
         return metrics;
     }
 
-    private List<Metric> getClassLoadingMetrics(JVMInfo jvmInfo) throws IOException {
-        List<Metric> metrics = new ArrayList<Metric>();
+    private Map<String, Double> getClassLoadingMetrics(JVMInfo jvmInfo) throws IOException {
+        Map<String, Double> metrics = new HashMap<String, Double>();
         ClassLoadingMXBean classLoadingMXBean  = jvmInfo.getClassLoadingMXBean();
 
-        metrics.add(new Metric().setName(CLASS_LOADER+"." + CLASS_TOTAL_LOADED).setValue((double) classLoadingMXBean.getTotalLoadedClassCount()));
-        metrics.add(new Metric().setName(CLASS_LOADER+"." + CLASS_CURRENTLY_LOADED).setValue((double) classLoadingMXBean.getLoadedClassCount()));
-        metrics.add(new Metric().setName(CLASS_LOADER+"." + CLASS_TOTAL_UNLOADED).setValue((double) classLoadingMXBean.getUnloadedClassCount()));
+        metrics.put(CLASS_LOADER + "." + CLASS_TOTAL_LOADED, (double) classLoadingMXBean.getTotalLoadedClassCount());
+        metrics.put(CLASS_LOADER + "." + CLASS_CURRENTLY_LOADED, (double) classLoadingMXBean.getLoadedClassCount());
+        metrics.put(CLASS_LOADER + "." + CLASS_TOTAL_UNLOADED, (double) classLoadingMXBean.getUnloadedClassCount());
 
         return metrics;
     }
 
-    private List<Metric> getThreadsMetric(JVMInfo jvmInfo) throws IOException {
-        List<Metric> metrics = new ArrayList<Metric>();
+    private Map<String, Double> getThreadsMetric(JVMInfo jvmInfo) throws IOException {
+        Map<String, Double> metrics = new HashMap<String, Double>();
         ThreadMXBean threadMXBean    = jvmInfo.getThreadMXBean();
 
-        metrics.add(new Metric().setName(THREAD + "." + THREADS_TOTAL).setValue((double) threadMXBean.getTotalStartedThreadCount()));
-        metrics.add(new Metric().setName(THREAD + "." + THREADS_CURRENT).setValue((double) threadMXBean.getThreadCount()));
+        metrics.put(THREAD + "." + THREADS_TOTAL, (double) threadMXBean.getTotalStartedThreadCount());
+        metrics.put(THREAD + "." + THREADS_CURRENT, (double) threadMXBean.getThreadCount());
 
         if(jvmInfo.getImplementationVersion().startsWith("1.6")) {
             int deadLockedThreadsCount      =   0;
@@ -99,48 +97,46 @@ public class JMXCollector extends BaseCollector {
             if(deadLockedThreads    !=  null)
                 deadLockedThreadsCount  =   deadLockedThreads.length;
 
-            metrics.add(new Metric().setName("thread." + THREADS_DEADLOCKED).setValue((double) deadLockedThreadsCount));
+            metrics.put("thread." + THREADS_DEADLOCKED, (double) deadLockedThreadsCount);
         }
 
         return metrics;
     }
 
-    private List<Metric> getGCMetrics(JVMInfo jvmInfo) throws MalformedObjectNameException, IOException {
-        List<Metric> metrics = new ArrayList<Metric>();
+    private Map<String, Double> getGCMetrics(JVMInfo jvmInfo) throws MalformedObjectNameException, IOException {
+        Map<String, Double> metrics = new HashMap<String, Double>();
         List<GarbageCollectorMXBean> gcPool	=	jvmInfo.getGCPoolMXBeans();
         for(GarbageCollectorMXBean	gc	:	gcPool) {
-            metrics.add(new Metric().setName(GC + "." + gc.getName() + ".count").setValue((double) gc.getCollectionCount()));
-            metrics.add(new Metric().setName(GC + "." + gc.getName() + ".time").setValue((double) gc.getCollectionTime()));
+            metrics.put(GC + "." + gc.getName() + ".count", (double) gc.getCollectionCount());
+            metrics.put(GC + "." + gc.getName() + ".time", (double) gc.getCollectionTime());
         }
         return metrics;
     }
 
-    private List<Metric> getMemoryMetrics(JVMInfo jvmInfo) throws IOException, MalformedObjectNameException {
-        List<Metric> metrics = new ArrayList<Metric>();
+    private Map<String, Double> getMemoryMetrics(JVMInfo jvmInfo) throws IOException, MalformedObjectNameException {
+        Map<String, Double> metrics = new HashMap<String, Double>();
 
         MemoryMXBean memoryMXBean = jvmInfo.getMemoryMXBean();
         MemoryUsage memoryUsage = memoryMXBean.getHeapMemoryUsage();
 
-        metrics.add(new Metric().setName("memory." + HEAP_MEMORY + "." + MAX).setValue((double) memoryUsage.getMax()));
-        metrics.add(new Metric().setName("memory."+HEAP_MEMORY+"."+COMMITTED).setValue((double)memoryUsage.getCommitted()));
-        metrics.add(new Metric().setName("memory."+HEAP_MEMORY+"."+USED).setValue((double)memoryUsage.getUsed()));
-        metrics.add(new Metric().setName("memory."+HEAP_MEMORY+"."+PERCENTAGE).setValue(memoryUsage.getUsed()*100d/memoryUsage.getMax()));
+        metrics.put(MEMORY + "." + HEAP_MEMORY + "." + MAX, (double) memoryUsage.getMax());
+        metrics.put(MEMORY + "." + HEAP_MEMORY + "." + COMMITTED, (double) memoryUsage.getCommitted());
+        metrics.put(MEMORY + "." + HEAP_MEMORY + "." + USED, (double) memoryUsage.getUsed());
+        metrics.put(MEMORY + "." + HEAP_MEMORY + "." + PERCENTAGE, memoryUsage.getUsed() * 100d / memoryUsage.getMax());
  
         memoryUsage                         = memoryMXBean.getNonHeapMemoryUsage();
-        metrics.add(new Metric().setName("memory."+NON_HEAP_MEMORY+"."+MAX).setValue((double)memoryUsage.getMax()));
-        metrics.add(new Metric().setName("memory."+NON_HEAP_MEMORY+"."+COMMITTED).setValue((double)memoryUsage.getCommitted()));
-        metrics.add(new Metric().setName("memory."+NON_HEAP_MEMORY+"."+USED).setValue((double)memoryUsage.getUsed()));
-        metrics.add(new Metric().setName("memory."+NON_HEAP_MEMORY+"."+PERCENTAGE).setValue(memoryUsage.getUsed()*100d/memoryUsage.getMax()));
+        metrics.put(MEMORY + "." + NON_HEAP_MEMORY + "." + MAX, (double) memoryUsage.getMax());
+        metrics.put(MEMORY + "." + NON_HEAP_MEMORY + "." + COMMITTED, (double) memoryUsage.getCommitted());
+        metrics.put(MEMORY + "." + NON_HEAP_MEMORY + "." + USED, (double) memoryUsage.getUsed());
+        metrics.put(MEMORY + "." + NON_HEAP_MEMORY + "." + PERCENTAGE, memoryUsage.getUsed() * 100d / memoryUsage.getMax());
 
-        List<MemoryPoolMXBean> memoryPoolMXBealList = jvmInfo.getMemoryPoolMXBeans();
-        for(MemoryPoolMXBean memoryBean : memoryPoolMXBealList) {
-            memoryUsage = memoryBean.getUsage();
+        List<MemoryPoolMXBean> memoryPoolMXBeanList = jvmInfo.getMemoryPoolMXBeans();
+        for(MemoryPoolMXBean memoryBean : memoryPoolMXBeanList) {
             memoryUsage  = memoryMXBean.getNonHeapMemoryUsage();
-            metrics.add(new Metric().setName("memory."+memoryBean.getName().replace(" " , "_")+"."+MAX).setValue((double)memoryUsage.getMax()));
-            metrics.add(new Metric().setName("memory."+memoryBean.getName().replace(" " , "_")+"."+COMMITTED).setValue((double)memoryUsage.getCommitted()));
-            metrics.add(new Metric().setName("memory."+memoryBean.getName().replace(" " , "_")+"."+USED).setValue((double)memoryUsage.getUsed()));
-            metrics.add(new Metric().setName("memory." + memoryBean.getName().replace(" ", "_") + "." + PERCENTAGE).setValue(memoryUsage.getUsed() * 100d / memoryUsage.getMax()));
-
+            metrics.put(MEMORY + "." + memoryBean.getName().replace(" ", "_") + "." + MAX, (double) memoryUsage.getMax());
+            metrics.put(MEMORY + "." + memoryBean.getName().replace(" ", "_") + "." + COMMITTED, (double) memoryUsage.getCommitted());
+            metrics.put(MEMORY + "." + memoryBean.getName().replace(" ", "_") + "." + USED, (double) memoryUsage.getUsed());
+            metrics.put(MEMORY + "." + memoryBean.getName().replace(" ", "_") + "." + PERCENTAGE, memoryUsage.getUsed() * 100d / memoryUsage.getMax());
         }
 
         return metrics;

@@ -4,19 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yammer.dropwizard.jersey.params.IntParam;
 import com.yammer.metrics.annotation.Timed;
 import loader.monitor.cache.ResourceCache;
-import loader.monitor.collector.ResourceCollectionInstance;
-import loader.monitor.domain.Metric;
+import loader.monitor.domain.ResourceCollectionInstance;
 import loader.monitor.util.FileHelper;
 import org.apache.log4j.Logger;
-import org.eclipse.jetty.util.resource.ResourceCollection;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.FileHandler;
 
 /**
  * Created by IntelliJ IDEA.
@@ -52,29 +47,29 @@ public class CollectorResource {
                                         @QueryParam("count") @DefaultValue("1") IntParam count) throws IOException, InterruptedException {
         String[] resources = resourcesStr.split(",");
         Map<String, List<ResourceCollectionInstance>> resourceCollectionInstances = new HashMap<String, List<ResourceCollectionInstance>>();
-        for(String resoucre : resources) {
-            resourceCollectionInstances.put(resoucre, ResourceCache.getStats(resoucre, count.get()));
+        for(String resource : resources) {
+            resourceCollectionInstances.put(resource, ResourceCache.getStats(resource, count.get()));
         }
         return resourceCollectionInstances;
     }
 
     @POST
     @Timed
-    synchronized public void addMetric(@PathParam("resource") String resource, String metricFromCollector) throws IOException, InterruptedException {
-        Map<String, ResourceCollectionInstance> resourcMetrics = metricHash(metricFromCollector);
-        log.info(new ObjectMapper().writeValueAsString(resourcMetrics));
-        cacheResources(resourcMetrics);
+    synchronized public void addMetric(String metricFromCollector) throws IOException, InterruptedException {
+        Map<String, ResourceCollectionInstance> resourceMetrics = metricHash(metricFromCollector);
+        //log.info(new ObjectMapper().writeValueAsString(resourceMetrics));
+        cacheResources(resourceMetrics);
     }
 
-    private void cacheResources(Map<String, ResourceCollectionInstance> resourcMetrics) {
-        for(String resource : resourcMetrics.keySet()) {
-            ResourceCache.addStats(resourcMetrics.get(resource));
+    private void cacheResources(Map<String, ResourceCollectionInstance> resourceMetrics) {
+        for(String resource : resourceMetrics.keySet()) {
+            ResourceCache.addStats(resourceMetrics.get(resource));
         }
     }
 
     private static Map<String,ResourceCollectionInstance> metricHash(String metricFromCollector) {
         String[] metricLines = metricFromCollector.split("\n");
-        log.info("Metric Lines :"+metricLines.length);
+        //log.debug("Metric Lines :"+metricLines.length);
         Map<String,ResourceCollectionInstance> resourceMetrics = new HashMap<String, ResourceCollectionInstance>();
 
 
@@ -82,7 +77,7 @@ public class CollectorResource {
             if(!metricLine.trim().equals("")) {
                 long time = Long.parseLong(metricLine.split(" ")[2]);
 
-                log.info("Line :"+metricLine);
+                //log.info("debug :"+metricLine);
                 String[] lineTokens = metricLine.split(" ");
                 String[] keyTokens = lineTokens[0].split("\\.");
 
@@ -93,14 +88,12 @@ public class CollectorResource {
                 }
 
                 if(ignoreResource(resource)) {
-                    //log.debug("Ignoring "+resource);
                     continue;
                 }
 
                 resource += "@"+time;
                 String metricName = keyTokens[keyTokens.length-1];
                 Double metricValue = Double.parseDouble(lineTokens[1]);
-                Metric metric = new Metric().setName(metricName).setValue(metricValue);
 
                 ResourceCollectionInstance collectionInstance = resourceMetrics.get(resource);
 
@@ -109,7 +102,7 @@ public class CollectorResource {
                                 setResourceName(resource.split("@")[0]).
                                 setTime(time) :
                         collectionInstance;
-                collectionInstance.addMetric(metric);
+                collectionInstance.addMetric(metricName, metricValue);
 
                 resourceMetrics.put(resource, collectionInstance);
            }

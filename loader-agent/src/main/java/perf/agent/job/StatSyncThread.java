@@ -3,6 +3,7 @@ package perf.agent.job;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import org.apache.log4j.Logger;
+import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobStatSyncConfig;
 import perf.agent.config.ServerInfo;
 import perf.agent.util.FileHelper;
@@ -32,6 +33,7 @@ public class StatSyncThread extends Thread{
     private static StatSyncThread statSyncThread;
     private ServerInfo serverInfo;
     private static Logger log = Logger.getLogger(StatSyncThread.class);
+    private LoaderServerClient serverClient;
 
     private static class FileTouchPoint {
         private long lastModifiedTime;
@@ -65,7 +67,7 @@ public class StatSyncThread extends Thread{
         this.syncConfig = config;
         this.fileTouchPointMap = new HashMap<String, FileTouchPoint>();
         this.jobIds = new ArrayList<String>();
-        this.serverInfo = serverInfo;
+        this.serverClient = new LoaderServerClient(serverInfo.getHost(), serverInfo.getPort());
     }
 
     public void addJobToSync(String jobId) {
@@ -73,6 +75,7 @@ public class StatSyncThread extends Thread{
     }
 
     public void removeJob(String jobId) {
+        syncJobStatFiles(jobId);
         this.jobIds.remove(jobId);
     }
 
@@ -80,13 +83,7 @@ public class StatSyncThread extends Thread{
         while(true) {
             synchronized (jobIds) {
                 for(String jobId : jobIds) {
-                    String jobPath = syncConfig.getJobBasePath() + File.separator + jobId;
-
-                    List<File> jobFiles = FileHelper.pathFiles(jobPath, true);
-                    log.info("Job "+jobId+" Files to Read and may have to publish "+jobFiles.size());
-                    for(File jobFile : jobFiles) {
-                        readAndPublish(jobId, jobFile);
-                    }
+                    syncJobStatFiles(jobId);
                 }
             }
 
@@ -99,8 +96,19 @@ public class StatSyncThread extends Thread{
 
     }
 
+    private void syncJobStatFiles(String jobId) {
+        String jobPath = syncConfig.getJobBasePath() + File.separator + jobId;
+
+        List<File> jobFiles = FileHelper.pathFiles(jobPath, true);
+        log.info("Job "+jobId+" Files to Read and may have to publish "+jobFiles.size());
+        for(File jobFile : jobFiles) {
+            readAndPublish(jobId, jobFile);
+        }
+    }
+
     private void readAndPublish(String jobId, File jobFile) {
         FileTouchPoint fileTouchPoint = this.fileTouchPointMap.get(jobFile.getAbsolutePath());
+
         boolean needToReadFile = false;
         long lastReadPoint = -1;
         if(fileTouchPoint == null) {
@@ -110,12 +118,14 @@ public class StatSyncThread extends Thread{
             needToReadFile = true;
             lastReadPoint = fileTouchPoint.lastReadPoint;
         }
+
         log.info("Job "+jobId+" file "+jobFile.getAbsolutePath()+" Need to Read :"+needToReadFile);
 
         if(needToReadFile) {
             RandomAccessFile raf = null;
             try {
                 raf = new RandomAccessFile(jobFile, "r");
+
                 if(lastReadPoint != -1)
                     raf.seek(lastReadPoint);
 
@@ -132,9 +142,10 @@ public class StatSyncThread extends Thread{
                     }
                 }
                 lastReadPoint = raf.getFilePointer();
-                publishStatsToServer(jobId,
-                        jobFile.getAbsolutePath().replace(syncConfig.getJobBasePath(), ""),
-                        linesRead);
+                this.serverClient.publishJobStats(jobId,
+                                        jobFile.getAbsolutePath().replace(syncConfig.getJobBasePath(), ""),
+                                        linesRead);
+
                 fileTouchPointMap.put(jobFile.getAbsolutePath(), new FileTouchPoint(jobFile.lastModified(), lastReadPoint, eofReached));
 
             } catch (FileNotFoundException e) {
@@ -157,18 +168,6 @@ public class StatSyncThread extends Thread{
         }
     }
 
-    private void publishStatsToServer(String jobId, String filePath, String linesRead) throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
-                preparePost(this.serverInfo.getBaseUrl() + this.serverInfo.getJobStatsSyncResource().
-                        replace("$JOB_ID", jobId).replace("$FILE", filePath)).
-                setBody(linesRead);
-
-        Future<Response> r = b.execute();
-        r.get();
-        asyncHttpClient.close();
-    }
-
     public static void main(String[] args) throws InterruptedException {
         StatSyncThread syncThread = new StatSyncThread(
                 new JobStatSyncConfig().
@@ -176,8 +175,8 @@ public class StatSyncThread extends Thread{
                         setLinesToSyncInOneGo(1000).
                         setJobBasePath("/var/log/loader/jobs"),
                 new ServerInfo().
-                        setBaseUrl("http://localhost:8888/loader-agent/dummy").
-                        setJobStatsSyncResource("/jobs/$JOB_ID/stats"));
+                        setHost("localhost").
+                        setPort(9999));
         syncThread.start();
 
         syncThread.addJobToSync("job1");
