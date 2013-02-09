@@ -12,8 +12,9 @@ monitoringAgentConfig:
   agentPort: 7777
 
 jobStatsConfig:
-  jobStatsFolder: "/var/log/loader-server/jobs/$JOB_ID/agents/$AGENT_IP/jobStats"
-  jobMonitoringStats: "/var/log/loader-server/jobs/$JOB_ID/agents/$AGENT_IP/Resources/$RESOURCE.txt"
+  jobFile: "/var/log/loader-server/jobs/{jobId}/job.json"
+  jobStatsFolder: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/jobStats"
+  jobMonitoringStats: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/Resources/{resource}.txt"
 
 http:
   port: 9999

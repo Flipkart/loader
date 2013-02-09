@@ -1,5 +1,7 @@
 package perf.server.resource;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -17,15 +19,14 @@ import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
 import perf.server.exception.JobException;
 import perf.server.util.FileHelper;
+import perf.server.util.ResponseBuilderHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.ws.rs.core.Response;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import static perf.server.domain.JobInfo.JOB_STATUS;
@@ -74,23 +75,35 @@ public class JobResource {
     @POST
     @Timed
     public JobInfo submitJob(@FormDataParam("jobJson") InputStream jobJsonInfoStream)
-            throws IOException, ExecutionException, InterruptedException {
+            throws IOException, ExecutionException, InterruptedException, JobException {
+        return jobSubmitWorkflow(jobJsonInfoStream);
+    }
 
-        String jobId = UUID.randomUUID().toString();
-        JobInfo jobInfo = new JobInfo().setJobId(jobId);
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{jobId}/rerun")
+    @POST
+    @Timed
+    public JobInfo rerunJob(@PathParam("jobId") String oldJobId)
+            throws IOException, ExecutionException, InterruptedException, JobException {
 
-        try {
-            JsonNode jobInfoJsonNode = mapper.readValue(jobJsonInfoStream,JsonNode.class);
-            raiseOnDemandResourceRequest((ArrayNode) jobInfoJsonNode.get("onDemandResourcesRequests"), jobInfo);
-            raiseMetricPublishRequest((ArrayNode) jobInfoJsonNode.get("resourcePublishRequests"), jobInfo);
-            submitJobToAgents((ArrayNode) jobInfoJsonNode.get("jobs"), jobInfo);
-            jobIdInfoMap.put(jobId, jobInfo);
-        } catch (JobException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            //TBD CLEAN THE MESS IF ANYTHING WRONG HAPPENED
-        }
+        if(!isJobPresent(oldJobId))
+            throw new WebApplicationException(ResponseBuilderHelper.jobNotFound(oldJobId));
+        if(!isJobOver(oldJobId))
+            throw new WebApplicationException(ResponseBuilderHelper.jobNotOver(oldJobId));
 
-        return jobInfo;
+        String oldJobJson = getOldJobJson(oldJobId);
+        return jobSubmitWorkflow(new ByteArrayInputStream(oldJobJson.getBytes()));
+    }
+
+    private boolean isJobPresent(String jobId) {
+        return new File(jobStatsConfig.getJobFile().replace("{jobId}", jobId)).exists();
+    }
+
+    private boolean isJobOver(String jobId) {
+        return !jobIdInfoMap.containsKey(jobId) ||
+                (jobIdInfoMap.get(jobId).getJobStatus().equals(JOB_STATUS.KILLED) ||
+                jobIdInfoMap.get(jobId).getJobStatus().equals(JOB_STATUS.COMPLETED));
     }
 
     @Produces(MediaType.APPLICATION_JSON)
@@ -126,7 +139,7 @@ public class JobResource {
                                       InputStream statsStream)
             throws IOException, InterruptedException {
         String jobStatsPath = jobStatsConfig.getJobStatsFolder().
-                replace("$JOB_ID", jobId).
+                replace("{jobId}", jobId).
                 replace("$AGENT_IP", request.getRemoteAddr());
 
         String statFilePath = jobStatsPath +
@@ -159,9 +172,9 @@ public class JobResource {
 
         for(String resource : stats.keySet()) {
             String jobMonitoringStatsPath = jobStatsConfig.getJobMonitoringStats().
-                    replace("$JOB_ID", jobId).
-                    replace("$AGENT_IP", request.getRemoteAddr()).
-                    replace("$RESOURCE", resource);
+                    replace("{jobId}", jobId).
+                    replace("{agentIp}", request.getRemoteAddr()).
+                    replace("{resource}", resource);
 
             List resourceInstances = (ArrayList) stats.get(resource);
             FileHelper.createFilePath(jobMonitoringStatsPath);
@@ -248,6 +261,50 @@ public class JobResource {
         killJobInAgents(jobId, Arrays.asList(agentIps.split(",")));
         jobLastResourceMetricInstanceMap.remove(jobId);
         stopMonitoring(jobId);
+    }
+
+    private JobInfo jobSubmitWorkflow(InputStream jobJsonStream)
+            throws IOException, ExecutionException, InterruptedException, JobException {
+        JobInfo jobInfo = new JobInfo().
+                setJobId(UUID.randomUUID().toString());
+        JsonNode jobInfoJsonNode = mapper.readValue(jobJsonStream,JsonNode.class);
+
+        // Persisting Job Json in Local File system.
+        persistJob(jobInfo.getJobId(), jobInfoJsonNode);
+
+        // Raising request to monitoring agents to start collecting metrics from on demand resource collectors
+        raiseOnDemandResourceRequest((ArrayNode) jobInfoJsonNode.get("onDemandResourcesRequests"), jobInfo);
+
+        // Raising request to monitoring agents to start publishing collected metrics to Loader server
+        raiseMetricPublishRequest((ArrayNode) jobInfoJsonNode.get("resourcePublishRequests"), jobInfo);
+
+        // Submitting Jobs to Loader Agent
+        submitJobToAgents((ArrayNode) jobInfoJsonNode.get("jobs"), jobInfo);
+
+        // Persisting Job Info(mostly status) in memory
+        jobIdInfoMap.put(jobInfo.getJobId(), jobInfo);
+        return jobInfo;
+    }
+
+    /**
+     * Get the job json of old Job
+     * @param oldJobId
+     * @return
+     * @throws IOException
+     */
+    private String getOldJobJson(String oldJobId) throws IOException {
+        InputStream is = new FileInputStream(jobStatsConfig.getJobFile().replace("{jobId}", oldJobId));
+        try {
+            return FileHelper.readContent(is);
+        }
+        catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            throw e;
+        }
+        finally {
+            if(is != null)
+                is.close();
+        }
     }
 
     private void killJobInAgents(String jobId, Collection<String> agents) throws InterruptedException, ExecutionException, JobException {
@@ -369,5 +426,14 @@ public class JobResource {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
         }
+    }
+
+    private void persistJob(String jobId, JsonNode jobInfoJsonNode) throws IOException {
+        String jobFile = jobStatsConfig.getJobFile().
+                replace("{jobId}", jobId);
+        FileHelper.createFilePath(jobFile);
+        FileHelper.persistStream(new ByteArrayInputStream(jobInfoJsonNode.toString().getBytes()),
+                jobFile,
+                true);
     }
 }

@@ -10,6 +10,7 @@ package perf.server.config;
 public class JobStatsConfig {
     private String jobStatsFolder;
     private String jobMonitoringStats;
+    private String jobFile;
 
     public String getJobStatsFolder() {
         return jobStatsFolder;
@@ -25,5 +26,13 @@ public class JobStatsConfig {
 
     public void setJobMonitoringStats(String jobMonitoringStats) {
         this.jobMonitoringStats = jobMonitoringStats;
+    }
+
+    public String getJobFile() {
+        return jobFile;
+    }
+
+    public void setJobFile(String jobFile) {
+        this.jobFile = jobFile;
     }
 }
