@@ -73,7 +73,8 @@ public class JobInfo {
     public JobInfo jobCompletedInAgent(String agentIp) {
         this.agentsJobStatus.put(agentIp, JOB_STATUS.COMPLETED);
         if(!this.agentsJobStatus.containsValue(JOB_STATUS.RUNNING) &&
-                !this.agentsJobStatus.containsValue(JOB_STATUS.PAUSED))
+                !this.agentsJobStatus.containsValue(JOB_STATUS.PAUSED) &&
+                !this.agentsJobStatus.containsValue(JOB_STATUS.KILLED))
             this.jobStatus = JOB_STATUS.COMPLETED;
         return this;
     }
