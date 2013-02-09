@@ -34,6 +34,7 @@ public class LoaderAgentClient {
     private static final String RESOURCE_PLATFORM_LIB = "/loader-agent/deploy/platformLibs";
     private static final String RESOURCE_OPERATION_LIB = "/loader-agent/deploy/libs";
     private static final String RESOURCE_JOB = "/loader-agent/jobs";
+    private static final String RESOURCE_JOB_KILL = "/loader-agent/jobs/{jobId}/kill";
 
     static {
         libCache = LibCache.getInstance();
@@ -96,9 +97,9 @@ public class LoaderAgentClient {
     }
 
     public void submitJob(String jobId, String jobJson, String classListStr) throws ExecutionException, InterruptedException, JobException {
-        logger.info("Job Id :"+jobId);
-        logger.info("Job Json :"+jobJson);
-        logger.info("Class List Str :"+classListStr);
+        //logger.debug("Job Id :"+jobId);
+        //logger.debug("Job Json :"+jobJson);
+        //logger.debug("Class List Str :"+classListStr);
 
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
@@ -115,6 +116,28 @@ public class LoaderAgentClient {
             r.get();
             if(r.get().getStatusCode() != 200) {
                 throw new JobException("JobId "+jobId+" submission failed with error response :"+r.get().getResponseBody());
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        finally {
+            asyncHttpClient.close();
+        }
+    }
+
+    public void killJob(String jobId) throws ExecutionException, InterruptedException, JobException {
+        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+                preparePut("http://"+this.getHost()+":" +
+                        this.getPort() +
+                        RESOURCE_JOB_KILL.
+                                replace("{jobId}", jobId));
+        try {
+            Future<Response> r = b.execute();
+            r.get();
+            if(r.get().getStatusCode() != 200) {
+                throw new JobException("JobId "+jobId+" kill failed with error response :"+r.get().getResponseBody());
             }
         }
         catch (IOException e) {

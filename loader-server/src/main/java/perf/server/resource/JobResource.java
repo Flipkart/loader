@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import static perf.server.domain.JobInfo.JOB_STATUS;
 
 @Path("/jobs")
 public class JobResource {
@@ -37,12 +38,12 @@ public class JobResource {
     private JobStatsConfig jobStatsConfig;
 
     private static ObjectMapper mapper;
-    private static Map<String, JobInfo> jobInfoMap;
+    private static Map<String, JobInfo> jobIdInfoMap;
     private static Map<String,Map<String,String>> jobLastResourceMetricInstanceMap;
     private static Logger log;
 
     static {
-        jobInfoMap = new HashMap<String, JobInfo>();
+        jobIdInfoMap = new HashMap<String, JobInfo>();
         mapper = new ObjectMapper();
         jobLastResourceMetricInstanceMap = new HashMap<String, Map<String, String>>();
         log = Logger.getLogger(JobResource.class);
@@ -83,7 +84,7 @@ public class JobResource {
             raiseOnDemandResourceRequest((ArrayNode) jobInfoJsonNode.get("onDemandResourcesRequests"), jobInfo);
             raiseMetricPublishRequest((ArrayNode) jobInfoJsonNode.get("resourcePublishRequests"), jobInfo);
             submitJobToAgents((ArrayNode) jobInfoJsonNode.get("jobs"), jobInfo);
-            jobInfoMap.put(jobId, jobInfo);
+            jobIdInfoMap.put(jobId, jobInfo);
         } catch (JobException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             //TBD CLEAN THE MESS IF ANYTHING WRONG HAPPENED
@@ -97,14 +98,14 @@ public class JobResource {
     @GET
     @Timed
     public JobInfo getJob(@PathParam("jobId") String jobId) {
-        return jobInfoMap.get(jobId);
+        return jobIdInfoMap.get(jobId);
     }
 
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     @Timed
     public Map getJobs() {
-        return jobInfoMap;
+        return jobIdInfoMap;
     }
 
     /**
@@ -207,11 +208,61 @@ public class JobResource {
                         @PathParam("jobId") String jobId) throws InterruptedException, ExecutionException, IOException {
 
         String agentIp = request.getRemoteAddr();
-        jobInfoMap.get(jobId).jobCompletedInAgent(agentIp);
+        jobIdInfoMap.get(jobId).jobCompletedInAgent(agentIp);
 
-        if(jobCompleted(jobInfoMap.get(jobId))){
+        if(jobCompleted(jobIdInfoMap.get(jobId))){
             jobLastResourceMetricInstanceMap.remove(jobId);
             stopMonitoring(jobId);
+        }
+    }
+
+
+    /**
+     * Will be called from Loader Server Management UI To kill the job in all agents
+     * @param jobId
+     * @throws InterruptedException
+     * @throws ExecutionException
+     * @throws IOException
+     */
+    @Path("/{jobId}/kill")
+    @PUT
+    @Timed
+    public void killJob(@PathParam("jobId") String jobId) throws InterruptedException, ExecutionException, IOException, JobException {
+        killJobInAgents(jobId, jobIdInfoMap.get(jobId).getAgentsJobStatus().keySet());
+        jobLastResourceMetricInstanceMap.remove(jobId);
+        stopMonitoring(jobId);
+    }
+
+    /**
+     * Will be called from Loader Server Management UI To kill the job in specific agents
+     * @param jobId
+     * @throws InterruptedException
+     * @throws ExecutionException
+     * @throws IOException
+     * @throws JobException
+     */
+    @Path("/{jobId}/agents/{agentIps}/kill")
+    @PUT
+    @Timed
+    public void killJob(@PathParam("jobId") String jobId, @PathParam("agentIps") String agentIps) throws InterruptedException, ExecutionException, IOException, JobException {
+        killJobInAgents(jobId, Arrays.asList(agentIps.split(",")));
+        jobLastResourceMetricInstanceMap.remove(jobId);
+        stopMonitoring(jobId);
+    }
+
+    private void killJobInAgents(String jobId, Collection<String> agents) throws InterruptedException, ExecutionException, JobException {
+        JobInfo jobInfo = jobIdInfoMap.get(jobId);
+        if(!jobInfo.getJobStatus().equals(JOB_STATUS.COMPLETED) &&
+                !jobInfo.getJobStatus().equals(JOB_STATUS.KILLED)) {
+
+            Map<String, JOB_STATUS> agentsJobStatusMap = jobInfo.getAgentsJobStatus();
+            for(String agent : agents) {
+                if(!agentsJobStatusMap.get(agent).equals(JOB_STATUS.KILLED) &&
+                        !agentsJobStatusMap.get(agent).equals(JOB_STATUS.COMPLETED)) {
+                    new LoaderAgentClient(agent, agentConfig.getAgentPort()).killJob(jobId);
+                    jobInfo.jobKilledInAgent(agent);
+                }
+            }
         }
     }
 
@@ -224,7 +275,7 @@ public class JobResource {
      */
     private void stopMonitoring(String jobId) throws IOException, ExecutionException, InterruptedException {
         // Need to get All
-        Set<String> monitoringAgentIps = jobInfoMap.get(jobId).getMonitoringAgents();
+        Set<String> monitoringAgentIps = jobIdInfoMap.get(jobId).getMonitoringAgents();
 
         for(String agentIp : monitoringAgentIps) {
             MonitoringClient monitoringAgent = new MonitoringClient(agentIp, monitoringAgentConfig.getAgentPort());
@@ -319,23 +370,4 @@ public class JobResource {
             }
         }
     }
-
-    public static void main(String[] args) {
-        Map<String, Object> info = new HashMap<String, Object>();
-        info.put("arg1", 100);
-        info.put("arg2", 200);
-        info.put("arg3", 300.0);
-
-        Map<String, Object> info2 = new HashMap<String, Object>();
-        info2.put("arg1", 100);
-        info2.put("arg2", 200);
-        info2.put("arg4", 300.0);
-
-        Set<Map<String,Object>> set = new LinkedHashSet<Map<String, Object>>();
-        set.add(info);
-        set.add(info2);
-        log.info(set);
-
-    }
-
 }
