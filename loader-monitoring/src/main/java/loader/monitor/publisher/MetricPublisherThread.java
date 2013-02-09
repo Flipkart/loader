@@ -68,7 +68,7 @@ public class MetricPublisherThread extends Thread{
     private boolean canPublisherRun(MetricPublisherRequest metricPublisherRequest) {
         Long lastExecutionTime =  this.requestLastExecutionTimeMap.get(metricPublisherRequest.getRequestId());
         if(lastExecutionTime != null) {
-            log.info("Time Passed Last Execution("+ metricPublisherRequest.getRequestId()+") :"+(System.currentTimeMillis() - lastExecutionTime) + "ms");
+            //log.debug("Time Passed Last Execution("+ metricPublisherRequest.getRequestId()+") :"+(System.currentTimeMillis() - lastExecutionTime) + "ms");
             return (System.currentTimeMillis() - lastExecutionTime) > metricPublisherRequest.getInterval();
         }
         return true;

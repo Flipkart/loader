@@ -100,7 +100,7 @@ public class StatSyncThread extends Thread{
         String jobPath = syncConfig.getJobBasePath() + File.separator + jobId;
 
         List<File> jobFiles = FileHelper.pathFiles(jobPath, true);
-        log.info("Job "+jobId+" Files to Read and may have to publish "+jobFiles.size());
+        //log.debug("Job "+jobId+" Files to Read and may have to publish "+jobFiles.size());
         for(File jobFile : jobFiles) {
             readAndPublish(jobId, jobFile);
         }
@@ -119,7 +119,7 @@ public class StatSyncThread extends Thread{
             lastReadPoint = fileTouchPoint.lastReadPoint;
         }
 
-        log.info("Job "+jobId+" file "+jobFile.getAbsolutePath()+" Need to Read :"+needToReadFile);
+        //log.debug("Job "+jobId+" file "+jobFile.getAbsolutePath()+" Need to Read :"+needToReadFile);
 
         if(needToReadFile) {
             RandomAccessFile raf = null;
