@@ -1,7 +1,5 @@
 package perf.server.resource;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -40,11 +38,13 @@ public class JobResource {
 
     private static ObjectMapper mapper;
     private static Map<String, JobInfo> jobInfoMap;
+    private static Map<String,Map<String,String>> jobLastResourceMetricInstanceMap;
     private static Logger log;
 
     static {
         jobInfoMap = new HashMap<String, JobInfo>();
         mapper = new ObjectMapper();
+        jobLastResourceMetricInstanceMap = new HashMap<String, Map<String, String>>();
         log = Logger.getLogger(JobResource.class);
     }
 
@@ -152,6 +152,10 @@ public class JobResource {
                                       InputStream statsStream)
             throws IOException, InterruptedException {
         Map<String,Object> stats = mapper.readValue(statsStream, Map.class);
+        Map<String,String> resourcesLastInstance = jobLastResourceMetricInstanceMap.get(jobId);
+        if(resourcesLastInstance == null)
+            resourcesLastInstance = new HashMap<String, String>();
+
         for(String resource : stats.keySet()) {
             String jobMonitoringStatsPath = jobStatsConfig.getJobMonitoringStats().
                     replace("$JOB_ID", jobId).
@@ -160,15 +164,32 @@ public class JobResource {
 
             List resourceInstances = (ArrayList) stats.get(resource);
             FileHelper.createFilePath(jobMonitoringStatsPath);
+
+            // Get Last Persisted Metric Instance. Compare it with new one, if changed then persist
+            String resourceLastInstance = resourcesLastInstance.get(resource);
+
             for(int i=0; i<resourceInstances.size(); i++) {
-                FileHelper.persistStream(new ByteArrayInputStream(resourceInstances.
+                boolean persistStat = true;
+                String resourceNewInstance = resourceInstances.
                         get(i).
                         toString().
-                        replace("resourceName="+resource+", ",""). // knocking off resource name from the files
-                        getBytes()),
-                        jobMonitoringStatsPath, true);
+                        replace("resourceName="+resource+", ","");
+
+                if(resourceLastInstance != null) {
+                    persistStat = !resourceLastInstance.equals(resourceNewInstance);
+                }
+
+                if(persistStat) {
+                    FileHelper.persistStream(new ByteArrayInputStream((resourceNewInstance+"\n"). // knocking off resource name from the files
+                            getBytes()),
+                            jobMonitoringStatsPath, true);
+                    resourcesLastInstance.put(resource, resourceNewInstance);
+                    resourceLastInstance = resourceNewInstance;
+                }
             }
+            resourcesLastInstance.put(resource, resourceLastInstance);
         }
+        jobLastResourceMetricInstanceMap.put(jobId, resourcesLastInstance);
     }
 
     /**
@@ -189,6 +210,7 @@ public class JobResource {
         jobInfoMap.get(jobId).jobCompletedInAgent(agentIp);
 
         if(jobCompleted(jobInfoMap.get(jobId))){
+            jobLastResourceMetricInstanceMap.remove(jobId);
             stopMonitoring(jobId);
         }
     }
@@ -297,4 +319,23 @@ public class JobResource {
             }
         }
     }
+
+    public static void main(String[] args) {
+        Map<String, Object> info = new HashMap<String, Object>();
+        info.put("arg1", 100);
+        info.put("arg2", 200);
+        info.put("arg3", 300.0);
+
+        Map<String, Object> info2 = new HashMap<String, Object>();
+        info2.put("arg1", 100);
+        info2.put("arg2", 200);
+        info2.put("arg4", 300.0);
+
+        Set<Map<String,Object>> set = new LinkedHashSet<Map<String, Object>>();
+        set.add(info);
+        set.add(info2);
+        log.info(set);
+
+    }
+
 }

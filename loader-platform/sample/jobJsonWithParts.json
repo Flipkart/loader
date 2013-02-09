@@ -13,7 +13,7 @@
                         "dumpDataAfterRepeats":1000,
                         "threadStartDelay":1000,
                         "repeats":5,
-                        "life":120000,
+                        "life":60000,
                         "threads":1,
                         "functions":[
                             {
@@ -38,7 +38,7 @@
                         "dumpDataAfterRepeats":1000,
                         "threadStartDelay":1000,
                         "repeats":5,
-                        "life":120000,
+                        "life":60000,
                         "threads":2,
                         "functions":[
                             {

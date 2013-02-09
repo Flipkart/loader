@@ -109,7 +109,7 @@ public class JobProcessor extends Thread{
 
     private void waitForNextIteration() {
         try {
-            log.info("Sleeping for "+config.getCheckInterval()+" ms before checking for completed/pending jobs");
+            //log.debug("Sleeping for "+config.getCheckInterval()+" ms before checking for completed/pending jobs");
             Thread.sleep(config.getCheckInterval());
         } catch (InterruptedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
