@@ -1,9 +1,10 @@
-package perf.agent.job;
+package perf.agent.daemon;
 
 import org.apache.log4j.Logger;
 import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobProcessorConfig;
-import perf.agent.config.ServerInfo;
+import perf.agent.job.JobInfo;
+import perf.agent.job.JobRunnerThread;
 
 import java.io.IOException;
 import java.util.*;
@@ -17,31 +18,31 @@ import java.util.concurrent.LinkedBlockingDeque;
  * Time: 7:59 PM
  * To change this template use File | Settings | File Templates.
  */
-public class JobProcessor extends Thread{
+public class JobProcessorThread extends Thread{
 
-    private Map<String, JobRunner> jobRunners;
+    private Map<String, JobRunnerThread> jobRunners;
     private Queue<JobInfo> pendingJobs;
-    private static Logger log = Logger.getLogger(JobProcessor.class);
+    private static Logger log = Logger.getLogger(JobProcessorThread.class);
     private JobProcessorConfig config;
-    private static JobProcessor jobProcessor;
+    private static JobProcessorThread jobProcessorThread;
     private final LoaderServerClient serverClient;
 
-    private JobProcessor(JobProcessorConfig jobProcessorConfig, ServerInfo serverInfo) {
+    private JobProcessorThread(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient) {
         this.config = jobProcessorConfig;
-        this.jobRunners = new HashMap<String, JobRunner>();
+        this.jobRunners = new HashMap<String, JobRunnerThread>();
         this.pendingJobs = new LinkedBlockingDeque<JobInfo>();
-        this.serverClient = new LoaderServerClient(serverInfo.getHost(), serverInfo.getPort());
+        this.serverClient = serverClient;
         start();
     }
 
-    public static JobProcessor initialize(JobProcessorConfig jobProcessorConfig, ServerInfo serverInfo) {
-        if(jobProcessor == null)
-            jobProcessor = new JobProcessor(jobProcessorConfig, serverInfo);
-        return jobProcessor;
+    public static JobProcessorThread initialize(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient) {
+        if(jobProcessorThread == null)
+            jobProcessorThread = new JobProcessorThread(jobProcessorConfig, serverClient);
+        return jobProcessorThread;
     }
 
-    public static JobProcessor getInstance() {
-        return jobProcessor;
+    public static JobProcessorThread getInstance() {
+        return jobProcessorThread;
     }
 
     /**
@@ -75,9 +76,9 @@ public class JobProcessor extends Thread{
     private void clearFinishedJobs() throws InterruptedException, ExecutionException, IOException {
         synchronized (jobRunners) {
             for(String jobId : jobIds()) {
-                JobRunner jobRunner = jobRunners.get(jobId);
+                JobRunnerThread jobRunnerThread = jobRunners.get(jobId);
 
-                if(!jobRunner.running()) {
+                if(!jobRunnerThread.running()) {
                     jobRunners.remove(jobId);
                     StatSyncThread.getInstance().removeJob(jobId);
                     this.serverClient.notifyJobIsOver(jobId);
@@ -98,7 +99,7 @@ public class JobProcessor extends Thread{
                     JobInfo jobInfo = pendingJobs.poll();
                     if(jobInfo == null)
                         break;
-                    jobRunners.put(jobInfo.getJobId(), new JobRunner(jobInfo));
+                    jobRunners.put(jobInfo.getJobId(), new JobRunnerThread(jobInfo));
                     StatSyncThread.getInstance().addJobToSync(jobInfo.getJobId());
                 }
             }
@@ -117,9 +118,9 @@ public class JobProcessor extends Thread{
     }
 
     public String killJob(String jobId) {
-        JobRunner jobRunner = jobRunners.get(jobId);
-        if(jobRunner != null) {
-            jobRunner.getJobProcess().destroy();
+        JobRunnerThread jobRunnerThread = jobRunners.get(jobId);
+        if(jobRunnerThread != null) {
+            jobRunnerThread.getJobProcess().destroy();
             return "Job Killed Successfully";
         }
         return "Job Not Running";
@@ -156,8 +157,8 @@ public class JobProcessor extends Thread{
     private Set<JobInfo> runningJobs() {
         synchronized (jobRunners) {
             Set<JobInfo> runningJobSet = new HashSet<JobInfo>();
-            for(JobRunner jobRunner : jobRunners.values())
-                    runningJobSet.add(jobRunner.getJobInfo());
+            for(JobRunnerThread jobRunnerThread : jobRunners.values())
+                    runningJobSet.add(jobRunnerThread.getJobInfo());
             return runningJobSet;
         }
     }

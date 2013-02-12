@@ -8,7 +8,7 @@ package perf.agent.health;
  * To change this template use File | Settings | File Templates.
  */
 import com.yammer.metrics.core.HealthCheck;
-import perf.agent.job.JobProcessor;
+import perf.agent.daemon.JobProcessorThread;
 
 public class JobProcessorHealthCheck extends HealthCheck {
 
@@ -18,7 +18,7 @@ public class JobProcessorHealthCheck extends HealthCheck {
 
     @Override
     protected Result check() throws Exception {
-        return JobProcessor.getInstance().isAlive() ?
+        return JobProcessorThread.getInstance().isAlive() ?
                 Result.healthy("Job Processor Thread is Alive") :
                 Result.unhealthy("Job Processor Thread is dead");
     }

@@ -6,8 +6,8 @@ import com.yammer.metrics.annotation.Timed;
 import perf.agent.cache.LibCache;
 import perf.agent.config.JobProcessorConfig;
 import perf.agent.job.JobInfo;
-import perf.agent.job.JobProcessor;
-import perf.agent.job.StatSyncThread;
+import perf.agent.daemon.JobProcessorThread;
+import perf.agent.daemon.StatSyncThread;
 import perf.agent.util.FileHelper;
 
 import javax.ws.rs.*;
@@ -27,7 +27,7 @@ import java.util.Map;
 @Path("/jobs")
 
 public class JobResource {
-    private JobProcessor jobProcessor = JobProcessor.getInstance();
+    private JobProcessorThread jobProcessorThread = JobProcessorThread.getInstance();
     private JobProcessorConfig jobProcessorConfig;
     private StatSyncThread statsSyncThread;
     private static ObjectMapper mapper = new ObjectMapper();
@@ -57,7 +57,7 @@ public class JobResource {
                 setJobCmd(jobCMD).
                 setJobId(jobId);
 
-        jobProcessor.addJobRequest(jobInfo);
+        jobProcessorThread.addJobRequest(jobInfo);
         return jobInfo.getJobId();
     }
 
@@ -65,7 +65,7 @@ public class JobResource {
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
     public Map getJobs(@QueryParam("status") @DefaultValue("") String jobStatus) {
-        return jobProcessor.
+        return jobProcessorThread.
                 getJobs(jobStatus);
     }
 
@@ -73,7 +73,7 @@ public class JobResource {
     @PUT
     @Timed
     public String pause(@PathParam("jobId") String jobId) {
-        String killStatus = jobProcessor.killJob(jobId);
+        String killStatus = jobProcessorThread.killJob(jobId);
         statsSyncThread.removeJob(jobId);
         return "{'message' : '"+killStatus+"'}";
     }

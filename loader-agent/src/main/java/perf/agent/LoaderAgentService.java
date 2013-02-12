@@ -8,12 +8,17 @@ import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 import perf.agent.cache.LibCache;
+import perf.agent.client.LoaderServerClient;
 import perf.agent.config.LoaderAgentConfiguration;
+import perf.agent.daemon.AgentRegistrationThread;
 import perf.agent.health.JobProcessorHealthCheck;
-import perf.agent.job.JobProcessor;
-import perf.agent.job.StatSyncThread;
+import perf.agent.daemon.JobProcessorThread;
+import perf.agent.daemon.StatSyncThread;
 import perf.agent.resource.DeployLibResource;
 import perf.agent.resource.JobResource;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
 
@@ -23,15 +28,22 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
     }
 
     @Override
-    public void run(LoaderAgentConfiguration configuration, Environment environment) throws Exception {
+    public void run(final LoaderAgentConfiguration configuration, Environment environment) throws Exception {
         environment.addProvider(com.sun.jersey.multipart.impl.MultiPartReaderServerSide.class);
         LibCache.initialize(configuration.getLibStorageConfig());
-        JobProcessor.initialize(configuration.getJobProcessorConfig(), configuration.getServerInfo());
-        StatSyncThread.initialize(configuration.getJobStatSyncConfig(), configuration.getServerInfo());
+
+        JobProcessorThread.initialize(configuration.getJobProcessorConfig(),
+                LoaderServerClient.buildClient(configuration.getServerInfo()));
+
+        StatSyncThread.initialize(configuration.getJobStatSyncConfig(),
+                LoaderServerClient.buildClient(configuration.getServerInfo()));
+
+        AgentRegistrationThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
+                configuration.getRegistrationParams());
 
         environment.addResource(new DeployLibResource(configuration.getLibStorageConfig()));
         environment.addResource(new JobResource(configuration.getJobProcessorConfig()));
-        environment.addHealthCheck(new JobProcessorHealthCheck("JobProcessor"));
+        environment.addHealthCheck(new JobProcessorHealthCheck("JobProcessorThread"));
     }
 
 
