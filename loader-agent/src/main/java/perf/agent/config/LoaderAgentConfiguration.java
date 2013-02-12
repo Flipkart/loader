@@ -12,12 +12,15 @@ import com.yammer.dropwizard.config.Configuration;
 import org.omg.PortableInterceptor.ServerRequestInfo;
 import perf.agent.job.JobInfo;
 
+import java.util.Map;
+
 public class LoaderAgentConfiguration extends Configuration {
     private String appName;
     private ServerInfo serverInfo;
     private LibStorageConfig libStorageConfig;
     private JobProcessorConfig jobProcessorConfig;
     private JobStatSyncConfig jobStatSyncConfig;
+    private Map registrationParams;
 
     public String getAppName() {
         return appName;
@@ -57,5 +60,13 @@ public class LoaderAgentConfiguration extends Configuration {
 
     public void setServerInfo(ServerInfo serverInfo) {
         this.serverInfo = serverInfo;
+    }
+
+    public Map getRegistrationParams() {
+        return registrationParams;
+    }
+
+    public void setRegistrationParams(Map registrationParams) {
+        this.registrationParams = registrationParams;
     }
 }

@@ -1,11 +1,16 @@
 package perf.agent.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import org.apache.log4j.Logger;
+import perf.agent.config.ServerInfo;
 
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -21,6 +26,7 @@ public class LoaderServerClient {
     private int port;
     private static final String RESOURCE_JOB_OVER = "/loader-server/jobs/{jobId}/over";
     private static final String RESOURCE_JOB_STATS = "/loader-server/jobs/{jobId}/jobStats?file={file}";
+    private static final String RESOURCE_AGENTS = "/loader-server/agents";
 
     private static Logger log = Logger.getLogger(LoaderServerClient.class);
 
@@ -47,6 +53,49 @@ public class LoaderServerClient {
         return this;
     }
 
+    /**
+     * Register Agent to the server
+     * @param registrationParams
+     * @throws ExecutionException
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    public void register(Map<String, Object> registrationParams)
+            throws ExecutionException, InterruptedException, IOException {
+
+        log.info("Registering to Loader Server");
+        ObjectNode node = new ObjectMapper().createObjectNode();
+        for(String key : registrationParams.keySet())
+        node.put(key, registrationParams.get(key).toString());
+
+        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+                preparePost("http://" + this.getHost() + ":" +
+                        this.getPort() +
+                        RESOURCE_AGENTS).
+                setHeader("Content-Type", MediaType.APPLICATION_JSON).
+                setBody(node.toString());
+
+        Future<Response> r = b.execute();
+        r.get();
+        if(r.get().getStatusCode() != 200) {
+            log.error("Post on "+RESOURCE_AGENTS);
+        }
+        else {
+            log.info("Registration Succeeded");
+            log.info(r.get().getResponseBody());
+        }
+
+        asyncHttpClient.close();
+    }
+
+    /**
+     * Notify the Loader server that job instance on this Loader Agent is over
+     * @param jobId
+     * @throws IOException
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public void notifyJobIsOver(String jobId) throws IOException, ExecutionException, InterruptedException {
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
@@ -63,9 +112,17 @@ public class LoaderServerClient {
                     replace("{jobId}", jobId));
         }
         asyncHttpClient.close();
-
     }
 
+    /**
+     * Publish Job Stats to Loader Agent
+     * @param jobId
+     * @param filePath
+     * @param linesRead
+     * @throws IOException
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public void publishJobStats(String jobId, String filePath, String linesRead) throws IOException, ExecutionException, InterruptedException {
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
@@ -81,5 +138,9 @@ public class LoaderServerClient {
         Future<Response> r = b.execute();
         r.get();
         asyncHttpClient.close();
+    }
+
+    public static LoaderServerClient buildClient(ServerInfo serverInfo) {
+        return new LoaderServerClient(serverInfo.getHost(), serverInfo.getPort());
     }
 }

@@ -1,7 +1,5 @@
-package perf.agent.job;
+package perf.agent.daemon;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Response;
 import org.apache.log4j.Logger;
 import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobStatSyncConfig;
@@ -17,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 /**
  * Created by IntelliJ IDEA.
@@ -51,9 +48,9 @@ public class StatSyncThread extends Thread{
         }
     }
 
-    public static StatSyncThread initialize(JobStatSyncConfig config, ServerInfo serverInfo) {
+    public static StatSyncThread initialize(JobStatSyncConfig config, LoaderServerClient serverClient) {
         if(statSyncThread == null) {
-            statSyncThread = new StatSyncThread(config, serverInfo);
+            statSyncThread = new StatSyncThread(config, serverClient);
             statSyncThread.start();
         }
         return statSyncThread;
@@ -63,11 +60,11 @@ public class StatSyncThread extends Thread{
         return statSyncThread;
     }
 
-    private StatSyncThread(JobStatSyncConfig config, ServerInfo serverInfo) {
+    private StatSyncThread(JobStatSyncConfig config, LoaderServerClient serverClient) {
         this.syncConfig = config;
         this.fileTouchPointMap = new HashMap<String, FileTouchPoint>();
         this.jobIds = new ArrayList<String>();
-        this.serverClient = new LoaderServerClient(serverInfo.getHost(), serverInfo.getPort());
+        this.serverClient = serverClient;
     }
 
     public void addJobToSync(String jobId) {
@@ -166,26 +163,5 @@ public class StatSyncThread extends Thread{
             }
 
         }
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-        StatSyncThread syncThread = new StatSyncThread(
-                new JobStatSyncConfig().
-                        setSyncInterval(5000).
-                        setLinesToSyncInOneGo(1000).
-                        setJobBasePath("/var/log/loader/jobs"),
-                new ServerInfo().
-                        setHost("localhost").
-                        setPort(9999));
-        syncThread.start();
-
-        syncThread.addJobToSync("job1");
-        syncThread.addJobToSync("job2");
-
-        Thread.sleep(60000);
-        syncThread.removeJob("job1");
-        syncThread.removeJob("job2");
-
-        syncThread.join();
     }
 }

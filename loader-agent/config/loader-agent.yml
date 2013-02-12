@@ -4,6 +4,11 @@ serverInfo:
   host: "localhost"
   port: 9999
 
+registrationParams:
+  cpu: 8
+  memory: 8226428
+  env: "corp"
+
 libStorageConfig:
   libPath: "/usr/share/loader-agent/libs"
   platformLibPath: "/usr/share/loader-agent/platformLibs"

@@ -14,13 +14,13 @@ import java.io.InputStreamReader;
  * Time: 7:47 PM
  * To change this template use File | Settings | File Templates.
  */
-public class JobRunner extends Thread{
+public class JobRunnerThread extends Thread{
     private JobInfo jobInfo;
     private Process jobProcess;
     private boolean running = false;
 
-    private static Logger log = Logger.getLogger(JobRunner.class);
-    public JobRunner(JobInfo jobInfo) {
+    private static Logger log = Logger.getLogger(JobRunnerThread.class);
+    public JobRunnerThread(JobInfo jobInfo) {
         this.jobInfo = jobInfo;
         start();
     }
