@@ -35,6 +35,12 @@
             <artifactId>async-http-client</artifactId>
             <version>1.7.9</version>
         </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>3.1.11</version>
+        </dependency>
+
     </dependencies>
 
     <build>
