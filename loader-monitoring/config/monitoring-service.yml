@@ -10,6 +10,9 @@ onDemandCollectors:
   - klass: "loader.monitor.collector.MysqlConnectionCollector"
     name: "dbConnections"
     requiredParams: ["host","port","user","password","db"]
+  - klass: "loader.monitor.collector.SocketCheckCollector"
+    name: "socketCheck"
+    requiredParams: ["host","port"]
 
 http:
   port: 7777
