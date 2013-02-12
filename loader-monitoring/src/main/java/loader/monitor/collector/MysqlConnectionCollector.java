@@ -7,7 +7,10 @@ import java.sql.SQLException;
 
 import loader.monitor.domain.ResourceCollectionInstance;
 
-
+/**
+ * nitinka
+ * Collects Currently used mysql connections, group them by connectingHost.connected db
+ */
 public class MysqlConnectionCollector extends BaseCollector {
 
     public MysqlConnectionCollector(String name, Map<String, Object> params, int interval) {
@@ -35,8 +38,7 @@ public class MysqlConnectionCollector extends BaseCollector {
         Map<String, Double> connectionsStats = new HashMap<String, Double>();
         try {
             ResultSet rs = sqlHelper.executeQuery("show processlist");
-            while(rs.next())
-            {
+            while(rs.next()) {
                 String connectingHost = rs.getString(3).split(":")[0].trim();
                 String connectedDB = rs.getString(4);
                 String hostDBConnection = connectingHost+"."+connectedDB;
@@ -58,6 +60,8 @@ public class MysqlConnectionCollector extends BaseCollector {
             sqlHelper.closeConnection();
         }
 
-        return collectionInstance.setTime(System.currentTimeMillis());
+        return collectionInstance.
+                setTime(System.currentTimeMillis()).
+                setMetrics(connectionsStats);
     }
 }

@@ -24,7 +24,7 @@ public abstract class BaseCollector{
     private Map<String,Object> params;
     public static Map<String,Object> SYSTEM_PROPERTIES;
     public static OS CLIENT_OS;
-    private static Logger log = Logger.getLogger(BaseCollector.class);
+    protected static Logger log = Logger.getLogger(BaseCollector.class);
 
     static {
         populateClistntOS();

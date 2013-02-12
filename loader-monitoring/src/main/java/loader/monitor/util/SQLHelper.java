@@ -27,6 +27,7 @@ public class SQLHelper
         if(password==null)
             password="";
         conString = "jdbc:mysql://"+hostName+":"+ port;
+
         if(defaultDB != null && !defaultDB.trim().equals(""))
             conString += "/"+defaultDB;
         conString += "?user="+user+"&password="+password+"&useUnicode=true&characterEncoding=UTF8";
@@ -51,45 +52,6 @@ public class SQLHelper
         logger.debug("Query :'"+query+"'");
         ResultSet rs = stm.executeQuery(query);
         return rs;
-    }
-
-    /**
-     *
-     * @param tableName
-     * @param condition
-     * @return Returns number of records with specified condition on the table
-     * @throws SQLException
-     */
-    public long recordInTable(String tableName,String condition) throws SQLException {
-
-        String query = "Select count(*) from "+tableName;
-        if(condition!=null && condition.trim().equals("")==false)
-            query += " where "+condition;
-        ResultSet rs = executeQuery(query);
-        long records = 0;
-        if(rs.next())
-            records = rs.getInt(1);
-        return records;
-    }
-
-    /**
-     *
-     * @param tableName
-     * @param condition
-     * @param primaryKey
-     * @return Returns number of records with specified condition on the table using Primary Key. Its faster
-     * @throws SQLException
-     */
-    public long recordInTable(String tableName,String condition, String primaryKey) throws SQLException {
-
-        String query = "Select count("+primaryKey+") from "+tableName;
-        if(condition!=null && condition.trim().equals("")==false)
-            query += " where "+condition;
-        ResultSet rs = executeQuery(query);
-        long records = 0;
-        if(rs.next())
-            records = rs.getInt(1);
-        return records;
     }
 
     /**
