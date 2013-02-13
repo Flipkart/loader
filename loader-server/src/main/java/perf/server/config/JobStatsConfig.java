@@ -11,6 +11,7 @@ public class JobStatsConfig {
     private String jobStatsFolder;
     private String jobMonitoringStats;
     private String jobFile;
+    private String runFile;
 
     public String getJobStatsFolder() {
         return jobStatsFolder;
@@ -34,5 +35,13 @@ public class JobStatsConfig {
 
     public void setJobFile(String jobFile) {
         this.jobFile = jobFile;
+    }
+
+    public String getRunFile() {
+        return runFile;
+    }
+
+    public void setRunFile(String runFile) {
+        this.runFile = runFile;
     }
 }

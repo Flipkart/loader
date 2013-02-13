@@ -19,11 +19,11 @@ public class FileHelper {
         return persistStream(libStream, targetFile, false);
     }
 
-    public static String persistStream(InputStream libStream, String targetFile, boolean appeand) throws IOException {
+    public static String persistStream(InputStream libStream, String targetFile, boolean append) throws IOException {
         byte[] buffer = new byte[8024];
         createFile(targetFile);
         BufferedInputStream bis = new BufferedInputStream(libStream);
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(targetFile, appeand));
+        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(targetFile, append));
 
         int bytesRead;
         while((bytesRead = bis.read(buffer)) > 0) {

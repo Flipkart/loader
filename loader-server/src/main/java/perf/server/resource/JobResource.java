@@ -277,6 +277,7 @@ public class JobResource {
 
         // Persisting Job Info(mostly status) in memory
         jobIdInfoMap.put(jobInfo.getJobId(), jobInfo);
+
         return jobInfo;
     }
 
@@ -430,6 +431,14 @@ public class JobResource {
         FileHelper.createFilePath(jobFile);
         FileHelper.persistStream(new ByteArrayInputStream(jobInfoJsonNode.toString().getBytes()),
                 jobFile,
+                true);
+
+        String runName = jobInfoJsonNode.get("runName").textValue();
+        String runFile = jobStatsConfig.getRunFile().
+                replace("{runName}", runName);
+        FileHelper.createFilePath(runFile);
+        FileHelper.persistStream(new ByteArrayInputStream((jobId+"\n").toString().getBytes()),
+                runFile,
                 true);
     }
 }

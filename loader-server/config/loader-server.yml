@@ -13,6 +13,7 @@ monitoringAgentConfig:
 
 jobStatsConfig:
   jobFile: "/var/log/loader-server/jobs/{jobId}/job.json"
+  runFile: "/var/log/loader-server/runs/{runName}.txt"
   jobStatsFolder: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/jobStats"
   jobMonitoringStats: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/Resources/{resource}.txt"
 
