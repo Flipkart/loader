@@ -1,5 +1,5 @@
 {
-
+    "runName": "test-run-1",
     "jobs":[
         {
             "agent":"127.0.0.1",
