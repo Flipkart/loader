@@ -23,5 +23,10 @@ public class ResponseBuilderHelper {
         return ResponseBuilderHelper.response(Response.Status.NOT_FOUND,
                 String.format("{\"reason\" : \"Job %s doesn't exist\"}",jobId));
     }
+
+    public static Response agentNotRegistered(String agentIp) {
+        return ResponseBuilderHelper.response(Response.Status.NOT_FOUND,
+                String.format("{\"reason\" : \"Agent %s not registered yet\"}",agentIp));
+    }
 }
 
