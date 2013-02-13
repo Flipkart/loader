@@ -71,11 +71,14 @@ public class JobInfo {
     }
 
     public JobInfo jobCompletedInAgent(String agentIp) {
-        this.agentsJobStatus.put(agentIp, JOB_STATUS.COMPLETED);
+        JOB_STATUS jobStatusInAgent = this.agentsJobStatus.get(agentIp);
+        if(jobStatusInAgent != JOB_STATUS.KILLED)
+            this.agentsJobStatus.put(agentIp, JOB_STATUS.COMPLETED);
+
         if(!this.agentsJobStatus.containsValue(JOB_STATUS.RUNNING) &&
-                !this.agentsJobStatus.containsValue(JOB_STATUS.PAUSED) &&
-                !this.agentsJobStatus.containsValue(JOB_STATUS.KILLED))
+                !this.agentsJobStatus.containsValue(JOB_STATUS.PAUSED))
             this.jobStatus = JOB_STATUS.COMPLETED;
+
         return this;
     }
 
@@ -85,7 +88,13 @@ public class JobInfo {
     }
 
     public JobInfo jobKilledInAgent(String agentIp) {
-        this.agentsJobStatus.put(agentIp, JOB_STATUS.KILLED);
+        JOB_STATUS jobStatusInAgent = this.agentsJobStatus.get(agentIp);
+        if(jobStatusInAgent != JOB_STATUS.COMPLETED)
+            this.agentsJobStatus.put(agentIp, JOB_STATUS.KILLED);
+
+        if(!this.agentsJobStatus.containsValue(JOB_STATUS.RUNNING) &&
+                !this.agentsJobStatus.containsValue(JOB_STATUS.PAUSED))
+            this.jobStatus = JOB_STATUS.COMPLETED;
         return this;
     }
 }
