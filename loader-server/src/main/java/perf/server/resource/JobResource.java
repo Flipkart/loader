@@ -137,7 +137,7 @@ public class JobResource {
             throws IOException, InterruptedException {
         String jobStatsPath = jobStatsConfig.getJobStatsFolder().
                 replace("{jobId}", jobId).
-                replace("$AGENT_IP", request.getRemoteAddr());
+                replace("{agentIp}", request.getRemoteAddr());
 
         String statFilePath = jobStatsPath +
                 File.separator +
