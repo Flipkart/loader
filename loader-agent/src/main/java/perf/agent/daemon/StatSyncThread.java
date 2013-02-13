@@ -68,12 +68,16 @@ public class StatSyncThread extends Thread{
     }
 
     public void addJobToSync(String jobId) {
-        this.jobIds.add(jobId);
+        synchronized (jobIds) {
+            this.jobIds.add(jobId);
+        }
     }
 
     public void removeJob(String jobId) {
-        syncJobStatFiles(jobId);
-        this.jobIds.remove(jobId);
+        synchronized (jobIds) {
+            syncJobStatFiles(jobId);
+            this.jobIds.remove(jobId);
+        }
     }
 
     public void run() {
