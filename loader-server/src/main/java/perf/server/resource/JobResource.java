@@ -1,7 +1,5 @@
 package perf.server.resource;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -25,7 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -223,10 +220,8 @@ public class JobResource {
         String agentIp = request.getRemoteAddr();
         jobIdInfoMap.get(jobId).jobCompletedInAgent(agentIp);
 
-        if(jobCompleted(jobIdInfoMap.get(jobId))){
-            jobLastResourceMetricInstanceMap.remove(jobId);
+        if(jobCompleted(jobId))
             stopMonitoring(jobId);
-        }
     }
 
 
@@ -242,7 +237,6 @@ public class JobResource {
     @Timed
     public void killJob(@PathParam("jobId") String jobId) throws InterruptedException, ExecutionException, IOException, JobException {
         killJobInAgents(jobId, jobIdInfoMap.get(jobId).getAgentsJobStatus().keySet());
-        jobLastResourceMetricInstanceMap.remove(jobId);
         stopMonitoring(jobId);
     }
 
@@ -259,8 +253,8 @@ public class JobResource {
     @Timed
     public void killJob(@PathParam("jobId") String jobId, @PathParam("agentIps") String agentIps) throws InterruptedException, ExecutionException, IOException, JobException {
         killJobInAgents(jobId, Arrays.asList(agentIps.split(",")));
-        jobLastResourceMetricInstanceMap.remove(jobId);
-        stopMonitoring(jobId);
+        if(jobCompleted(jobId))
+            stopMonitoring(jobId);
     }
 
     private JobInfo jobSubmitWorkflow(InputStream jobJsonStream)
@@ -331,6 +325,7 @@ public class JobResource {
      * @throws InterruptedException
      */
     private void stopMonitoring(String jobId) throws IOException, ExecutionException, InterruptedException {
+        jobLastResourceMetricInstanceMap.remove(jobId);
         // Need to get All
         Set<String> monitoringAgentIps = jobIdInfoMap.get(jobId).getMonitoringAgents();
 
@@ -343,10 +338,11 @@ public class JobResource {
 
     /**
      * If job is completed in all agents it means job is completed
-     * @param jobInfo
+     * @param jobId
      * @return
      */
-    private boolean jobCompleted(JobInfo jobInfo) {
+    private boolean jobCompleted(String jobId) {
+        JobInfo jobInfo = jobIdInfoMap.get(jobId);
         return jobInfo.getJobStatus().equals(JobInfo.JOB_STATUS.COMPLETED) ||
                 jobInfo.getJobStatus().equals(JobInfo.JOB_STATUS.KILLED);
     }
