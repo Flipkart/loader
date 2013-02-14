@@ -21,10 +21,6 @@ public class SampleFunction extends PerformanceFunction {
 
     @Override
     public void execute(FunctionContext context) throws Exception {
-        context.getFunctionTimer("logger.info").startTimer();
-        logger.info(this + " Executing Performance Logic");
-        context.getFunctionTimer("logger.info").endTimer();
-
         context.getFunctionTimer("sleeper").startTimer();
         Thread.sleep(new Random().nextInt(1000));
         context.getFunctionTimer("sleeper").endTimer();
@@ -32,6 +28,8 @@ public class SampleFunction extends PerformanceFunction {
         FunctionCounter testCounter = context.getFunctionCounter("testCounter");
         for(int i=0;i<10;i++)
             testCounter.increment();
+
+        context.skipFurtherFunctions();
     }
 
     @Override

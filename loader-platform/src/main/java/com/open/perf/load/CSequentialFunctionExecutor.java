@@ -84,8 +84,7 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
 
             this.fExecutors = new ArrayList<SyncFunctionExecutor>();
 
-            for(int functionNo = 0; functionNo < this.groupFunctions.size() ; functionNo++) {
-
+            for(int functionNo = 0; functionNo < this.groupFunctions.size(); functionNo++) {
                 //  We are passing parameters only to the first method and rest of the methods in the sequence
                 //  will get them automatically in Sequential Executor.
 
@@ -95,6 +94,13 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
                 //int lastIndex 	 = function.lastIndexOf(".");
                 String className    = groupFunction.getClassName();
 				String functionName = groupFunction.getFunctionName();
+
+                if(functionContext.isSkipFurtherFunctions()) {
+                   logger.info("Skipping Further Functions");
+                    for(int skippedFunctionNo=functionNo; skippedFunctionNo < this.groupFunctions.size(); skippedFunctionNo++)
+                        this.addSkippedFunction(groupFunction.getName()+"_"+className+"."+functionName);
+                    break;
+                }
 
                 Class functionParamType = FunctionContext.class;
                 SyncFunctionExecutor fe;

@@ -77,6 +77,7 @@ public class GroupController extends Thread{
     private HashMap<String,Long> totalFunctionTime;
     private HashMap<String,Long> failedFunctionCount;
     private HashMap<String,Long> erroredFunctionCount;
+    private HashMap<String,Long> skippedFunctionCount;
     private HashMap<String,Long> softTimeOutFunctionCount;
     
     /*
@@ -187,6 +188,7 @@ public class GroupController extends Thread{
         this.totalFunctionTime          = new HashMap<String,Long>();
         this.failedFunctionCount        = new HashMap<String,Long>();
         this.erroredFunctionCount       = new HashMap<String,Long>();
+        this.skippedFunctionCount       = new HashMap<String,Long>();
         this.softTimeOutFunctionCount   = new HashMap<String,Long>();
 
         this.firstTime          = new HashMap<String,Boolean>();
@@ -201,9 +203,12 @@ public class GroupController extends Thread{
             this.dumpLevelFunctionTime.put(function, 0l);
             this.failedFunctionCount.put(function, 0l);
             this.erroredFunctionCount.put(function, 0l);
+            this.skippedFunctionCount.put(function, 0l);
             this.softTimeOutFunctionCount.put(function, 0l);
             this.functionDumpAvgTime.put(function, new ArrayList<Float>());
             this.functionAllExecutionTimes.put(function, new ArrayList<Long>());
+            this.functionMaxTime.put(function, 0l);
+            this.functionMinTime.put(function, 0l);
         }
 
         this.functionTimers = createFunctionTimers(group.getFunctionTimers());
@@ -394,20 +399,27 @@ public class GroupController extends Thread{
         logger.debug("In Listener");
 
         if(sfe.hasErroredFunctions()){
-            ArrayList<SyncFunctionExecutor> erroredFEs = sfe.getErroredFunctions();
+            List<SyncFunctionExecutor> erroredFEs = sfe.getErroredFunctions();
             for(SyncFunctionExecutor fe : erroredFEs) {
                 String uniqueFunctionName = fe.getFunctionalityName()+"_"+fe.getAbsoluteFunctionName();
                 this.erroredFunctionCount.put(uniqueFunctionName, this.erroredFunctionCount.get(uniqueFunctionName) + 1 );
             }    
         }
         if(sfe.hasFailedFunctions()) {
-            ArrayList<SyncFunctionExecutor> failedFEs = sfe.getFailedFunctions();
+            List<SyncFunctionExecutor> failedFEs = sfe.getFailedFunctions();
             for(SyncFunctionExecutor fe : failedFEs) {
                 String uniqueFunctionName = fe.getFunctionalityName()+"_"+fe.getAbsoluteFunctionName();
                 this.failedFunctionCount.put(uniqueFunctionName, this.failedFunctionCount.get(uniqueFunctionName) + 1 );
             }
         }
-        
+
+        if(sfe.hasSkippedFunctions()) {
+            List<String> skippedFunctions = sfe.getSkippedFunctions();
+            for(String functionName : skippedFunctions) {
+                this.skippedFunctionCount.put(functionName, this.skippedFunctionCount.get(functionName) + 1 );
+            }
+        }
+
         this.threadsDone++;
         if(threadsDone % this.threads == 0) {
             this.repeatDone++;
@@ -418,7 +430,7 @@ public class GroupController extends Thread{
         }    
 
         String date =   new Date(time).toString();
-        ArrayList<SyncFunctionExecutor> fes = sfe.getFunctionExecutors();
+        List<SyncFunctionExecutor> fes = sfe.getFunctionExecutors();
 
         for(SyncFunctionExecutor fe : fes) {
             String uniqueFunctionName = fe.getFunctionalityName()+"_"+fe.getAbsoluteFunctionName();
@@ -595,7 +607,9 @@ public class GroupController extends Thread{
                 float throughputPerSecond  = seconds == 0 ? 0 : (dumpThreadsCount*this.functionInstances.get(function))/seconds;
                 float throughputPerMinute  = throughputPerSecond * 60;
 
-                String info = this.groupName+"."+function.split("\\.")[0].replace("_com","")+": OperationsDone="+this.threadsDone*this.functionInstances.get(function)
+                String info = this.groupName+"."
+                        + function.split("\\.")[0].replace("_com","")
+                        + ": OperationsDone=" + (this.threadsDone*this.functionInstances.get(function) - this.skippedFunctionCount.get(function))
                         +", Min="+this.functionMinTime.get(function)/1000
                         +", Avg="+this.functionAvgTime.get(function)/1000
                         +", Max="+this.functionMaxTime.get(function)/1000
@@ -613,7 +627,7 @@ public class GroupController extends Thread{
                     stat.put("time",date).
                             put("function",function).
                             put("repeats",this.repeatDone).
-                            put("operations",this.threadsDone*this.functionInstances.get(function)).
+                            put("operations",(this.threadsDone*this.functionInstances.get(function)- this.skippedFunctionCount.get(function))).
                             put("min",this.functionMinTime.get(function)/1000).
                             put("avg",this.functionAvgTime.get(function)/1000).
                             put("dumpAvg",dumpLevelFunctionAvg/1000).
