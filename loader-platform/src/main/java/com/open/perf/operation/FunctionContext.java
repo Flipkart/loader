@@ -24,6 +24,7 @@ public class FunctionContext {
     private Map<String, FunctionCounter> counters;
     private Map<String, FunctionTimer> timers;
     private Map<String, Object> passOnParameters; // Will be populated by User in function and would be passed further
+    private boolean skipFurtherFunctions = false;
 
     public FunctionContext(Map<String,FunctionTimer> functionTimers, Map<String,FunctionCounter> functionCounters) {
         this.functionParameters = new HashMap<String, Object>();
@@ -69,8 +70,9 @@ public class FunctionContext {
      * @param parameterName
      * @param value
      */
-    public void addParameter(String parameterName, Object value) {
+    public FunctionContext addParameter(String parameterName, Object value) {
         passOnParameters.put(parameterName, value);
+        return this;
     }
 
     public FunctionTimer getFunctionTimer(String timerName) {
@@ -87,7 +89,16 @@ public class FunctionContext {
         return functionCounter;
     }
 
-    public void updateParameters(Map<String, Object> params) {
+    public FunctionContext updateParameters(Map<String, Object> params) {
         this.functionParameters.putAll(params);
+        return this;
+    }
+
+    public void skipFurtherFunctions() {
+        this.skipFurtherFunctions = true;
+    }
+
+    public boolean isSkipFurtherFunctions() {
+        return skipFurtherFunctions;
     }
 }

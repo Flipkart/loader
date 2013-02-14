@@ -5,10 +5,6 @@ import com.open.perf.domain.GroupFunctionBean;
 import com.open.perf.domain.Loader;
 import org.testng.annotations.Test;
 
-import java.lang.System;
-import java.util.HashMap;
-import java.util.Map;
-
 public class TestClass {
     @Test
     public void test() throws Exception {
@@ -20,7 +16,11 @@ public class TestClass {
                         setThreads(10).
                         addFunction(new GroupFunctionBean("F1").
                                 setClassName("com.open.perf.operation.SampleFunction").
-                                addParam("param1", "value1").
+                                addParam("paramF1", "value1").
+                                dumpData()).
+                        addFunction(new GroupFunctionBean("F2").
+                                setClassName("com.open.perf.operation.SampleFunction").
+                                addParam("paramF2", "value1").
                                 dumpData()).
                         addFunctionTimer("logger.info").
                         addFunctionTimer("sleeper").

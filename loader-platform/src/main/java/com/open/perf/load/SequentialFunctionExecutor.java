@@ -2,14 +2,16 @@ package com.open.perf.load;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
 public class SequentialFunctionExecutor extends Thread{
     private static Logger logger              = Logger.getLogger(SequentialFunctionExecutor.class.getName());
-    ArrayList<SyncFunctionExecutor> fExecutors;
-    ArrayList<SyncFunctionExecutor> failedExecutors;
-    ArrayList<SyncFunctionExecutor> erroredExecutors;
+    List<SyncFunctionExecutor> fExecutors;
+    List<SyncFunctionExecutor> failedExecutors;
+    List<SyncFunctionExecutor> erroredExecutors;
+    List<String> skippedFunctions;
 
     LinkedHashMap<String,Object> returnedObjects;
     private SyncFunctionExecutor callBackMethodFE;
@@ -30,17 +32,20 @@ public class SequentialFunctionExecutor extends Thread{
 
     private boolean hasFailedFunctions;
     private boolean hasErroredFunctions;
+    private boolean hasSkippedFunctions;
 
     public SequentialFunctionExecutor(ArrayList<SyncFunctionExecutor> fes) {
         this.fExecutors = fes;
         this.failedExecutors = new ArrayList<SyncFunctionExecutor>();
         this.erroredExecutors = new ArrayList<SyncFunctionExecutor>();
+        this.skippedFunctions = new ArrayList<String>();
     }
 
     public SequentialFunctionExecutor() {
         fExecutors = new ArrayList<SyncFunctionExecutor>();
         this.failedExecutors = new ArrayList<SyncFunctionExecutor>();
         this.erroredExecutors = new ArrayList<SyncFunctionExecutor>();
+        this.skippedFunctions = new ArrayList<String>();
     }
 
     public SequentialFunctionExecutor(ThreadGroup tg, String name) {
@@ -48,6 +53,7 @@ public class SequentialFunctionExecutor extends Thread{
         fExecutors = new ArrayList<SyncFunctionExecutor>();
         this.failedExecutors = new ArrayList<SyncFunctionExecutor>();
         this.erroredExecutors = new ArrayList<SyncFunctionExecutor>();
+        this.skippedFunctions = new ArrayList<String>();
     }
 
     public void addFunctionExecutor(SyncFunctionExecutor fe) {
@@ -81,7 +87,7 @@ public class SequentialFunctionExecutor extends Thread{
         return this.returnedObjects;
     }
 
-    public ArrayList<SyncFunctionExecutor> getFunctionExecutors() {
+    public List<SyncFunctionExecutor> getFunctionExecutors() {
         return this.fExecutors;
     }
 
@@ -115,7 +121,6 @@ public class SequentialFunctionExecutor extends Thread{
                 fe.execute();
             }
             if(fe.isExecutionSuccessful() == false) {
-                //	System.out.println("Execution of Function "+fe.getAbsoluteFunctionName()+" Failed with exception "+fe.getException().getLocalizedMessage());
                 this.exception = fe.getException();
                 this.exceptionCause = fe.getExceptionCause();
                 break;
@@ -127,16 +132,6 @@ public class SequentialFunctionExecutor extends Thread{
 
         if(this.callBackMethodFE != null) {
             this.callBackMethodFE.execute();
-/*
-            if(this.callBackMethodInBG == false) {
-                try {
-                    this.callBackMethodFE.join();
-                } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-*/
         }
     }
 
@@ -177,12 +172,22 @@ public class SequentialFunctionExecutor extends Thread{
         this.hasFailedFunctions = true;
     }
 
-    public ArrayList<SyncFunctionExecutor> getFailedFunctions() {
+    public void addSkippedFunction(String fe) {
+        this.skippedFunctions.add(fe);
+        this.hasSkippedFunctions = true;
+    }
+
+    public List<SyncFunctionExecutor> getFailedFunctions() {
         return this.failedExecutors;
     }
 
-    public ArrayList<SyncFunctionExecutor> getErroredFunctions() {
+    public List<SyncFunctionExecutor> getErroredFunctions() {
         return this.erroredExecutors;
+    }
+
+
+    public List<String> getSkippedFunctions() {
+        return this.skippedFunctions;
     }
 
     public void resetErroredFunctions() {
@@ -193,6 +198,11 @@ public class SequentialFunctionExecutor extends Thread{
     public void resetFailedFunctions() {
         this.failedExecutors.clear();
         this.hasFailedFunctions = false;
+    }
+
+    public void resetSkippedFunctions() {
+        this.skippedFunctions.clear();
+        this.hasSkippedFunctions = false;
     }
 
     public static boolean isStringAndNotEmpty(Object value) {
@@ -213,5 +223,9 @@ public class SequentialFunctionExecutor extends Thread{
             }
         }
         return false;
+    }
+
+    public boolean hasSkippedFunctions() {
+        return this.hasSkippedFunctions;
     }
 }
