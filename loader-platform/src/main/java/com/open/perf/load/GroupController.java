@@ -11,12 +11,20 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
+import com.open.perf.operation.FunctionCounter;
+import com.open.perf.operation.FunctionTimer;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.MetricName;
+import com.yammer.metrics.core.MetricProcessor;
+import com.yammer.metrics.core.Timer;
 import org.apache.log4j.Logger;
 
 import com.json.JSONException;
@@ -99,10 +107,13 @@ public class GroupController extends Thread{
         logger      = Logger.getLogger(GroupController.class);
     }
 
+    private final Map<String, FunctionTimer> functionTimers;
+    private final Map<String, FunctionCounter> functionCounters;
+
+
     // Simplified & readable Constructor using Group
     public GroupController(GroupBean group) throws IOException, MalformedObjectNameException, NullPointerException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
         this.setName("Thread-GroupController("+ group.getName()+")");
-
         this.groupName              =   group.getName();
         this.params                 =   group.getParams();
         this.params.put("GROUP_NAME",this.groupName);
@@ -194,10 +205,27 @@ public class GroupController extends Thread{
             this.functionDumpAvgTime.put(function, new ArrayList<Float>());
             this.functionAllExecutionTimes.put(function, new ArrayList<Long>());
         }
-        
+
+        this.functionTimers = createFunctionTimers(group.getFunctionTimers());
+        this.functionCounters = createFunctionCounters(group.getFunctionCounters());
+
         this.tg                 = new ThreadGroup("ThreadGroup-"+this.getName());
     }
-    
+
+    private Map<String, FunctionCounter> createFunctionCounters(List<String> functionCounterNames) {
+        Map<String, FunctionCounter> functionCounters = new HashMap<String, FunctionCounter>();
+        for(String functionCounterName : functionCounterNames)
+            functionCounters.put(functionCounterName, new FunctionCounter(functionCounterName));
+        return functionCounters;
+    }
+
+    private Map<String, FunctionTimer> createFunctionTimers(List<String> functionTimerNames) {
+        Map<String, FunctionTimer> timers = new HashMap<String, FunctionTimer>();
+        for(String functionTimerName : functionTimerNames)
+            timers.put(functionTimerName, new FunctionTimer(functionTimerName));
+        return timers;
+    }
+
     public void run()  {
         LoadController.updateGroupStatus(this.getGroupName(), GROUP_RUNNING);
         boolean unsuccessful    = false;
@@ -230,6 +258,8 @@ public class GroupController extends Thread{
                 sfe.setThreadResources(this.threadResources.get(i));
             }
 
+            sfe.setFunctionTimers(this.functionTimers);
+            sfe.setFunctionCounters(this.functionCounters);
             HelperUtil.delay(this.threadStartDelay);
             sfe.execute();
             this.sfesCons.add(sfe);
@@ -322,6 +352,8 @@ public class GroupController extends Thread{
                         sfe.setThreadResources(this.threadResources.get(this.sfesCons.size() + i));
                     }
 
+                    sfe.setFunctionTimers(this.functionTimers);
+                    sfe.setFunctionCounters(this.functionCounters);
                     HelperUtil.delay(this.threadStartDelay);
 
                     sfe.execute();

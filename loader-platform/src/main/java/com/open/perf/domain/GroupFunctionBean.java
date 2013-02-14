@@ -1,6 +1,7 @@
 package com.open.perf.domain;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -18,7 +19,7 @@ public class GroupFunctionBean implements Cloneable {
 	@JsonProperty
 	private String  className ;
 	@JsonProperty
-	private String  functionName ;
+	private String  functionName = "execute";
 	private String  classFunction ;
 	private String statFile;
 	private String percentileStatFile;
@@ -27,7 +28,7 @@ public class GroupFunctionBean implements Cloneable {
     private Class[] constructorParamTypes ;
     
     @JsonProperty
-    private HashMap<String,Object> params ;
+    private Map<String,Object> params ;
     
     @JsonCreator
     public GroupFunctionBean(@JsonProperty("name")String name) {
@@ -36,7 +37,6 @@ public class GroupFunctionBean implements Cloneable {
     	this.graphIt = false;
     	this.softTimeOut = -1;
     	this.className = null;
-    	this.functionName = null;
     	this.classFunction = null;
     	this.params = new HashMap<String, Object>();
     	this.constructorParams = new Object[]{};
@@ -150,11 +150,11 @@ public class GroupFunctionBean implements Cloneable {
         return this;
     }
 
-    public GroupFunctionBean setParams(HashMap<String, Object>hm){
+    public GroupFunctionBean setParams(Map<String, Object> hm){
     	this.params = hm;
     	return this;
     }
-    public HashMap<String,Object> getParams() {
+    public Map<String,Object> getParams() {
         return this.params;
     }
 

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.open.perf.load.FunctionStats;
-import com.open.perf.operations.Operation;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -52,6 +51,8 @@ public class GroupBean {
     // threadResources don't work with Timers. Make sure you don't use them
     private List<Map<String,Object>> threadResources ;
     private Map<String, FunctionStats> stats;
+    private List<String> functionTimers;
+    private List<String> functionCounters;
 
     @JsonCreator
     public GroupBean(@JsonProperty("name")String name){
@@ -74,6 +75,8 @@ public class GroupBean {
     	  slowLogsEnabled=false;
     	  logFolder="";   	  
     	  logger = Logger.getLogger(GroupBean.class.getName());
+        this.functionTimers = new ArrayList<String>();
+        this.functionCounters = new ArrayList<String>();
       }
 
     public GroupBean setGroupStartDelay(int groupStartDelay) {
@@ -116,11 +119,6 @@ public class GroupBean {
         this.functions.add(groupFunction);
         groupFunction.setStatFile(this.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + ".txt");
         groupFunction.setPercentileStatFile(this.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + "_percentiles.txt");
-        return this;
-    }
-
-    public GroupBean addFunction(String name, Operation operation) {
-        this.addFunction(new GroupFunctionBean(name).setClassName(operation.getClass().getCanonicalName()).setParams((HashMap<String,Object>)operation.getParams()));
         return this;
     }
 
@@ -302,13 +300,41 @@ public class GroupBean {
         return threadResources;
     }
 
-    public Map<String,Object> getthreadResources(int threadNumber) {
+    public Map<String,Object> getThreadResources(int threadNumber) {
         return this.threadResources.get(threadNumber);
     }
 
     public GroupBean addThreadResource(int threadNumber, String resource, Object value) {
         System.out.println("Putting Resource "+resource+" "+value+" for thread "+threadNumber);
         this.threadResources.get(threadNumber).put(resource, value);
+        return this;
+    }
+
+
+    public GroupBean addFunctionTimer(String timerName) {
+        this.functionTimers.add(timerName);
+        return this;
+    }
+
+    public List<String> getFunctionTimers() {
+        return functionTimers;
+    }
+
+    public GroupBean setFunctionTimers(ArrayList<String> functionTimers) {
+        this.functionTimers = functionTimers;
+        return this;
+    }
+
+    public List<String> getFunctionCounters() {
+        return functionCounters;
+    }
+
+    public void setFunctionCounters(List<String> functionCounters) {
+        this.functionCounters = functionCounters;
+    }
+
+    public GroupBean addFunctionCounter(String counterName) {
+        this.functionCounters.add(counterName);
         return this;
     }
 
