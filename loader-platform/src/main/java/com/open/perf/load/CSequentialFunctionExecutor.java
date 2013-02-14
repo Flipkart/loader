@@ -1,13 +1,14 @@
 package com.open.perf.load;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import com.open.perf.common.ClassHelper;
+import com.open.perf.operation.FunctionContext;
+import com.open.perf.operation.FunctionCounter;
+import com.open.perf.operation.FunctionTimer;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.Timer;
 import org.apache.log4j.Logger;
 
 import com.open.perf.domain.GroupFunctionBean;
@@ -15,7 +16,7 @@ import com.open.perf.common.HelperUtil;
 import com.open.perf.common.Result;
 
 public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
-	private    long    			       repeat;
+    private    long    			       repeat;
     private    long 				   life;
     private    long                    repeatsDone;
     private    long 				   startTime;
@@ -35,6 +36,8 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
 
     Logger logger      = Logger.getLogger(GroupController.class);
     private static Pattern variablePattern = Pattern.compile(".*(#\\{(.+)\\}).*");
+    private Map<String, FunctionTimer> functionTimers;
+    private Map<String, FunctionCounter> functionCounters;
 
     public CSequentialFunctionExecutor(List<GroupFunctionBean> groupFunctions, HashMap<String,Object> params, long repeat, long life,long startTime, ThreadGroup tg, String name) {
         super(tg,name);
@@ -45,10 +48,13 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
         this.forceStop    = false;
         this.startTime    = startTime;
         this.pause        = false;
+        this.functionTimers = new HashMap<String, FunctionTimer>();
+        this.functionCounters = new HashMap<String, FunctionCounter>();
     }
-	   
-	public void run () {
-		//this.startTime 	= System.currentTimeMillis();
+
+    public void run () {
+        //this.startTime 	= System.currentTimeMillis();
+        FunctionContext functionContext = new FunctionContext(this.functionTimers, this.functionCounters);
         while(repeatAgain() && (this.forceStop == false)) {
 
 		    /*
@@ -56,62 +62,62 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
 		     * Pause would be enabled only when current thread gets over.
 		     * Resume will happen only if minimum delay which is 15000 milli seconds have passed
 		     */
-		    if(this.pause) {
-		        this.paused   =   true;
-	            this.running  =   false;
-	            HelperUtil.delay(PAUSE_CHECK_DELAY);
-		        continue;
-		    }    
-		    this.running  =   true;
+            if(this.pause) {
+                this.paused   =   true;
+                this.running  =   false;
+                HelperUtil.delay(PAUSE_CHECK_DELAY);
+                continue;
+            }
+            this.running  =   true;
             this.paused   =   false;
-		    
-			executionOver = false;
-			this.resetErroredFunctions();
-			this.resetFailedFunctions();
-			
-			HashMap<String,Object> threadParam = new HashMap<String,Object>();
-			//for(String key : this.params.keySet())
-			//	threadParam.put(key, this.params.get(key));
-			threadParam.putAll(this.params); // putting all in one shot
-			
-		
-			this.fExecutors = new ArrayList<SyncFunctionExecutor>();
 
-			for(int functionNo = 0; functionNo < this.groupFunctions.size() ; functionNo++) {
-				
-				//  We are passing parameters only to the first method and rest of the methods in the sequence
-				//  will get them automatically in Sequential Executor.
-				
-			    GroupFunctionBean groupFunction =   this.groupFunctions.get(functionNo);
-			    
-				//String function = functions.get(functionNo);
-				//int lastIndex 	 = function.lastIndexOf(".");
-				String className    = groupFunction.getClassName();
+            executionOver = false;
+            this.resetErroredFunctions();
+            this.resetFailedFunctions();
+
+            functionContext.updateParameters(this.params);
+
+            if(threadResources != null) {
+//                            threadParam.putAll(this.threadResources);
+                functionContext.updateParameters(this.threadResources);
+            }
+
+            this.fExecutors = new ArrayList<SyncFunctionExecutor>();
+
+            for(int functionNo = 0; functionNo < this.groupFunctions.size() ; functionNo++) {
+
+                //  We are passing parameters only to the first method and rest of the methods in the sequence
+                //  will get them automatically in Sequential Executor.
+
+                GroupFunctionBean groupFunction =   this.groupFunctions.get(functionNo);
+
+                //String function = functions.get(functionNo);
+                //int lastIndex 	 = function.lastIndexOf(".");
+                String className    = groupFunction.getClassName();
 				String functionName = groupFunction.getFunctionName();
-				
-				Class paramType = this.params.getClass();
-				SyncFunctionExecutor fe;
+
+                Class functionParamType = FunctionContext.class;
+                SyncFunctionExecutor fe;
 
                 try {
 
                     Object functionClassObject = ClassHelper.getClassInstance(className, groupFunction.getConstructorParamTypes(), groupFunction.getConstructorParams());
 
                     if(functionNo == 0 ) {
-                        threadParam.putAll(groupFunction.getParams());
-                        if(threadResources != null)
-                            threadParam.putAll(this.threadResources);
-
-                        resolveVariables(threadParam);
-                        fe = new SyncFunctionExecutor(groupFunction.getName(), className, functionName, functionClassObject,new Class[]{paramType},new Object[] {threadParam});
-                            fe.execute();
+                        functionContext.updateParameters(groupFunction.getParams());
+//                        threadParam.putAll(groupFunction.getParams());
+//                        resolveVariables(threadParam);
+                        fe = new SyncFunctionExecutor(groupFunction.getName(), className, functionName, functionClassObject,new Class[]{functionParamType},new Object[] {functionContext});
+                        fe.execute();
                     }
                     else {
-                        fe = new SyncFunctionExecutor(groupFunction.getName(), className, functionName, functionClassObject,new Class[]{paramType},null);
-                        SyncFunctionExecutor previousFunction = this.fExecutors.get(functionNo-1);
-                        HashMap<String,Object> prevFunctionParams  =   (HashMap<String, Object>) previousFunction.getParams()[0];
-                        prevFunctionParams.putAll(groupFunction.getParams());
-                        resolveVariables(prevFunctionParams);
-                        fe.setParams(new Object[] {prevFunctionParams});
+                        functionContext.updateParameters(groupFunction.getParams());
+                        fe = new SyncFunctionExecutor(groupFunction.getName(), className, functionName, functionClassObject,new Class[]{functionParamType},new Object[] {functionContext});
+//                        SyncFunctionExecutor previousFunction = this.fExecutors.get(functionNo-1);
+//                        HashMap<String,Object> prevFunctionParams  =   (HashMap<String, Object>) previousFunction.getParams()[0];
+//                        prevFunctionParams.putAll(groupFunction.getParams());
+//                        resolveVariables(prevFunctionParams);
+//                        fe.setParams(new Object[] {prevFunctionParams});
                         fe.execute();
                     }
 
@@ -151,63 +157,66 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
                     throw new RuntimeException(e);
                 }
 
-			}
+            }
 
-			endTime = System.currentTimeMillis();
+            endTime = System.currentTimeMillis();
             executionOver = true;
 
             ((GroupController)this.callBackObject).listener((CSequentialFunctionExecutor)this.callBackParams[0]);
             this.repeatsDone++;
-		}
+        }
         this.running  =   false;
-        logger.debug("Sequential Function Executor '"+this.getName()+"' Over");
-	}
+        logger.info("Function Timers :"+this.functionTimers);
+        logger.info("Function Counters :"+this.functionCounters);
+        logger.debug("Sequential Function Executor '" + this.getName() + "' Over");
+    }
 
     /**
      * To check if execution have to be repeated again
      * @return
      */
-	public boolean repeatAgain() {
+    public boolean repeatAgain() {
 
-		if((this.repeat   <   0)  &&  (this.life  <   0)) {
-			return true;
-		}
+        if((this.repeat   <   0)  &&  (this.life  <   0)) {
+            return true;
+        }
 
-		if(this.life <   0) {
-			return this.repeat > this.repeatsDone;
-		}
+        if(this.life <   0) {
+            return this.repeat > this.repeatsDone;
+        }
 
-		if(this.repeat < 0)
+        if(this.repeat < 0)
             return (System.currentTimeMillis() - this.startTime) < this.life;
 
-		else
-			return this.repeat > this.repeatsDone;
-	}
+        else
+            return this.repeat > this.repeatsDone;
+    }
 
-	public void setLife(long newLife) {
-		this.life = newLife;
-	}
+    public void setLife(long newLife) {
+        this.life = newLife;
+    }
 
-	public void forceStop() {
-		this.forceStop = true;
-	}
+    public void forceStop() {
+        this.forceStop = true;
+    }
 
-	public void pause() {
-	    this.pause =   true;
-	}
+    public void pause() {
+        this.pause =   true;
+    }
 
-	public void resume0() {
+    public void resume0() {
         this.pause =   false;
     }
-	
-	public boolean getPaused() {
-	    return this.paused;
-	}
-	
-	public boolean getRunning() {
-	    return this.running;
-	}
 
+    public boolean getPaused() {
+        return this.paused;
+    }
+
+    public boolean getRunning() {
+        return this.running;
+    }
+
+/*
     private static void resolveVariables(Map<String,Object> map){
         for(String key : map.keySet()) {
             Object value = map.get(key);
@@ -230,9 +239,20 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
             }
         }
     }
+*/
 
     public void setThreadResources(Map<String, Object> threadResources) {
         this.threadResources = threadResources;
     }
 
+    public void setFunctionTimers(Map<String,FunctionTimer> functionTimers) {
+        this.functionTimers = new HashMap<String, FunctionTimer>();
+        for(String functionTimer : functionTimers.keySet()) {
+            this.functionTimers.put(functionTimer, new FunctionTimer(functionTimer));
+        }
+    }
+
+    public void setFunctionCounters(Map<String, FunctionCounter> functionCounters) {
+        this.functionCounters = functionCounters;
+    }
 }
