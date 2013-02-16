@@ -6,7 +6,7 @@ import java.util.Map;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-public class GroupFunctionBean implements Cloneable {
+public class GroupFunction implements Cloneable {
 	
 	@JsonProperty
 	private String  name ;
@@ -31,7 +31,7 @@ public class GroupFunctionBean implements Cloneable {
     private Map<String,Object> params ;
     
     @JsonCreator
-    public GroupFunctionBean(@JsonProperty("name")String name) {
+    public GroupFunction(@JsonProperty("name") String name) {
     	this.name = name;
     	this.dumpData = false;
     	this.graphIt = false;
@@ -52,7 +52,7 @@ public class GroupFunctionBean implements Cloneable {
         return constructorParams;
     }
 
-    public GroupFunctionBean setConstructorParams(Object[] constructorParams) {
+    public GroupFunction setConstructorParams(Object[] constructorParams) {
         this.constructorParams = constructorParams;
         constructorParamTypes = new Class[constructorParams.length];
         for(int i=0 ;i < constructorParams.length;i++) {
@@ -62,7 +62,7 @@ public class GroupFunctionBean implements Cloneable {
     }
     
 
-    public GroupFunctionBean setFunctionName(String functionName) {
+    public GroupFunction setFunctionName(String functionName) {
         this.functionName = functionName;
         return this;
     }
@@ -75,12 +75,12 @@ public class GroupFunctionBean implements Cloneable {
         return this.className;
     }
     
-    public GroupFunctionBean setClassName(String className){
+    public GroupFunction setClassName(String className){
     	this.className = className;
     	return this;
     }
 
-    public GroupFunctionBean setClassFunction(String value) {
+    public GroupFunction setClassFunction(String value) {
         int lastIndex       =   value.lastIndexOf(".");
         this.className      =   value.substring(0,lastIndex);
         this.functionName   =   value.substring(lastIndex+1);
@@ -96,13 +96,13 @@ public class GroupFunctionBean implements Cloneable {
         return this.softTimeOut;
     }
 
-    public GroupFunctionBean setSoftTimeOut(int value) {
+    public GroupFunction setSoftTimeOut(int value) {
         this.softTimeOut    = value;
         return this;
     }
 
 
-    public GroupFunctionBean setName(String value) {
+    public GroupFunction setName(String value) {
         this.name   =   value;
         return this;
     }
@@ -111,12 +111,12 @@ public class GroupFunctionBean implements Cloneable {
         return this.name;
     }
 
-    public GroupFunctionBean dumpData() {
+    public GroupFunction dumpData() {
         this.dumpData = true;
         return this;
     }
 
-    public GroupFunctionBean doNotDumpData() {
+    public GroupFunction doNotDumpData() {
         this.dumpData = false;
         return this;
     }
@@ -125,13 +125,13 @@ public class GroupFunctionBean implements Cloneable {
         return this.dumpData;
     }
 
-    public GroupFunctionBean graphIt() {
+    public GroupFunction graphIt() {
         this.dumpData();
         this.graphIt = true;
         return this;
     }
 
-    public GroupFunctionBean doNotGraphIt() {
+    public GroupFunction doNotGraphIt() {
         this.doNotDumpData();
         this.graphIt = false;
         return this;
@@ -145,12 +145,12 @@ public class GroupFunctionBean implements Cloneable {
         return "Name :"+this.name+", Function :"+this.className+"."+this.functionName+", Dump Data :"+this.dumpData +", Soft TimeOut :"+this.softTimeOut;
     }
 
-    public GroupFunctionBean addParam(String param, Object value) {
+    public GroupFunction addParam(String param, Object value) {
         this.params.put(param, value);
         return this;
     }
 
-    public GroupFunctionBean setParams(Map<String, Object> hm){
+    public GroupFunction setParams(Map<String, Object> hm){
     	this.params = hm;
     	return this;
     }
@@ -174,7 +174,7 @@ public class GroupFunctionBean implements Cloneable {
         return percentileStatFile;
     }
 
-    public GroupFunctionBean clone() throws CloneNotSupportedException {
-        return (GroupFunctionBean) super.clone();
+    public GroupFunction clone() throws CloneNotSupportedException {
+        return (GroupFunction) super.clone();
     }
 }

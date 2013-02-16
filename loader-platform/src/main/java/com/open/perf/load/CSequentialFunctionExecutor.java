@@ -3,17 +3,11 @@ package com.open.perf.load;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import com.open.perf.common.ClassHelper;
-import com.open.perf.operation.FunctionContext;
-import com.open.perf.operation.FunctionCounter;
-import com.open.perf.operation.FunctionTimer;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Timer;
+import com.open.perf.operation.*;
+import com.open.perf.util.*;
+import com.open.perf.domain.GroupFunction;
+import com.open.perf.util.Timer;
 import org.apache.log4j.Logger;
-
-import com.open.perf.domain.GroupFunctionBean;
-import com.open.perf.common.HelperUtil;
-import com.open.perf.common.Result;
 
 public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
     private    long    			       repeat;
@@ -21,7 +15,7 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
     private    long                    repeatsDone;
     private    long 				   startTime;
     //	private    ArrayList<String> 	   functions;
-    private    List<GroupFunctionBean> groupFunctions;
+    private    List<GroupFunction> groupFunctions;
     private    HashMap<String,Object>  params;// Common for all with in the group
     private    boolean 				   forceStop;
 
@@ -36,10 +30,10 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
 
     Logger logger      = Logger.getLogger(GroupController.class);
     private static Pattern variablePattern = Pattern.compile(".*(#\\{(.+)\\}).*");
-    private Map<String, FunctionTimer> functionTimers;
-    private Map<String, FunctionCounter> functionCounters;
+    private Map<String, Timer> functionTimers;
+    private Map<String, Counter> functionCounters;
 
-    public CSequentialFunctionExecutor(List<GroupFunctionBean> groupFunctions, HashMap<String,Object> params, long repeat, long life,long startTime, ThreadGroup tg, String name) {
+    public CSequentialFunctionExecutor(List<GroupFunction> groupFunctions, HashMap<String,Object> params, long repeat, long life,long startTime, ThreadGroup tg, String name) {
         super(tg,name);
         this.repeat       = repeat;
         this.life         = life;
@@ -48,15 +42,15 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
         this.forceStop    = false;
         this.startTime    = startTime;
         this.pause        = false;
-        this.functionTimers = new HashMap<String, FunctionTimer>();
-        this.functionCounters = new HashMap<String, FunctionCounter>();
+        this.functionTimers = new HashMap<String, Timer>();
+        this.functionCounters = new HashMap<String, Counter>();
     }
 
     public void run () {
         //this.startTime 	= System.currentTimeMillis();
         FunctionContext functionContext = new FunctionContext(this.functionTimers, this.functionCounters);
         while(repeatAgain() && (this.forceStop == false)) {
-
+            functionContext.reset();
 		    /*
 		     * Add Code for Runtime Pause
 		     * Pause would be enabled only when current thread gets over.
@@ -78,7 +72,6 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
             functionContext.updateParameters(this.params);
 
             if(threadResources != null) {
-//                            threadParam.putAll(this.threadResources);
                 functionContext.updateParameters(this.threadResources);
             }
 
@@ -88,10 +81,8 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
                 //  We are passing parameters only to the first method and rest of the methods in the sequence
                 //  will get them automatically in Sequential Executor.
 
-                GroupFunctionBean groupFunction =   this.groupFunctions.get(functionNo);
+                GroupFunction groupFunction =   this.groupFunctions.get(functionNo);
 
-                //String function = functions.get(functionNo);
-                //int lastIndex 	 = function.lastIndexOf(".");
                 String className    = groupFunction.getClassName();
 				String functionName = groupFunction.getFunctionName();
 
@@ -111,19 +102,12 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
 
                     if(functionNo == 0 ) {
                         functionContext.updateParameters(groupFunction.getParams());
-//                        threadParam.putAll(groupFunction.getParams());
-//                        resolveVariables(threadParam);
                         fe = new SyncFunctionExecutor(groupFunction.getName(), className, functionName, functionClassObject,new Class[]{functionParamType},new Object[] {functionContext});
                         fe.execute();
                     }
                     else {
                         functionContext.updateParameters(groupFunction.getParams());
                         fe = new SyncFunctionExecutor(groupFunction.getName(), className, functionName, functionClassObject,new Class[]{functionParamType},new Object[] {functionContext});
-//                        SyncFunctionExecutor previousFunction = this.fExecutors.get(functionNo-1);
-//                        HashMap<String,Object> prevFunctionParams  =   (HashMap<String, Object>) previousFunction.getParams()[0];
-//                        prevFunctionParams.putAll(groupFunction.getParams());
-//                        resolveVariables(prevFunctionParams);
-//                        fe.setParams(new Object[] {prevFunctionParams});
                         fe.execute();
                     }
 
@@ -136,7 +120,7 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
                         if(returnedObject instanceof Result) {
                             Result result = (Result)returnedObject;
                             // If user functioned decided that function execution was a failure
-                            if(result.getResult() == false) {
+                            if(result.isSuccess() == false) {
                                 logger.error("Execution of Function " + fe.getAbsoluteFunctionName() + " Failed with reason " + result.getMessage());
                                 logger.info("Function '"+fe.getFunctionalityName()+"' failed/errored.");
                                 if(functionNo < this.groupFunctions.size()-1)
@@ -251,14 +235,14 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
         this.threadResources = threadResources;
     }
 
-    public void setFunctionTimers(Map<String,FunctionTimer> functionTimers) {
-        this.functionTimers = new HashMap<String, FunctionTimer>();
+    public void setFunctionTimers(Map<String,Timer> functionTimers) {
+        this.functionTimers = new HashMap<String, Timer>();
         for(String functionTimer : functionTimers.keySet()) {
-            this.functionTimers.put(functionTimer, new FunctionTimer(functionTimer));
+            this.functionTimers.put(functionTimer, new Timer(functionTimer));
         }
     }
 
-    public void setFunctionCounters(Map<String, FunctionCounter> functionCounters) {
+    public void setFunctionCounters(Map<String, Counter> functionCounters) {
         this.functionCounters = functionCounters;
     }
 }

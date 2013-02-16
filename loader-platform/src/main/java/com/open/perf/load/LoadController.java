@@ -13,25 +13,25 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
+import com.open.perf.domain.Group;
 import org.apache.log4j.Logger;
 
-import com.open.perf.common.HelperUtil;
-import com.open.perf.domain.GroupBean;
-import com.open.perf.domain.GroupsBean;
+import com.open.perf.util.HelperUtil;
+import com.open.perf.domain.Groups;
 
 public class LoadController extends Thread{
     private Map<String,List<String>>        groupDependency = new LinkedHashMap<String,List<String>>();
     private Map<String,GroupController>     groups = new LinkedHashMap<String,GroupController>();
     private static Map<String,String> groupsStatus = new LinkedHashMap<String,String>();
 
-    private Map<String,GroupBean> groupMap;
+    private Map<String,Group> groupMap;
     private static Logger logger;
 
     static {
         logger =   Logger.getLogger(LoadController.class);
     }
 
-    public LoadController(GroupsBean groups) throws Exception {
+    public LoadController(Groups groups) throws Exception {
         this.setName("Thread-LoadController");
 
         this.groupMap   =   groups.getGroups();
@@ -50,11 +50,11 @@ public class LoadController extends Thread{
             logger.debug("Directory '" + groupsFolder + "' created for all groups logs");
         }
 
-        HashMap<String,GroupBean> groupsMap    =   groups.getGroups();
+        HashMap<String,Group> groupsMap    =   groups.getGroups();
 
         logger.debug("Number of groups : "+groupsMap.size());
         for(String group : groupsMap.keySet()) {
-            GroupBean groupBean       =   groupsMap.get(group);
+            Group groupBean       =   groupsMap.get(group);
 
             // if repeat is mentioned as 0 then it will be treated as -1
 
@@ -89,7 +89,7 @@ public class LoadController extends Thread{
         if(dependOnGroups.size() > 0) {
             for(String depGroup : dependOnGroups) {
                 dependencyFlow  +=  " -> "+depGroup;
-                GroupBean depGroupBean    = groupMap.get(depGroup);
+                Group depGroupBean    = groupMap.get(depGroup);
                 if(depGroupBean == null)
                     throw new RuntimeException("Group '"+depGroup+"' doesn't exist!!!");
                 else {
@@ -125,10 +125,10 @@ public class LoadController extends Thread{
      * In case logFolder is not mentioned at Group level then this function will make use of LogFolder mentioned at Loader level and
      * pass it to Groups also
      */
-    private void validateLogFolder(GroupsBean groups) {
+    private void validateLogFolder(Groups groups) {
         String groupsLogFolder =   groups.getLogFolder();
-        HashMap<String,GroupBean> groupMap =   groups.getGroups();
-        for(GroupBean group : groupMap.values()) {
+        HashMap<String,Group> groupMap =   groups.getGroups();
+        for(Group group : groupMap.values()) {
             logger.debug("Original Log Folder for Group '"+ group.getName()+"' is '"+ group.getLogFolder()+"'");
             if(group.getLogFolder().equals("")) { // Not doing null check as default value is Empty only
                 logger.debug("Setting it to '"+groupsLogFolder+"'");
@@ -137,7 +137,7 @@ public class LoadController extends Thread{
         }
     }
 
-    public void addGroup(GroupBean group) throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, NullPointerException, IOException {
+    public void addGroup(Group group) throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, NullPointerException, IOException {
         String groupName = group.getName();
         List<String>  dependsOnList   =   group.getDependOnGroups();
 

@@ -1,7 +1,4 @@
-package com.open.perf.operation;
-
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
+package com.open.perf.util;
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,11 +7,11 @@ import com.yammer.metrics.core.Counter;
  * Time: 10:36 AM
  * To change this template use File | Settings | File Templates.
  */
-public class FunctionCounter {
+public class Counter {
     private String counterName;
     private long count;
 
-    public FunctionCounter(String counterName) {
+    public Counter(String counterName) {
         this.counterName = counterName;
         count = 0;
     }
@@ -23,31 +20,31 @@ public class FunctionCounter {
         return counterName;
     }
 
-    synchronized public FunctionCounter increment() {
+    synchronized public Counter increment() {
         count++;
         return this;
     }
 
-    synchronized public FunctionCounter increment(int by) {
+    synchronized public Counter increment(int by) {
         count += by;
         return this;
     }
 
-    synchronized public FunctionCounter decrement() {
+    synchronized public Counter decrement() {
         count--;
         return this;
     }
 
-    synchronized public FunctionCounter decrement(int by) {
+    synchronized public Counter decrement(int by) {
         count -= by;
         return this;
     }
 
-    public long getCurrentCount() {
+    public long count() {
         return count;
     }
 
-    synchronized public FunctionCounter reset() {
+    synchronized public Counter reset() {
         count = 0;
         return this;
     }

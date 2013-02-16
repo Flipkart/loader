@@ -8,64 +8,62 @@ import org.apache.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import com.open.perf.domain.GroupBean;
 
-
-public class GroupsBean {
+public class Groups {
 	
 	@JsonProperty("groupList")
-	private List<GroupBean> groupList;
-	private HashMap<String,GroupBean> groupMap;
+	private List<Group> groupList;
+	private HashMap<String,Group> groupMap;
     private String logFolder;
     private static Logger logger;
     static {
-        logger = Logger.getLogger(GroupsBean.class);
+        logger = Logger.getLogger(Groups.class);
     }
 
     @JsonCreator
-    public GroupsBean() {
+    public Groups() {
     	logger.info("Created a blank groupsbean.");
-        groupMap    =   new HashMap<String,GroupBean>();
-        groupList = new ArrayList<GroupBean>();
+        groupMap    =   new HashMap<String,Group>();
+        groupList = new ArrayList<Group>();
         logFolder   =   null;
     }
     
-    public List<GroupBean> getGroupList() {
+    public List<Group> getGroupList() {
 		return groupList;
 	}
 
-	public GroupsBean setGroupList(List<GroupBean> groupList) {
+	public Groups setGroupList(List<Group> groupList) {
 		logger.info("Creating the list of groups");
 		this.groupList = groupList;
-		for (GroupBean grpBean : groupList){
+		for (Group grpBean : groupList){
 			groupMap.put(grpBean.getName(), grpBean);
 		}
 		return this;
 	}
 	
-    public void addGroup(GroupBean group) {
+    public void addGroup(Group group) {
     	this.groupList.add(group);
         this.groupMap.put(group.getName(), group);
     }
     
-    public void setGroup(HashMap<String, GroupBean> hm){
+    public void setGroup(HashMap<String, Group> hm){
     	groupMap = hm;
     }
-    public HashMap<String,GroupBean> getGroups() {
+    public HashMap<String,Group> getGroups() {
         return this.groupMap;
     }
 
-    public HashMap<String, GroupBean> getGroupMap() {
+    public HashMap<String, Group> getGroupMap() {
 		return groupMap;
 	}
 
-	public void setGroupMap(HashMap<String, GroupBean> groupMap) {
+	public void setGroupMap(HashMap<String, Group> groupMap) {
 		this.groupMap = groupMap;
 	}
 
 	public void setLogFolder(String value) {
         if(value != null && value.equals(""))
-            throw new RuntimeException("Loader/GroupsBean/LogFolder Can't be Empty!!!!");
+            throw new RuntimeException("Loader/Groups/LogFolder Can't be Empty!!!!");
         this.logFolder  =   value;
     }
     
@@ -90,7 +88,7 @@ public class GroupsBean {
         if(dependOnGroups.size() > 0) {
             for(String depGroup : dependOnGroups) {
                 dependencyFlow  +=  " -> "+depGroup;
-                GroupBean depGroupBean    = groupMap.get(depGroup);
+                Group depGroupBean    = groupMap.get(depGroup);
                 if(depGroupBean == null) 
                     throw new RuntimeException("Group '"+depGroup+"' doesn't exist!!!");
                 else {
@@ -123,10 +121,10 @@ public class GroupsBean {
     }
  
     public String toString() {
-        String str  = "GroupsBean Log Folder:"+this.logFolder+"\n";
-        logger.info("GroupsBean "+this.groupMap);
+        String str  = "Groups Log Folder:"+this.logFolder+"\n";
+        logger.info("Groups "+this.groupMap);
 
-        for(GroupBean group : groupMap.values())
+        for(Group group : groupMap.values())
             str     += group.asString()+"\n";
 
         return str;

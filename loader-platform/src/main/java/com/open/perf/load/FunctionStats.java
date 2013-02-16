@@ -1,89 +1,94 @@
 package com.open.perf.load;
 
+import com.open.perf.util.Counter;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class FunctionStats {
 	private String name;
-    private int failureCount;
-    private int errorCount;
-    private float min, max, avg, dumpAvg, nineteeth, nintyFifth, nintyEight;
+    private Counter count;
+    private Counter failureCounter;
+    private Counter skipCounter;
+    private Counter errorCounter;
+    private List<Double> values;
+    private double min=Double.MAX_VALUE, max=Double.MIN_VALUE;
+    private double totalFunctionTime;
+
+    public FunctionStats(String name) {
+        this.name = name;
+        this.count = new Counter(name);
+        this.failureCounter = new Counter(name+"_failure");
+        this.errorCounter = new Counter(name+"_error");
+        this.skipCounter = new Counter(name+"_skip");
+        this.values = new ArrayList<Double>();
+        this.totalFunctionTime = 0d;
+    }
+
+    public FunctionStats failed() {
+        this.failureCounter.increment();
+        this.count.increment();
+        return this;
+    }
+
+    public FunctionStats errored() {
+        this.errorCounter.increment();
+        this.count.increment();
+        return this;
+    }
+
+    public FunctionStats skipped() {
+        this.skipCounter.increment();
+        this.count.increment();
+        return this;
+    }
+
+    public FunctionStats addValue(double functionTime) {
+        this.values.add(functionTime);
+
+        if(functionTime < this.min)
+            this.min = functionTime;
+
+        if(functionTime > this.max)
+            this.max = functionTime;
+
+        this.totalFunctionTime += functionTime;
+        return this;
+    }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public Counter getCount() {
+        return count;
     }
 
-    public int getFailureCount() {
-        return failureCount;
+    public Counter getFailureCounter() {
+        return failureCounter;
     }
 
-    public void setFailureCount(int failureCount) {
-        this.failureCount = failureCount;
+    public Counter getSkipCounter() {
+        return skipCounter;
     }
 
-    public int getErrorCount() {
-        return errorCount;
+    public Counter getErrorCounter() {
+        return errorCounter;
     }
 
-    public void setErrorCount(int errorCount) {
-        this.errorCount = errorCount;
+    public List<Double> getValues() {
+        return values;
     }
 
-    public float getMin() {
+    public double getTotalFunctionTime() {
+        return totalFunctionTime;
+    }
+
+    public double getMin() {
         return min;
     }
 
-    public void setMin(float min) {
-        this.min = min;
-    }
-
-    public float getMax() {
+    public double getMax() {
         return max;
     }
-
-    public void setMax(float max) {
-        this.max = max;
-    }
-
-    public float getAvg() {
-        return avg;
-    }
-
-    public void setAvg(float avg) {
-        this.avg = avg;
-    }
-
-    public float getDumpAvg() {
-        return dumpAvg;
-    }
-
-    public void setDumpAvg(float dumpAvg) {
-        this.dumpAvg = dumpAvg;
-    }
-
-    public float getNineteeth() {
-        return nineteeth;
-    }
-
-    public void setNineteeth(float nineteeth) {
-        this.nineteeth = nineteeth;
-    }
-
-    public float getNintyFifth() {
-        return nintyFifth;
-    }
-
-    public void setNintyFifth(float nintyFifth) {
-        this.nintyFifth = nintyFifth;
-    }
-
-    public float getNintyEight() {
-        return nintyEight;
-    }
-
-    public void setNintyEight(float nintyEight) {
-        this.nintyEight = nintyEight;
-    }
-
 }

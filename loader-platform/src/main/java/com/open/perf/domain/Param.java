@@ -2,13 +2,13 @@ package com.open.perf.domain;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
-public class ParamBean {
+public class Param {
 	@JsonProperty
 	private String name;
 	@JsonProperty
     private Object value;
 
-    public ParamBean setName(String key) {
+    public Param setName(String key) {
         this.name    = key;
         return this;
     }
@@ -17,7 +17,7 @@ public class ParamBean {
         return this.name;
     }
 
-    public ParamBean setValue(Object value) {
+    public Param setValue(Object value) {
         this.value    = value;
         return this;
     }
@@ -30,11 +30,11 @@ public class ParamBean {
         return this.name+"="+this.value+"\n";
     }
 
-    public ParamBean clone() {
-        ParamBean newParamBean  =   new ParamBean();
-        newParamBean.setName(this.name);
-        newParamBean.setValue(this.value);
-        return newParamBean;
+    public Param clone() {
+        Param newParam =   new Param();
+        newParam.setName(this.name);
+        newParam.setValue(this.value);
+        return newParam;
     }
 
 }

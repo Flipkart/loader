@@ -3,7 +3,7 @@ package com.open.perf.domain;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-public class TimerBean {
+public class GroupTimer {
 		@JsonProperty
 		private String name;
 		@JsonProperty
@@ -20,7 +20,7 @@ public class TimerBean {
 		private long repeatsDone;
 
 		@JsonCreator
-	    public TimerBean(String name){
+	    public GroupTimer(String name){
 	    	this.name = name;
 	    	this.delayAfterRepeats = "0,0";
 	    	this.repeats=-1;
@@ -31,7 +31,7 @@ public class TimerBean {
 	        return name;
 	    }
 
-	    public TimerBean setName(String name) {
+	    public GroupTimer setName(String name) {
 	        this.name = name;
 	        return this;
 	    }
@@ -40,7 +40,7 @@ public class TimerBean {
 	        return delayAfterRepeats;
 	    }
 
-	    public TimerBean setDelayAfterRepeats(String delayAfterRepeats) {
+	    public GroupTimer setDelayAfterRepeats(String delayAfterRepeats) {
 	        this.delayAfterRepeats = delayAfterRepeats;
 	        return this;
 	    }
@@ -49,7 +49,7 @@ public class TimerBean {
 	        return runtime;
 	    }
 
-	    public TimerBean setRuntime(long runtime) {
+	    public GroupTimer setRuntime(long runtime) {
 	        this.runtime = runtime;
 	        return this;
 	    }
@@ -58,7 +58,7 @@ public class TimerBean {
 	        return threads;
 	    }
 
-	    public TimerBean setThreads(int threads) {
+	    public GroupTimer setThreads(int threads) {
 	        this.threads = threads;
 	        return this;
 	    }
@@ -67,16 +67,16 @@ public class TimerBean {
 	        return repeats;
 	    }
 
-	    public TimerBean setRepeats(long repeats) {
+	    public GroupTimer setRepeats(long repeats) {
 	        this.repeats = repeats;
 	        return this;
 	    }
 
-	    public TimerBean clone() throws CloneNotSupportedException {
-	        return (TimerBean) super.clone();
+	    public GroupTimer clone() throws CloneNotSupportedException {
+	        return (GroupTimer) super.clone();
 	    }
 
-	    public TimerBean setStartTime(long startTime) {
+	    public GroupTimer setStartTime(long startTime) {
 	        this.startTime = startTime;
 	        return this;
 	    }
@@ -85,7 +85,7 @@ public class TimerBean {
 	        return this.startTime;
 	    }
 
-	    public TimerBean incrementRepeatsDone() {
+	    public GroupTimer incrementRepeatsDone() {
 	        this.repeatsDone++;
 	        return this;
 	    }
@@ -94,7 +94,7 @@ public class TimerBean {
 	        return repeatsDone;
 	    }
 
-	    public TimerBean setRepeatsDone(long repeatsDone) {
+	    public GroupTimer setRepeatsDone(long repeatsDone) {
 	        this.repeatsDone = repeatsDone;
 	        return this;
 	    }

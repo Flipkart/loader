@@ -5,13 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.open.perf.load.FunctionStats;
-
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-public class GroupBean {
+public class Group {
 	
 	private static Logger        logger ;
 	
@@ -43,24 +41,23 @@ public class GroupBean {
     private boolean slowLogsEnabled ;
     private String logFolder;
 
-    private List<GroupFunctionBean> functions;
+    private List<GroupFunction> functions;
     private List<String> dependOnGroups;
     private HashMap<String, Object> params;
-    private List<TimerBean> timers;
+    private List<GroupTimer> timers;
 
     // threadResources don't work with Timers. Make sure you don't use them
     private List<Map<String,Object>> threadResources ;
-    private Map<String, FunctionStats> stats;
     private List<String> functionTimers;
     private List<String> functionCounters;
 
     @JsonCreator
-    public GroupBean(@JsonProperty("name")String name){
+    public Group(@JsonProperty("name") String name){
     	  this.name = name;
-    	  functions = new ArrayList<GroupFunctionBean>();
+    	  functions = new ArrayList<GroupFunction>();
     	  dependOnGroups = new ArrayList<String>();
     	  params = new HashMap<String, Object>();
-    	  timers = new ArrayList<TimerBean>();
+    	  timers = new ArrayList<GroupTimer>();
     	  threadResources = new ArrayList<Map<String, Object>>();
     	  groupStartDelay=0;
     	  dumpDataAfterRepeats=10;
@@ -74,30 +71,30 @@ public class GroupBean {
     	  warmUpRepeats=-1;
     	  slowLogsEnabled=false;
     	  logFolder="";   	  
-    	  logger = Logger.getLogger(GroupBean.class.getName());
+    	  logger = Logger.getLogger(Group.class.getName());
         this.functionTimers = new ArrayList<String>();
         this.functionCounters = new ArrayList<String>();
       }
 
-    public GroupBean setGroupStartDelay(int groupStartDelay) {
+    public Group setGroupStartDelay(int groupStartDelay) {
         this.groupStartDelay = groupStartDelay;
         return this;
     }
 
-    public GroupBean setRepeats(int repeats) {
+    public Group setRepeats(int repeats) {
         this.repeats = repeats;
         this.repeatIsSet = true;
         return this;
     }
 
-    public GroupBean setLife(int life) {
+    public Group setLife(int life) {
         this.life = life;
         if(!this.repeatIsSet)
             this.repeats = -1;
         return this;
     }
 
-    public GroupBean setThreads(int threads) {
+    public Group setThreads(int threads) {
         this.threadResources.clear();
         this.threads = threads;
         for(int i=0;i<threads;i++)
@@ -105,17 +102,17 @@ public class GroupBean {
         return this;
     }
 
-    public GroupBean setThreadStartDelay(int threadStartDelay) {
+    public Group setThreadStartDelay(int threadStartDelay) {
         this.threadStartDelay = threadStartDelay;
         return this;
     }
 
-    public GroupBean setDelayAfterRepeats(int repeats, int delay) {
+    public Group setDelayAfterRepeats(int repeats, int delay) {
         this.delayAfterRepeats = repeats+","+delay;
         return this;
     }
 
-    public GroupBean addFunction(GroupFunctionBean groupFunction) {
+    public Group addFunction(GroupFunction groupFunction) {
         this.functions.add(groupFunction);
         groupFunction.setStatFile(this.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + ".txt");
         groupFunction.setPercentileStatFile(this.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + "_percentiles.txt");
@@ -150,7 +147,7 @@ public class GroupBean {
         return delayAfterRepeats;
     }
 
-    public List<GroupFunctionBean> getFunctions() {
+    public List<GroupFunction> getFunctions() {
         return functions;
     }
 
@@ -158,22 +155,22 @@ public class GroupBean {
         return dumpDataAfterRepeats;
     }
 
-    public GroupBean setName(String name) {
+    public Group setName(String name) {
         this.name = name;
         return this;
     }
 
-    public GroupBean setDelayAfterRepeats(String delayAfterRepeats) {
+    public Group setDelayAfterRepeats(String delayAfterRepeats) {
         this.delayAfterRepeats = delayAfterRepeats;
         return this;
     }
 
-    public GroupBean setDumpDataAfterRepeats(int dumpDataAfterRepeats) {
+    public Group setDumpDataAfterRepeats(int dumpDataAfterRepeats) {
         this.dumpDataAfterRepeats = dumpDataAfterRepeats;
         return this;
     }
 
-    public GroupBean dependsOn(String dependsOnGroup) {
+    public Group dependsOn(String dependsOnGroup) {
         this.dependOnGroups.add(dependsOnGroup);
         return this;
     }
@@ -182,7 +179,7 @@ public class GroupBean {
         return dependOnGroups;
     }
 
-    public GroupBean addParam(String param, String value) {
+    public Group addParam(String param, String value) {
         this.params.put(param, value);
         return this;
     }
@@ -191,19 +188,19 @@ public class GroupBean {
         return params;
     }
 
-    public GroupBean addTimer(TimerBean timer) {
+    public Group addTimer(GroupTimer timer) {
         this.timers.add(timer);
         this.repeats = -1; // As such repeats has no meaning with Timers. but not making repeat = -1 is causing synchronization issues.
         return this;
     }
 
-    public List<TimerBean> getTimers() {
+    public List<GroupTimer> getTimers() {
         return timers;
     }
 
-    public GroupBean setLogFolder(String value) {
+    public Group setLogFolder(String value) {
         if(value != null && value.equals(""))
-            throw new RuntimeException("Loader/Groups/GroupBean/LogFolder Can't be Empty!!!!");
+            throw new RuntimeException("Loader/Groups/Group/LogFolder Can't be Empty!!!!");
         this.logFolder  =   value;
         return this;
     }
@@ -216,7 +213,7 @@ public class GroupBean {
         return this.slowLogsEnabled;
     }
 
-    public GroupBean enableSlowlogs() {
+    public Group enableSlowlogs() {
         this.slowLogsEnabled =   true;
         return this;
     }
@@ -225,7 +222,7 @@ public class GroupBean {
         return warmUpTime;
     }
 
-    public GroupBean setWarmUpTime(int warmUpTime) {
+    public Group setWarmUpTime(int warmUpTime) {
         this.warmUpTime = warmUpTime;
         return this;
     }
@@ -234,7 +231,7 @@ public class GroupBean {
         return warmUpRepeats;
     }
 
-    public GroupBean setWarmUpRepeats(int warmUpRepeats) {
+    public Group setWarmUpRepeats(int warmUpRepeats) {
         this.warmUpRepeats = warmUpRepeats;
         return this;
     }
@@ -243,8 +240,8 @@ public class GroupBean {
         return this.warmUpRepeats != -1 || this.warmUpRepeats != -1;
     }
 
-    public GroupBean createWarmUpGroup() throws CloneNotSupportedException {
-        GroupBean warmUpGroup = new GroupBean("Warm Up "+this.getName());
+    public Group createWarmUpGroup() throws CloneNotSupportedException {
+        Group warmUpGroup = new Group("Warm Up "+this.getName());
         warmUpGroup.setGroupStartDelay(this.groupStartDelay).
                 setDumpDataAfterRepeats(this.dumpDataAfterRepeats).
                 setThreadStartDelay(this.threadStartDelay).
@@ -256,8 +253,8 @@ public class GroupBean {
 
          logger.info("Adding group function to warmUp group");
          logger.info(this.functions);
-         for(GroupFunctionBean originalFunction : this.functions) {
-             GroupFunctionBean clonedFunction = originalFunction.clone();
+         for(GroupFunction originalFunction : this.functions) {
+             GroupFunction clonedFunction = originalFunction.clone();
              clonedFunction.doNotGraphIt();
              warmUpGroup.addFunction(clonedFunction);
          }
@@ -275,7 +272,7 @@ public class GroupBean {
    }
 
     public String asString() {
-        System.out.println("Collecting GroupBean info");
+        System.out.println("Collecting Group info");
         return "\nGroup Name "+this.name+" " +
                 "\ngroupStartDelay "+this.groupStartDelay+" " +
                 "\ndumpDataAfterRepeats "+this.dumpDataAfterRepeats+"" +
@@ -291,7 +288,7 @@ public class GroupBean {
         return graphTab;
     }
 
-    public GroupBean setGraphTab(String graphTab) {
+    public Group setGraphTab(String graphTab) {
         this.graphTab = graphTab;
         return this;
     }
@@ -304,14 +301,14 @@ public class GroupBean {
         return this.threadResources.get(threadNumber);
     }
 
-    public GroupBean addThreadResource(int threadNumber, String resource, Object value) {
+    public Group addThreadResource(int threadNumber, String resource, Object value) {
         System.out.println("Putting Resource "+resource+" "+value+" for thread "+threadNumber);
         this.threadResources.get(threadNumber).put(resource, value);
         return this;
     }
 
 
-    public GroupBean addFunctionTimer(String timerName) {
+    public Group addFunctionTimer(String timerName) {
         this.functionTimers.add(timerName);
         return this;
     }
@@ -320,7 +317,7 @@ public class GroupBean {
         return functionTimers;
     }
 
-    public GroupBean setFunctionTimers(ArrayList<String> functionTimers) {
+    public Group setFunctionTimers(ArrayList<String> functionTimers) {
         this.functionTimers = functionTimers;
         return this;
     }
@@ -333,7 +330,7 @@ public class GroupBean {
         this.functionCounters = functionCounters;
     }
 
-    public GroupBean addFunctionCounter(String counterName) {
+    public Group addFunctionCounter(String counterName) {
         this.functionCounters.add(counterName);
         return this;
     }

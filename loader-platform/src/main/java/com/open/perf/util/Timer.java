@@ -1,4 +1,4 @@
-package com.open.perf.operation;
+package com.open.perf.util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,19 +10,19 @@ import java.util.List;
  * Time: 10:17 AM
  * To change this template use File | Settings | File Templates.
  */
-public class FunctionTimer implements Cloneable{
+public class Timer implements Cloneable{
     private String timerName;
-    private Double minTime = Double.MAX_VALUE;
-    private Double maxTime = 0d;
+    private Double min = Double.MAX_VALUE;
+    private Double max = 0d;
     private Long startTime;
     private List<Double> timeList;
 
-    public FunctionTimer(String timerName) {
+    public Timer(String timerName) {
         this.timerName = timerName;
         this.timeList = new ArrayList<Double>();
     }
 
-    public FunctionTimer startTimer() {
+    public Timer startTimer() {
         this.startTime = System.nanoTime();
         return this;
     }
@@ -33,11 +33,11 @@ public class FunctionTimer implements Cloneable{
         double timeTaken = (System.nanoTime() - this.startTime)/1000000;
         timeList.add(timeTaken);
 
-        if(timeTaken < minTime)
-            minTime = timeTaken;
+        if(timeTaken < min)
+            min = timeTaken;
 
-        if(timeTaken > maxTime)
-            maxTime = timeTaken;
+        if(timeTaken > max)
+            max = timeTaken;
         return timeTaken;
     }
 
@@ -54,6 +54,6 @@ public class FunctionTimer implements Cloneable{
     }
 
     public String toString() {
-        return "Function Timer Name :"+this.timerName + " Samples :"+this.timeList.size()+" Min :"+this.minTime+" Max :"+this.maxTime;
+        return "Function Timer Name :"+this.timerName + " Samples :"+this.timeList.size()+" Min :"+this.min +" Max :"+this.max;
     }
 }

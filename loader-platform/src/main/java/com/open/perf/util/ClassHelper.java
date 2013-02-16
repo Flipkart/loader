@@ -1,4 +1,4 @@
-package com.open.perf.common;
+package com.open.perf.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

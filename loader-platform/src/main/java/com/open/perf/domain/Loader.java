@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import com.open.perf.common.HelperUtil;
+import com.open.perf.util.HelperUtil;
 import com.open.perf.load.LoadController;
 
 
@@ -19,7 +19,7 @@ public class Loader {
 	@JsonProperty
 	private String name;
 	@JsonProperty
-    private GroupsBean groups;
+    private Groups groups;
     private String logFolder;
     private static Logger logger;
 
@@ -30,18 +30,18 @@ public class Loader {
     @JsonCreator
     public Loader(@JsonProperty("name")String name) {
         this.name = name;
-        this.groups = new GroupsBean();
+        this.groups = new Groups();
         this.logFolder = "/var/log/loader/"+ name.replace(" ","");
         this.groups.setLogFolder(this.logFolder+"/groups");
         logger.info("Created a blank loader instance");
     }
 
-    public Loader addGroup(GroupBean group) {
+    public Loader addGroup(Group group) {
         this.groups.addGroup(group);
         if(group.getLogFolder() == null || group.getLogFolder().equals(""))
             group.setLogFolder(this.logFolder+"/groups/"+ group.getName().replace(" ",""));
 
-        for(GroupFunctionBean groupFunction : group.getFunctions()) {
+        for(GroupFunction groupFunction : group.getFunctions()) {
             groupFunction.setStatFile(group.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + ".txt");
             groupFunction.setPercentileStatFile(group.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + "_percentiles.txt");
         }
@@ -72,17 +72,17 @@ public class Loader {
     }
 
     private void resolveWarmUpGroups() throws CloneNotSupportedException {
-        List<GroupBean> warmUpGroups = new ArrayList<GroupBean>();
-        for(GroupBean group : this.groups.getGroups().values()) {
+        List<Group> warmUpGroups = new ArrayList<Group>();
+        for(Group group : this.groups.getGroups().values()) {
             if(group.needsWarmUp()) {
-                GroupBean warmUpGroup = group.createWarmUpGroup();
+                Group warmUpGroup = group.createWarmUpGroup();
 
                 group.getDependOnGroups().add(0,warmUpGroup.getName());
                 warmUpGroups.add(warmUpGroup);
            }
         }
 
-        for(GroupBean warmUpGroup : warmUpGroups)
+        for(Group warmUpGroup : warmUpGroups)
             this.groups.addGroup(warmUpGroup);
     }
     
@@ -97,11 +97,11 @@ public class Loader {
 		return this;
 	}
 
-	public GroupsBean getGroups() {
+	public Groups getGroups() {
         return groups;
     }
 
-    public Loader setGroups(GroupsBean groups) {
+    public Loader setGroups(Groups groups) {
     	logger.info("Setting up groups and logfolder for groups");
         this.groups = groups;
         this.groups.setLogFolder(this.logFolder+"/groups");

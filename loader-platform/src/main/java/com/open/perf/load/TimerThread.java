@@ -2,18 +2,17 @@ package com.open.perf.load;
 
 import java.util.List;
 
+import com.open.perf.domain.GroupTimer;
 import org.apache.log4j.Logger;
-
-import com.open.perf.domain.TimerBean;
 
 public class TimerThread extends Thread{
 	private GroupController groupController;
-    private List<TimerBean> timers;
+    private List<GroupTimer> timers;
     private String          currentTimer;
     private int interval;
     Logger logger      = Logger.getLogger(TimerThread.class);
 
-    public TimerThread(GroupController groupController, List<TimerBean> timers) {
+    public TimerThread(GroupController groupController, List<GroupTimer> timers) {
         this.groupController    =   groupController;
         this.timers = timers;
         this.currentTimer       =   timers.get(0).getName();
@@ -26,7 +25,7 @@ public class TimerThread extends Thread{
             logger.debug("Group '"+this.groupController.getGroupName()+"' is Alive.");
 
             if(this.groupController.getRunTimeInMilliSeconds() > 0) {
-                TimerBean newTimer =   findTimerBean();
+                GroupTimer newTimer =   findTimerBean();
 
                 if(newTimer.getName().equals(this.currentTimer) == false) {
                     logger.info("Timer needs to change from '"+this.currentTimer+"' to '"+ newTimer.getName()+"'");
@@ -57,13 +56,13 @@ public class TimerThread extends Thread{
         }
     }
 
-    public TimerBean findTimerBean() {
+    public GroupTimer findTimerBean() {
         long groupRuntime   =   this.groupController.getRunTimeInMilliSeconds();
         long timerStart      =   0;
         long timerEnd        =   0;
 
         for(int i=0;true;i++) {
-            TimerBean timer =   null;
+            GroupTimer timer =   null;
             if(i == 0) {
                 timer =   this.timers.get(0);
                 timerStart  =   0;
@@ -78,7 +77,7 @@ public class TimerThread extends Thread{
             logger.debug("Timer '"+ timer.getName()+"' timer Start '"+timerStart+"' timer End '"+timerEnd+"' group runtime '"+groupRuntime+"'");
 
             if(groupRuntime > timerStart && groupRuntime < timerEnd) {
-                TimerBean newTimer = new TimerBean(timer.getName()).
+                GroupTimer newTimer = new GroupTimer(timer.getName()).
                         setDelayAfterRepeats(timer.getDelayAfterRepeats()).
                         setRuntime(timer.getRuntime()).
                         setRepeats(timer.getRepeats()).
