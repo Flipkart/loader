@@ -5,7 +5,7 @@ import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
 import perf.server.cache.LibCache;
-import perf.server.config.LibStorageConfig;
+import perf.server.config.LibStorageFSConfig;
 import perf.server.util.FileHelper;
 
 import javax.ws.rs.*;
@@ -14,17 +14,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 
 @Path("/libs")
 
 public class DeployLibResource {
     private static Logger log = Logger.getLogger(DeployLibResource.class);
-    private LibStorageConfig storageConfig;
+    private LibStorageFSConfig storageConfig;
     private LibCache libCache;
 
-    public DeployLibResource(LibStorageConfig storageConfig) {
+    public DeployLibResource(LibStorageFSConfig storageConfig) {
         this.storageConfig = storageConfig;
         this.libCache = LibCache.getInstance();
     }

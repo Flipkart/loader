@@ -10,14 +10,14 @@ import org.apache.log4j.Logger;
 import perf.server.client.LoaderAgentClient;
 import perf.server.client.MonitoringClient;
 import perf.server.config.AgentConfig;
-import perf.server.config.JobStatsConfig;
+import perf.server.config.JobFSConfig;
 import perf.server.config.MonitoringAgentConfig;
 import perf.server.domain.JobInfo;
 import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
 import perf.server.exception.JobException;
 import perf.server.util.FileHelper;
-import perf.server.util.ResponseBuilderHelper;
+import perf.server.util.ResponseBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -33,7 +33,7 @@ public class JobResource {
 
     private final MonitoringAgentConfig monitoringAgentConfig;
     private AgentConfig agentConfig;
-    private JobStatsConfig jobStatsConfig;
+    private JobFSConfig jobFSConfig;
 
     private static ObjectMapper mapper;
     private static Map<String, JobInfo> jobIdInfoMap;
@@ -49,10 +49,10 @@ public class JobResource {
 
     public JobResource(AgentConfig agentConfig,
                        MonitoringAgentConfig monitoringAgentConfig,
-                       JobStatsConfig jobStatsConfig) {
+                       JobFSConfig jobFSConfig) {
         this.agentConfig = agentConfig;
         this.monitoringAgentConfig = monitoringAgentConfig;
-        this.jobStatsConfig = jobStatsConfig;
+        this.jobFSConfig = jobFSConfig;
     }
     /**
      Following call simulates html form post call, where somebody uploads a file to server
@@ -85,16 +85,16 @@ public class JobResource {
             throws IOException, ExecutionException, InterruptedException, JobException {
 
         if(!isJobPresent(oldJobId))
-            throw new WebApplicationException(ResponseBuilderHelper.jobNotFound(oldJobId));
+            throw new WebApplicationException(ResponseBuilder.jobNotFound(oldJobId));
         if(!isJobOver(oldJobId))
-            throw new WebApplicationException(ResponseBuilderHelper.jobNotOver(oldJobId));
+            throw new WebApplicationException(ResponseBuilder.jobNotOver(oldJobId));
 
         String oldJobJson = getOldJobJson(oldJobId);
         return jobSubmitWorkflow(new ByteArrayInputStream(oldJobJson.getBytes()));
     }
 
     private boolean isJobPresent(String jobId) {
-        return new File(jobStatsConfig.getRunJobMappingFile().replace("{jobId}", jobId)).exists();
+        return new File(jobFSConfig.getRunJobMappingFile().replace("{jobId}", jobId)).exists();
     }
 
     private boolean isJobOver(String jobId) {
@@ -135,7 +135,7 @@ public class JobResource {
                                       @QueryParam("file") String relatedFilePath,
                                       InputStream statsStream)
             throws IOException, InterruptedException {
-        String jobStatsPath = jobStatsConfig.getJobStatsFolder().
+        String jobStatsPath = jobFSConfig.getJobStatsPath().
                 replace("{jobId}", jobId).
                 replace("{agentIp}", request.getRemoteAddr());
 
@@ -168,7 +168,7 @@ public class JobResource {
             resourcesLastInstance = new HashMap<String, String>();
 
         for(String resource : stats.keySet()) {
-            String jobMonitoringStatsPath = jobStatsConfig.getJobMonitoringStats().
+            String jobMonitoringStatsPath = jobFSConfig.getJobResourceMonitoringFile().
                     replace("{jobId}", jobId).
                     replace("{agentIp}", request.getRemoteAddr()).
                     replace("{resource}", resource);
@@ -288,7 +288,7 @@ public class JobResource {
      * @throws IOException
      */
     private String getOldJobJson(String oldJobId) throws IOException {
-        InputStream is = new FileInputStream(jobStatsConfig.getRunJobMappingFile().replace("{jobId}", oldJobId));
+        InputStream is = new FileInputStream(jobFSConfig.getRunJobMappingFile().replace("{jobId}", oldJobId));
         try {
             return FileHelper.readContent(is);
         }
@@ -427,21 +427,24 @@ public class JobResource {
 
     private void persistJob(String jobId, JsonNode jobInfoJsonNode) throws IOException {
         String runName = jobInfoJsonNode.get("runName").textValue();
-        String runFile = jobStatsConfig.getRunFile().
-                replace("{runName}", runName);
+        String runFile = jobFSConfig.getRunFile().
+                replace("{runName}", runName).
+                replace("{jobId}", jobId);
         FileHelper.createFilePath(runFile);
         FileHelper.persistStream(new ByteArrayInputStream(jobInfoJsonNode.toString().getBytes()),
                 runFile,
                 false);
 
-        String runJobMappingFile = jobStatsConfig.getRunJobMappingFile().
-                replace("{runName}", runName);
+        String runJobMappingFile = jobFSConfig.getRunJobMappingFile().
+                replace("{runName}", runName).
+                replace("{jobId}", jobId);
         FileHelper.createFilePath(runJobMappingFile);
         FileHelper.persistStream(new ByteArrayInputStream((jobId+"\n").toString().getBytes()),
                 runJobMappingFile,
                 true);
 
-        String jobRunNameFile = jobStatsConfig.getJobRunNameFile().
+        String jobRunNameFile = jobFSConfig.getJobRunNameFile().
+                replace("{runName}", runName).
                 replace("{jobId}", jobId);
         FileHelper.createFilePath(runJobMappingFile);
         FileHelper.persistStream(new ByteArrayInputStream(runName.getBytes()),

@@ -23,13 +23,13 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
     @Override
     public void run(LoaderServerConfiguration configuration, Environment environment) throws Exception {
         environment.addProvider(com.sun.jersey.multipart.impl.MultiPartReaderServerSide.class);
-        LibCache.initialize(configuration.getLibStorageConfig());
+        LibCache.initialize(configuration.getLibStorageFSConfig());
 
-        environment.addResource(new DeployLibResource(configuration.getLibStorageConfig()));
+        environment.addResource(new DeployLibResource(configuration.getLibStorageFSConfig()));
         environment.addResource(new AgentResource(configuration.getAgentConfig()));
         environment.addResource(new JobResource(configuration.getAgentConfig(),
                 configuration.getMonitoringAgentConfig(),
-                configuration.getJobStatsConfig()));
+                configuration.getJobFSConfig()));
     }
 
 

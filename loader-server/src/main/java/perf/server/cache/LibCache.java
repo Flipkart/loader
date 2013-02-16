@@ -1,8 +1,7 @@
 package perf.server.cache;
 
-import perf.server.config.LibStorageConfig;
+import perf.server.config.LibStorageFSConfig;
 
-import javax.xml.ws.WebServiceException;
 import java.io.*;
 import java.util.*;
 
@@ -16,11 +15,11 @@ import java.util.*;
 public class LibCache {
     private Map<String,String> classLibMap;
     private static LibCache self;
-    private LibStorageConfig storageConfig;
+    private LibStorageFSConfig storageConfig;
 
     private String platformLibPath;
 
-    private LibCache(LibStorageConfig storageConfig) throws IOException {
+    private LibCache(LibStorageFSConfig storageConfig) throws IOException {
         this.storageConfig = storageConfig;
         this.classLibMap = new HashMap<String, String>();
         refreshClassLibMap();
@@ -41,7 +40,7 @@ public class LibCache {
         return platformLibPath;
     }
 
-    public static LibCache initialize(LibStorageConfig storageConfig) throws IOException {
+    public static LibCache initialize(LibStorageFSConfig storageConfig) throws IOException {
         if(self == null)
             self = new LibCache(storageConfig);
         return self;
