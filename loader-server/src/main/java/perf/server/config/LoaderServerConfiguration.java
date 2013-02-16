@@ -12,10 +12,10 @@ import com.yammer.dropwizard.config.Configuration;
 
 public class LoaderServerConfiguration extends Configuration {
     private String appName;
-    private LibStorageConfig libStorageConfig;
+    private LibStorageFSConfig libStorageFSConfig;
     private AgentConfig agentConfig;
     private MonitoringAgentConfig monitoringAgentConfig;
-    private JobStatsConfig jobStatsConfig;
+    private JobFSConfig jobFSConfig;
 
     public String getAppName() {
         return appName;
@@ -25,12 +25,12 @@ public class LoaderServerConfiguration extends Configuration {
         this.appName = appName;
     }
 
-    public LibStorageConfig getLibStorageConfig() {
-        return libStorageConfig;
+    public LibStorageFSConfig getLibStorageFSConfig() {
+        return libStorageFSConfig;
     }
 
-    public void setLibStorageConfig(LibStorageConfig libStorageConfig) {
-        this.libStorageConfig = libStorageConfig;
+    public void setLibStorageFSConfig(LibStorageFSConfig libStorageFSConfig) {
+        this.libStorageFSConfig = libStorageFSConfig;
     }
 
     public AgentConfig getAgentConfig() {
@@ -41,12 +41,12 @@ public class LoaderServerConfiguration extends Configuration {
         this.agentConfig = agentConfig;
     }
 
-    public JobStatsConfig getJobStatsConfig() {
-        return jobStatsConfig;
+    public JobFSConfig getJobFSConfig() {
+        return jobFSConfig;
     }
 
-    public void setJobStatsConfig(JobStatsConfig jobStatsConfig) {
-        this.jobStatsConfig = jobStatsConfig;
+    public void setJobFSConfig(JobFSConfig jobFSConfig) {
+        this.jobFSConfig = jobFSConfig;
     }
 
     public MonitoringAgentConfig getMonitoringAgentConfig() {

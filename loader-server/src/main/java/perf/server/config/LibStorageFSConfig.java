@@ -7,7 +7,7 @@ package perf.server.config;
  * Time: 7:07 PM
  * To change this template use File | Settings | File Templates.
  */
-public class LibStorageConfig {
+public class LibStorageFSConfig {
     private String mappingFile;
     private String libPath;
     private String platformLibPath;

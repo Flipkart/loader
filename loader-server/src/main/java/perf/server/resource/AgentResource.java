@@ -1,9 +1,5 @@
 package perf.server.resource;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Response;
-import com.ning.http.multipart.FilePart;
-import com.ning.http.multipart.StringPart;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
@@ -13,7 +9,7 @@ import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
 import perf.server.domain.LoaderAgent;
 import perf.server.util.FileHelper;
-import perf.server.util.ResponseBuilderHelper;
+import perf.server.util.ResponseBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -22,7 +18,6 @@ import javax.ws.rs.core.MediaType;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 @Path("/agents")
 
@@ -67,7 +62,7 @@ public class AgentResource {
         if(agent != null)
             return agent;
 
-        throw new WebApplicationException(ResponseBuilderHelper.agentNotRegistered(agentIp));
+        throw new WebApplicationException(ResponseBuilder.agentNotRegistered(agentIp));
     }
 
     @Path("/{agentIp}")
@@ -81,7 +76,7 @@ public class AgentResource {
         if(agent != null)
             return agent;
 
-        throw new WebApplicationException(ResponseBuilderHelper.agentNotRegistered(agentIp));
+        throw new WebApplicationException(ResponseBuilder.agentNotRegistered(agentIp));
     }
 
     @Path("/{agentIp}/disable")
@@ -95,7 +90,7 @@ public class AgentResource {
         if(agent != null)
             return agent.setDisabled();
 
-        throw new WebApplicationException(ResponseBuilderHelper.agentNotRegistered(agentIp));
+        throw new WebApplicationException(ResponseBuilder.agentNotRegistered(agentIp));
     }
 
     @Path("/{agentIp}/enable")
@@ -109,7 +104,7 @@ public class AgentResource {
         if(agent != null)
             return agent.setEnabled();
 
-        throw new WebApplicationException(ResponseBuilderHelper.agentNotRegistered(agentIp));
+        throw new WebApplicationException(ResponseBuilder.agentNotRegistered(agentIp));
     }
 
 

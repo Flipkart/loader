@@ -9,24 +9,24 @@ import javax.ws.rs.core.Response;
  * Time: 3:47 PM
  * To change this template use File | Settings | File Templates.
  */
-public class ResponseBuilderHelper {
+public class ResponseBuilder {
     public static Response response(Response.Status status, Object message) {
         return Response.status(status).entity(message).build();
     }
 
     public static Response jobNotOver(String jobId) {
-        return ResponseBuilderHelper.response(Response.Status.BAD_REQUEST,
-                            String.format("{\"reason\" : \"Job %s Not Over Yet\"}", jobId));
+        return ResponseBuilder.response(Response.Status.BAD_REQUEST,
+                String.format("{\"reason\" : \"Job %s Not Over Yet\"}", jobId));
     }
 
     public static Response jobNotFound(String jobId) {
-        return ResponseBuilderHelper.response(Response.Status.NOT_FOUND,
-                String.format("{\"reason\" : \"Job %s doesn't exist\"}",jobId));
+        return ResponseBuilder.response(Response.Status.NOT_FOUND,
+                String.format("{\"reason\" : \"Job %s doesn't exist\"}", jobId));
     }
 
     public static Response agentNotRegistered(String agentIp) {
-        return ResponseBuilderHelper.response(Response.Status.NOT_FOUND,
-                String.format("{\"reason\" : \"Agent %s not registered yet\"}",agentIp));
+        return ResponseBuilder.response(Response.Status.NOT_FOUND,
+                String.format("{\"reason\" : \"Agent %s not registered yet\"}", agentIp));
     }
 }
 
