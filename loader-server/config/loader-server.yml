@@ -12,8 +12,9 @@ monitoringAgentConfig:
   agentPort: 7777
 
 jobStatsConfig:
-  jobFile: "/var/log/loader-server/jobs/{jobId}/job.json"
-  runFile: "/var/log/loader-server/runs/{runName}.txt"
+  runFile: "/var/log/loader-server/runs/{runName}/run.json"
+  runJobMappingFile: "/var/log/loader-server/runs/{runName}/jobMappingFile.json"
+  jobRunNameFile: "/var/log/loader-server/jobs/{jobId}/runName.txt"
   jobStatsFolder: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/jobStats"
   jobMonitoringStats: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/Resources/{resource}.txt"
 
