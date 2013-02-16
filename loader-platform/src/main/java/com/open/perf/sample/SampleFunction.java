@@ -1,8 +1,8 @@
-package com.open.perf.operation;
+package com.open.perf.sample;
 
+import com.open.perf.util.Counter;
 import com.open.perf.operation.FunctionContext;
 import com.open.perf.operation.PerformanceFunction;
-import com.yammer.metrics.core.Counter;
 
 import java.util.Random;
 
@@ -25,11 +25,11 @@ public class SampleFunction extends PerformanceFunction {
         Thread.sleep(new Random().nextInt(1000));
         context.getFunctionTimer("sleeper").endTimer();
 
-        FunctionCounter testCounter = context.getFunctionCounter("testCounter");
+        Counter testCounter = context.getFunctionCounter("testCounter");
         for(int i=0;i<10;i++)
             testCounter.increment();
 
-        context.skipFurtherFunctions();
+//        context.skipFurtherFunctions();
     }
 
     @Override

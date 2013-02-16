@@ -1,15 +1,13 @@
 package com.open.perf.operation;
 
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Metric;
-import com.yammer.metrics.core.Timer;
+import com.open.perf.util.Counter;
+import com.open.perf.util.Timer;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,13 +18,18 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 public class FunctionContext {
+    public static enum FailureType {
+        GENERAL, DATA_MISSING, FUNCTIONAL_FAILURE, WRONG_INPUT
+    }
+
     private Map<String, Object> functionParameters;
-    private Map<String, FunctionCounter> counters;
-    private Map<String, FunctionTimer> timers;
+    private Map<String, Counter> counters;
+    private Map<String, Timer> timers;
     private Map<String, Object> passOnParameters; // Will be populated by User in function and would be passed further
     private boolean skipFurtherFunctions = false;
+    private boolean currentFunctionFailed;
 
-    public FunctionContext(Map<String,FunctionTimer> functionTimers, Map<String,FunctionCounter> functionCounters) {
+    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters) {
         this.functionParameters = new HashMap<String, Object>();
         this.timers = functionTimers;
         this.counters = functionCounters;
@@ -75,23 +78,37 @@ public class FunctionContext {
         return this;
     }
 
-    public FunctionTimer getFunctionTimer(String timerName) {
-        FunctionTimer functionTimer = this.timers.get(timerName);
-        if(functionTimer == null)
+    public Timer getFunctionTimer(String timerName) {
+        Timer timer = this.timers.get(timerName);
+        if(timer == null)
             throw new RuntimeException("Timer "+timerName+" doesn't exist");
-        return functionTimer;
+        return timer;
     }
 
-    public FunctionCounter getFunctionCounter(String counterName) {
-        FunctionCounter functionCounter = this.counters.get(counterName);
-        if(functionCounter == null)
+    public Counter getFunctionCounter(String counterName) {
+        Counter counter = this.counters.get(counterName);
+        if(counter == null)
             throw new RuntimeException("Counter "+counterName+" doesn't exist");
-        return functionCounter;
+        return counter;
     }
 
     public FunctionContext updateParameters(Map<String, Object> params) {
         this.functionParameters.putAll(params);
         return this;
+    }
+
+    public FunctionContext failed(FailureType failureType, String message) {
+        this.currentFunctionFailed = true;
+        this.skipFurtherFunctions();
+        return this;
+    }
+
+    public boolean isCurrentFunctionFailed() {
+        return currentFunctionFailed;
+    }
+
+    public void setCurrentFunctionFailed(boolean currentFunctionFailed) {
+        this.currentFunctionFailed = currentFunctionFailed;
     }
 
     public void skipFurtherFunctions() {
@@ -100,5 +117,12 @@ public class FunctionContext {
 
     public boolean isSkipFurtherFunctions() {
         return skipFurtherFunctions;
+    }
+
+    public void reset() {
+        this.functionParameters.clear();
+        this.skipFurtherFunctions = false;
+        this.passOnParameters.clear();
+        this.currentFunctionFailed = false;
     }
 }
