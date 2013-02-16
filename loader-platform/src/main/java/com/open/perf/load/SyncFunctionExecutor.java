@@ -8,44 +8,36 @@ public class SyncFunctionExecutor {
     private Object returnObject ;
     private Object classObject;
     private String className ;
-    private Class[] paramTypes;
-    private Object[] params;
     private String functionName;
-    private boolean success = true;
-    private ClassLoader classLoader;
+    private boolean executionSuccessful = true;
     private Throwable exception;
     private Throwable exceptionCause;
     private long startTime;
     private long endTime;
+    private boolean executed = false;
+    private final Method method;
+    private Object[] params;
 
-    public SyncFunctionExecutor(String name, String className, String functionName, Object object, Class[] paramTypes, Object[] params) {
+    public SyncFunctionExecutor(String name, String className, String functionName, Object object, Class[] functionParamTypes, Object[] params) throws ClassNotFoundException, NoSuchMethodException {
         this.name = name;
         this.classObject = object;
         this.className = className;
-        this.paramTypes = paramTypes;
-        this.params = params;
         this.functionName = functionName ;
+        this.params = params;
+        Class newClass = Class.forName(this.className, false, Thread.currentThread().getContextClassLoader());
+        this.method = newClass.getDeclaredMethod(this.functionName, functionParamTypes);
     }
 
     public Object execute() {
         returnObject = null;
-        try
-        {
-            Class newClass;
-            if(this.classLoader == null)
-                newClass = Class.forName(this.className);
-            else
-                newClass = Class.forName(this.className,false,this.classLoader);
-
-            Method method = newClass.getDeclaredMethod(this.functionName,this.paramTypes);
+        try {
             startTime = System.nanoTime();
-            returnObject = method.invoke(this.classObject, this.params);
+            returnObject = method.invoke(this.classObject, params);
             endTime = System.nanoTime();
         }
-        catch(Exception exception)
-        {
+        catch(Exception exception) {
             endTime = System.nanoTime();
-            this.success 		= false;
+            this.executionSuccessful = false;
             this.exceptionCause = exception.getCause();
             this.exception 		= exception;
             if(this.exceptionCause != null)
@@ -53,49 +45,57 @@ public class SyncFunctionExecutor {
             if(this.exception != null)
                 this.exception.printStackTrace();
 
+        } finally {
+            executed = true;
         }
         return returnObject;
     }
 
-    public boolean isExecutionSuccessful()
-    {
-        return this.success;
+    public boolean isExecutionSuccessful() {
+        return this.executionSuccessful;
     }
 
-    public Object getReturnedObject()
-    {
+    public Object getReturnedObject() {
         return this.returnObject;
     }
 
-    public Throwable getException()
-    {
+    public Throwable getException() {
         return this.exception;
     }
 
-    public Throwable getExceptionCause()
-    {
+    public Throwable getExceptionCause() {
         return this.exceptionCause;
     }
 
     //Microseconds
-    public long getExecutionTime() {
-        return (long)((this.endTime - this.startTime)/1000);
+    public double getExecutionTime() {
+        return (this.endTime - this.startTime)/1000d;
     }
 
     public String getAbsoluteFunctionName() {
         return this.className+"."+this.functionName;
     }
 
+    public String getFunctionalityName() {
+        return name;
+    }
+
+    public boolean isExecuted() {
+        return executed;
+    }
+
     public Object[] getParams() {
-        return this.params;
+        return params;
     }
 
     public void setParams(Object[] params) {
         this.params = params;
     }
 
-    public String getFunctionalityName() {
-        return name;
+    public SyncFunctionExecutor reset() {
+        this.returnObject = null;
+        this.executionSuccessful = true;
+        this.executed =  false;
+        return this;
     }
-
 }

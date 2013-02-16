@@ -1,5 +1,6 @@
 package com.open.perf.load;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import com.open.perf.domain.GroupTimer;
@@ -41,8 +42,10 @@ public class TimerThread extends Thread{
                             this.groupController.setDelayAfterRepeats(newTimer.getDelayAfterRepeats());
                             this.groupController.setCurrentTime(newTimer);
                         }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    } catch (NoSuchMethodException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                     }
                 }
             }

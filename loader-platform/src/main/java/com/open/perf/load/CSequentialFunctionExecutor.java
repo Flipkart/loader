@@ -1,5 +1,6 @@
 package com.open.perf.load;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -44,11 +45,47 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
         this.pause        = false;
         this.functionTimers = new HashMap<String, Timer>();
         this.functionCounters = new HashMap<String, Counter>();
+
+    }
+
+    private List<SyncFunctionExecutor> buildFunctionExecutors() {
+        List<SyncFunctionExecutor> fExecutors = new ArrayList<SyncFunctionExecutor>();
+
+        for(GroupFunction groupFunction : this.groupFunctions) {
+            String className    = groupFunction.getClassName();
+            String functionName = groupFunction.getFunctionName();
+
+            Class functionParamType = FunctionContext.class;
+            Object functionClassObject = null;
+            try {
+                functionClassObject = ClassHelper.getClassInstance(className, groupFunction.getConstructorParamTypes(), groupFunction.getConstructorParams());
+                fExecutors.add(new SyncFunctionExecutor(groupFunction.getName(), className, functionName, functionClassObject,new Class[]{functionParamType},new Object[] {functionContext}));
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
+            } catch (InstantiationException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
+            }
+        }
+
+        return fExecutors;
     }
 
     public void run () {
         //this.startTime 	= System.currentTimeMillis();
-        FunctionContext functionContext = new FunctionContext(this.functionTimers, this.functionCounters);
+        this.functionContext = new FunctionContext(this.functionTimers, this.functionCounters);
+        this.fExecutors = buildFunctionExecutors();
+
         while(repeatAgain() && (this.forceStop == false)) {
             functionContext.reset();
 		    /*
@@ -66,8 +103,8 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
             this.paused   =   false;
 
             executionOver = false;
-            this.resetErroredFunctions();
-            this.resetFailedFunctions();
+
+            reset();
 
             functionContext.updateParameters(this.params);
 
@@ -75,63 +112,23 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
                 functionContext.updateParameters(this.threadResources);
             }
 
-            this.fExecutors = new ArrayList<SyncFunctionExecutor>();
 
             for(int functionNo = 0; functionNo < this.groupFunctions.size(); functionNo++) {
-                //  We are passing parameters only to the first method and rest of the methods in the sequence
-                //  will get them automatically in Sequential Executor.
-
-                GroupFunction groupFunction =   this.groupFunctions.get(functionNo);
-
-                String className    = groupFunction.getClassName();
-				String functionName = groupFunction.getFunctionName();
-
                 if(functionContext.isSkipFurtherFunctions()) {
-                   logger.info("Skipping Further Functions");
-                    for(int skippedFunctionNo=functionNo; skippedFunctionNo < this.groupFunctions.size(); skippedFunctionNo++)
-                        this.addSkippedFunction(groupFunction.getName()+"_"+className+"."+functionName);
+                    logger.info("Skipping Further Functions");
                     break;
                 }
-
-                Class functionParamType = FunctionContext.class;
-                SyncFunctionExecutor fe;
+                GroupFunction groupFunction =   this.groupFunctions.get(functionNo);
 
                 try {
 
-                    Object functionClassObject = ClassHelper.getClassInstance(className, groupFunction.getConstructorParamTypes(), groupFunction.getConstructorParams());
-
-                    if(functionNo == 0 ) {
-                        functionContext.updateParameters(groupFunction.getParams());
-                        fe = new SyncFunctionExecutor(groupFunction.getName(), className, functionName, functionClassObject,new Class[]{functionParamType},new Object[] {functionContext});
-                        fe.execute();
-                    }
-                    else {
-                        functionContext.updateParameters(groupFunction.getParams());
-                        fe = new SyncFunctionExecutor(groupFunction.getName(), className, functionName, functionClassObject,new Class[]{functionParamType},new Object[] {functionContext});
-                        fe.execute();
-                    }
-
-                    this.fExecutors.add(fe);
+                    functionContext.updateParameters(groupFunction.getParams());
+                    SyncFunctionExecutor fe = this.fExecutors.get(functionNo);
+                    fe.execute();
 
                     // If execution Failed because of some Exception/error that occurred while function execution
-                    if(fe.isExecutionSuccessful()) {
-                        Object returnedObject = fe.getReturnedObject();
-                        // If user function is written to return Result Object, then do the check
-                        if(returnedObject instanceof Result) {
-                            Result result = (Result)returnedObject;
-                            // If user functioned decided that function execution was a failure
-                            if(result.isSuccess() == false) {
-                                logger.error("Execution of Function " + fe.getAbsoluteFunctionName() + " Failed with reason " + result.getMessage());
-                                logger.info("Function '"+fe.getFunctionalityName()+"' failed/errored.");
-                                if(functionNo < this.groupFunctions.size()-1)
-                                    logger.info("Not running subsequent functions in this repeat.");
-
-                                break;
-                            }
-                        }
-                    }
-                    else {
-                        logger.error("Execution of Function " + fe.getAbsoluteFunctionName() + " Failed with exception " + fe.getException().getLocalizedMessage());
+                    if(!fe.isExecutionSuccessful()) {
+                        logger.error("Execution of Function " + fe.getAbsoluteFunctionName() + " Failed", fe.getException());
                         this.exception = fe.getException();
                         this.exceptionCause = fe.getExceptionCause();
                         this.addErroredFunctions(fe); //Am I really using it ?
@@ -152,13 +149,35 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
             endTime = System.currentTimeMillis();
             executionOver = true;
 
-            ((GroupController)this.callBackObject).listener((CSequentialFunctionExecutor)this.callBackParams[0]);
+            try {
+                ((GroupController)this.callBackObject).listener((CSequentialFunctionExecutor)this.callBackParams[0]);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
+            } catch (InstantiationException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
+            }
             this.repeatsDone++;
         }
         this.running  =   false;
-        logger.info("Function Timers :"+this.functionTimers);
-        logger.info("Function Counters :"+this.functionCounters);
         logger.debug("Sequential Function Executor '" + this.getName() + "' Over");
+    }
+
+    private void reset() {
+        this.resetErroredFunctions();
+        this.resetFailedFunctions();
+        for(SyncFunctionExecutor fe : this.fExecutors)
+            fe.reset();
     }
 
     /**
