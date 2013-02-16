@@ -94,7 +94,7 @@ public class JobResource {
     }
 
     private boolean isJobPresent(String jobId) {
-        return new File(jobStatsConfig.getJobFile().replace("{jobId}", jobId)).exists();
+        return new File(jobStatsConfig.getRunJobMappingFile().replace("{jobId}", jobId)).exists();
     }
 
     private boolean isJobOver(String jobId) {
@@ -288,7 +288,7 @@ public class JobResource {
      * @throws IOException
      */
     private String getOldJobJson(String oldJobId) throws IOException {
-        InputStream is = new FileInputStream(jobStatsConfig.getJobFile().replace("{jobId}", oldJobId));
+        InputStream is = new FileInputStream(jobStatsConfig.getRunJobMappingFile().replace("{jobId}", oldJobId));
         try {
             return FileHelper.readContent(is);
         }
@@ -426,19 +426,26 @@ public class JobResource {
     }
 
     private void persistJob(String jobId, JsonNode jobInfoJsonNode) throws IOException {
-        String jobFile = jobStatsConfig.getJobFile().
-                replace("{jobId}", jobId);
-        FileHelper.createFilePath(jobFile);
-        FileHelper.persistStream(new ByteArrayInputStream(jobInfoJsonNode.toString().getBytes()),
-                jobFile,
-                true);
-
         String runName = jobInfoJsonNode.get("runName").textValue();
         String runFile = jobStatsConfig.getRunFile().
                 replace("{runName}", runName);
         FileHelper.createFilePath(runFile);
-        FileHelper.persistStream(new ByteArrayInputStream((jobId+"\n").toString().getBytes()),
+        FileHelper.persistStream(new ByteArrayInputStream(jobInfoJsonNode.toString().getBytes()),
                 runFile,
+                false);
+
+        String runJobMappingFile = jobStatsConfig.getRunJobMappingFile().
+                replace("{runName}", runName);
+        FileHelper.createFilePath(runJobMappingFile);
+        FileHelper.persistStream(new ByteArrayInputStream((jobId+"\n").toString().getBytes()),
+                runJobMappingFile,
                 true);
+
+        String jobRunNameFile = jobStatsConfig.getJobRunNameFile().
+                replace("{jobId}", jobId);
+        FileHelper.createFilePath(runJobMappingFile);
+        FileHelper.persistStream(new ByteArrayInputStream(runName.getBytes()),
+                jobRunNameFile,
+                false);
     }
 }

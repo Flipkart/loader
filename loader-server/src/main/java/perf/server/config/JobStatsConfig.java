@@ -10,8 +10,9 @@ package perf.server.config;
 public class JobStatsConfig {
     private String jobStatsFolder;
     private String jobMonitoringStats;
-    private String jobFile;
+    private String runJobMappingFile;
     private String runFile;
+    private String jobRunNameFile;
 
     public String getJobStatsFolder() {
         return jobStatsFolder;
@@ -29,12 +30,12 @@ public class JobStatsConfig {
         this.jobMonitoringStats = jobMonitoringStats;
     }
 
-    public String getJobFile() {
-        return jobFile;
+    public String getRunJobMappingFile() {
+        return runJobMappingFile;
     }
 
-    public void setJobFile(String jobFile) {
-        this.jobFile = jobFile;
+    public void setRunJobMappingFile(String runJobMappingFile) {
+        this.runJobMappingFile = runJobMappingFile;
     }
 
     public String getRunFile() {
@@ -43,5 +44,13 @@ public class JobStatsConfig {
 
     public void setRunFile(String runFile) {
         this.runFile = runFile;
+    }
+
+    public String getJobRunNameFile() {
+        return jobRunNameFile;
+    }
+
+    public void setJobRunNameFile(String jobRunNameFile) {
+        this.jobRunNameFile = jobRunNameFile;
     }
 }
