@@ -25,21 +25,23 @@ public class FunctionStats {
         this.totalFunctionTime = 0d;
     }
 
+    public FunctionStats executed() {
+        this.count.increment();
+        return this;
+    }
+
     public FunctionStats failed() {
         this.failureCounter.increment();
-        this.count.increment();
         return this;
     }
 
     public FunctionStats errored() {
         this.errorCounter.increment();
-        this.count.increment();
         return this;
     }
 
     public FunctionStats skipped() {
         this.skipCounter.increment();
-        this.count.increment();
         return this;
     }
 
@@ -90,5 +92,9 @@ public class FunctionStats {
 
     public double getMax() {
         return max;
+    }
+
+    public double computeAverage() {
+        return this.getTotalFunctionTime() / this.values.size();
     }
 }

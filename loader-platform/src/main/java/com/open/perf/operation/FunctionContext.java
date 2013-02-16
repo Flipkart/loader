@@ -36,36 +36,43 @@ public class FunctionContext {
         this.passOnParameters = new HashMap<String, Object>();
     }
 
-    public String getParameterAsString(String parameterName) {
-        return getParameter(parameterName).toString();
-    }
-
     private Object getParameter(String parameterName) {
         Object value = functionParameters.get(parameterName);
         return value != null ? value : passOnParameters.get(parameterName);
     }
 
+    public String getParameterAsString(String parameterName) {
+        Object value = getParameter(parameterName);
+        return value == null ? null : value.toString();
+    }
+
     public int getParameterAsInteger(String parameterName) {
-        return Integer.parseInt(getParameter(parameterName).toString());
+        Object value = getParameter(parameterName);
+        return value == null ? null : Integer.parseInt(getParameter(parameterName).toString());
     }
 
     public long getParameterAsLong(String parameterName) {
-        return Long.parseLong(getParameter(parameterName).toString());
+        Object value = getParameter(parameterName);
+        return value == null ? null : Long.parseLong(getParameter(parameterName).toString());
     }
 
     public float getParameterAsFloat(String parameterName) {
-        return Float.parseFloat(getParameter(parameterName).toString());
+        Object value = getParameter(parameterName);
+        return value == null ? null : Float.parseFloat(getParameter(parameterName).toString());
     }
     public double getParameterAsDouble(String parameterName) {
-        return Double.parseDouble(getParameter(parameterName).toString());
+        Object value = getParameter(parameterName);
+        return value == null ? null : Double.parseDouble(getParameter(parameterName).toString());
     }
 
     public File getParameterAsFile(String parameterName) {
-        return new File(getParameter(parameterName).toString());
+        Object value = getParameter(parameterName);
+        return value == null ? null : new File(getParameter(parameterName).toString());
     }
 
     public InputStream getParameterAsInputStream(String parameterName) throws FileNotFoundException {
-        return new FileInputStream(getParameter(parameterName).toString());
+        Object value = getParameter(parameterName);
+        return value == null ? null : new FileInputStream(getParameter(parameterName).toString());
     }
 
     /**

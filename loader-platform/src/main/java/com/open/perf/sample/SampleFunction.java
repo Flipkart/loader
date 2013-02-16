@@ -21,14 +21,18 @@ public class SampleFunction extends PerformanceFunction {
 
     @Override
     public void execute(FunctionContext context) throws Exception {
+
         context.getFunctionTimer("sleeper").startTimer();
-        Thread.sleep(new Random().nextInt(1000));
+        Thread.sleep(new Random().nextInt(100));
         context.getFunctionTimer("sleeper").endTimer();
 
         Counter testCounter = context.getFunctionCounter("testCounter");
-        for(int i=0;i<10;i++)
-            testCounter.increment();
+        testCounter.increment();
+        logger.info("Params1 :"+context.getParameterAsString("paramF1"));
+        logger.info("Params2 :"+context.getParameterAsString("paramF2"));
 
+        if(testCounter.count() % 100 == 0)
+            throw new RuntimeException("Just Like That Exception");
 //        context.skipFurtherFunctions();
     }
 

@@ -11,21 +11,20 @@ public class TestClass {
         new Loader("L1").
                 addGroup(new Group("G1").
                         setGroupStartDelay(0).
-                        setLife(1000).
-                        setRepeats(1).
+                        setRepeats(100).
                         setThreads(10).
                         addFunction(new GroupFunction("F1").
                                 setClassName("com.open.perf.sample.SampleFunction").
                                 addParam("paramF1", "value1").
                                 dumpData()).
-                        addFunction(new GroupFunction("F1").
+                        addFunction(new GroupFunction("F2").
                                 setClassName("com.open.perf.sample.SampleFunction").
-                                addParam("paramF2", "value1").
+                                addParam("paramF2", "value2").
                                 dumpData()).
                         addFunctionTimer("logger.info").
                         addFunctionTimer("sleeper").
                         addFunctionCounter("testCounter").
-                        setDumpDataAfterRepeats(250)).
+                        setDumpDataAfterRepeats(50)).
                 start();
     }
 }

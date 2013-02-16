@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -62,8 +63,8 @@ public class GroupController extends Thread{
     /*
      * Various Timers specifically for different functions
      */
-    private HashMap<String,Double>functionAvgTime;
     private HashMap<String,List<Float>>functionDumpAvgTime;
+    private Map<String, Long> lastFunctionDumpCount;
 
     private Map<String, FunctionStats> functionStatsMap;
 
@@ -73,11 +74,6 @@ public class GroupController extends Thread{
      */
     private HashMap<String,Double>    dumpLevelFunctionTime = new HashMap<String,Double>();
 
-    /*
-     * How many times a function will be called in one sequence...repetition
-     */
-    private HashMap<String,Integer> functionInstances;
-    private HashMap<String,Integer>    softTimeOut;
     private int                     dumpDataAfterRepeat;
     private ArrayList<CSequentialFunctionExecutor> sfesCons;
     
@@ -143,17 +139,14 @@ public class GroupController extends Thread{
         
         this.functions              =   new ArrayList<String>();
         this.ignoreDumpFunctions    =   new ArrayList<String>();
-        this.softTimeOut            =   new HashMap<String, Integer>();
+        this.lastFunctionDumpCount  =   new HashMap<String, Long>();
         for(GroupFunction groupFunction :   group.getFunctions()) {
             String uniqueFunctionName = groupFunction.getName()+"_"+ groupFunction.getClassName()+"."+groupFunction.getFunctionName();
             this.functions.add(uniqueFunctionName);
             if(!groupFunction.isDumpData())
                 this.ignoreDumpFunctions.add(uniqueFunctionName);
-            
-            // Make Following value Configurable
-            int softTimeOut            =  groupFunction.getSoftTimeOut();
-            if(softTimeOut >= 0)
-                this.softTimeOut.put(uniqueFunctionName, softTimeOut);
+
+            this.lastFunctionDumpCount.put(uniqueFunctionName, 0l);
         }
         
         logger.debug("Group Name              :"+this.groupName);
@@ -167,17 +160,10 @@ public class GroupController extends Thread{
         logger.debug("Delay After Repeats     :"+this.delayAfterRepeats);
         logger.debug("Ignore Dump             :"+this.ignoreDumpFunctions);
         
-        this.functionAvgTime            = new HashMap<String,Double>();
         this.functionDumpAvgTime        = new HashMap<String, List<Float>>();
         this.functionStatsMap = new HashMap<String, FunctionStats>();
 
-
-        functionInstances       = new HashMap<String,Integer>();
         for(String function : this.functions) {
-            if(functionInstances.containsKey(function))
-                functionInstances.put(function, functionInstances.get(function) + 1);
-            else
-                functionInstances.put(function, 1);
             this.dumpLevelFunctionTime.put(function, 0d);
             this.functionDumpAvgTime.put(function, new ArrayList<Float>());
             this.functionStatsMap.put(function, new FunctionStats(function));
@@ -225,22 +211,29 @@ public class GroupController extends Thread{
 
         this.sfesCons = new ArrayList<CSequentialFunctionExecutor>();
         for(int i=0; i<this.threads; i++) {
-            CSequentialFunctionExecutor sfe = new CSequentialFunctionExecutor(this.groupFunctions, this.params,this.repeat, this.life,
-                    this.startTime, this.tg, "CSequentialFunctionExecutor-"+i);
-            
-            sfe.setCallBackMethod(this.getClass().getName(), "listener", this, new Class[]{CSequentialFunctionExecutor.class}
-            , new Object[]{sfe}, false);
 
-            if(this.threadResources.size() > i) {
-                sfe.setThreadResources(this.threadResources.get(i));
+            try {
+                CSequentialFunctionExecutor sfe = new CSequentialFunctionExecutor(this.groupFunctions, this.params,this.repeat, this.life,
+                        this.startTime, this.tg, "CSequentialFunctionExecutor-"+i);
+                sfe.setCallBackMethod(this.getClass().getName(), "listener", this, new Class[]{CSequentialFunctionExecutor.class}
+                , new Object[]{sfe}, false);
+                sfe.setFunctionTimers(this.functionTimers);
+                sfe.setFunctionCounters(this.functionCounters);
+                HelperUtil.delay(this.threadStartDelay);
+                sfe.execute();
+                this.sfesCons.add(sfe);
+                if(this.threadResources.size() > i) {
+                    sfe.setThreadResources(this.threadResources.get(i));
+                }
+                logger.debug("Threads '"+(i+1)+"' created");
+
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                throw new RuntimeException(e);
             }
-
-            sfe.setFunctionTimers(this.functionTimers);
-            sfe.setFunctionCounters(this.functionCounters);
-            HelperUtil.delay(this.threadStartDelay);
-            sfe.execute();
-            this.sfesCons.add(sfe);
-            logger.debug("Threads '"+(i+1)+"' created");
         }
         logger.info("Threads have Started for '"+this.getGroupName()+"'");
 
@@ -290,7 +283,7 @@ public class GroupController extends Thread{
         return this.groupName;
     }
     
-    public void setThreads(int newThreads) throws InterruptedException{
+    public void setThreads(int newThreads) throws NoSuchMethodException, ClassNotFoundException {
         if(this.newThreads == -1) {
             this.newThreads = newThreads;
             return; // Just a hack for the time being as way to simulate receiving request for change threads
@@ -366,27 +359,36 @@ public class GroupController extends Thread{
     }
 
     // This function is used in call backs
-    synchronized public void listener(CSequentialFunctionExecutor sfe){
+    synchronized public void listener(CSequentialFunctionExecutor sfe) throws NoSuchMethodException, ClassNotFoundException, IllegalAccessException, InstantiationException, InvocationTargetException {
         long time       =   System.currentTimeMillis();
         logger.debug("In Listener");
 
-        // Increment Errors
-        for(SyncFunctionExecutor fe : sfe.getErroredFunctions()) {
-            String uniqueFunctionName = fe.getFunctionalityName()+"_"+fe.getAbsoluteFunctionName();
-            this.functionStatsMap.get(uniqueFunctionName).errored();
-        }
+        // Capture basic function stats
+        for(SyncFunctionExecutor fe : sfe.fExecutors) {
+            String functionName = fe.getFunctionalityName()+"_"+fe.getAbsoluteFunctionName();
+            FunctionStats functionStats = this.functionStatsMap.get(functionName);
+            if(fe.isExecuted()) {
+                functionStats.executed();
 
-        for(SyncFunctionExecutor fe : sfe.getFailedFunctions()) {
-            String uniqueFunctionName = fe.getFunctionalityName()+"_"+fe.getAbsoluteFunctionName();
-            this.functionStatsMap.get(uniqueFunctionName).failed();
-        }
+                if(sfe.getErroredFunctions().contains(fe))
+                    functionStats.errored();
 
-        for(String functionName : sfe.skippedFunctions) {
-            this.functionStatsMap.get(functionName).skipped();
+                if(sfe.getFailedFunctions().contains(fe))
+                    functionStats.failed();
+
+
+                double executionTime  = fe.getExecutionTime()/1000;
+                functionStats.addValue(executionTime);
+            }
+            else {
+                functionStats.skipped();
+            }
         }
+        List<SyncFunctionExecutor> fes = sfe.getFunctionExecutors();
 
 
         this.threadsDone++;
+        logger.info(" ops done :"+this.threadsDone);
         if(threadsDone % this.threads == 0) {
             this.repeatDone++;
             if(this.currentTimer != null) {
@@ -395,18 +397,6 @@ public class GroupController extends Thread{
             logger.debug("Repeats Done "+this.repeatDone);
         }    
 
-//        String date =   new Date(time).toString();
-        List<SyncFunctionExecutor> fes = sfe.getFunctionExecutors();
-
-        for(SyncFunctionExecutor fe : fes) {
-            String uniqueFunctionName = fe.getFunctionalityName()+"_"+fe.getAbsoluteFunctionName();
-            float executionTime  = fe.getExecutionTime()/1000;
-
-            this.functionStatsMap.get(uniqueFunctionName).addValue(executionTime);
-            logger.debug("Execution Time of Function " + uniqueFunctionName + " is " + executionTime);
-        }
-
-        fes.clear();
         boolean dumpData = false;
         
         if(this.dumpDataAfterRepeat > 0) {
@@ -506,11 +496,7 @@ public class GroupController extends Thread{
             logger.debug("Group '"+this.getGroupName()+"' is up now");
         }
 
-        try {
-            this.setThreads(this.newThreads);
-        } catch (InterruptedException e) {
-            logger.error(e);
-        }
+        this.setThreads(this.newThreads);
 
     }
     
@@ -518,8 +504,6 @@ public class GroupController extends Thread{
         
         // Number of threads used for this dump
         long currentTime        = System.currentTimeMillis();
-        long dumpThreadsCount   = this.threadsDone - this.lastDumpThread;
-        this.lastDumpThread     = this.threadsDone;
         long dumpTimeInterval   = currentTime - this.lastDumpTime;
         this.lastDumpTime       = currentTime;
 
@@ -530,7 +514,7 @@ public class GroupController extends Thread{
             FunctionStats functionStats = this.functionStatsMap.get(function);
             double functionTotalTime = functionStats.getTotalFunctionTime();
 
-            this.functionAvgTime.put(function, functionTotalTime / (this.threadsDone*this.functionInstances.get(function)));
+            double functionAvg = functionStats.computeAverage();
 
             if(this.ignoreDumpFunctions.contains(function)) {
                 logger.debug("Function '"+function+"' has ignore dump true");
@@ -542,26 +526,30 @@ public class GroupController extends Thread{
                 double dumpLevelFunctionTime = functionTotalTime - this.dumpLevelFunctionTime.get(function);
                 
                 this.dumpLevelFunctionTime.put(function, functionTotalTime);
-                
-                float dumpLevelFunctionAvg = (float)dumpLevelFunctionTime/(dumpThreadsCount*this.functionInstances.get(function));
+
+                long functionCountInThisDump = functionStats.getCount().count() - this.lastFunctionDumpCount.get(function);
+                this.lastFunctionDumpCount.put(function, functionStats.getCount().count());
+
+                float dumpLevelFunctionAvg = (float)dumpLevelFunctionTime / functionCountInThisDump;
                 if(Float.isNaN(dumpLevelFunctionAvg ))
                     dumpLevelFunctionAvg = 0;
 
                 float seconds = dumpLevelFunctionTime == 0 ? 0 : ((float)dumpTimeInterval/1000);
-                float throughputPerSecond  = seconds == 0 ? 0 : (dumpThreadsCount*this.functionInstances.get(function))/seconds;
+                float throughputPerSecond  = seconds == 0 ? 0 : functionCountInThisDump / seconds;
                 float throughputPerMinute  = throughputPerSecond * 60;
 
                 String info = this.groupName+"."
                         + function.split("\\.")[0].replace("_com","")
-                        + ": OperationsDone=" + (this.threadsDone*this.functionInstances.get(function) - functionStats.getSkipCounter().count())
-                        +", Min="+functionStats.getMin()
-                        +", Avg="+this.functionAvgTime.get(function)
-                        +", Max="+functionStats.getMax()
+                        + ": OperationsDone=" + (functionStats.getCount().count())
+                        +", Min="+(functionStats.getMin() == Double.MAX_VALUE ? 0 : functionStats.getMin())
+                        +", Avg="+functionAvg
+                        +", Max="+(functionStats.getMax() == Double.MIN_VALUE ? 0 : functionStats.getMax())
                         +", DumpAvg="+dumpLevelFunctionAvg
                         +", perSecond="+throughputPerSecond
                         +", perMinute="+throughputPerMinute
                         +", Error="+functionStats.getErrorCounter().count()
                         +", Failed="+functionStats.getFailureCounter().count()
+                        +", Skipped="+functionStats.getSkipCounter().count()
                         +", THREAD="+this.threads;
 
                 if(System.getenv("ON_SCREEN_STATS") != null)
@@ -569,17 +557,18 @@ public class GroupController extends Thread{
                 try {
                     JSONObject stat = new JSONObject();
                     stat.put("time",date).
-                            put("function",function).
+                            put("function", function).
                             put("repeats",this.repeatDone).
-                            put("operations",(this.threadsDone*this.functionInstances.get(function)- - functionStats.getSkipCounter().count())).
-                            put("min", functionStats.getMin()).
-                            put("avg",this.functionAvgTime.get(function)/1000).
+                            put("operations",(functionStats.getCount().count())).
+                            put("min", (functionStats.getMin() == Double.MAX_VALUE ? 0 : functionStats.getMin())).
+                            put("avg",functionAvg).
                             put("dumpAvg",dumpLevelFunctionAvg/1000).
-                            put("max",functionStats.getMax()).
-                            put("perSecond",throughputPerSecond).
+                            put("max",functionStats.getMax() == Double.MIN_VALUE ? 0 : functionStats.getMax()).
+                            put("perSecond", throughputPerSecond).
                             put("perMinute",throughputPerMinute).
                             put("errored",functionStats.getErrorCounter().count()).
                             put("failed", functionStats.getFailureCounter().count()).
+                            put("skipped", functionStats.getSkipCounter().count()).
                             put("threads", this.threads);
 
                     // Function Specific Log File
@@ -603,7 +592,7 @@ public class GroupController extends Thread{
     // In Milli Seconds
     private double findPercentile(List<Double> functionDumpAverages, float percentile) {
         int index = (int)(functionDumpAverages.size()  * percentile);
-        return functionDumpAverages.get(index)/1000;
+        return functionDumpAverages.get(index);
     }
 
     public void pause() {
