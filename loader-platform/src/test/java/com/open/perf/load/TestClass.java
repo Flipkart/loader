@@ -11,7 +11,7 @@ public class TestClass {
         new Loader("L1").
                 addGroup(new Group("G1").
                         setGroupStartDelay(0).
-                        setRepeats(100).
+                        setRepeats(10000).
                         setThreads(10).
                         addFunction(new GroupFunction("F1").
                                 setClassName("com.open.perf.sample.SampleFunction").
@@ -24,7 +24,7 @@ public class TestClass {
                         addFunctionTimer("logger.info").
                         addFunctionTimer("sleeper").
                         addFunctionCounter("testCounter").
-                        setDumpDataAfterRepeats(50)).
+                        setDumpDataAfterRepeats(5000)).
                 start();
     }
 }

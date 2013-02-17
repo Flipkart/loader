@@ -239,7 +239,7 @@ public class GroupController extends Thread{
 
         // Wait for threads to get over
         while(groupIsAlive()){
-            HelperUtil.delay(1000);
+            HelperUtil.delay(200);
         }
 
         // Following code is written just to avoid dumping the data in the end if "dumpDataAfterRepeats" had already dumped the data in the end
@@ -388,7 +388,7 @@ public class GroupController extends Thread{
 
 
         this.threadsDone++;
-        logger.info(" ops done :"+this.threadsDone);
+
         if(threadsDone % this.threads == 0) {
             this.repeatDone++;
             if(this.currentTimer != null) {
