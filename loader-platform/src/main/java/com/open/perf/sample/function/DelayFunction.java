@@ -1,10 +1,8 @@
-package com.open.perf.sample;
+package com.open.perf.sample.function;
 
-import com.open.perf.util.Counter;
 import com.open.perf.operation.FunctionContext;
 import com.open.perf.operation.PerformanceFunction;
-
-import java.util.Random;
+import com.open.perf.util.Counter;
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,7 +11,7 @@ import java.util.Random;
  * Time: 10:49 AM
  * To change this template use File | Settings | File Templates.
  */
-public class SampleFunction extends PerformanceFunction {
+public class DelayFunction extends PerformanceFunction {
     @Override
     public void init(FunctionContext context) throws Exception {
         logger.info("In init");
@@ -21,8 +19,7 @@ public class SampleFunction extends PerformanceFunction {
 
     @Override
     public void execute(FunctionContext context) throws Exception {
-        Counter testCounter = context.getFunctionCounter("testCounter");
-        testCounter.increment();
+        Thread.sleep(context.getParameterAsInteger("delay"));
     }
 
     @Override
