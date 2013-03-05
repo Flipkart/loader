@@ -11,6 +11,7 @@ import com.open.perf.util.Timer;
 import org.apache.log4j.Logger;
 
 public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
+/*
     private    long    			       repeat;
     private    long 				   life;
     private    long                    repeatsDone;
@@ -88,11 +89,13 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
 
         while(repeatAgain() && (this.forceStop == false)) {
             functionContext.reset();
-		    /*
+		    */
+/*
 		     * Add Code for Runtime Pause
 		     * Pause would be enabled only when current thread gets over.
 		     * Resume will happen only if minimum delay which is 15000 milli seconds have passed
-		     */
+		     *//*
+
             if(this.pause) {
                 this.paused   =   true;
                 this.running  =   false;
@@ -180,10 +183,12 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
             fe.reset();
     }
 
-    /**
+    */
+/**
      * To check if execution have to be repeated again
      * @return
-     */
+     *//*
+
     public boolean repeatAgain() {
 
         if((this.repeat   <   0)  &&  (this.life  <   0)) {
@@ -225,6 +230,7 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
         return this.running;
     }
 
+*/
 /*
     private static void resolveVariables(Map<String,Object> map){
         for(String key : map.keySet()) {
@@ -248,7 +254,8 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
             }
         }
     }
-*/
+*//*
+
 
     public void setThreadResources(Map<String, Object> threadResources) {
         this.threadResources = threadResources;
@@ -257,11 +264,12 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
     public void setFunctionTimers(Map<String,Timer> functionTimers) {
         this.functionTimers = new HashMap<String, Timer>();
         for(String functionTimer : functionTimers.keySet()) {
-            this.functionTimers.put(functionTimer, new Timer(functionTimer));
+            this.functionTimers.put(functionTimer, new Timer("CHANGE THIS tO GROUP NAME",functionTimer));
         }
     }
 
     public void setFunctionCounters(Map<String, Counter> functionCounters) {
         this.functionCounters = functionCounters;
     }
+*/
 }

@@ -166,15 +166,11 @@ public class GroupFunction implements Cloneable {
         this.statFile = statFile;
     }
 
-    public void setPercentileStatFile(String percentileStatFile) {
-        this.percentileStatFile = percentileStatFile;
-    }
-
-    public String getPercentileStatFile() {
-        return percentileStatFile;
-    }
-
     public GroupFunction clone() throws CloneNotSupportedException {
         return (GroupFunction) super.clone();
+    }
+
+    public String getUniqueFunctionName() {
+        return this.name + "_" + this.className + "." + this.functionName;
     }
 }

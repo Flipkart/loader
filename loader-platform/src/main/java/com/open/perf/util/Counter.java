@@ -1,57 +1,74 @@
 package com.open.perf.util;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
- * Created with IntelliJ IDEA.
- * User: nitinka
- * Date: 14/2/13
- * Time: 10:36 AM
- * To change this template use File | Settings | File Templates.
+ * nitinka
  */
 public class Counter {
     private String counterName;
-    private long count;
-
+    private long initialCount;
+    private AtomicLong count;
+    private long lastUpdateTime;
     public Counter(String counterName) {
+        this(counterName, 0);
+        this.lastUpdateTime = System.nanoTime();
+    }
+
+    public Counter(String counterName, long initialCount) {
         this.counterName = counterName;
-        count = 0;
+        count = new AtomicLong(initialCount);
+        this.initialCount = initialCount;
     }
 
     public String getCounterName() {
         return counterName;
     }
 
-    synchronized public Counter increment() {
-        count++;
-        return this;
+    synchronized public long increment() {
+        this.lastUpdateTime = System.nanoTime();
+        return count.incrementAndGet();
     }
 
-    synchronized public Counter increment(int by) {
-        count += by;
-        return this;
+    synchronized public long increment(long by) {
+        this.lastUpdateTime = System.nanoTime();
+        return count.addAndGet(by);
     }
 
-    synchronized public Counter decrement() {
-        count--;
-        return this;
+    synchronized public long decrement() {
+        this.lastUpdateTime = System.nanoTime();
+        return count.decrementAndGet();
     }
 
-    synchronized public Counter decrement(int by) {
-        count -= by;
-        return this;
+    synchronized public long decrement(long by) {
+        this.lastUpdateTime = System.nanoTime();
+        return count.addAndGet(-by);
     }
 
     public long count() {
-        return count;
+        return count.longValue();
+    }
+
+    // In nano Second
+    public long getLastUpdateTime() {
+        return this.lastUpdateTime;
     }
 
     synchronized public Counter reset() {
-        count = 0;
+        count.set(0);
         return this;
     }
 
+    synchronized long operationsDone() {
+        return this.count.longValue() - initialCount;
+    }
 
     @Override
     public String toString() {
-        return "Function Counter Name : "+this.counterName+" counter : "+this.count;
+        return "Function Counter Name : "+this.counterName+" counter : "+this.count.longValue();
+    }
+
+    public long getInitialCount() {
+        return initialCount;
     }
 }

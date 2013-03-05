@@ -86,10 +86,7 @@ public class FunctionContext {
     }
 
     public Timer getFunctionTimer(String timerName) {
-        Timer timer = this.timers.get(timerName);
-        if(timer == null)
-            throw new RuntimeException("Timer "+timerName+" doesn't exist");
-        return timer;
+        return this.timers.get(timerName);
     }
 
     public Counter getFunctionCounter(String counterName) {

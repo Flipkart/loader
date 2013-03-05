@@ -7,6 +7,7 @@ import java.util.Iterator;
 import com.json.JSONException;
 
 public class PercentileCalculatorThread extends Thread{
+/*
 	private Collection<GroupController> groupControllerList;
     private int interval = 120000;
 
@@ -49,4 +50,5 @@ public class PercentileCalculatorThread extends Thread{
     public void setInterval(int interval) {
         this.interval = interval;
     }
+*/
 }

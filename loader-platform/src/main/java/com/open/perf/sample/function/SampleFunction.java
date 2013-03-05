@@ -1,4 +1,4 @@
-package com.open.perf.sample;
+package com.open.perf.sample.function;
 
 import com.open.perf.util.Counter;
 import com.open.perf.operation.FunctionContext;
