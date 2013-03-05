@@ -10,7 +10,7 @@ public class FrameworkOverHeadCheck {
                 new Group("G1").
                         setGroupStartDelay(0).
                         setRepeats(10000).
-                        setThreads(1).
+                        setThreads(10).
                         setDumpDataAfterRepeats(1000).
                         addFunction(new GroupFunction("RandomDelay").
                                 setClassName("com.open.perf.sample.function.DelayFunction").
