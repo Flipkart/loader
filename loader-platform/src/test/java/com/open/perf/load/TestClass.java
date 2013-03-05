@@ -14,11 +14,11 @@ public class TestClass {
                         setRepeats(10000).
                         setThreads(10).
                         addFunction(new GroupFunction("F1").
-                                setClassName("com.open.perf.sample.SampleFunction").
+                                setClassName("com.open.perf.sample.function.SampleFunction").
                                 addParam("paramF1", "value1").
                                 dumpData()).
                         addFunction(new GroupFunction("F2").
-                                setClassName("com.open.perf.sample.SampleFunction").
+                                setClassName("com.open.perf.sample.function.SampleFunction").
                                 addParam("paramF2", "value2").
                                 dumpData()).
                         addFunctionTimer("logger.info").
