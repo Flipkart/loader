@@ -28,7 +28,7 @@ public class Group {
 	@JsonProperty
     private boolean repeatIsSet ;
 	@JsonProperty
-    private int life ;
+    private int duration;
 	@JsonProperty
     private int threads ;
 	@JsonProperty
@@ -48,8 +48,8 @@ public class Group {
 
     // threadResources don't work with Timers. Make sure you don't use them
     private List<Map<String,Object>> threadResources ;
-    private List<String> functionTimers;
-    private List<String> functionCounters;
+    private List<String> customTimers;
+    private List<String> customCounters;
 
     @JsonCreator
     public Group(@JsonProperty("name") String name){
@@ -60,11 +60,11 @@ public class Group {
     	  timers = new ArrayList<GroupTimer>();
     	  threadResources = new ArrayList<Map<String, Object>>();
     	  groupStartDelay=0;
-    	  dumpDataAfterRepeats=10;
-    	  threadStartDelay=100;
+    	  dumpDataAfterRepeats=0;
+    	  threadStartDelay=0;
     	  repeats=1;
     	  repeatIsSet=false;
-    	  life=-1;
+    	  duration =-1;
     	  threads=1;
     	  delayAfterRepeats="0,0";
     	  warmUpTime=-1;
@@ -72,8 +72,8 @@ public class Group {
     	  slowLogsEnabled=false;
     	  logFolder="";   	  
     	  logger = Logger.getLogger(Group.class.getName());
-        this.functionTimers = new ArrayList<String>();
-        this.functionCounters = new ArrayList<String>();
+        this.customTimers = new ArrayList<String>();
+        this.customCounters = new ArrayList<String>();
       }
 
     public Group setGroupStartDelay(int groupStartDelay) {
@@ -87,8 +87,8 @@ public class Group {
         return this;
     }
 
-    public Group setLife(int life) {
-        this.life = life;
+    public Group setDuration(int duration) {
+        this.duration = duration;
         if(!this.repeatIsSet)
             this.repeats = -1;
         return this;
@@ -115,7 +115,7 @@ public class Group {
     public Group addFunction(GroupFunction groupFunction) {
         this.functions.add(groupFunction);
         groupFunction.setStatFile(this.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + ".txt");
-        groupFunction.setPercentileStatFile(this.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + "_percentiles.txt");
+//        groupFunction.setPercentileStatFile(this.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + "_percentiles.txt");
         return this;
     }
 
@@ -131,8 +131,8 @@ public class Group {
         return repeats;
     }
 
-    public int getLife() {
-        return life;
+    public int getDuration() {
+        return duration;
     }
 
     public int getThreads() {
@@ -246,7 +246,7 @@ public class Group {
                 setDumpDataAfterRepeats(this.dumpDataAfterRepeats).
                 setThreadStartDelay(this.threadStartDelay).
                 setRepeats(this.warmUpRepeats).
-                setLife(this.warmUpTime).
+                setDuration(this.warmUpTime).
                 setThreads(this.threads).
                 setDelayAfterRepeats(this.delayAfterRepeats);
 
@@ -279,7 +279,7 @@ public class Group {
                 "\nthreadsStartDelay "+this.threadStartDelay+"" +
                 "\nrepeats "+this.repeats+"" +
                 "\nrepeatIsSet "+this.repeatIsSet+"" +
-                "\nlife "+this.life+"" +
+                "\nduration "+this.duration +"" +
                 "\nthreads "+this.threads+"" +
                 "\ndelayAfterRepeats "+this.delayAfterRepeats;
     }
@@ -309,29 +309,29 @@ public class Group {
 
 
     public Group addFunctionTimer(String timerName) {
-        this.functionTimers.add(timerName);
+        this.customTimers.add(timerName);
         return this;
     }
 
-    public List<String> getFunctionTimers() {
-        return functionTimers;
+    public List<String> getCustomTimers() {
+        return customTimers;
     }
 
-    public Group setFunctionTimers(ArrayList<String> functionTimers) {
-        this.functionTimers = functionTimers;
+    public Group setCustomTimers(ArrayList<String> customTimers) {
+        this.customTimers = customTimers;
         return this;
     }
 
-    public List<String> getFunctionCounters() {
-        return functionCounters;
+    public List<String> getCustomCounters() {
+        return customCounters;
     }
 
-    public void setFunctionCounters(List<String> functionCounters) {
-        this.functionCounters = functionCounters;
+    public void setCustomCounters(List<String> customCounters) {
+        this.customCounters = customCounters;
     }
 
     public Group addFunctionCounter(String counterName) {
-        this.functionCounters.add(counterName);
+        this.customCounters.add(counterName);
         return this;
     }
 

@@ -43,7 +43,7 @@ public class Loader {
 
         for(GroupFunction groupFunction : group.getFunctions()) {
             groupFunction.setStatFile(group.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + ".txt");
-            groupFunction.setPercentileStatFile(group.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + "_percentiles.txt");
+//            groupFunction.setPercentileStatFile(group.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + "_percentiles.txt");
         }
         return this;
     }

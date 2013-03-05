@@ -7,6 +7,7 @@ import com.open.perf.domain.GroupTimer;
 import org.apache.log4j.Logger;
 
 public class TimerThread extends Thread{
+/*
 	private GroupController groupController;
     private List<GroupTimer> timers;
     private String          currentTimer;
@@ -93,4 +94,5 @@ public class TimerThread extends Thread{
         }
     }
 
+*/
 }

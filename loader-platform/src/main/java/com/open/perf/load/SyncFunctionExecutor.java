@@ -67,9 +67,9 @@ public class SyncFunctionExecutor {
         return this.exceptionCause;
     }
 
-    //Microseconds
+    //Nano Seconds
     public double getExecutionTime() {
-        return (this.endTime - this.startTime)/1000d;
+        return (this.endTime - this.startTime);
     }
 
     public String getAbsoluteFunctionName() {
