@@ -69,6 +69,14 @@ public class SyncFunctionExecutor {
         return this.exceptionCause;
     }
 
+    public String getFunctionName() {
+        return functionName;
+    }
+
+    public void setFunctionName(String functionName) {
+        this.functionName = functionName;
+    }
+
     //Nano Seconds
     public double getExecutionTime() {
         return (this.endTime - this.startTime);
@@ -88,6 +96,10 @@ public class SyncFunctionExecutor {
 
     public Object[] getParams() {
         return params;
+    }
+
+    public Object getClassObject() {
+        return classObject;
     }
 
     public SyncFunctionExecutor setParams(Object[] params) {

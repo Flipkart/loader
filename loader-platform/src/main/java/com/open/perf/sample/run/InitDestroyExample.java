@@ -6,33 +6,20 @@ import com.open.perf.domain.Loader;
 
 import java.util.UUID;
 
-public class GroupStatsInstanceTestClass {
+public class InitDestroyExample {
     public static void main (String[]args) throws Exception {
         new Loader("Run").
                 setJobId(UUID.randomUUID().toString()).
                 addGroup(
                         new Group("G1").
                                 setGroupStartDelay(0).
-                                setDuration(3000).
+                                setRepeats(1).
                                 setThreads(1).
                                 addFunction(new GroupFunction("RandomDelay").
                                         setClassName("com.open.perf.sample.function.DelayFunction").
                                         addParam("delay", 5)).
                                 addFunctionCounter("counter1").
                                 addFunctionTimer("timer1")).
-/*
-                addGroup(
-                        new Group("G2").
-                                setGroupStartDelay(0).
-                                setDuration(5000).
-                                setThreads(10).
-                                addFunction(new GroupFunction("RandomDelay").
-                                        setClassName("com.open.perf.sample.function.DelayFunction").
-                                        addParam("delay", 15).
-                                        dumpData()).
-                                addFunctionCounter("counter1").
-                                addFunctionTimer("timer1")).
-*/
                 start();
     }
 }
