@@ -7,6 +7,8 @@ import com.open.perf.util.Counter;
 import com.open.perf.util.Timer;
 import org.apache.log4j.Logger;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -105,6 +107,8 @@ public class SequentialFunctionExecutorNew extends Thread {
     public void run () {
         this.startTime 	= System.currentTimeMillis();
         logger.info("Sequential Function Executor "+this.getName()+" started");
+
+        initializeUserFunctions();
         while(canRepeat()) {
             if(this.isPaused()) {
                 logger.info(this.getName()+" is paused");
@@ -171,6 +175,7 @@ public class SequentialFunctionExecutorNew extends Thread {
             groupStatsQueue.addGroupStats(groupStatsInstance);
             sleepInterval();
         }
+        destroyUserFunctions();
         this.endTime = System.currentTimeMillis();
         this.running = false;
         this.over = true;
@@ -179,6 +184,37 @@ public class SequentialFunctionExecutorNew extends Thread {
             logger.info("Sequential Function Executor '" + this.getName() + "' Prematurely(" + (this.duration - (this.endTime - this.startTime)) + " ms) Over");
         }
         logger.info("Sequential Function Executor '" + this.getName() + "' Over");
+    }
+
+
+    private void initializeUserFunctions() {
+        callFunctionOnUserClass("init");
+    }
+
+    private void destroyUserFunctions() {
+        callFunctionOnUserClass("end");
+    }
+
+    private void callFunctionOnUserClass(String methodName) {
+        for(int functionNo = 0; functionNo < this.groupFunctions.size(); functionNo++) {
+            GroupFunction groupFunction =   this.groupFunctions.get(functionNo);
+
+            FunctionContext functionContext = new FunctionContext(null, null).
+                    updateParameters(this.groupParams).
+                    updateParameters(this.threadResources);
+
+            functionContext.updateParameters(groupFunction.getParams());
+
+            SyncFunctionExecutor fe = this.fExecutors.get(functionNo);
+            Object classObject = fe.getClassObject();
+            try {
+                Method m = classObject.getClass().getDeclaredMethod(methodName, new Class[]{FunctionContext.class});
+                m.invoke(classObject, new Object[]{functionContext});
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private Map<String, Timer> buildFunctionTimers() {
