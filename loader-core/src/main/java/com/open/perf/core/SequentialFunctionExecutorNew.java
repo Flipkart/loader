@@ -124,7 +124,8 @@ public class SequentialFunctionExecutorNew extends Thread {
 
             FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters).
                     updateParameters(this.groupParams).
-                    updateParameters(this.threadResources);
+                    updateParameters(this.threadResources).
+                    setMyThread(this);
 
             GroupStatsInstance groupStatsInstance = new GroupStatsInstance(customTimers, functionTimers);
 

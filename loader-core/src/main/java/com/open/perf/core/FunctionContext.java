@@ -132,8 +132,9 @@ public class FunctionContext {
         return failureMessage;
     }
 
-    public void setMyThread(Thread myThread) {
+    public FunctionContext setMyThread(Thread myThread) {
         this.myThread = myThread;
+        return this;
     }
 
     public FunctionContext async() {
