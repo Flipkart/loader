@@ -6,76 +6,55 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 public class Group {
-	
-	private static Logger        logger ;
-	
-	@JsonProperty
-	private String name ;
-	@JsonProperty
-    private String graphTab ;
-	@JsonProperty
-    private int groupStartDelay ;
-	@JsonProperty
-    private int dumpDataAfterRepeats ;
-	@JsonProperty
-    private int threadStartDelay ;
-	@JsonProperty
-    private int repeats ;
-	@JsonProperty
-    private boolean repeatIsSet ;
-	@JsonProperty
-    private int duration;
-	@JsonProperty
-    private int threads ;
-	@JsonProperty
-    private String delayAfterRepeats ;
-	@JsonProperty
-    private int warmUpTime ;
-	@JsonProperty
-    private int warmUpRepeats ;
 
-    private boolean slowLogsEnabled ;
-    private String logFolder;
+    private static Logger        logger ;
+
+    private String name ;
+    private int groupStartDelay ;
+    private int threadStartDelay ;
+    private int repeats ;
+    private int duration;
+    private int threads ;
+    private int warmUpTime ;
+    private int warmUpRepeats ;
 
     private List<GroupFunction> functions;
     private List<String> dependOnGroups;
     private HashMap<String, Object> params;
     private List<GroupTimer> timers;
 
-    // threadResources don't work with Timers. Make sure you don't use them
+    // Resources (params) that could be passed to specific thread in the group
     private List<Map<String,Object>> threadResources ;
     private List<String> customTimers;
     private List<String> customCounters;
 
-    @JsonCreator
-    public Group(@JsonProperty("name") String name){
-    	  this.name = name;
-    	  functions = new ArrayList<GroupFunction>();
-    	  dependOnGroups = new ArrayList<String>();
-    	  params = new HashMap<String, Object>();
-    	  timers = new ArrayList<GroupTimer>();
-    	  threadResources = new ArrayList<Map<String, Object>>();
-    	  groupStartDelay=0;
-    	  dumpDataAfterRepeats=0;
-    	  threadStartDelay=0;
-    	  repeats=1;
-    	  repeatIsSet=false;
-    	  duration =-1;
-    	  threads=1;
-    	  delayAfterRepeats="0,0";
-    	  warmUpTime=-1;
-    	  warmUpRepeats=-1;
-    	  slowLogsEnabled=false;
-    	  logFolder="";   	  
-    	  logger = Logger.getLogger(Group.class.getName());
+    static {
+        logger = Logger.getLogger(Group.class.getName());
+    }
+
+    public Group(){
+        functions = new ArrayList<GroupFunction>();
+        dependOnGroups = new ArrayList<String>();
+        params = new HashMap<String, Object>();
+        timers = new ArrayList<GroupTimer>();
+        threadResources = new ArrayList<Map<String, Object>>();
+        groupStartDelay=0;
+        threadStartDelay=0;
+        repeats=-1;
+        duration =-1;
+        threads=1;
+        warmUpTime=-1;
+        warmUpRepeats=-1;
         this.customTimers = new ArrayList<String>();
         this.customCounters = new ArrayList<String>();
-      }
+    }
 
+    public Group (String name) {
+        this();
+        this.name = name;
+    }
     public Group setGroupStartDelay(int groupStartDelay) {
         this.groupStartDelay = groupStartDelay;
         return this;
@@ -83,14 +62,11 @@ public class Group {
 
     public Group setRepeats(int repeats) {
         this.repeats = repeats;
-        this.repeatIsSet = true;
         return this;
     }
 
     public Group setDuration(int duration) {
         this.duration = duration;
-        if(!this.repeatIsSet)
-            this.repeats = -1;
         return this;
     }
 
@@ -107,15 +83,8 @@ public class Group {
         return this;
     }
 
-    public Group setDelayAfterRepeats(int repeats, int delay) {
-        this.delayAfterRepeats = repeats+","+delay;
-        return this;
-    }
-
     public Group addFunction(GroupFunction groupFunction) {
         this.functions.add(groupFunction);
-        groupFunction.setStatFile(this.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + ".txt");
-//        groupFunction.setPercentileStatFile(this.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + "_percentiles.txt");
         return this;
     }
 
@@ -143,30 +112,12 @@ public class Group {
         return threadStartDelay;
     }
 
-    public String getDelayAfterRepeats() {
-        return delayAfterRepeats;
-    }
-
     public List<GroupFunction> getFunctions() {
         return functions;
     }
 
-    public int getDumpDataAfterRepeats() {
-        return dumpDataAfterRepeats;
-    }
-
     public Group setName(String name) {
         this.name = name;
-        return this;
-    }
-
-    public Group setDelayAfterRepeats(String delayAfterRepeats) {
-        this.delayAfterRepeats = delayAfterRepeats;
-        return this;
-    }
-
-    public Group setDumpDataAfterRepeats(int dumpDataAfterRepeats) {
-        this.dumpDataAfterRepeats = dumpDataAfterRepeats;
         return this;
     }
 
@@ -190,32 +141,11 @@ public class Group {
 
     public Group addTimer(GroupTimer timer) {
         this.timers.add(timer);
-        this.repeats = -1; // As such repeats has no meaning with Timers. but not making repeat = -1 is causing synchronization issues.
         return this;
     }
 
     public List<GroupTimer> getTimers() {
         return timers;
-    }
-
-    public Group setLogFolder(String value) {
-        if(value != null && value.equals(""))
-            throw new RuntimeException("Loader/Groups/Group/LogFolder Can't be Empty!!!!");
-        this.logFolder  =   value;
-        return this;
-    }
-
-    public String getLogFolder() {
-        return this.logFolder;
-    }
-
-    public boolean isSlowLogsEnabled() {
-        return this.slowLogsEnabled;
-    }
-
-    public Group enableSlowlogs() {
-        this.slowLogsEnabled =   true;
-        return this;
     }
 
     public int getWarmUpTime() {
@@ -243,54 +173,28 @@ public class Group {
     public Group createWarmUpGroup() throws CloneNotSupportedException {
         Group warmUpGroup = new Group("Warm Up "+this.getName());
         warmUpGroup.setGroupStartDelay(this.groupStartDelay).
-                setDumpDataAfterRepeats(this.dumpDataAfterRepeats).
                 setThreadStartDelay(this.threadStartDelay).
                 setRepeats(this.warmUpRepeats).
                 setDuration(this.warmUpTime).
-                setThreads(this.threads).
-                setDelayAfterRepeats(this.delayAfterRepeats);
+                setThreads(this.threads);
 
 
-         logger.info("Adding group function to warmUp group");
-         logger.info(this.functions);
-         for(GroupFunction originalFunction : this.functions) {
-             GroupFunction clonedFunction = originalFunction.clone();
-             clonedFunction.doNotGraphIt();
-             warmUpGroup.addFunction(clonedFunction);
-         }
+        logger.debug("Adding group function to warmUp group");
+        for(GroupFunction originalFunction : this.functions) {
+            GroupFunction clonedFunction = originalFunction.clone();
+            warmUpGroup.addFunction(clonedFunction);
+        }
 
-         logger.info("Adding Dependency to warmUp group");
-         for(String dependsOn : this.dependOnGroups) {
-             warmUpGroup.dependsOn(dependsOn);
-         }
+        logger.debug("Adding Dependency to warmUp group");
+        for(String dependsOn : this.dependOnGroups) {
+            warmUpGroup.dependsOn(dependsOn);
+        }
 
-         logger.info("Adding Params");
-         for(String key : this.params.keySet()) {
-             warmUpGroup.addParam(key, this.params.get(key).toString());
-         }
-         return warmUpGroup;
-   }
-
-    public String asString() {
-        System.out.println("Collecting Group info");
-        return "\nGroup Name "+this.name+" " +
-                "\ngroupStartDelay "+this.groupStartDelay+" " +
-                "\ndumpDataAfterRepeats "+this.dumpDataAfterRepeats+"" +
-                "\nthreadsStartDelay "+this.threadStartDelay+"" +
-                "\nrepeats "+this.repeats+"" +
-                "\nrepeatIsSet "+this.repeatIsSet+"" +
-                "\nduration "+this.duration +"" +
-                "\nthreads "+this.threads+"" +
-                "\ndelayAfterRepeats "+this.delayAfterRepeats;
-    }
-
-    public String getGraphTab() {
-        return graphTab;
-    }
-
-    public Group setGraphTab(String graphTab) {
-        this.graphTab = graphTab;
-        return this;
+        logger.debug("Adding Params");
+        for(String key : this.params.keySet()) {
+            warmUpGroup.addParam(key, this.params.get(key).toString());
+        }
+        return warmUpGroup;
     }
 
     public List<Map<String, Object>> getThreadResources() {
@@ -302,7 +206,7 @@ public class Group {
     }
 
     public Group addThreadResource(int threadNumber, String resource, Object value) {
-        System.out.println("Putting Resource "+resource+" "+value+" for thread "+threadNumber);
+        logger.debug("Putting Resource " + resource + " " + value + " for thread " + threadNumber);
         this.threadResources.get(threadNumber).put(resource, value);
         return this;
     }
@@ -317,22 +221,45 @@ public class Group {
         return customTimers;
     }
 
-    public Group setCustomTimers(ArrayList<String> customTimers) {
-        this.customTimers = customTimers;
-        return this;
-    }
-
     public List<String> getCustomCounters() {
         return customCounters;
-    }
-
-    public void setCustomCounters(List<String> customCounters) {
-        this.customCounters = customCounters;
     }
 
     public Group addFunctionCounter(String counterName) {
         this.customCounters.add(counterName);
         return this;
     }
+
+    void validate() {
+        // No Threads
+        if(this.threads < 1) {
+            throw new RuntimeException("Group "+this.name+": No Threads mentioned for group");
+        }
+
+        // Resetting repeat or duration if needed
+        if(this.repeats==0) {
+            logger.info("In group '"+this.name+"' repeat = 0 has no meaning, changing it to -1");
+            this.repeats = -1;
+        }
+        if(this.duration==0) {
+            logger.info("In group '"+this.name+"' life = 0 has no meaning, changing it to -1");
+            this.duration = -1;
+        }
+
+        for(GroupFunction gp : this.functions) {
+            gp.validate();
+        }
+    }
+
+    public String asString() {
+        System.out.println("Collecting Group info");
+        return "\nGroup Name "+this.name+" " +
+                "\ngroupStartDelay "+this.groupStartDelay+" " +
+                "\nthreadsStartDelay "+this.threadStartDelay+"" +
+                "\nrepeats "+this.repeats+"" +
+                "\nduration "+this.duration +"" +
+                "\nthreads "+this.threads+"";
+    }
+
 
 }

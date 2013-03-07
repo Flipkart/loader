@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.open.perf.util.FileHelper;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
@@ -16,7 +17,6 @@ import perf.server.domain.JobInfo;
 import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
 import perf.server.exception.JobException;
-import perf.server.util.FileHelper;
 import perf.server.util.ResponseBuilder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +28,9 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import static perf.server.domain.JobInfo.JOB_STATUS;
 
+/**
+ * Resource that receive Performance Job Request from Client Lib or Loader-Server UI
+ */
 @Path("/jobs")
 public class JobResource {
 

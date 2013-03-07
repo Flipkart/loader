@@ -1,8 +1,8 @@
 package perf.server.resource;
 
+import com.open.perf.util.FileHelper;
 import com.yammer.metrics.annotation.Timed;
 import perf.server.config.JobFSConfig;
-import perf.server.util.FileHelper;
 import perf.server.util.ResponseBuilder;
 
 import javax.ws.rs.*;
@@ -12,6 +12,9 @@ import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Create Various runs. Think of them as Performance Flows
+ */
 @Path("/runs")
 public class RunResource {
 

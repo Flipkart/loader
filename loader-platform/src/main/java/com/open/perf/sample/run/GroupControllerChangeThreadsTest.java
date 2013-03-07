@@ -2,10 +2,9 @@ package com.open.perf.sample.run;
 
 import com.open.perf.domain.Group;
 import com.open.perf.domain.GroupFunction;
-import com.open.perf.domain.Loader;
-import com.open.perf.load.GroupControllerNew;
+import com.open.perf.core.GroupControllerNew;
 
-import java.util.Date;
+import java.util.UUID;
 
 public class GroupControllerChangeThreadsTest {
     public static void main (String[]args) throws Exception {
@@ -19,10 +18,9 @@ public class GroupControllerChangeThreadsTest {
                         setClassName("com.open.perf.sample.function.DelayFunction").
                         addParam("delay", "10").
                         dumpData()).
-                addFunctionTimer("timer1").
-                setDumpDataAfterRepeats(5000);
+                addFunctionTimer("timer1");
 
-        GroupControllerNew controller = new GroupControllerNew(g1);
+        GroupControllerNew controller = new GroupControllerNew(UUID.randomUUID().toString(),g1);
         controller.start();
 
         int newThreads = 11;

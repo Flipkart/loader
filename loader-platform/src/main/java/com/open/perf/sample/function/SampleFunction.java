@@ -1,10 +1,8 @@
 package com.open.perf.sample.function;
 
 import com.open.perf.util.Counter;
-import com.open.perf.operation.FunctionContext;
-import com.open.perf.operation.PerformanceFunction;
-
-import java.util.Random;
+import com.open.perf.core.FunctionContext;
+import com.open.perf.function.PerformanceFunction;
 
 /**
  * Created with IntelliJ IDEA.

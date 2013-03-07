@@ -1,12 +1,12 @@
 package perf.server.resource;
 
+import com.open.perf.util.FileHelper;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
 import perf.server.cache.LibCache;
 import perf.server.config.LibStorageFSConfig;
-import perf.server.util.FileHelper;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -16,8 +16,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-@Path("/libs")
 
+/**
+ * Resource that deploy libs on the server
+ */
+@Path("/libs")
 public class DeployLibResource {
     private static Logger log = Logger.getLogger(DeployLibResource.class);
     private LibStorageFSConfig storageConfig;

@@ -1,18 +1,19 @@
 package perf.agent.resource;
 
+import com.open.perf.util.FileHelper;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
 import perf.agent.cache.LibCache;
 import perf.agent.config.LibStorageConfig;
-import perf.agent.util.FileHelper;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Created by IntelliJ IDEA.
@@ -60,7 +61,7 @@ public class DeployLibResource {
                 + File.separator
                 + libFileDetails.getFileName());
 
-        FileHelper.mergeMappingFile(storageConfig.getLibPath()
+        mergeMappingFile(storageConfig.getLibPath()
                 + File.separator
                 + libFileDetails.getFileName(),
                 classListStr,
@@ -147,4 +148,21 @@ public class DeployLibResource {
     synchronized public List getPlatformLib(){
         return this.libCache.getPlatformlibs();
     }
+
+    synchronized public static void mergeMappingFile(String libPath, String classListStr, String mappingFile) throws IOException {
+        InputStream mappingFileIS = new FileInputStream(mappingFile);
+        Properties prop = new Properties();
+        FileHelper.createFile(mappingFile);
+        prop.load(mappingFileIS);
+
+        String[] classes = classListStr.split("\n");
+        for(String className : classes) {
+            if(!className.trim().equals(""))
+                prop.put(className, libPath);
+        }
+        prop.store(new FileOutputStream(mappingFile), "Class and Library Mapping");
+        mappingFileIS.close();
+    }
+
+
 }

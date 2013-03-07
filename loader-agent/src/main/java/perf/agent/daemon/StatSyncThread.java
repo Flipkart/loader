@@ -1,10 +1,10 @@
 package perf.agent.daemon;
 
+import com.open.perf.util.FileHelper;
 import org.apache.log4j.Logger;
 import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobStatSyncConfig;
 import perf.agent.config.ServerInfo;
-import perf.agent.util.FileHelper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -101,7 +101,7 @@ public class StatSyncThread extends Thread{
         String jobPath = syncConfig.getJobBasePath() + File.separator + jobId;
 
         List<File> jobFiles = FileHelper.pathFiles(jobPath, true);
-        //log.debug("Job "+jobId+" Files to Read and may have to publish "+jobFiles.size());
+        log.debug("Job "+jobId+" Files to Read and may have to publish "+jobFiles.size());
         for(File jobFile : jobFiles) {
             readAndPublish(jobId, jobFile);
         }
