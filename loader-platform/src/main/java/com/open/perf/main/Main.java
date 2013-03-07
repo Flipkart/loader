@@ -2,7 +2,6 @@ package com.open.perf.main;
 
 import com.open.perf.domain.Loader;
 import org.codehaus.jackson.map.ObjectMapper;
-
 import java.io.File;
 
 public class Main {
@@ -20,8 +19,6 @@ public class Main {
 			loader = parseCmdJson(args[1]);
 			System.out.println("Loader Created : " + loader.toString() );
 		}
-        loader.setLogFolder("/var/log/loader-agent/jobs/"+args[2]);
-        loader.getGroups().setLogFolder(loader.getLogFolder()+"/groups");
         loader.start();
 	}
 

@@ -4,103 +4,96 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 public class GroupTimer {
-		@JsonProperty
-		private String name;
-		@JsonProperty
-	 	private String delayAfterRepeats;
-		@JsonProperty
-		private long runtime;
-		@JsonProperty
-		private long repeats ;
-		@JsonProperty
-		private int threads ;
-		@JsonProperty
-		private long startTime;
-		@JsonProperty
-		private long repeatsDone;
+    private String name;
+    private String delayAfterRepeats;
+    private long runtime;
+    private long repeats ;
+    private int threads ;
+    private long startTime;
+    private long repeatsDone;
 
-		@JsonCreator
-	    public GroupTimer(String name){
-	    	this.name = name;
-	    	this.delayAfterRepeats = "0,0";
-	    	this.repeats=-1;
-	    	this.threads =1;
-	    }
-	    
-	    public String getName() {
-	        return name;
-	    }
+    @JsonCreator
+    public GroupTimer(@JsonProperty("name") String name){
+        this.name = name;
+        this.delayAfterRepeats = "0,0";
+        this.repeats=-1;
+        this.threads =1;
+    }
 
-	    public GroupTimer setName(String name) {
-	        this.name = name;
-	        return this;
-	    }
+    public String getName() {
+        return name;
+    }
 
-	    public String getDelayAfterRepeats() {
-	        return delayAfterRepeats;
-	    }
+    public GroupTimer setName(String name) {
+        this.name = name;
+        return this;
+    }
 
-	    public GroupTimer setDelayAfterRepeats(String delayAfterRepeats) {
-	        this.delayAfterRepeats = delayAfterRepeats;
-	        return this;
-	    }
+    public String getDelayAfterRepeats() {
+        return delayAfterRepeats;
+    }
 
-	    public long getRuntime() {
-	        return runtime;
-	    }
+    public GroupTimer setDelayAfterRepeats(String delayAfterRepeats) {
+        this.delayAfterRepeats = delayAfterRepeats;
+        return this;
+    }
 
-	    public GroupTimer setRuntime(long runtime) {
-	        this.runtime = runtime;
-	        return this;
-	    }
+    public long getRuntime() {
+        return runtime;
+    }
 
-	    public int getThreads() {
-	        return threads;
-	    }
+    public GroupTimer setRuntime(long runtime) {
+        this.runtime = runtime;
+        return this;
+    }
 
-	    public GroupTimer setThreads(int threads) {
-	        this.threads = threads;
-	        return this;
-	    }
+    public int getThreads() {
+        return threads;
+    }
 
-	    public long getRepeats() {
-	        return repeats;
-	    }
+    public GroupTimer setThreads(int threads) {
+        this.threads = threads;
+        return this;
+    }
 
-	    public GroupTimer setRepeats(long repeats) {
-	        this.repeats = repeats;
-	        return this;
-	    }
+    public long getRepeats() {
+        return repeats;
+    }
 
-	    public GroupTimer clone() throws CloneNotSupportedException {
-	        return (GroupTimer) super.clone();
-	    }
+    public GroupTimer setRepeats(long repeats) {
+        this.repeats = repeats;
+        return this;
+    }
 
-	    public GroupTimer setStartTime(long startTime) {
-	        this.startTime = startTime;
-	        return this;
-	    }
+    public GroupTimer clone() throws CloneNotSupportedException {
+        return (GroupTimer) super.clone();
+    }
 
-	    public long getStartTime() {
-	        return this.startTime;
-	    }
+    public GroupTimer setStartTime(long startTime) {
+        this.startTime = startTime;
+        return this;
+    }
 
-	    public GroupTimer incrementRepeatsDone() {
-	        this.repeatsDone++;
-	        return this;
-	    }
+    public long getStartTime() {
+        return this.startTime;
+    }
 
-	    public long getRepeatsDone() {
-	        return repeatsDone;
-	    }
+    public GroupTimer incrementRepeatsDone() {
+        this.repeatsDone++;
+        return this;
+    }
 
-	    public GroupTimer setRepeatsDone(long repeatsDone) {
-	        this.repeatsDone = repeatsDone;
-	        return this;
-	    }
+    public long getRepeatsDone() {
+        return repeatsDone;
+    }
 
-	    public String toString() {
-	        return this.name +" threads : "+this.threads+" runtime : "+this.runtime+" repeats : "+this.repeats;
-	    }
+    public GroupTimer setRepeatsDone(long repeatsDone) {
+        this.repeatsDone = repeatsDone;
+        return this;
+    }
+
+    public String toString() {
+        return this.name +" threads : "+this.threads+" runtime : "+this.runtime+" repeats : "+this.repeats;
+    }
 
 }

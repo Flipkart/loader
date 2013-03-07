@@ -1,79 +1,81 @@
 package com.open.perf.domain;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.open.perf.core.LoadController;
 
-import com.open.perf.util.HelperUtil;
-import com.open.perf.load.LoadController;
-
-
+/**
+ * Top Level Bean which is used to create Load configuration
+ */
 public class Loader {
 
-	@JsonProperty
+    private String jobId;
 	private String name;
-	@JsonProperty
     private Groups groups;
-    private String logFolder;
     private static Logger logger;
 
     static {
         logger              =   Logger.getLogger(Loader.class.getName());
     }
 
-    @JsonCreator
-    public Loader(@JsonProperty("name")String name) {
-        this.name = name;
+    public Loader() {
         this.groups = new Groups();
-        this.logFolder = "/var/log/loader/"+ name.replace(" ","");
-        this.groups.setLogFolder(this.logFolder+"/groups");
-        logger.info("Created a blank loader instance");
     }
 
+    public Loader(String name) {
+        this();
+        this.name = name;
+    }
+
+    /**
+     * Add group to your load work flow
+     * @param group
+     * @return
+     */
     public Loader addGroup(Group group) {
         this.groups.addGroup(group);
-        if(group.getLogFolder() == null || group.getLogFolder().equals(""))
-            group.setLogFolder(this.logFolder+"/groups/"+ group.getName().replace(" ",""));
-
-        for(GroupFunction groupFunction : group.getFunctions()) {
-            groupFunction.setStatFile(group.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + ".txt");
-//            groupFunction.setPercentileStatFile(group.getLogFolder() + "/" + groupFunction.getName() + "_" + groupFunction.getClassName() + "." + groupFunction.getFunctionName() + "_percentiles.txt");
-        }
         return this;
     }
 
+    /**
+     * Start Load
+     * @throws Exception
+     */
     public void start() throws Exception {
-        logger.info("Use ON_SCREEN_STATS env variable to see stats on console");
-        archiveOld();
-        logger.info("Archieved the old log forlders");
+        // Validate if anything is wrong with the Loader Configuration
+        validate();
         resolveWarmUpGroups();
-        logger.info("Resolved warmup groups");
-        LoadController loadController             =   null;
 
-        if(this.groups.getGroups().size() > 0) {
-            try {
-                loadController             =   new LoadController(groups);
-            } catch (Exception e) {
-                logger.error("Load Controller Failed with:\n"+HelperUtil.getExceptionString(e));
-            }
+        // Start the Load Controller and Wait for Completion
+        LoadController loadController =  new LoadController(this.jobId, this.groups);
+        loadController.start();
+        loadController.join();
+        logger.info("Logs in /var/log/loader/"+this.jobId);
+    }
+
+    /**
+     * Validate Loader Configuration
+     */
+    private void validate() {
+        if(this.groups.getGroups().size() == 0) {
+            throw new RuntimeException("No Groups added to Loader");
         }
 
-        if(loadController !=  null) {
-        	logger.info("Starting Loader\n");
-            loadController.start();
-            loadController.join();
+        // Validate Each Group
+        for(Group group : this.groups.getGroups()) {
+            group.validate();
         }
     }
 
+    /**
+     * Create duplicate groups to simulate warm up functionality
+     * @throws CloneNotSupportedException
+     */
     private void resolveWarmUpGroups() throws CloneNotSupportedException {
         List<Group> warmUpGroups = new ArrayList<Group>();
-        for(Group group : this.groups.getGroups().values()) {
+        for(Group group : this.groups.getGroups()) {
             if(group.needsWarmUp()) {
                 Group warmUpGroup = group.createWarmUpGroup();
 
@@ -102,33 +104,16 @@ public class Loader {
     }
 
     public Loader setGroups(Groups groups) {
-    	logger.info("Setting up groups and logfolder for groups");
         this.groups = groups;
-        this.groups.setLogFolder(this.logFolder+"/groups");
         return this;
     }
 
-    private void archiveOld() {
-        File oldDir = new File(this.logFolder);
-        if(oldDir.exists()) {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
-            String date = simpleDateFormat.format(new Date());
-            new File(this.logFolder).renameTo(new File(this.logFolder+"_"+date));
-        }
-    }
-    
-    public void setLogFolder(String logFolder){
-    	this.logFolder = logFolder;
-    }
-    
-    public String getLogFolder(){
-    	return logFolder;
+    public String getJobId() {
+        return jobId;
     }
 
-    public String toString() {
-        String info = "Load : "+this.name;
-        info += "Has Following Groups \n:"+this.groups.toString();
-        return info;
+    public Loader setJobId(String jobId) {
+        this.jobId = jobId;
+        return this;
     }
-
 }

@@ -15,6 +15,11 @@
     </properties>
 
     <dependencies>
+	<dependency>
+    	    <groupId>com.open.perf</groupId>
+            <artifactId>utilities</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+	</dependency>
         <dependency>
             <groupId>com.ning</groupId>
             <artifactId>async-http-client</artifactId>

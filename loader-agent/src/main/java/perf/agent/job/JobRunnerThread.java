@@ -1,18 +1,14 @@
 package perf.agent.job;
 
+import com.open.perf.util.SocketHelper;
 import org.apache.log4j.Logger;
-import perf.agent.util.SocketHelper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
- * Created by IntelliJ IDEA.
- * User: nitinka
- * Date: 30/12/12
- * Time: 7:47 PM
- * To change this template use File | Settings | File Templates.
+ * Runs a Performance Job and Monitor it till it gets over
  */
 public class JobRunnerThread extends Thread{
     private JobInfo jobInfo;

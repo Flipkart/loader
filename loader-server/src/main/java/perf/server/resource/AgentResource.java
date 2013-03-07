@@ -1,5 +1,6 @@
 package perf.server.resource;
 
+import com.open.perf.util.FileHelper;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
@@ -8,7 +9,6 @@ import perf.server.cache.LibCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
 import perf.server.domain.LoaderAgent;
-import perf.server.util.FileHelper;
 import perf.server.util.ResponseBuilder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,8 +19,10 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Resource to manage operations on loader-agents
+ */
 @Path("/agents")
-
 public class AgentResource {
     private static Logger log = Logger.getLogger(AgentResource.class);
     private LibCache libCache;
