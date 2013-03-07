@@ -23,8 +23,9 @@ jobStatSyncConfig:
   jobBasePath: "/var/log/loader-agent/jobs"
   syncInterval: 10000
   #Per File
-  linesToSyncInOneGo: 100
-
+  linesToSyncInOneGo: 100000
+  #Keep Lines Read keeping "10000 Lines per second to push to server" in mind
+  # So if sync interval is 10000, linesToSyncInOneGo should be 10000 * 10  = 100000
 http:
   port: 8888
   adminPort: 8881

@@ -1,6 +1,7 @@
 package perf.agent.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.open.perf.util.FileHelper;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import perf.agent.cache.LibCache;
@@ -8,7 +9,6 @@ import perf.agent.config.JobProcessorConfig;
 import perf.agent.job.JobInfo;
 import perf.agent.daemon.JobProcessorThread;
 import perf.agent.daemon.StatSyncThread;
-import perf.agent.util.FileHelper;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -18,11 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
- * User: nitinka
- * Date: 28/12/12
- * Time: 1:16 PM
- * To change this template use File | Settings | File Templates.
+ * Receive Requests to run job on agent
  */
 @Path("/jobs")
 
@@ -50,7 +46,7 @@ public class JobResource {
                 buildJobClassPath(classList);
         String jobCMD = this.jobProcessorConfig.getJobCLIFormat().
                 replace("$CLASSPATH", jobClassPath).
-                replace("$JOB_JSON", ""+FileHelper.persistStream(jobJson,"/tmp/"+System.currentTimeMillis())).
+                replace("$JOB_JSON", ""+ FileHelper.persistStream(jobJson, "/tmp/" + System.currentTimeMillis())).
                 replace("$JOB_ID", jobId);
 
         JobInfo jobInfo = new JobInfo().
