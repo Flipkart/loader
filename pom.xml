@@ -14,7 +14,7 @@ http://maven.apache.org/maven-v4_0_0.xsd">
         <module>loader-server</module>
         <module>loader-agent</module>
         <module>monitoring-service</module>
-        <module>loader-platform</module>
+        <module>loader-core</module>
         <module>utilities</module>
     </modules>
 
