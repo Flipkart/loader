@@ -22,6 +22,7 @@ public class FunctionContext {
         GENERAL, DATA_MISSING, FUNCTIONAL_FAILURE, WRONG_INPUT
     }
 
+    private Thread myThread;
     private Map<String, Object> functionParameters;
     private Map<String, Counter> counters;
     private Map<String, Timer> timers;
@@ -129,6 +130,24 @@ public class FunctionContext {
 
     public String getFailureMessage() {
         return failureMessage;
+    }
+
+    public void setMyThread(Thread myThread) {
+        this.myThread = myThread;
+    }
+
+    public FunctionContext async() {
+        try {
+            myThread.wait();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    public FunctionContext join() {
+        myThread.notify();
+        return this;
     }
 
     public void reset() {
