@@ -3,7 +3,6 @@ package com.open.perf.sample.run;
 import com.open.perf.domain.Group;
 import com.open.perf.domain.GroupFunction;
 import com.open.perf.domain.Loader;
-import com.open.perf.sample.function.DelayFunction;
 import com.open.perf.sample.function.SampleFunction;
 import org.codehaus.jackson.map.ObjectMapper;
 
