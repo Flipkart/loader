@@ -6,6 +6,7 @@ import com.open.perf.util.Clock;
 import com.open.perf.util.Counter;
 import org.apache.log4j.Logger;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
@@ -31,9 +32,8 @@ public class GroupControllerNew{
     private final List<String> ignoreDumpFunctions;
 
     public GroupControllerNew(String jobId, Group group) {
-        this.basePath = System.getenv("BASE_PATH");
-        if(basePath == null)
-            basePath = "/var/log/loader/"+jobId+"/"+group.getName();
+        this.basePath = System.getProperty("BASE_PATH", "/var/log/loader/");
+        basePath += jobId + File.separator + group.getName();
 
         this.groupName = group.getName();
         this.group = group;

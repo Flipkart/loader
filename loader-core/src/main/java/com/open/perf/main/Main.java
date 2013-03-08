@@ -1,35 +1,79 @@
 package com.open.perf.main;
 
 import com.open.perf.domain.Loader;
+import org.apache.commons.cli.*;
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
-import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.UUID;
 
 public class Main {
-	public static void main(String[] args) throws Exception{
-		if (args.length < 2){
-			System.out.println("You need to give either json file or json on commandline");
-			System.exit(1);
-		}
 
-        Loader loader = null;
-		if (args[0].equalsIgnoreCase("-f")){
-			loader = parseFileJson(args[1]);
-			System.out.println("Loader Created : " + loader.toString() );
-		} else {
-			loader = parseCmdJson(args[1]);
-			System.out.println("Loader Created : " + loader.toString() );
-		}
-        loader.start();
-	}
+    private static Logger logger;
+    private static Options options;
 
-    public static Loader parseCmdJson(String json) throws Exception{
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(json, Loader.class);
+    static {
+        logger = Logger.getLogger(Main.class);
+        options = new Options();
+
+        Option fileOption = new Option("f", "jobFile", true, "File containing Json representing the performance run");
+        fileOption.setRequired(true);
+        options.addOption(fileOption);
+
+        options.addOption(new Option("j", "jobId", true, "Unique Job Id. By default it would be Random UUID"));
+        options.addOption(new Option("s", "statsFolder", true, "Path where stats will be stored. Default is /var/log/loader/"));
     }
 
-    public static Loader parseFileJson(String filePath) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(new File(filePath), Loader.class);
+    /**
+     * -f jobJsonFile -j jobId -l statsFolder
+     * @param args
+     * @throws Exception
+     */
+    public static void main(String[] args) throws Exception{
+        CommandLineParser parser = new GnuParser();
+
+        try {
+            CommandLine line = parser.parse(options, args);
+            if(line.hasOption('h')) {
+                help();
+                return;
+            }
+
+            System.setProperty("BASE_PATH", statsFolder(line));
+            buildLoader(jobJsonFile(line)).
+                    setJobId(jobId(line)).
+                    start();
+        }
+        catch (Exception e) {
+            logger.error(e);
+            help();
+        }
     }
 
+    private static Loader buildLoader(String jobJsonFile) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(new FileInputStream(jobJsonFile), Loader.class);
+    }
+
+    private static String jobId(CommandLine line) {
+        return line.getOptionValue('j', UUID.randomUUID().toString());
+    }
+
+    private static String statsFolder(CommandLine line) {
+        return line.getOptionValue('s',"/var/log/loader/");
+    }
+
+    private static String jobJsonFile(CommandLine line) {
+        if(!line.hasOption('f')) {
+            help();
+            System.exit(1);
+        }
+        return line.getOptionValue('f');
+    }
+
+    private static void help() {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("Main", options );
+    }
 }

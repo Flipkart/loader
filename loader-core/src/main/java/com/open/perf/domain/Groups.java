@@ -1,5 +1,7 @@
 package com.open.perf.domain;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +31,8 @@ public class Groups {
     	this.groups.add(group);
         this.groupMap.put(group.getName(), group);
     }
-    
+
+    @JsonIgnore
     public HashMap<String,Group> getGroupMap() {
         return this.groupMap;
     }
