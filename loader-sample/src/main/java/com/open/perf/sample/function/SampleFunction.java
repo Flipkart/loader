@@ -1,6 +1,5 @@
 package com.open.perf.sample.function;
 
-import com.open.perf.util.Counter;
 import com.open.perf.core.FunctionContext;
 import com.open.perf.function.PerformanceFunction;
 

@@ -1,8 +1,8 @@
 package com.open.perf.sample.run;
 
+import com.open.perf.core.GroupControllerNew;
 import com.open.perf.domain.Group;
 import com.open.perf.domain.GroupFunction;
-import com.open.perf.core.GroupControllerNew;
 
 import java.util.UUID;
 
