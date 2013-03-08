@@ -19,8 +19,7 @@ public class SampleFunction extends PerformanceFunction {
 
     @Override
     public void execute(FunctionContext context) throws Exception {
-        Counter testCounter = context.getFunctionCounter("testCounter");
-        testCounter.increment();
+        logger.info("In execute");
     }
 
     @Override

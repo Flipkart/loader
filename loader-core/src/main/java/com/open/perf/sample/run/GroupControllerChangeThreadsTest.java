@@ -15,7 +15,7 @@ public class GroupControllerChangeThreadsTest {
                 setRepeats(10000).
                 setThreads(10).
                 addFunction(new GroupFunction("F1").
-                        setClassName("com.open.perf.sample.function.DelayFunction").
+                        setFunctionClass("com.open.perf.sample.function.DelayFunction").
                         addParam("delay", "10").
                         dumpData()).
                 addFunctionTimer("timer1");

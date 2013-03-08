@@ -1,5 +1,7 @@
 package com.open.perf.domain;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,15 +10,15 @@ import java.util.Map;
  */
 public class GroupFunction implements Cloneable {
 	
-    private final String  FUNCTION_NAME = "execute";
+    private static final String  FUNCTION_NAME = "execute";
 	private String functionalityName;
+    private String functionClass;
     private boolean dumpData ;
-	private String  className ;
     private Map<String,Object> params ;
     
     public GroupFunction() {
     	this.dumpData = false;
-    	this.className = null;
+    	this.functionClass = null;
     	this.params = new HashMap<String, Object>();
     }
 
@@ -25,16 +27,16 @@ public class GroupFunction implements Cloneable {
         this.functionalityName = functionalityName;
     }
 
-    public String getFunctionName() {
+    public static String getFunctionName() {
         return FUNCTION_NAME;
     }
 
-    public String getClassName() {
-        return this.className;
+    public String getFunctionClass() {
+        return this.functionClass;
     }
     
-    public GroupFunction setClassName(String className){
-    	this.className = className;
+    public GroupFunction setFunctionClass(String className){
+    	this.functionClass = className;
     	return this;
     }
 
@@ -73,9 +75,10 @@ public class GroupFunction implements Cloneable {
         return (GroupFunction) super.clone();
     }
 
+    @JsonIgnore
     public String getUniqueFunctionName() {
         return this.functionalityName
-                + "." + this.className
+                + "." + this.functionClass
                 + "." + FUNCTION_NAME;
     }
 
@@ -86,7 +89,7 @@ public class GroupFunction implements Cloneable {
     }
 
     public String toString() {
-        return "Functionality :"+this.functionalityName +", Class :"+this.className;
+        return "Functionality :"+this.functionalityName +", Class :"+this.functionClass;
     }
 
 }

@@ -43,7 +43,7 @@ public class CSequentialFunctionExecutor extends SequentialFunctionExecutor {
         List<SyncFunctionExecutor> fExecutors = new ArrayList<SyncFunctionExecutor>();
 
         for(GroupFunction groupFunction : this.groupFunctions) {
-            String className    = groupFunction.getClassName();
+            String className    = groupFunction.getFunctionClass();
             String functionName = groupFunction.getFunctionName();
 
             Class functionParamType = FunctionContext.class;
