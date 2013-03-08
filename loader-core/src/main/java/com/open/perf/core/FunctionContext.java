@@ -9,6 +9,8 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -76,6 +78,46 @@ public class FunctionContext {
     public InputStream getParameterAsInputStream(String parameterName) throws FileNotFoundException {
         Object value = getParameter(parameterName);
         return value == null ? null : new FileInputStream(getParameter(parameterName).toString());
+    }
+
+    /**
+     * this will group the parameter based in keys matching the regex, prepare a map and return
+     * @param keyMatchingRegEx
+     * @return
+     */
+    public Map<String, Object> getGroupedParameters(String keyMatchingRegEx) {
+        Map<String, Object> allParams = new HashMap<String, Object>();
+        allParams.putAll(functionParameters);
+        allParams.putAll(passOnParameters);
+
+        Map<String,Object> groupedMap = new HashMap<String, Object>();
+        for(String key : allParams.keySet()) {
+            if(Pattern.matches(keyMatchingRegEx, key))
+                groupedMap.put(key, allParams.get(key));
+        }
+        return groupedMap;
+    }
+
+    /**
+     * this will group the parameter based in keys matching the regex, prepare a map and return
+     * In addition it would reduce the key to the matching group in the regex
+     * @param keyMatchingRegEx
+     * @param groupId
+     * @return
+     */
+    public Map<String,Object> getGroupedParameters(String keyMatchingRegEx, int groupId) {
+        Map<String, Object> allParams = new HashMap<String, Object>();
+        allParams.putAll(functionParameters);
+        allParams.putAll(passOnParameters);
+
+        Map<String,Object> groupedMap = new HashMap<String, Object>();
+        Pattern p = Pattern.compile(keyMatchingRegEx);
+        for(String key : allParams.keySet()) {
+            Matcher m = p.matcher(key);
+            if(m.matches())
+                groupedMap.put(m.group(groupId), allParams.get(key));
+        }
+        return groupedMap;
     }
 
     /**
