@@ -86,7 +86,7 @@ public class GroupControllerNew{
     private RequestQueue buildRequestQueue() {
         RequestQueue requestQueue = null;
         if(group.getRepeats() > 0)
-            requestQueue = new RequestQueue(this.groupName, "requestQueue", this.group.getRepeats() * this.group.getThreads());
+            requestQueue = new RequestQueue(this.groupName, "requestQueue", this.group.getRepeats());
         else
             requestQueue = new RequestQueue(this.groupName, "requestQueue");
         return requestQueue;
@@ -98,6 +98,7 @@ public class GroupControllerNew{
      * @throws FileNotFoundException
      */
     public void start() throws InterruptedException, FileNotFoundException {
+        logger.info("************Group Controller "+this.groupName+" Started**************");
         groupStartDelay();
 
         this.groupStartTime = Clock.nsTick();
@@ -126,7 +127,6 @@ public class GroupControllerNew{
                 this.groupStartTime);
 
         this.statsCollectorThread.start();
-        logger.info("************Group Controller "+this.groupName+" Started**************");
     }
 
     /**
@@ -264,5 +264,6 @@ public class GroupControllerNew{
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             throw new RuntimeException(e);
         }
+        logger.info("************Group Controller "+this.groupName+" Ended**************");
     }
 }

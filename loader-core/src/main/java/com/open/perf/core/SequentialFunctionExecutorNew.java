@@ -7,7 +7,6 @@ import com.open.perf.util.Counter;
 import com.open.perf.util.Timer;
 import org.apache.log4j.Logger;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,14 +82,14 @@ public class SequentialFunctionExecutorNew extends Thread {
         for(GroupFunction groupFunction : this.groupFunctions) {
             try {
                 Object functionClassObject = ClassHelper.getClassInstance(
-                        groupFunction.getClassName(),
+                        groupFunction.getFunctionClass(),
                         new Class[]{},
                         new Object[]{});
 
                 fExecutors.add(
                         new SyncFunctionExecutor(
                                 groupFunction.getFunctionalityName(),
-                                groupFunction.getClassName(),
+                                groupFunction.getFunctionClass(),
                                 groupFunction.getFunctionName(),
                                 functionClassObject,
                                 new Class[]{FunctionContext.class},

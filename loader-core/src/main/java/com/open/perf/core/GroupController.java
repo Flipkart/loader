@@ -119,7 +119,7 @@ public class GroupController extends Thread{
         this.ignoreDumpFunctions    =   new ArrayList<String>();
         this.lastFunctionDumpCount  =   new HashMap<String, Long>();
         for(GroupFunction groupFunction :   group.getFunctions()) {
-            String uniqueFunctionName = groupFunction.getName()+"_"+ groupFunction.getClassName()+"."+groupFunction.getFunctionName();
+            String uniqueFunctionName = groupFunction.getName()+"_"+ groupFunction.getFunctionClass()+"."+groupFunction.getFunctionName();
             this.functions.add(uniqueFunctionName);
             if(!groupFunction.isDumpData())
                 this.ignoreDumpFunctions.add(uniqueFunctionName);
