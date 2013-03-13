@@ -1,5 +1,6 @@
 package com.open.perf.core;
 
+import com.open.perf.util.Clock;
 import com.open.perf.util.Counter;
 import com.open.perf.util.Timer;
 
@@ -20,6 +21,7 @@ import java.util.regex.Pattern;
  * To change this template use File | Settings | File Templates.
  */
 public class FunctionContext {
+
     public static enum FailureType {
         GENERAL, DATA_MISSING, FUNCTIONAL_FAILURE, WRONG_INPUT
     }
@@ -33,6 +35,8 @@ public class FunctionContext {
     private FailureType failureType;
     private String failureMessage;
     private boolean currentFunctionFailed;
+    private long startTime = -1;
+    private long time = -1;
 
     public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters) {
         this.functionParameters = new HashMap<String, Object>();
@@ -193,6 +197,22 @@ public class FunctionContext {
         return this;
     }
 
+    public FunctionContext startMe() {
+        this.startTime = Clock.nsTick();
+        return this;
+    }
+
+    public FunctionContext endMe() {
+        if(this.startTime == -1)
+            throw new RuntimeException("User calling endMe without calling startMe");
+        this.time = Clock.nsTick()- this.startTime;
+        return this;
+    }
+
+    long getTime() {
+        return time;
+    }
+
     public void reset() {
         this.functionParameters.clear();
         this.skipFurtherFunctions = false;
@@ -200,5 +220,9 @@ public class FunctionContext {
         this.currentFunctionFailed = false;
         this.failureMessage=null;
         this.failureType=null;
+        this.startTime = -1;
+        this.time = -1;
     }
+
+
 }
