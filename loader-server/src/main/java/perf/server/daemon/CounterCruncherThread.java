@@ -5,9 +5,14 @@ import com.open.perf.util.FileHelper;
 import perf.server.config.JobFSConfig;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class CounterCruncherThread extends Thread {
 
@@ -84,8 +89,66 @@ public class CounterCruncherThread extends Thread {
     }
 
     private void crunchJobFileCounter(String jobId, File jobFile) {
+        List<String> fileContent = readFileContentAsList(jobFile);
+        if(fileContent.size() > 0) {
+            List<String> cachedContent = this.fileCachedContentMap.get(jobFile.getAbsolutePath());
+            if(cachedContent == null) {
+                cachedContent = new ArrayList<String>();
+            }
+            cachedContent.addAll(fileContent);
+            Collections.sort(cachedContent);
+        }
 
     }
+
+    private List<String> readFileContentAsList(File jobFile) {
+        List<String> lines = new ArrayList<String>();
+        FileTouchPoint fileTouchPoint = this.fileTouchPointMap.get(jobFile.getAbsolutePath());
+
+        boolean needToReadFile = false;
+        long lastReadPoint = -1;
+        if(fileTouchPoint == null) {
+            needToReadFile = true;
+        }
+        else if(fileTouchPoint.shouldReadFile(jobFile.lastModified())) {
+            needToReadFile = true;
+            lastReadPoint = fileTouchPoint.lastReadPoint;
+        }
+
+        if(needToReadFile) {
+            RandomAccessFile raf = null;
+            try {
+                raf = FileHelper.randomAccessFile(jobFile, "r");
+
+                if(lastReadPoint != -1)
+                    raf.seek(lastReadPoint);
+
+                String line = null;
+                while((line = raf.readLine()) != null) {
+                    lines.add(line);
+                }
+                lastReadPoint = raf.getFilePointer();
+                fileTouchPointMap.put(jobFile.getAbsolutePath(), new FileTouchPoint(jobFile.lastModified(), lastReadPoint));
+
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (IOException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+            finally {
+                if(raf != null)
+                    try {
+                        FileHelper.close(raf);
+                    } catch (IOException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    }
+            }
+
+        }
+        return lines;
+    }
+
 
     private void checkInterval() {
         int totalInterval = 0;
