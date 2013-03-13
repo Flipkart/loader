@@ -38,7 +38,7 @@ public class SyncFunctionExecutor {
             endTime = Clock.nsTick();
         }
         catch(Exception exception) {
-            endTime = System.nanoTime();
+            endTime = Clock.nsTick();
             this.executionSuccessful = false;
             this.exceptionCause = exception.getCause();
             this.exception 		= exception;

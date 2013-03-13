@@ -41,8 +41,8 @@ public class RunResource {
     @Path(value = "/{runName}")
     @Timed
     public String getRun(@PathParam("runName") String runName) throws IOException {
-        if(new File(jobFSConfig.getRunFile().replace("{runName}", runName)).exists()) {
-            return FileHelper.readContent(new FileInputStream(jobFSConfig.getRunFile().replace("{runName}", runName)));
+        if(new File(jobFSConfig.getRunFile(runName)).exists()) {
+            return FileHelper.readContent(new FileInputStream(jobFSConfig.getRunFile(runName)));
         }
         throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, "Run With name "+runName+" not found"));
     }

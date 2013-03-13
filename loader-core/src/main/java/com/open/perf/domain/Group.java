@@ -14,8 +14,12 @@ public class Group {
     private String name ;
     private int groupStartDelay ;
     private int threadStartDelay ;
-    private int repeats ;
-    private int duration;
+
+    private static final int DEFAULT_DURATION = 5 * 24 * 60 * 60 * 1000;
+    private static final int DEFAULT_THROUGHPUT = 10000; // per second
+    private int throughput;
+    private long repeats ;
+    private long duration;
     private int threads ;
     private int warmUpTime ;
     private int warmUpRepeats ;
@@ -35,18 +39,19 @@ public class Group {
     }
 
     public Group(){
-        functions = new ArrayList<GroupFunction>();
-        dependOnGroups = new ArrayList<String>();
-        params = new HashMap<String, Object>();
-        timers = new ArrayList<GroupTimer>();
-        threadResources = new ArrayList<Map<String, Object>>();
-        groupStartDelay=0;
-        threadStartDelay=0;
-        repeats=-1;
-        duration =-1;
-        threads=1;
-        warmUpTime=-1;
-        warmUpRepeats=-1;
+        this.functions = new ArrayList<GroupFunction>();
+        this.dependOnGroups = new ArrayList<String>();
+        this.params = new HashMap<String, Object>();
+        this.timers = new ArrayList<GroupTimer>();
+        this.threadResources = new ArrayList<Map<String, Object>>();
+        this.groupStartDelay = 0;
+        this.threadStartDelay = 0;
+        this.duration = -1;
+        this.throughput = -1;
+        this.repeats =  -1;
+        this.threads = 1;
+        this.warmUpTime = -1;
+        this.warmUpRepeats = -1;
         this.customTimers = new ArrayList<String>();
         this.customCounters = new ArrayList<String>();
     }
@@ -96,11 +101,11 @@ public class Group {
         return groupStartDelay;
     }
 
-    public int getRepeats() {
+    public long getRepeats() {
         return repeats;
     }
 
-    public int getDuration() {
+    public long getDuration() {
         return duration;
     }
 
@@ -246,9 +251,20 @@ public class Group {
             this.duration = -1;
         }
 
+        // Framework doesn't allow throughput more than certain limit and hence throttling here
+        if(throughput > DEFAULT_THROUGHPUT)
+            this.throughput = DEFAULT_THROUGHPUT;
+
+        if(throughput == -1)
+            this.throughput = DEFAULT_THROUGHPUT;
+
         for(GroupFunction gp : this.functions) {
             gp.validate();
         }
+    }
+
+    public int getThroughput() {
+        return throughput;
     }
 
     public String asString() {
@@ -261,5 +277,11 @@ public class Group {
                 "\nthreads "+this.threads+"";
     }
 
-
+    public static void main(String[] args) {
+        Group group = new Group("").setDuration(60000);
+        group.validate();
+        System.out.println(group.repeats);
+        System.out.println(group.duration);
+        System.out.println(group.throughput);
+    }
 }

@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 import perf.agent.config.ServerInfo;
 
 import javax.ws.rs.core.MediaType;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -123,6 +124,7 @@ public class LoaderServerClient {
      * @throws ExecutionException
      * @throws InterruptedException
      */
+/*
     public void publishJobStats(String jobId, String filePath, String linesRead) throws IOException, ExecutionException, InterruptedException {
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
@@ -134,6 +136,33 @@ public class LoaderServerClient {
                                 replace("{jobId}", jobId).
                                 replace("{file}", filePath)).
                 setBody(linesRead);
+
+        Future<Response> r = b.execute();
+        r.get();
+        asyncHttpClient.close();
+    }
+*/
+
+    /**
+     * Publish Job Stats to Loader Agent
+     * @param jobId
+     * @param filePath
+     * @param trimmedFileName
+     * @throws IOException
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    public void publishJobStats(String jobId, String filePath, String trimmedFileName) throws IOException, ExecutionException, InterruptedException {
+        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+                preparePost("http://" +
+                        this.getHost() +
+                        ":" +
+                        this.getPort() +
+                        RESOURCE_JOB_STATS.
+                                replace("{jobId}", jobId).
+                                replace("{file}", trimmedFileName)).
+                setBody(new FileInputStream(filePath));
 
         Future<Response> r = b.execute();
         r.get();

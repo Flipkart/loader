@@ -4,6 +4,7 @@ import com.open.perf.domain.Group;
 import com.open.perf.domain.GroupFunction;
 import com.open.perf.domain.Loader;
 import com.open.perf.sample.function.DelayFunction;
+import com.open.perf.sample.function.DummyFunction;
 
 import java.util.UUID;
 
@@ -14,11 +15,11 @@ public class GroupStatsInstanceTestClass {
                 addGroup(
                         new Group("G1").
                                 setGroupStartDelay(0).
-                                setDuration(3000).
-                                setThreads(1).
+                                setDuration(60000).
+                                setThreads(10).
                                 addFunction(new GroupFunction("RandomDelay").
-                                        setFunctionClass(DelayFunction.class.getCanonicalName()).
-                                        addParam("delay", 5)).
+                                        setFunctionClass(DummyFunction.class.getCanonicalName()).
+                                        addParam("delay", 5).dumpData()).
                                 addFunctionCounter("counter1").
                                 addFunctionTimer("timer1")).
 /*

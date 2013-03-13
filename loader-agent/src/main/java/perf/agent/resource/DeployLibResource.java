@@ -22,7 +22,7 @@ import java.util.Properties;
  * Time: 1:16 PM
  * To change this template use File | Settings | File Templates.
  */
-@Path("/deploy")
+@Path("/libs")
 
 public class DeployLibResource {
     private static Logger log = Logger.getLogger(DeployLibResource.class);
@@ -41,14 +41,14 @@ public class DeployLibResource {
         -H "Content-Type: multipart/form-data"
         -F "lib=@Path-To-Jar-File"
         -F "classList=@Path-To-File-Containing-Class-Names-Separated-With-New-Line"
-        http://localhost:8888/loader-agent/deploy
+        http://localhost:8888/loader-agent/libs/classLibs
      *
      * @param libInputStream jar input stream
      * @param libFileDetails Lib file meta details
      * @param classListStr file containing class names, one in every line
      * @throws IOException
      */
-    @Path("/libs")
+    @Path("/classLibs")
     @POST
     @Timed
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -81,7 +81,7 @@ public class DeployLibResource {
      * @return returns either Map(lib -> list of class) or Map(class -> Lib) depending upon mapKey
      * @throws IOException
      */
-    @Path("/libs")
+    @Path("/classLibs")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Map getLibs(@QueryParam("mapKey") @DefaultValue("LIB") String mapKey) throws IOException {
@@ -102,7 +102,7 @@ public class DeployLibResource {
      * @return return list of classes for which there are no libs deployed on agent
      * @throws IOException
      */
-    @Path("/libs/exist")
+    @Path("/classLibs/exist")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List searchLibs(@QueryParam("classes") @DefaultValue("") String classes) throws IOException {

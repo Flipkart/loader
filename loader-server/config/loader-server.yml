@@ -14,11 +14,12 @@ monitoringAgentConfig:
 jobFSConfig:
   runsPath: "/var/log/loader-server/runs"
   runFile: "/var/log/loader-server/runs/{runName}/run.json"
-  runJobMappingFile: "/var/log/loader-server/runs/{runName}/jobMappingFile.json"
-  jobsPath: "/var/log/loader-server/runs/{runName}/jobs"
-  jobRunNameFile: "/var/log/loader-server/runs/{runName}/jobs/{jobId}/runName.txt"
-  jobStatsPath: "/var/log/loader-server/runs/{runName}/jobs/{jobId}/agents/{agentIp}/jobStats"
-  jobResourceMonitoringFile: "/var/log/loader-server/runs/{runName}/jobs/{jobId}/agents/{agentIp}/Resources/{resource}.txt"
+  jobsPath: "/var/log/loader-server/jobs"
+  jobRunNameFile: "/var/log/loader-server/jobs/{jobId}/runName.txt"
+  jobPath: "/var/log/loader-server/jobs/{jobId}"
+  jobStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats"
+  jobAgentStatsPath: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/jobStats"
+  jobResourceMonitoringFile: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/Resources/{resource}.txt"
 
 http:
   port: 9999

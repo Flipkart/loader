@@ -11,14 +11,11 @@ import perf.agent.cache.LibCache;
 import perf.agent.client.LoaderServerClient;
 import perf.agent.config.LoaderAgentConfiguration;
 import perf.agent.daemon.AgentRegistrationThread;
+import perf.agent.daemon.JobStatsSyncThread;
 import perf.agent.health.JobProcessorHealthCheck;
 import perf.agent.daemon.JobProcessorThread;
-import perf.agent.daemon.StatSyncThread;
 import perf.agent.resource.DeployLibResource;
 import perf.agent.resource.JobResource;
-
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 
 public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
 
@@ -35,7 +32,7 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
         JobProcessorThread.initialize(configuration.getJobProcessorConfig(),
                 LoaderServerClient.buildClient(configuration.getServerInfo()));
 
-        StatSyncThread.initialize(configuration.getJobStatSyncConfig(),
+        JobStatsSyncThread.initialize(configuration.getJobStatSyncConfig(),
                 LoaderServerClient.buildClient(configuration.getServerInfo()));
 
         AgentRegistrationThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),

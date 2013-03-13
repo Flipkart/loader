@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 
@@ -127,4 +129,13 @@ public class DeployLibResource {
             this.libCache.refreshPlatformLibPath();
         }
     }
+
+    @Path("/platformLibs")
+    @GET
+    @Timed
+    @Produces(MediaType.APPLICATION_JSON)
+    synchronized public List getPlatformLib(){
+        return Arrays.asList(new File(storageConfig.getPlatformLibPath()).list());
+    }
+
 }

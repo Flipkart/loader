@@ -80,7 +80,7 @@ public class JobProcessorThread extends Thread{
 
                 if(!jobRunnerThread.running()) {
                     jobRunners.remove(jobId);
-                    StatSyncThread.getInstance().removeJob(jobId);
+                    JobStatsSyncThread.getInstance().removeJob(jobId);
                     this.serverClient.notifyJobIsOver(jobId);
                     // Make a Post Call to let loader-server know that job is over
 
@@ -100,7 +100,7 @@ public class JobProcessorThread extends Thread{
                     if(jobInfo == null)
                         break;
                     jobRunners.put(jobInfo.getJobId(), new JobRunnerThread(jobInfo));
-                    StatSyncThread.getInstance().addJobToSync(jobInfo.getJobId());
+                    JobStatsSyncThread.getInstance().addJobToSync(jobInfo.getJobId());
                 }
             }
             log.debug("Jobs Still Pending :"+pendingJobs.size());
