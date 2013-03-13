@@ -136,8 +136,8 @@ public class CounterCruncherThread extends Thread {
                         }
 
                         // Crunch if collected data for 10 seconds have been collected and next Content Time is different
-                        if(currentContentTime - lastCrunchPoint.time > CLUB_CRUNCH_DURATION
-                                && (nextContentTime == -1 || currentContentTime != nextContentTime )) {
+                        if((currentContentTime - lastCrunchPoint.time > CLUB_CRUNCH_DURATION && currentContentTime != nextContentTime )
+                                || nextContentTime == -1 ) {
                             // Have got data, crunch them
                             long timeTakenNS = currentContentTime - lastCrunchPoint.time;
                             float timeTakenSec = (float)timeTakenNS / MathConstant.BILLION;
@@ -154,8 +154,9 @@ public class CounterCruncherThread extends Thread {
 
                         }
                     }
-
                 }
+
+
             }
             catch (FileNotFoundException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -169,7 +170,7 @@ public class CounterCruncherThread extends Thread {
                 }
             }
 
-
+            this.fileCachedContentMap.put(jobFile.getAbsolutePath(), cachedContent);
         }
 
     }
