@@ -182,4 +182,27 @@ public class FileHelper {
         String parentPath = new File(statFilePath).getParent();
         createFolder(parentPath);
     }
+
+    public static void close(OutputStream os) throws IOException {
+        if(os != null)
+            os.close();
+    }
+
+    public static void close(Writer w) throws IOException {
+        if(w != null)
+            w.close();
+    }
+
+    public static void close(RandomAccessFile raf) throws IOException {
+        if(raf != null)
+            raf.close();
+    }
+
+    public static BufferedWriter bufferedWriter(String file, boolean append) throws FileNotFoundException {
+        return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, append)));
+    }
+
+    public static RandomAccessFile randomAccessFile(File file, String r) throws FileNotFoundException {
+        return new RandomAccessFile(file, "r");
+    }
 }

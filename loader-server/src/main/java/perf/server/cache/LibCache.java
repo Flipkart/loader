@@ -17,7 +17,7 @@ public class LibCache {
     private static LibCache self;
     private LibStorageFSConfig storageConfig;
 
-    private String platformLibPath;
+    private String platformZipPath;
 
     private LibCache(LibStorageFSConfig storageConfig) throws IOException {
         this.storageConfig = storageConfig;
@@ -31,13 +31,13 @@ public class LibCache {
         File[] files = platformLibPath.listFiles();
         for(File file :files)
             if(file.getAbsolutePath().endsWith("zip")) {
-                this.platformLibPath = file.getAbsolutePath();
+                this.platformZipPath = file.getAbsolutePath();
                 break;
             }
     }
 
-    public String getPlatformLibPath() {
-        return platformLibPath;
+    public String getPlatformZipPath() {
+        return platformZipPath;
     }
 
     public static LibCache initialize(LibStorageFSConfig storageConfig) throws IOException {

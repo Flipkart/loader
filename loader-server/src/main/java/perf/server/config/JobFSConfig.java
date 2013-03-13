@@ -9,47 +9,42 @@ package perf.server.config;
  */
 public class JobFSConfig {
     private String jobStatsPath;
+    private String jobAgentStatsPath;
     private String jobResourceMonitoringFile;
-    private String runJobMappingFile;
     private String runFile;
     private String jobRunNameFile;
     private String runsPath;
     private String jobsPath;
+    private String jobPath;
 
-    public String getJobStatsPath() {
-        return jobStatsPath;
+    public String getJobStatsPath(String jobId) {
+        return jobStatsPath.replace("{jobId}", jobId);
     }
 
     public void setJobStatsPath(String jobStatsPath) {
         this.jobStatsPath = jobStatsPath;
     }
 
-    public String getJobResourceMonitoringFile() {
-        return jobResourceMonitoringFile;
+    public String getJobResourceMonitoringFile(String jobId, String agentIp, String resource) {
+        return jobResourceMonitoringFile.replace("{jobId}", jobId).
+                replace("{agentIp}", agentIp).
+                replace("{resource}", resource);
     }
 
     public void setJobResourceMonitoringFile(String jobResourceMonitoringFile) {
         this.jobResourceMonitoringFile = jobResourceMonitoringFile;
     }
 
-    public String getRunJobMappingFile() {
-        return runJobMappingFile;
-    }
-
-    public void setRunJobMappingFile(String runJobMappingFile) {
-        this.runJobMappingFile = runJobMappingFile;
-    }
-
-    public String getRunFile() {
-        return runFile;
+    public String getRunFile(String runName) {
+        return runFile.replace("{runName}", runName);
     }
 
     public void setRunFile(String runFile) {
         this.runFile = runFile;
     }
 
-    public String getJobRunNameFile() {
-        return jobRunNameFile;
+    public String getJobRunNameFile(String jobId) {
+        return jobRunNameFile.replace("{jobId}", jobId);
     }
 
     public void setJobRunNameFile(String jobRunNameFile) {
@@ -71,5 +66,23 @@ public class JobFSConfig {
     public void setJobsPath(String jobsPath) {
         this.jobsPath = jobsPath;
     }
+
+    public String getJobAgentStatsPath(String jobId, String agentIp) {
+        return jobAgentStatsPath.replace("{jobId}", jobId).
+                replace("{agentIp}", agentIp);
+    }
+
+    public void setJobAgentStatsPath(String jobAgentStatsPath) {
+        this.jobAgentStatsPath = jobAgentStatsPath;
+    }
+
+    public String getJobPath(String jobId) {
+        return jobPath.replace("{jobId}", jobId);
+    }
+
+    public void setJobPath(String jobPath) {
+        this.jobPath = jobPath;
+    }
 }
+
 

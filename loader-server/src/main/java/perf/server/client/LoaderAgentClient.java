@@ -31,8 +31,8 @@ public class LoaderAgentClient {
     private static LibCache libCache;
     private static Logger logger = Logger.getLogger(LoaderAgentClient.class);
 
-    private static final String RESOURCE_PLATFORM_LIB = "/loader-agent/deploy/platformLibs";
-    private static final String RESOURCE_OPERATION_LIB = "/loader-agent/deploy/libs";
+    private static final String RESOURCE_PLATFORM_LIB = "/loader-agent/libs/platformLibs";
+    private static final String RESOURCE_OPERATION_LIB = "/loader-agent/libs/classLibs";
     private static final String RESOURCE_JOB = "/loader-agent/jobs";
     private static final String RESOURCE_JOB_KILL = "/loader-agent/jobs/{jobId}/kill";
 
@@ -68,7 +68,7 @@ public class LoaderAgentClient {
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 preparePost("http://" + this.getHost() + ":" + this.getPort() + RESOURCE_PLATFORM_LIB).
                 setHeader("Content-Type", MediaType.MULTIPART_FORM_DATA).
-                addBodyPart(new FilePart("lib", new File(libCache.getPlatformLibPath())));
+                addBodyPart(new FilePart("lib", new File(libCache.getPlatformZipPath())));
 
         Future<Response> r = b.execute();
         if(!r.isDone())

@@ -17,7 +17,7 @@ libStorageConfig:
 jobProcessorConfig:
   maxJobs: 1
   checkInterval: 5000
-  jobCLIFormat: "java -cp $CLASSPATH com.open.perf.main.Main -f $JOB_JSON $JOB_ID"
+  jobCLIFormat: "java -cp $CLASSPATH com.open.perf.main.Main -f $JOB_JSON -j $JOB_ID -s /var/log/loader-agent/jobs/"
 
 jobStatSyncConfig:
   jobBasePath: "/var/log/loader-agent/jobs"

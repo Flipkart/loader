@@ -6,9 +6,9 @@ import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import perf.agent.cache.LibCache;
 import perf.agent.config.JobProcessorConfig;
+import perf.agent.daemon.JobStatsSyncThread;
 import perf.agent.job.JobInfo;
 import perf.agent.daemon.JobProcessorThread;
-import perf.agent.daemon.StatSyncThread;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -25,12 +25,12 @@ import java.util.Map;
 public class JobResource {
     private JobProcessorThread jobProcessorThread = JobProcessorThread.getInstance();
     private JobProcessorConfig jobProcessorConfig;
-    private StatSyncThread statsSyncThread;
+    private JobStatsSyncThread statsSyncThread;
     private static ObjectMapper mapper = new ObjectMapper();
 
     public JobResource(JobProcessorConfig jobProcessorConfig) {
         this.jobProcessorConfig = jobProcessorConfig;
-        this.statsSyncThread = StatSyncThread.getInstance();
+        this.statsSyncThread = JobStatsSyncThread.getInstance();
     }
 
     @POST

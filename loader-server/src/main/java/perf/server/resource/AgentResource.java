@@ -25,15 +25,12 @@ import java.util.concurrent.ExecutionException;
 @Path("/agents")
 public class AgentResource {
     private static Logger log = Logger.getLogger(AgentResource.class);
-    private LibCache libCache;
     private AgentConfig agentConfig;
 
     public AgentResource(AgentConfig agentConfig) {
-        this.libCache = LibCache.getInstance();
         this.agentConfig = agentConfig;
     }
 
-    @Path("/{agentIPs}/libs/platformLibs")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @POST

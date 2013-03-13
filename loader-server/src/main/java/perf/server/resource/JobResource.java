@@ -13,6 +13,7 @@ import perf.server.client.MonitoringClient;
 import perf.server.config.AgentConfig;
 import perf.server.config.JobFSConfig;
 import perf.server.config.MonitoringAgentConfig;
+import perf.server.daemon.CounterCruncherThread;
 import perf.server.domain.JobInfo;
 import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
@@ -63,7 +64,6 @@ public class JobResource {
      -X POST
      -H "Content-Type: multipart/form-data"
      -F "jobJson=@Path-To-File-Containing-Job-Json"
-     -F "classList=@Path-To-File-Containing-Classes-Separated-With-New-Line"
      http://localhost:9999/loader-server/jobs
      * @param jobJsonInfoStream
      * @throws IOException
@@ -97,7 +97,7 @@ public class JobResource {
     }
 
     private boolean isJobPresent(String jobId) {
-        return new File(jobFSConfig.getRunJobMappingFile().replace("{jobId}", jobId)).exists();
+        return new File(jobFSConfig.getJobsPath() + "/" + jobId).exists();
     }
 
     private boolean isJobOver(String jobId) {
@@ -138,16 +138,29 @@ public class JobResource {
                                       @QueryParam("file") String relatedFilePath,
                                       InputStream statsStream)
             throws IOException, InterruptedException {
-        String jobStatsPath = jobFSConfig.getJobStatsPath().
-                replace("{jobId}", jobId).
-                replace("{agentIp}", request.getRemoteAddr());
 
-        String statFilePath = jobStatsPath +
-                File.separator +
-                relatedFilePath.replace("/"+jobId,"");
+        String tmpPath = "/tmp/"+jobId+"-"+System.nanoTime()+".txt";
+        FileHelper.persistStream(statsStream, tmpPath, true);
 
-        FileHelper.createFilePath(statFilePath);
-        FileHelper.persistStream(statsStream, statFilePath, true);
+        //TBD Move Following Code to be executed in request queue mode by a daemon thread.
+        String[] jobStatsPaths = new String[] {
+                jobFSConfig.getJobAgentStatsPath(jobId, request.getRemoteAddr()),
+                jobFSConfig.getJobStatsPath(jobId)
+
+        };
+
+        for(String jobStatsPath : jobStatsPaths) {
+            FileInputStream fis = new FileInputStream(tmpPath);
+            String statFilePath = jobStatsPath +
+                    File.separator +
+                    relatedFilePath.replace("/"+jobId,"");
+
+            FileHelper.createFilePath(statFilePath);
+            FileHelper.persistStream(fis, statFilePath, true);
+            fis.close();
+        }
+
+        FileHelper.remove(tmpPath);
     }
 
     /**
@@ -171,10 +184,9 @@ public class JobResource {
             resourcesLastInstance = new HashMap<String, String>();
 
         for(String resource : stats.keySet()) {
-            String jobMonitoringStatsPath = jobFSConfig.getJobResourceMonitoringFile().
-                    replace("{jobId}", jobId).
-                    replace("{agentIp}", request.getRemoteAddr()).
-                    replace("{resource}", resource);
+            String jobMonitoringStatsPath = jobFSConfig.getJobResourceMonitoringFile(jobId,
+                    request.getRemoteAddr(),
+                    resource);
 
             List resourceInstances = (ArrayList) stats.get(resource);
             FileHelper.createFilePath(jobMonitoringStatsPath);
@@ -223,8 +235,10 @@ public class JobResource {
         String agentIp = request.getRemoteAddr();
         jobIdInfoMap.get(jobId).jobCompletedInAgent(agentIp);
 
-        if(jobCompleted(jobId))
+        if(jobCompleted(jobId)) {
             stopMonitoring(jobId);
+            CounterCruncherThread.getCounterCruncherThread().removeJob(jobId);
+        }
     }
 
 
@@ -281,6 +295,7 @@ public class JobResource {
         // Persisting Job Info(mostly status) in memory
         jobIdInfoMap.put(jobInfo.getJobId(), jobInfo);
 
+        CounterCruncherThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
         return jobInfo;
     }
 
@@ -291,7 +306,11 @@ public class JobResource {
      * @throws IOException
      */
     private String getOldJobJson(String oldJobId) throws IOException {
-        InputStream is = new FileInputStream(jobFSConfig.getRunJobMappingFile().replace("{jobId}", oldJobId));
+        String jobRunNameFile = jobFSConfig.getJobRunNameFile(oldJobId);
+        String runName = FileHelper.readContent(new FileInputStream(jobRunNameFile));
+        String oldJobJsonFile = jobFSConfig.getRunFile(runName);
+
+        InputStream is = new FileInputStream(oldJobJsonFile);
         try {
             return FileHelper.readContent(is);
         }
@@ -430,26 +449,14 @@ public class JobResource {
 
     private void persistJob(String jobId, JsonNode jobInfoJsonNode) throws IOException {
         String runName = jobInfoJsonNode.get("runName").textValue();
-        String runFile = jobFSConfig.getRunFile().
-                replace("{runName}", runName).
-                replace("{jobId}", jobId);
+        String runFile = jobFSConfig.getRunFile(runName);
         FileHelper.createFilePath(runFile);
         FileHelper.persistStream(new ByteArrayInputStream(jobInfoJsonNode.toString().getBytes()),
                 runFile,
                 false);
 
-        String runJobMappingFile = jobFSConfig.getRunJobMappingFile().
-                replace("{runName}", runName).
-                replace("{jobId}", jobId);
-        FileHelper.createFilePath(runJobMappingFile);
-        FileHelper.persistStream(new ByteArrayInputStream((jobId+"\n").toString().getBytes()),
-                runJobMappingFile,
-                true);
-
-        String jobRunNameFile = jobFSConfig.getJobRunNameFile().
-                replace("{runName}", runName).
-                replace("{jobId}", jobId);
-        FileHelper.createFilePath(runJobMappingFile);
+        String jobRunNameFile = jobFSConfig.getJobRunNameFile(jobId);
+        FileHelper.createFilePath(jobRunNameFile);
         FileHelper.persistStream(new ByteArrayInputStream(runName.getBytes()),
                 jobRunNameFile,
                 false);

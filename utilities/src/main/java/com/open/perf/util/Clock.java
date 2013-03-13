@@ -26,4 +26,10 @@ public class Clock {
         }
     }
 
+    public static void sleepSec(int secs) {
+        sleep(secs * 1000);
+    }
+    public static void sleepMin(int mins) {
+        sleep(mins * 60 * 1000);
+    }
 }

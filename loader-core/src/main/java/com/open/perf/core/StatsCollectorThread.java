@@ -7,10 +7,7 @@ import com.open.perf.util.Timer;
 import org.apache.log4j.Logger;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class StatsCollectorThread extends Thread{
     private static final int STATS_QUEUE_POLL_INTERVAL = 2000; // ms
@@ -29,97 +26,138 @@ public class StatsCollectorThread extends Thread{
     private long lastQueueSwapTime;
     private boolean collectingStats;
     private List<Counter> allCounters;
+    private final String statsBasePath;
+    private final Map<String,FunctionCounter> functionCounters;
+    private final List<String> customTimers;
+    private final Map<String, Counter> customCounters;
+    private final long startTime;
+    private final HashMap<String, BufferedWriter> filePathWriterMap;
+
     public StatsCollectorThread(String statsBasePath,
                                 GroupStatsQueue groupStatsQueue,
                                 Map<String, FunctionCounter> functionCounters,
                                 List<String> customTimerNames,
                                 Map<String, Counter> customCounters,
                                 long startTime) throws FileNotFoundException {
-
+        this.statsBasePath = statsBasePath;
         this.groupStatsQueue = groupStatsQueue;
         this.lastQueueSwapTime = System.currentTimeMillis();
         this.fileWriters = new LinkedHashMap<String, BufferedWriter>();
         this.allCounters = new ArrayList<Counter>();
-
-        for(String timer : customTimerNames) {
-            String filePath = statsBasePath + File.separator + "timers" + File.separator + timer;
-            FileHelper.createFilePath(filePath);
-            this.fileWriters.put(timer, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
-        }
-
+        this.functionCounters = functionCounters;
+        this.customTimers = customTimerNames;
+        this.customCounters = customCounters;
+        this.startTime = startTime;
         for(String counter : customCounters.keySet()) {
             Counter customCounter = customCounters.get(counter);
             this.allCounters.add(customCounter);
+        }
 
-            String filePath = statsBasePath + File.separator + "counters" + File.separator + counter;
+        for(String function : functionCounters.keySet()) {
+            FunctionCounter functionCounter = functionCounters.get(function);
+            this.allCounters.add(functionCounter.getCount());
+            this.allCounters.add(functionCounter.getErrorCounter());
+            this.allCounters.add(functionCounter.getFailureCounter());
+            this.allCounters.add(functionCounter.getSkipCounter());
+        }
+
+        this.filePathWriterMap = new HashMap<String, BufferedWriter>();
+
+    }
+
+    private void createFileWriters(int filePartId) throws FileNotFoundException {
+        for(String timer : customTimers) {
+            String filePath = statsBasePath + File.separator + "timers" + File.separator + timer + ".part"+filePartId;
+            FileHelper.createFilePath(filePath);
+            this.fileWriters.put(timer, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
+            this.filePathWriterMap.put(filePath, this.fileWriters.get(timer));
+        }
+
+        for(String counter : customCounters.keySet()) {
+            String filePath = statsBasePath + File.separator + "counters" + File.separator + counter + ".part"+filePartId;
             FileHelper.createFilePath(filePath);
 
             this.fileWriters.put(customCounters.get(counter).getCounterName(),
                     new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
+            this.filePathWriterMap.put(filePath, this.fileWriters.get(customCounters.get(counter).getCounterName()));
         }
 
         for(String function : functionCounters.keySet()) {
             // For execution Times
 
-            String filePath = statsBasePath + File.separator + "timers" + File.separator + function;
+            String filePath = statsBasePath + File.separator + "timers" + File.separator + function + ".part"+filePartId;
             FileHelper.createFilePath(filePath);
 
             this.fileWriters.put(function, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
+            this.filePathWriterMap.put(filePath, this.fileWriters.get(function));
 
             // For all counters
             FunctionCounter functionCounter = functionCounters.get(function);
 
-            this.allCounters.add(functionCounter.getCount());
-            this.allCounters.add(functionCounter.getErrorCounter());
-            this.allCounters.add(functionCounter.getFailureCounter());
-            this.allCounters.add(functionCounter.getSkipCounter());
-
-            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getCount().getCounterName();
+            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getCount().getCounterName() + ".part"+filePartId;
             FileHelper.createFilePath(filePath);
             this.fileWriters.put(functionCounter.getCount().getCounterName(),
                     new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
+            this.filePathWriterMap.put(filePath, this.fileWriters.get(functionCounter.getCount().getCounterName()));
 
-            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getErrorCounter().getCounterName();
+            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getErrorCounter().getCounterName() + ".part"+filePartId;
             FileHelper.createFilePath(filePath);
             this.fileWriters.put(functionCounter.getErrorCounter().getCounterName(),
                     new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
+            this.filePathWriterMap.put(filePath, this.fileWriters.get(functionCounter.getErrorCounter().getCounterName()));
 
-            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getFailureCounter().getCounterName();
+            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getFailureCounter().getCounterName() + ".part"+filePartId;
             FileHelper.createFilePath(filePath);
             this.fileWriters.put(functionCounter.getFailureCounter().getCounterName(),
                     new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
+            this.filePathWriterMap.put(filePath, this.fileWriters.get(functionCounter.getFailureCounter().getCounterName()));
 
-            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getSkipCounter().getCounterName();
+            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getSkipCounter().getCounterName() + ".part"+filePartId;
             FileHelper.createFilePath(filePath);
             this.fileWriters.put(functionCounter.getSkipCounter().getCounterName(),
                     new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
+            this.filePathWriterMap.put(filePath, this.fileWriters.get(functionCounter.getSkipCounter().getCounterName()));
         }
-
-        // initialize Counter file
-        for(Counter counter : this.allCounters) {
-            BufferedWriter bw = this.fileWriters.get(counter.getCounterName());
-            try {
-                bw.write(startTime + ",0\n");
-                bw.flush();
-            } catch (IOException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                throw new RuntimeException(e);
+        if(filePartId == 0) {
+            // initialize Counter file
+            for(Counter counter : this.allCounters) {
+                BufferedWriter bw = this.fileWriters.get(counter.getCounterName());
+                try {
+                    bw.write(startTime + ",0\n");
+                    bw.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    throw new RuntimeException(e);
+                }
             }
+
         }
     }
 
     public void run() {
         granularDelay();
+        int collectionCount = 0;
         while(this.keepRunning) {
-            collectStats();
+            collectStats(collectionCount);
             granularDelay();
+            collectionCount++;
         }
         waitForCollectionToGetOver();
         swapQueues();
-        collectStats();
+        collectStats(collectionCount++);
         swapQueues();
-        collectStats();
+        collectStats(collectionCount++);
         closeFiles();
+    }
+
+    private void completeFileWriters() throws IOException {
+        for(String filePath : this.filePathWriterMap.keySet()) {
+            BufferedWriter bw = this.filePathWriterMap.get(filePath);
+            bw.close();
+            new File(filePath).renameTo(new File(filePath+".done"));
+        }
+        this.filePathWriterMap.clear();
+        this.fileWriters.clear();
     }
 
     private void waitForCollectionToGetOver() {
@@ -161,17 +199,26 @@ public class StatsCollectorThread extends Thread{
         }
     }
 
-    private void collectStats() {
+    private void collectStats(int collectionCount){
         long startTime = System.currentTimeMillis();
-
-        this.collectingStats = true;
-        GroupStatsInstance groupStatsInstance = null;
-        while((groupStatsInstance = this.groupStatsQueue.getGroupStats()) != null) {
-            dumpTimers(groupStatsInstance.getCustomTimers());
-            dumpTimers(groupStatsInstance.getFunctionTimers());
+        try {
+            createFileWriters(collectionCount);
+            this.collectingStats = true;
+            GroupStatsInstance groupStatsInstance = null;
+            while((groupStatsInstance = this.groupStatsQueue.getGroupStats()) != null) {
+                dumpTimers(groupStatsInstance.getCustomTimers());
+                dumpTimers(groupStatsInstance.getFunctionTimers());
+            }
+            dumpCounters();
+            this.collectingStats = false;
+            completeFileWriters();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            throw new RuntimeException(e);
         }
-        dumpCounters();
-        this.collectingStats = false;
 
         logger.debug("Time To Print Stats :" + (System.currentTimeMillis() - startTime));
     }
@@ -186,6 +233,7 @@ public class StatsCollectorThread extends Thread{
             BufferedWriter bw = this.fileWriters.get(counter.getCounterName());
             synchronized (counter) {
                 writeToFile(bw, counter.getLastUpdateTime() + "," + counter.count() + "\n");
+                counter.reset();
             }
         }
     }

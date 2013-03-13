@@ -8,8 +8,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.UUID;
 
+/**
+ * Class used by Loader agent to start Load generating Process
+ */
 public class Main {
-
     private static Logger logger;
     private static Options options;
 

@@ -160,7 +160,8 @@ public class GroupControllerNew{
                 this.customCounters,
                 this.group.getCustomTimers(),
                 this.groupStatsQueue,
-                this.ignoreDumpFunctions);
+                this.ignoreDumpFunctions,
+                this.group.getThroughput() / group.getThreads());
     }
 
     /**
