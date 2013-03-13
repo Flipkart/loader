@@ -152,8 +152,12 @@ public class SequentialFunctionExecutorNew extends Thread {
                     fe.execute();
 
                     functionCounter.executed();
-                    if(!this.ignoreDumpFunctions.contains(functionalityName))
-                        groupStatsInstance.addFunctionExecutionTime(functionalityName, fe.getExecutionTime());
+                    if(!this.ignoreDumpFunctions.contains(functionalityName)) {
+                        if(functionContext.getTime() != -1)
+                            groupStatsInstance.addFunctionExecutionTime(functionalityName, functionContext.getTime());
+                        else
+                            groupStatsInstance.addFunctionExecutionTime(functionalityName, fe.getExecutionTime());
+                    }
 
                     // If execution Failed because of some Exception/error that occurred while function execution
                     if(!fe.isExecutionSuccessful()) {
