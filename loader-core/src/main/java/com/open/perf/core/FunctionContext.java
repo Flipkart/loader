@@ -41,7 +41,7 @@ public class FunctionContext {
         this.passOnParameters = new HashMap<String, Object>();
     }
 
-    private Object getParameter(String parameterName) {
+    public Object getParameter(String parameterName) {
         Object value = functionParameters.get(parameterName);
         return value != null ? value : passOnParameters.get(parameterName);
     }
