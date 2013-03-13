@@ -3,12 +3,12 @@ package com.open.perf.core;
 import com.open.perf.util.Clock;
 import com.open.perf.util.Counter;
 import com.open.perf.util.Timer;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.ObjectMapper;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,6 +26,7 @@ public class FunctionContext {
         GENERAL, DATA_MISSING, FUNCTIONAL_FAILURE, WRONG_INPUT
     }
 
+    private static ObjectMapper mapper = new ObjectMapper();
     private Thread myThread;
     private Map<String, Object> functionParameters;
     private Map<String, Counter> counters;
@@ -82,6 +83,16 @@ public class FunctionContext {
     public InputStream getParameterAsInputStream(String parameterName) throws FileNotFoundException {
         Object value = getParameter(parameterName);
         return value == null ? null : new FileInputStream(getParameter(parameterName).toString());
+    }
+
+    public Map getParameterAsHash(String parameterName) throws IOException {
+        Object value = getParameter(parameterName);
+        return value == null ? null : mapper.readValue(value.toString().replace("'", "\""), Map.class);
+    }
+
+    public List getParameterAsList(String parameterName) throws IOException {
+        Object value = getParameter(parameterName);
+        return value == null ? null : mapper.readValue(value.toString(), List.class);
     }
 
     /**
@@ -223,6 +234,4 @@ public class FunctionContext {
         this.startTime = -1;
         this.time = -1;
     }
-
-
 }
