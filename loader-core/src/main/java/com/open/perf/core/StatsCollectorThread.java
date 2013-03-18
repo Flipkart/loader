@@ -10,7 +10,7 @@ import java.io.*;
 import java.util.*;
 
 public class StatsCollectorThread extends Thread{
-    private static final int STATS_QUEUE_POLL_INTERVAL = 2000; // ms
+    private static final int STATS_QUEUE_POLL_INTERVAL = 1000; // ms
     private static final int SWAP_QUEUE_INTERVAL = 5000; // ms
     private static final int BULK_WRITE_SIZE = 100;
 

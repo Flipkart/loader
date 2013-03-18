@@ -3,27 +3,30 @@ package perf.server.daemon;
 import com.open.perf.constant.MathConstant;
 import com.open.perf.util.Clock;
 import com.open.perf.util.FileHelper;
+import org.apache.log4j.Logger;
 import perf.server.config.JobFSConfig;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
-public class CounterCruncherThread extends Thread {
+/**
+ * Calculate throughput on collected counters
+ */
+public class CounterThroughputThread extends Thread {
 
     private final int checkInterval;
     private final JobFSConfig jobFSConfig;
     private boolean stop = false;
     private List<String> aliveJobs;
 
-    private Map<String,List<String>> fileCachedContentMap; // Cached Content per counter throughput file
     private Map<String,FileTouchPoint> fileTouchPointMap;
-    private Map<String,LastCrunchPoint> fileLastCrunchPointMap;
+    private Map<String,LastPoint> fileLastCrunchPointMap;
 
-    private static CounterCruncherThread thread;
+    private static CounterThroughputThread thread;
     private static final long CLUB_CRUNCH_DURATION = 10 * MathConstant.BILLION; // Club and crunch duration to calculate throughput
     private static final long CRUNCH_DATA_OLDER_THAN = 30 * MathConstant.BILLION; // As long as job is alive crunch data which is older than 30 secs
-
+    private static Logger logger = Logger.getLogger(CounterThroughputThread.class);
+    private static final String FILE_EXTENSION = "throughput";
 
     private static class FileTouchPoint {
         private long lastModifiedTime;
@@ -38,36 +41,34 @@ public class CounterCruncherThread extends Thread {
         }
     }
 
-    private static class LastCrunchPoint {
+    private static class LastPoint {
         private long time;
-        private long countSoFar;
+        private long count;
 
-        private LastCrunchPoint(long time, long countSoFar) {
+        private LastPoint(long time, long count) {
             this.time = time;
-            this.countSoFar = countSoFar;
+            this.count = count;
         }
     }
 
-    private CounterCruncherThread(JobFSConfig jobFSConfig, int checkInterval) {
+    private CounterThroughputThread(JobFSConfig jobFSConfig, int checkInterval) {
         this.jobFSConfig = jobFSConfig;
         this.checkInterval = checkInterval;
         this.aliveJobs = new ArrayList<String>();
-        this.fileCachedContentMap = new HashMap<String, List<String>>();
         this.fileTouchPointMap = new HashMap<String, FileTouchPoint>();
-        this.fileLastCrunchPointMap = new HashMap<String, LastCrunchPoint>();
+        this.fileLastCrunchPointMap = new HashMap<String, LastPoint>();
     }
 
-    public static CounterCruncherThread initialize(JobFSConfig jobFSConfig, int checkInterval) {
+    public static CounterThroughputThread initialize(JobFSConfig jobFSConfig, int checkInterval) {
         if(thread == null) {
-            thread = new CounterCruncherThread(jobFSConfig, checkInterval);
+            thread = new CounterThroughputThread(jobFSConfig, checkInterval);
         }
         return thread;
     }
 
-    public static CounterCruncherThread getCounterCruncherThread() {
+    public static CounterThroughputThread getCounterCruncherThread() {
         return thread;
     }
-
 
     public void run() {
         while(keepRunning()) {
@@ -81,84 +82,51 @@ public class CounterCruncherThread extends Thread {
     }
 
     private void crunchJobCounters(String jobId) {
+        logger.info("Crunching Counters for Job Id :"+jobId);
         List<File> jobFiles = FileHelper.pathFiles(this.jobFSConfig.getJobPath(jobId), true);
         for(File jobFile : jobFiles) {
-            if(jobFile.getAbsolutePath().contains("counter")
-                    && !jobFile.getAbsolutePath().contains("throughput")) {
+            if(jobFile.getAbsolutePath().contains("cumulative")) {
                 crunchJobFileCounter(jobId, jobFile);
             }
         }
     }
 
-    private void crunchJobFileCounter(String jobId, File jobFile) {
+    public void crunchJobFileCounter(String jobId, File jobFile) {
+        logger.info("Crunching File :"+jobFile.getAbsolutePath() + " for job id :" + jobId);
         List<String> fileContentLines = readFileContentAsList(jobFile);
-        if(fileContentLines.size() > 0) {
-            List<String> cachedContent = this.fileCachedContentMap.get(jobFile.getAbsolutePath());
-            if(cachedContent == null) {
-                cachedContent = new ArrayList<String>();
-            }
-            cachedContent.addAll(fileContentLines);
-            Collections.sort(cachedContent);
 
-            String throughputFile = jobFile.getAbsolutePath() + ".throughput";
+        if(fileContentLines.size() > 0) {
+            String newFile = jobFile.getAbsolutePath().replace("cumulative", FILE_EXTENSION);
             BufferedWriter bw = null;
             try {
-                bw = FileHelper.bufferedWriter(throughputFile, true);
-                long firstEntryTime = Long.parseLong(cachedContent.get(0).split(",")[0]);
-                long lastEntryTime = Long.parseLong(cachedContent.get(cachedContent.size()-1).split(",")[0]);
-                if(lastEntryTime - firstEntryTime > CRUNCH_DATA_OLDER_THAN
-                        || jobOver(jobId)) {
+                bw = FileHelper.bufferedWriter(newFile, true);
 
-                    LastCrunchPoint lastCrunchPoint = this.fileLastCrunchPointMap.get(jobFile.getAbsolutePath());
-                    if(lastCrunchPoint == null) {
-                        String firstContentLine = cachedContent.remove(0);
-                        String[] tokens = firstContentLine.split(",");
-                        lastCrunchPoint = new LastCrunchPoint(Long.parseLong(tokens[0]),
-                                Long.parseLong(tokens[1]));
-                        bw.write(tokens[0] + ",0.0,0\n");
-                        bw.flush();
-                    }
-
-                    long opsDone = 0;
-                    while(cachedContent.size() > 0) {
-                        String cachedContentLine = cachedContent.remove(0);
-                        String[] tokens = cachedContentLine.split(",");
-                        long currentContentTime = Long.parseLong(tokens[0]);
-                        long currentContentCount = Long.parseLong(tokens[1]);
-
-                        // Collect Content To Crunch
-                            opsDone += currentContentCount;
-
-                        // Next Content Time
-                        long nextContentTime = -1;
-                        if(cachedContent.size() > 0) {
-                            nextContentTime = Long.parseLong(cachedContent.get(0).split(",")[0]);
-                        }
-
-                        // Crunch if collected data for 10 seconds have been collected and next Content Time is different
-                        if((currentContentTime - lastCrunchPoint.time > CLUB_CRUNCH_DURATION && currentContentTime != nextContentTime )
-                                || nextContentTime == -1 ) {
-                            // Have got data, crunch them
-                            long timeTakenNS = currentContentTime - lastCrunchPoint.time;
-                            float timeTakenSec = (float)timeTakenNS / MathConstant.BILLION;
-                            float tps = opsDone/timeTakenSec;
-
-                            long totalOpsDoneSoFar = lastCrunchPoint.countSoFar + opsDone;
-                            lastCrunchPoint = new LastCrunchPoint(currentContentTime, totalOpsDoneSoFar);
-                            this.fileLastCrunchPointMap.put(jobFile.getAbsolutePath(), lastCrunchPoint);
-
-                            String crunchedStatsLine = lastCrunchPoint.time + "," + tps + "," + lastCrunchPoint.countSoFar;
-                            bw.write(crunchedStatsLine + "\n");
-                            bw.flush();
-                            opsDone = 0;
-
-                        }
-                    }
+                LastPoint lastPoint = this.fileLastCrunchPointMap.get(jobFile.getAbsolutePath());
+                if(lastPoint == null) {
+                    String firstContentLine = fileContentLines.remove(0);
+                    String[] tokens = firstContentLine.split(",");
+                    lastPoint = new LastPoint(Long.parseLong(tokens[0]), Long.parseLong(tokens[1]));
                 }
 
+                while(fileContentLines.size() > 0) {
+                    String currentContentLine = fileContentLines.remove(0);
+                    String[] tokens = currentContentLine.split(",");
+                    long currentContentTime = Long.parseLong(tokens[0]);
+                    long currentContentCount = Long.parseLong(tokens[1]);
+                    long opsDone = currentContentCount - lastPoint.count;
+                    long timeTakenNS = currentContentTime - lastPoint.time;
+                    float timeTakenSec = (float)timeTakenNS / MathConstant.BILLION;
+                    float tps = opsDone/timeTakenSec;
 
-            }
-            catch (FileNotFoundException e) {
+                    String tpsLine = currentContentTime+ "," + tps;
+                    bw.write(tpsLine + "\n");
+                    bw.flush();
+
+                    lastPoint = new LastPoint(currentContentTime, currentContentCount);
+                    this.fileLastCrunchPointMap.put(jobFile.getAbsolutePath(), lastPoint);
+                }
+
+            } catch (FileNotFoundException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             } catch (IOException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -169,14 +137,7 @@ public class CounterCruncherThread extends Thread {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 }
             }
-
-            this.fileCachedContentMap.put(jobFile.getAbsolutePath(), cachedContent);
         }
-
-    }
-
-    private boolean jobOver(String jobId) {
-        return !this.aliveJobs.contains(jobId);
     }
 
     private List<String> readFileContentAsList(File jobFile) {
@@ -229,6 +190,7 @@ public class CounterCruncherThread extends Thread {
 
 
     private void checkInterval() {
+        logger.debug("Sleeping for "+this.checkInterval+"ms");
         int totalInterval = 0;
         int granularSleep = 200;
         while(totalInterval < this.checkInterval && !this.stop) {
@@ -255,8 +217,8 @@ public class CounterCruncherThread extends Thread {
     }
 
     public static void main(String[] args) {
-        CounterCruncherThread t = new CounterCruncherThread(null, 10);
-        t.crunchJobFileCounter("", new File("/var/log/loader-server/jobs/66893a74-86f4-4ec0-bff3-55213b83cf35/agents/127.0.0.1/jobStats/SampleGroup/counters/DummyFunction_count"));
+        CounterThroughputThread t = new CounterThroughputThread(null, 10);
+        t.crunchJobFileCounter("", new File("/var/log/loader-server/jobs/a09cc4f7-e868-4b2c-ae55-d9e992c2bd46/jobStats/SampleGroup/counters/tmp1.cumulative"));
 
     }
 }
