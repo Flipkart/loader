@@ -13,7 +13,8 @@ import perf.server.client.MonitoringClient;
 import perf.server.config.AgentConfig;
 import perf.server.config.JobFSConfig;
 import perf.server.config.MonitoringAgentConfig;
-import perf.server.daemon.CounterCruncherThread;
+import perf.server.daemon.CounterCompoundThread;
+import perf.server.daemon.CounterThroughputThread;
 import perf.server.domain.JobInfo;
 import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
@@ -237,7 +238,8 @@ public class JobResource {
 
         if(jobCompleted(jobId)) {
             stopMonitoring(jobId);
-            CounterCruncherThread.getCounterCruncherThread().removeJob(jobId);
+            CounterCompoundThread.getCounterCruncherThread().removeJob(jobId);
+            CounterThroughputThread.getCounterCruncherThread().removeJob(jobId);
         }
     }
 
@@ -295,7 +297,9 @@ public class JobResource {
         // Persisting Job Info(mostly status) in memory
         jobIdInfoMap.put(jobInfo.getJobId(), jobInfo);
 
-        CounterCruncherThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
+        CounterCompoundThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
+        CounterThroughputThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
+
         return jobInfo;
     }
 
