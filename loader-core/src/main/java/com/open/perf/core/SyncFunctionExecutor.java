@@ -78,7 +78,7 @@ public class SyncFunctionExecutor {
     }
 
     //Nano Seconds
-    public double getExecutionTime() {
+    public long getExecutionTime() {
         return (this.endTime - this.startTime);
     }
 

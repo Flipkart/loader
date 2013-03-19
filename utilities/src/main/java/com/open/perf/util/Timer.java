@@ -60,7 +60,6 @@ public class Timer{
     }
 
     synchronized public void add(long timeStamp, double time) {
-        time = time/1000d;
         this.timeList.put(timeStamp, time);
     }
 }

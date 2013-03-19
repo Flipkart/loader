@@ -246,6 +246,7 @@ public class StatsCollectorThread extends Thread{
             Map<Long, Double> timeList = timers.get(timer).getTimeList();
             for(Long timerStamp : timeList.keySet()) {
                 bufferedData += timerStamp.toString() + "," + timeList.get(timerStamp).toString() + "\n";
+                System.out.println(bufferedData);
                 buffered++;
                 if(buffered % this.BULK_WRITE_SIZE == 0) {
                     writeToFile(bw, bufferedData);
