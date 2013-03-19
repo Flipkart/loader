@@ -1,11 +1,11 @@
 package com.open.perf.domain;
 
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.log4j.Logger;
 
 public class Group {
 
@@ -261,6 +261,11 @@ public class Group {
         for(GroupFunction gp : this.functions) {
             gp.validate();
         }
+    }
+
+    public Group setThroughput(int throughput) {
+        this.throughput = throughput;
+        return this;
     }
 
     public int getThroughput() {

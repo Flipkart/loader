@@ -3,6 +3,8 @@ package com.open.perf.function;
 import com.open.perf.core.FunctionContext;
 import org.apache.log4j.Logger;
 
+import java.util.LinkedHashMap;
+
 abstract public class PerformanceFunction {
     protected static Logger logger = Logger.getLogger(PerformanceFunction.class);
 
@@ -29,4 +31,20 @@ abstract public class PerformanceFunction {
      * @throws Exception
      */
     abstract public void end(FunctionContext context) throws Exception;
+
+    /**
+     * Can be used by user to explicitly find out input parameters for a function
+     * @return
+     */
+    public LinkedHashMap<String, FunctionParameter> inputParameters(){
+        return new LinkedHashMap<String, FunctionParameter>();
+    }
+
+    /**
+     * Can be used by user to explicitly find out output parameters for a function
+     * @return
+     */
+    public LinkedHashMap<String, FunctionParameter> outputParameters(){
+        return new LinkedHashMap<String, FunctionParameter>();
+    }
 }

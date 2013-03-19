@@ -3,7 +3,6 @@ package com.open.perf.sample.run;
 import com.open.perf.domain.Group;
 import com.open.perf.domain.GroupFunction;
 import com.open.perf.domain.Loader;
-import com.open.perf.sample.function.DelayFunction;
 import com.open.perf.sample.function.DummyFunction;
 
 import java.util.UUID;
@@ -15,8 +14,9 @@ public class GroupStatsInstanceTestClass {
                 addGroup(
                         new Group("G1").
                                 setGroupStartDelay(0).
-                                setDuration(60000).
-                                setThreads(10).
+                                setRepeats(Integer.parseInt(args[0])).
+                                setThreads(Integer.parseInt(args[1])).
+                                setThroughput(Integer.parseInt(args[2])).
                                 addFunction(new GroupFunction("RandomDelay").
                                         setFunctionClass(DummyFunction.class.getCanonicalName()).
                                         addParam("delay", 5).dumpData()).
