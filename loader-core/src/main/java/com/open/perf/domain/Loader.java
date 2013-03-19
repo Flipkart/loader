@@ -1,10 +1,10 @@
 package com.open.perf.domain;
 
+import com.open.perf.core.LoadController;
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.log4j.Logger;
-import com.open.perf.core.LoadController;
 
 /**
  * Top Level Bean which is used to create Load configuration
@@ -43,7 +43,7 @@ public class Loader {
      * Start Load
      * @throws Exception
      */
-    public void start() throws Exception {
+    public Loader start() throws Exception {
         // Validate if anything is wrong with the Loader Configuration
         validate();
         resolveWarmUpGroups();
@@ -53,6 +53,7 @@ public class Loader {
         loadController.start();
         loadController.join();
         logger.info("Logs in "+System.getProperty("BASE_PATH")+this.jobId);
+        return this;
     }
 
     /**
