@@ -18,6 +18,7 @@ public class DummyFunction extends PerformanceFunction {
 
     @Override
     public void execute(FunctionContext context) throws Exception {
+        logger.info("In Execute");
     }
 
     @Override
