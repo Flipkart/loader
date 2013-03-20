@@ -13,9 +13,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SequentialFunctionExecutorNew extends Thread {
+public class SequentialFunctionExecutor extends Thread {
     private static final int PAUSE_CHECK_DELAY   =   200;
-    private static Logger logger = Logger.getLogger(SequentialFunctionExecutorNew.class.getName());
+    private static Logger logger = Logger.getLogger(SequentialFunctionExecutor.class.getName());
     private static final int MILLION = 1000000;
     private List<SyncFunctionExecutor> fExecutors;
 
@@ -44,18 +44,18 @@ public class SequentialFunctionExecutorNew extends Thread {
     private final int forcedDurationPerIterationMS;
     private int accumulatedSleepIntervalNS; // When This accumulated Sleep Interval Goes above 1 ms then sleep for near by ms value
 
-    public SequentialFunctionExecutorNew(String threadExecutorName,
-                                         List<GroupFunction> groupFunctions,
-                                         HashMap<String, Object> groupParams,
-                                         long duration,
-                                         RequestQueue requestQueue,
-                                         long groupStartTime,
-                                         Map<String, FunctionCounter> functionCounters,
-                                         Map<String, Counter> customCounters,
-                                         List<String> customTimerNames,
-                                         GroupStatsQueue groupStatsQueue,
-                                         List<String> ignoreDumpFunctions,
-                                         float throughput) {
+    public SequentialFunctionExecutor(String threadExecutorName,
+                                      List<GroupFunction> groupFunctions,
+                                      HashMap<String, Object> groupParams,
+                                      long duration,
+                                      RequestQueue requestQueue,
+                                      long groupStartTime,
+                                      Map<String, FunctionCounter> functionCounters,
+                                      Map<String, Counter> customCounters,
+                                      List<String> customTimerNames,
+                                      GroupStatsQueue groupStatsQueue,
+                                      List<String> ignoreDumpFunctions,
+                                      float throughput) {
 
         super(threadExecutorName);
         this.throughput = throughput;
@@ -292,7 +292,7 @@ public class SequentialFunctionExecutorNew extends Thread {
         return requestQueue.getRequest();
     }
 
-    public SequentialFunctionExecutorNew setThreadResources(Map<String, Object> threadResources) {
+    public SequentialFunctionExecutor setThreadResources(Map<String, Object> threadResources) {
         this.threadResources = threadResources;
         return this;
     }

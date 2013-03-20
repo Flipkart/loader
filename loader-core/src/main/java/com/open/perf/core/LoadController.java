@@ -18,7 +18,7 @@ public class LoadController extends Thread{
     private Map<String,List<String>> groupDependency = new LinkedHashMap<String,List<String>>();
 
     // Map of Group Name and Actual Group Controller Instance
-    private Map<String,GroupControllerNew> groupControllersMap = new LinkedHashMap<String,GroupControllerNew>();
+    private Map<String,GroupController> groupControllersMap = new LinkedHashMap<String,GroupController>();
 
     // Map of Group Name and Group Bean (Which contains user information)
     private Map<String,Group> groupMap;
@@ -52,7 +52,7 @@ public class LoadController extends Thread{
      * @throws FileNotFoundException
      */
     private void addGroup(Group group) throws InterruptedException, FileNotFoundException {
-        GroupControllerNew    groupController =   new GroupControllerNew(this.jobId, group);
+        GroupController groupController =   new GroupController(this.jobId, group);
         groupDependency.put(group.getName(), group.getDependOnGroups());
         groupControllersMap.put(group.getName(), groupController);
     }
@@ -118,11 +118,11 @@ public class LoadController extends Thread{
         long startTime = Clock.milliTick();
 
         while(true) {
-            ArrayList<GroupControllerNew> groupsToRun = new ArrayList<GroupControllerNew>();
+            ArrayList<GroupController> groupsToRun = new ArrayList<GroupController>();
             int groupsCanNotStartThisTime = 0;
 
             for(String group : this.groupControllersMap.keySet()) {
-                GroupControllerNew groupController = this.groupControllersMap.get(group);
+                GroupController groupController = this.groupControllersMap.get(group);
 
                 if(!groupController.started()) {
                     boolean groupCanRun = true;
@@ -130,7 +130,7 @@ public class LoadController extends Thread{
                     List<String> dependencyList = this.groupDependency.get(group);
                        if(dependencyList != null) {
                            for(String dependOnGroup : dependencyList) {
-                               GroupControllerNew dependOnGroupController = this.groupControllersMap.get(dependOnGroup);
+                               GroupController dependOnGroupController = this.groupControllersMap.get(dependOnGroup);
 
                                if(!dependOnGroupController.started() || dependOnGroupController.isAlive()) {
                                    groupCanRun = false;
@@ -148,7 +148,7 @@ public class LoadController extends Thread{
             }
 
             // Start Group Controllers which can be started
-            for(GroupControllerNew groupController : groupsToRun) {
+            for(GroupController groupController : groupsToRun) {
                 logger.info("******"+"Running Group [" + groupController.getGroupName() + "]"+"******");
 
                 try {
@@ -174,13 +174,13 @@ public class LoadController extends Thread{
         logger.info("Loader Execution Time :" + (System.currentTimeMillis() - startTime) + " milli seconds");
     }
 
-    private void waitTillGroupsFinish(Collection<GroupControllerNew> groupControllers) {
+    private void waitTillGroupsFinish(Collection<GroupController> groupControllers) {
         while(haveLiveGroups(groupControllers))
             Clock.sleep(250);
     }
 
-    private boolean haveLiveGroups(Collection<GroupControllerNew> groupControllers) {
-        for(GroupControllerNew grouper : groupControllers) {
+    private boolean haveLiveGroups(Collection<GroupController> groupControllers) {
+        for(GroupController grouper : groupControllers) {
             if(grouper.isAlive())
                 return true;
             else {

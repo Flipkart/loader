@@ -1,6 +1,6 @@
 package sample.run;
 
-import com.open.perf.core.GroupControllerNew;
+import com.open.perf.core.GroupController;
 import com.open.perf.domain.Group;
 import com.open.perf.domain.GroupFunction;
 
@@ -20,7 +20,7 @@ public class GroupControllerChangeThreadsTest {
                         dumpData()).
                 addFunctionTimer("timer1");
 
-        GroupControllerNew controller = new GroupControllerNew(UUID.randomUUID().toString(),g1);
+        GroupController controller = new GroupController(UUID.randomUUID().toString(),g1);
         controller.start();
 
         int newThreads = 11;
