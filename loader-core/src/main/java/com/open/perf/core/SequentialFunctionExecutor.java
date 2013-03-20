@@ -1,5 +1,6 @@
 package com.open.perf.core;
 
+import com.open.perf.constant.MathConstant;
 import com.open.perf.domain.GroupFunction;
 import com.open.perf.util.ClassHelper;
 import com.open.perf.util.Clock;
@@ -19,9 +20,9 @@ public class SequentialFunctionExecutor extends Thread {
     private static final int MILLION = 1000000;
     private List<SyncFunctionExecutor> fExecutors;
 
-    private long startTime;
+    private long groupStartTimeNS;
     private long endTime;
-    private long duration;
+    private long durationMS;
 
     private boolean paused = false;
     private boolean running = false;
@@ -40,16 +41,16 @@ public class SequentialFunctionExecutor extends Thread {
     private List<String> customTimerNames;
     private final Map<String, FunctionCounter> functionCounters;
     private final List<String> ignoreDumpFunctions;
-    private final float throughput;
-    private final int forcedDurationPerIterationMS;
+    private float throughput;
+    private int forcedDurationPerIterationNS;
     private int accumulatedSleepIntervalNS; // When This accumulated Sleep Interval Goes above 1 ms then sleep for near by ms value
 
     public SequentialFunctionExecutor(String threadExecutorName,
                                       List<GroupFunction> groupFunctions,
                                       HashMap<String, Object> groupParams,
-                                      long duration,
+                                      long durationMS,
                                       RequestQueue requestQueue,
-                                      long groupStartTime,
+                                      long groupStartTimeNS,
                                       Map<String, FunctionCounter> functionCounters,
                                       Map<String, Counter> customCounters,
                                       List<String> customTimerNames,
@@ -59,15 +60,15 @@ public class SequentialFunctionExecutor extends Thread {
 
         super(threadExecutorName);
         this.throughput = throughput;
-        this.forcedDurationPerIterationMS = (int)((1000 / this.throughput) * 1000000);
+        this.forcedDurationPerIterationNS = (int)((1000 / this.throughput) * 1000000);
 
         this.ignoreDumpFunctions = ignoreDumpFunctions;
         this.fExecutors = new ArrayList<SyncFunctionExecutor>();
         this.groupStatsQueue = groupStatsQueue;
-        this.duration = duration;
+        this.durationMS = durationMS;
         this.groupFunctions = groupFunctions;
         this.groupParams = groupParams;
-        this.startTime    = groupStartTime;
+        this.groupStartTimeNS = groupStartTimeNS;
         this.requestQueue = requestQueue;
         this.functionCounters = functionCounters;
         this.customCounters = customCounters;
@@ -110,7 +111,6 @@ public class SequentialFunctionExecutor extends Thread {
     }
 
     public void run () {
-        this.startTime 	= System.currentTimeMillis();
         logger.info("Sequential Function Executor "+this.getName()+" started");
         Counter repeatCounter = new Counter("",this.getName());
         initializeUserFunctions();
@@ -183,7 +183,7 @@ public class SequentialFunctionExecutor extends Thread {
             }
             groupStatsQueue.addGroupStats(groupStatsInstance);
             long iterationTimeNS = Clock.nsTick() - iterationStartTimeNS;
-            long iterationSleepIntervalNS   = this.forcedDurationPerIterationMS - iterationTimeNS;
+            long iterationSleepIntervalNS   = this.forcedDurationPerIterationNS - iterationTimeNS;
             if(iterationSleepIntervalNS > 0)
                 this.accumulatedSleepIntervalNS += iterationSleepIntervalNS;
             repeatCounter.increment();
@@ -194,8 +194,8 @@ public class SequentialFunctionExecutor extends Thread {
         this.running = false;
         this.over = true;
 
-        if(this.duration > (this.endTime - this.startTime)) {
-            logger.info("Sequential Function Executor '" + this.getName() + "' Prematurely(" + (this.duration - (this.endTime - this.startTime)) + " ms) Over");
+        if(this.durationMS > (this.endTime - this.groupStartTimeNS)) {
+            logger.info("Sequential Function Executor '" + this.getName() + "' Prematurely(" + (this.durationMS - (this.endTime - this.groupStartTimeNS)) + " ms) Over");
         }
         logger.info("Sequential Function Executor '" + this.getName() + "' Over. Repeats Done :"+repeatCounter.count());
     }
@@ -255,7 +255,7 @@ public class SequentialFunctionExecutor extends Thread {
             return;
 
         // Keeping track of missed Nanoseconds
-        this.accumulatedSleepIntervalNS = this.forcedDurationPerIterationMS % MILLION;
+        this.accumulatedSleepIntervalNS = this.forcedDurationPerIterationNS % MILLION;
 
         logger.debug("Going to Sleep for "+timeToSleepMS +" ms");
         this.sleeping = true;
@@ -286,8 +286,10 @@ public class SequentialFunctionExecutor extends Thread {
         if(this.stop)
             return false;
 
-        if(this.duration > 0)
-            return (requestQueue.getRequest() && (System.currentTimeMillis() - this.startTime) < this.duration);
+        if(this.durationMS > 0) {
+            return (requestQueue.getRequest() && ((Clock.nsTick() - this.groupStartTimeNS) < this.durationMS * MathConstant.MILLION));
+
+        }
 
         return requestQueue.getRequest();
     }
@@ -320,11 +322,6 @@ public class SequentialFunctionExecutor extends Thread {
 
     public void stopIt() {
         this.stop = true;
-        if(this.sleeping) {
-            synchronized (this) {
-                this.notify();
-            }
-        }
     }
 
     public boolean isOver() {
@@ -333,5 +330,11 @@ public class SequentialFunctionExecutor extends Thread {
 
     public void setOver(boolean over) {
         this.over = over;
+    }
+
+    public void setThroughput(float throughput) {
+        this.throughput = throughput;
+        this.forcedDurationPerIterationNS = (int)((MathConstant.THOUSAND / this.throughput) * MathConstant.MILLION);
+        logger.info(this.getName()+" Expected Throughput :"+this.throughput+ "forcedDurationPerIterationNS: "+this.forcedDurationPerIterationNS);
     }
 }
