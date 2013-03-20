@@ -30,7 +30,7 @@ public class StatsCollectorThread extends Thread{
     private final Map<String,FunctionCounter> functionCounters;
     private final List<String> customTimers;
     private final Map<String, Counter> customCounters;
-    private final long startTime;
+    private final long startTimeNS;
     private final HashMap<String, BufferedWriter> filePathWriterMap;
 
     public StatsCollectorThread(String statsBasePath,
@@ -38,16 +38,16 @@ public class StatsCollectorThread extends Thread{
                                 Map<String, FunctionCounter> functionCounters,
                                 List<String> customTimerNames,
                                 Map<String, Counter> customCounters,
-                                long startTime) throws FileNotFoundException {
+                                long startTimeNS) throws FileNotFoundException {
         this.statsBasePath = statsBasePath;
         this.groupStatsQueue = groupStatsQueue;
-        this.lastQueueSwapTime = System.currentTimeMillis();
+        this.lastQueueSwapTime = Clock.milliTick();
         this.fileWriters = new LinkedHashMap<String, BufferedWriter>();
         this.allCounters = new ArrayList<Counter>();
         this.functionCounters = functionCounters;
         this.customTimers = customTimerNames;
         this.customCounters = customCounters;
-        this.startTime = startTime;
+        this.startTimeNS = startTimeNS;
         for(String counter : customCounters.keySet()) {
             Counter customCounter = customCounters.get(counter);
             this.allCounters.add(customCounter);
@@ -123,7 +123,7 @@ public class StatsCollectorThread extends Thread{
             for(Counter counter : this.allCounters) {
                 BufferedWriter bw = this.fileWriters.get(counter.getCounterName());
                 try {
-                    bw.write(startTime + ",0\n");
+                    bw.write(startTimeNS + ",0\n");
                     bw.flush();
                 } catch (IOException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -192,15 +192,15 @@ public class StatsCollectorThread extends Thread{
             }
             totalDelay += granularDelay;
 
-            if(System.currentTimeMillis() - this.lastQueueSwapTime > this.SWAP_QUEUE_INTERVAL && canSwapQueues()) {
+            if(Clock.milliTick() - this.lastQueueSwapTime > this.SWAP_QUEUE_INTERVAL && canSwapQueues()) {
                 swapQueues();
-                this.lastQueueSwapTime = System.currentTimeMillis();
+                this.lastQueueSwapTime = Clock.milliTick();
             }
         }
     }
 
     private void collectStats(int collectionCount){
-        long startTime = System.currentTimeMillis();
+        long collectionStartTime = Clock.milliTick();
         try {
             createFileWriters(collectionCount);
             this.collectingStats = true;
@@ -220,7 +220,7 @@ public class StatsCollectorThread extends Thread{
             throw new RuntimeException(e);
         }
 
-        logger.debug("Time To Print Stats :" + (System.currentTimeMillis() - startTime));
+        logger.debug("Time To Print Stats :" + (Clock.milliTick() - collectionStartTime));
     }
 
 
@@ -246,7 +246,6 @@ public class StatsCollectorThread extends Thread{
             Map<Long, Double> timeList = timers.get(timer).getTimeList();
             for(Long timerStamp : timeList.keySet()) {
                 bufferedData += timerStamp.toString() + "," + timeList.get(timerStamp).toString() + "\n";
-                System.out.println(bufferedData);
                 buffered++;
                 if(buffered % this.BULK_WRITE_SIZE == 0) {
                     writeToFile(bw, bufferedData);
@@ -257,7 +256,6 @@ public class StatsCollectorThread extends Thread{
             if(!bufferedData.equals("")) {
                 writeToFile(bw, bufferedData);
             }
-
         }
     }
 

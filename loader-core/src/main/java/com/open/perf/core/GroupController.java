@@ -1,17 +1,21 @@
 package com.open.perf.core;
 
+import com.open.perf.constant.MathConstant;
 import com.open.perf.domain.Group;
 import com.open.perf.domain.GroupFunction;
+import com.open.perf.domain.GroupTimer;
 import com.open.perf.util.Clock;
 import com.open.perf.util.Counter;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GroupController {
-
     private boolean started = false;
 
     private String              groupName;
@@ -22,7 +26,7 @@ public class GroupController {
 
     private List<SequentialFunctionExecutor> sequentialFEs;
     private final Group group;
-    private long groupStartTime = -1;
+    private long startTimeNS = -1;
     private RequestQueue requestQueue;
     private Map<String, Counter> customCounters;
     private Map<String, FunctionCounter> functionCounters;
@@ -30,6 +34,7 @@ public class GroupController {
     private StatsCollectorThread statsCollectorThread;
     private String basePath;
     private final List<String> ignoreDumpFunctions;
+    private float throughput;
 
     public GroupController(String jobId, Group group) {
         this.basePath = System.getProperty("BASE_PATH", "/var/log/loader/");
@@ -101,11 +106,19 @@ public class GroupController {
         logger.info("************Group Controller "+this.groupName+" Started**************");
         groupStartDelay();
 
-        this.groupStartTime = Clock.nsTick();
+        this.startTimeNS = Clock.nsTick();
         this.groupStatsQueue = new GroupStatsQueue();
 
-        this.sequentialFEs = new ArrayList<SequentialFunctionExecutor>();
         this.started = true;
+        this.sequentialFEs = new ArrayList<SequentialFunctionExecutor>();
+
+        if(group.getTimers().size() > 0) {
+            GroupTimer firstTimer = group.getTimers().get(0);
+            this.group.setThreads(firstTimer.getThreads()).setThroughput(firstTimer.getThroughput());
+            GroupTimerManagerThread timerManager = new GroupTimerManagerThread(this, group.getTimers());
+            timerManager.start();
+        }
+
         for(int threadNo=0; threadNo<group.getThreads(); threadNo++) {
             SequentialFunctionExecutor sfe = buildSequentialFunctionExecutor(threadNo);
 
@@ -124,7 +137,7 @@ public class GroupController {
                 this.functionCounters,
                 this.group.getCustomTimers(),
                 this.customCounters,
-                this.groupStartTime);
+                this.startTimeNS);
 
         this.statsCollectorThread.start();
     }
@@ -155,7 +168,7 @@ public class GroupController {
                 this.group.getParams(),
                 this.group.getDuration(),
                 this.requestQueue,
-                this.groupStartTime,
+                this.startTimeNS,
                 this.functionCounters,
                 this.customCounters,
                 this.group.getCustomTimers(),
@@ -192,15 +205,12 @@ public class GroupController {
             else if(newThreads < currentThreads) {
                 int reduceThreads = currentThreads - newThreads;
                 logger.debug(reduceThreads+" threads have to be reduced");
+
                 for(int i=1; i<=reduceThreads; i++) {
-                    SequentialFunctionExecutor sfe = this.sequentialFEs.get(this.sequentialFEs.size()-i);
+                    SequentialFunctionExecutor sfe = this.sequentialFEs.remove(this.sequentialFEs.size()-1);
                     sfe.stopIt();
                     logger.debug("Group "+this.groupName+" : Thread :" + i +" stopped)");
-                    this.sequentialFEs.remove(this.sequentialFEs.size()-1);
-                    logger.debug("Group " + this.groupName + " :Running Threads :" + this.sequentialFEs.size());
                 }
-
-                this.group.setThreads(newThreads);
             }
             else {
                 int increasedThreads = newThreads - currentThreads;
@@ -217,9 +227,12 @@ public class GroupController {
                     }
                     logger.debug("Group "+this.groupName+" :Thread '"+(threadNo+1)+"' started");
                 }
-
-                this.group.setThreads(newThreads);
             }
+            this.group.setThreads(newThreads);
+            for(SequentialFunctionExecutor sfe : this.sequentialFEs) {
+                sfe.setThroughput(this.group.getThroughput() / group.getThreads());
+            }
+
         }
 
         logger.info("Total Threads running "+this.sequentialFEs.size()+"(In List) "+this.group.getThreads()+"(ThreadCount)");
@@ -266,5 +279,29 @@ public class GroupController {
             throw new RuntimeException(e);
         }
         logger.info("************Group Controller "+this.groupName+" Ended**************");
+    }
+
+    public long getRunTimeMS() {
+        return (Clock.nsTick() - this.startTimeNS) / MathConstant.MILLION;
+    }
+
+    public void pause() {
+        synchronized (this.sequentialFEs) {
+            for(SequentialFunctionExecutor sfe : this.sequentialFEs) {
+                sfe.pauseIt();
+            }
+        }
+    }
+
+    public void resume() {
+        synchronized (this.sequentialFEs) {
+            for(SequentialFunctionExecutor sfe : this.sequentialFEs) {
+                sfe.resumeIt();
+            }
+        }
+    }
+
+    public void setThroughput(float throughput) {
+        this.group.setThroughput(throughput);
     }
 }

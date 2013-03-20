@@ -17,7 +17,7 @@ public class Group {
 
     private static final int DEFAULT_DURATION = 5 * 24 * 60 * 60 * 1000;
     private static final int DEFAULT_THROUGHPUT = 10000; // per second
-    private int throughput;
+    private float throughput;
     private long repeats ;
     private long duration;
     private int threads ;
@@ -263,12 +263,12 @@ public class Group {
         }
     }
 
-    public Group setThroughput(int throughput) {
+    public Group setThroughput(float throughput) {
         this.throughput = throughput;
         return this;
     }
 
-    public int getThroughput() {
+    public float getThroughput() {
         return throughput;
     }
 
