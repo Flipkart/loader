@@ -10,17 +10,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-public class GroupControllerNew{
+public class GroupController {
 
     private boolean started = false;
 
     private String              groupName;
     private static Logger           logger;
     static {
-        logger      = Logger.getLogger(GroupControllerNew.class);
+        logger      = Logger.getLogger(GroupController.class);
     }
 
-    private List<SequentialFunctionExecutorNew> sequentialFEs;
+    private List<SequentialFunctionExecutor> sequentialFEs;
     private final Group group;
     private long groupStartTime = -1;
     private RequestQueue requestQueue;
@@ -31,7 +31,7 @@ public class GroupControllerNew{
     private String basePath;
     private final List<String> ignoreDumpFunctions;
 
-    public GroupControllerNew(String jobId, Group group) {
+    public GroupController(String jobId, Group group) {
         this.basePath = System.getProperty("BASE_PATH", "/var/log/loader/");
         basePath += jobId + File.separator + group.getName();
 
@@ -104,10 +104,10 @@ public class GroupControllerNew{
         this.groupStartTime = Clock.nsTick();
         this.groupStatsQueue = new GroupStatsQueue();
 
-        this.sequentialFEs = new ArrayList<SequentialFunctionExecutorNew>();
+        this.sequentialFEs = new ArrayList<SequentialFunctionExecutor>();
         this.started = true;
         for(int threadNo=0; threadNo<group.getThreads(); threadNo++) {
-            SequentialFunctionExecutorNew sfe = buildSequentialFunctionExecutor(threadNo);
+            SequentialFunctionExecutor sfe = buildSequentialFunctionExecutor(threadNo);
 
             this.sequentialFEs.add(sfe);
             threadStartDelay();
@@ -149,8 +149,8 @@ public class GroupControllerNew{
      * @param threadNo
      * @return
      */
-    private SequentialFunctionExecutorNew buildSequentialFunctionExecutor(int threadNo) {
-        return new SequentialFunctionExecutorNew(group.getName()+"-"+threadNo,
+    private SequentialFunctionExecutor buildSequentialFunctionExecutor(int threadNo) {
+        return new SequentialFunctionExecutor(group.getName()+"-"+threadNo,
                 this.group.getFunctions(),
                 this.group.getParams(),
                 this.group.getDuration(),
@@ -170,7 +170,7 @@ public class GroupControllerNew{
      */
     public boolean isAlive() {
         synchronized (this.sequentialFEs){
-            for(SequentialFunctionExecutorNew sfe : this.sequentialFEs)
+            for(SequentialFunctionExecutor sfe : this.sequentialFEs)
                 if(sfe.isAlive())
                     return true;
         }
@@ -193,7 +193,7 @@ public class GroupControllerNew{
                 int reduceThreads = currentThreads - newThreads;
                 logger.debug(reduceThreads+" threads have to be reduced");
                 for(int i=1; i<=reduceThreads; i++) {
-                    SequentialFunctionExecutorNew sfe = this.sequentialFEs.get(this.sequentialFEs.size()-i);
+                    SequentialFunctionExecutor sfe = this.sequentialFEs.get(this.sequentialFEs.size()-i);
                     sfe.stopIt();
                     logger.debug("Group "+this.groupName+" : Thread :" + i +" stopped)");
                     this.sequentialFEs.remove(this.sequentialFEs.size()-1);
@@ -207,7 +207,7 @@ public class GroupControllerNew{
                 logger.debug("Group "+this.groupName + " :" + increasedThreads+" threads have to be increased");
                 for(int i=0; i<increasedThreads; i++) {
                     int threadNo = this.sequentialFEs.size() + 1;
-                    SequentialFunctionExecutorNew sfe = buildSequentialFunctionExecutor(threadNo);
+                    SequentialFunctionExecutor sfe = buildSequentialFunctionExecutor(threadNo);
 
                     this.sequentialFEs.add(sfe);
                     threadStartDelay();
@@ -239,7 +239,7 @@ public class GroupControllerNew{
 
     public boolean paused() {
         synchronized (this.sequentialFEs) {
-            for(SequentialFunctionExecutorNew sfe : this.sequentialFEs) {
+            for(SequentialFunctionExecutor sfe : this.sequentialFEs) {
                 if(!sfe.isPaused())
                     return false;
             }
@@ -249,7 +249,7 @@ public class GroupControllerNew{
 
     public boolean running() {
         synchronized (this.sequentialFEs) {
-            for(SequentialFunctionExecutorNew sfe : this.sequentialFEs) {
+            for(SequentialFunctionExecutor sfe : this.sequentialFEs) {
                 if(!sfe.isRunning())
                     return false;
             }
