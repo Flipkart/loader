@@ -8,7 +8,7 @@ package perf.server.config;
  * To change this template use File | Settings | File Templates.
  */
 public class JobFSConfig {
-    private String jobStatsPath;
+    private String combinedStatsPath;
     private String jobAgentStatsPath;
     private String jobResourceMonitoringFile;
     private String runFile;
@@ -18,11 +18,11 @@ public class JobFSConfig {
     private String jobPath;
 
     public String getJobStatsPath(String jobId) {
-        return jobStatsPath.replace("{jobId}", jobId);
+        return combinedStatsPath.replace("{jobId}", jobId);
     }
 
-    public void setJobStatsPath(String jobStatsPath) {
-        this.jobStatsPath = jobStatsPath;
+    public void setCombinedStatsPath(String combinedStatsPath) {
+        this.combinedStatsPath = combinedStatsPath;
     }
 
     public String getJobResourceMonitoringFile(String jobId, String agentIp, String resource) {
