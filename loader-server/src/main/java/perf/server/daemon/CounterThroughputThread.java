@@ -1,5 +1,6 @@
 package perf.server.daemon;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.open.perf.constant.MathConstant;
 import com.open.perf.util.Clock;
 import com.open.perf.util.FileHelper;
@@ -7,6 +8,8 @@ import org.apache.log4j.Logger;
 import perf.server.config.JobFSConfig;
 
 import java.io.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -23,10 +26,53 @@ public class CounterThroughputThread extends Thread {
     private Map<String,LastPoint> fileLastCrunchPointMap;
 
     private static CounterThroughputThread thread;
-    private static final long CLUB_CRUNCH_DURATION = 10 * MathConstant.BILLION; // Club and crunch duration to calculate throughput
-    private static final long CRUNCH_DATA_OLDER_THAN = 30 * MathConstant.BILLION; // As long as job is alive crunch data which is older than 30 secs
-    private static Logger logger = Logger.getLogger(CounterThroughputThread.class);
-    private static final String FILE_EXTENSION = "throughput";
+
+    private static ObjectMapper objectMapper;
+    private static Logger logger;
+    private static final String FILE_EXTENSION;
+
+    static {
+        objectMapper = new ObjectMapper();
+        DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
+        objectMapper.setDateFormat(dateFormat);
+
+        logger = Logger.getLogger(CounterThroughputThread.class);
+        FILE_EXTENSION = "throughput";
+    }
+
+    private class CounterStatsInstance {
+        private Date time;
+        private long count;
+        private double throughput;
+
+        public Date getTime() {
+            return time;
+        }
+
+        public CounterStatsInstance setTime(Date time) {
+            this.time = time;
+            return this;
+        }
+
+        public long getCount() {
+            return count;
+        }
+
+        public CounterStatsInstance setCount(long count) {
+            this.count = count;
+            return this;
+        }
+
+        public double getThroughput() {
+            return throughput;
+        }
+
+        public CounterStatsInstance setThroughput(double throughput) {
+            this.throughput = throughput;
+            return this;
+        }
+
+    }
 
     private static class FileTouchPoint {
         private long lastModifiedTime;
@@ -118,8 +164,12 @@ public class CounterThroughputThread extends Thread {
                     float timeTakenSec = (float)timeTakenNS / MathConstant.BILLION;
                     float tps = opsDone/timeTakenSec;
 
-                    String tpsLine = currentContentTime+ "," + tps;
-                    bw.write(tpsLine + "\n");
+                    bw.write(objectMapper.
+                            writeValueAsString(new CounterStatsInstance().
+                                    setTime(Clock.nsToSec(currentContentTime)).
+                                    setCount(currentContentCount).
+                                    setThroughput(tps))
+                            + "\n");
                     bw.flush();
 
                     lastPoint = new LastPoint(currentContentTime, currentContentCount);
