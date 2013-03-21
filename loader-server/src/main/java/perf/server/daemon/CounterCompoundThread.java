@@ -120,7 +120,7 @@ public class CounterCompoundThread extends Thread {
         for(File jobFile : jobFiles) {
             if(jobFile.getAbsolutePath().contains("counter")
                     && !jobFile.getAbsolutePath().contains(FILE_EXTENSION)
-                    && !jobFile.getAbsolutePath().contains("throughput")) {
+                    && !jobFile.getAbsolutePath().contains("stats")) {
                 crunchJobFileCounter(jobId, jobFile);
             }
         }

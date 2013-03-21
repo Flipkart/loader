@@ -384,21 +384,21 @@ public class TimerComputationThread extends Thread {
 
                     Snapshot snapshot = histogram.getSnapshot();
                     TimerStatsInstance timerStatsInstance = new TimerStatsInstance().
-                            setMin(histogram.min()).
-                            setMax(histogram.max()).
-                            setDumpMean(iterationMean).
+                            setMin(histogram.min() / MathConstant.MILLION).
+                            setMax(histogram.max() / MathConstant.MILLION).
+                            setDumpMean(iterationMean / MathConstant.MILLION).
                             setDumpThroughput(iterationThroughputSec).
                             setOpsDone(histogram.count()).
-                            setOverallMean(histogram.mean()).
+                            setOverallMean(histogram.mean() / MathConstant.MILLION).
                             setOverAllThroughput(overallThroughputSec).
-                            setSD(histogram.stdDev()).
-                            setFiftieth(snapshot.getValue(0.50)).
-                            setSeventyFifth(snapshot.get75thPercentile()).
-                            setNinetieth(snapshot.getValue(0.90)).
-                            setNinetyFifth(snapshot.get95thPercentile()).
-                            setNinetyEight(snapshot.get98thPercentile()).
-                            setNinetyNinth(snapshot.get99thPercentile()).
-                            setNineNineNine(snapshot.get999thPercentile()).
+                            setSD(histogram.stdDev() / MathConstant.MILLION).
+                            setFiftieth(snapshot.getValue(0.50) / MathConstant.MILLION).
+                            setSeventyFifth(snapshot.get75thPercentile() / MathConstant.MILLION).
+                            setNinetieth(snapshot.getValue(0.90) / MathConstant.MILLION).
+                            setNinetyFifth(snapshot.get95thPercentile() / MathConstant.MILLION).
+                            setNinetyEight(snapshot.get98thPercentile() / MathConstant.MILLION).
+                            setNinetyNinth(snapshot.get99thPercentile() / MathConstant.MILLION).
+                            setNineNineNine(snapshot.get999thPercentile() / MathConstant.MILLION).
                             setTime(Clock.nsToSec(lineTimeNS));
 
                     bw.write(objectMapper.writeValueAsString(timerStatsInstance) + "\n");

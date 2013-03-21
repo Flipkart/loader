@@ -242,7 +242,8 @@ public class JobResource {
     @Timed
     @Produces(MediaType.TEXT_HTML)
     public String getJobStatAgents(@PathParam("jobId") String jobId, @Context HttpServletRequest request) {
-        String jobPath = jobFSConfig.getJobPath(jobId) + File.separator + "agents";
+        String jobPath = jobFSConfig.getJobPath(jobId)
+                + File.separator + "agents";
         File[] agentFolders = new File(jobPath).listFiles();
         StringBuilder stringBuilder = new StringBuilder();
         for(File agentFolder: agentFolders) {
@@ -258,7 +259,9 @@ public class JobResource {
     public String getJobStatAgent(@PathParam("jobId") String jobId,
                                   @PathParam("agentIp") String agentIp,
                                   @Context HttpServletRequest request) {
-        String agentPath = jobFSConfig.getJobPath(jobId) + File.separator + "agents" + File.separator + agentIp;
+        String agentPath = jobFSConfig.getJobPath(jobId)
+                + File.separator + "agents"
+                + File.separator + agentIp;
         File[] agentSubFolders = new File(agentPath).listFiles();
         StringBuilder stringBuilder = new StringBuilder();
         for(File agentSubFolder: agentSubFolders) {
@@ -331,7 +334,14 @@ public class JobResource {
         StringBuilder stringBuilder = new StringBuilder();
         for(File counterPath: countersSubFolders) {
             if(counterPath.getAbsolutePath().contains("stats"))
-                stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + counterPath.getName()+"\">" + counterPath.getName().replace("_count.stats","") + "</a><br>");
+
+                stringBuilder.append("<a href=\""
+                        + request.getRequestURL().toString()
+                        + "/" + counterPath.getName()
+                        +"\">"
+                        + counterPath.getName()
+                        .replace(".stats","")
+                        + "</a><br>");
         }
         return stringBuilder.toString();
     }
@@ -407,7 +417,8 @@ public class JobResource {
     @Timed
     @Produces(MediaType.TEXT_HTML)
     public String getAllStatsFolder(@PathParam("jobId") String jobId, @Context HttpServletRequest request) {
-        String groupsPath = jobFSConfig.getJobPath(jobId) + File.separator + "jobStats";
+        String groupsPath = jobFSConfig.getJobPath(jobId)
+                + File.separator + "jobStats";
         File[] groupFolders = new File(groupsPath).listFiles();
         StringBuilder stringBuilder = new StringBuilder();
         for(File groupFolder: groupFolders) {
@@ -423,7 +434,9 @@ public class JobResource {
     public String getJobGroupStats(@PathParam("jobId") String jobId,
                                     @PathParam("groupName") String groupName,
                                     @Context HttpServletRequest request) {
-        String groupPath = jobFSConfig.getJobPath(jobId) + File.separator + "jobStats" + File.separator + groupName;
+        String groupPath = jobFSConfig.getJobPath(jobId)
+                + File.separator + "jobStats"
+                + File.separator + groupName;
         File[] groupSubFolders = new File(groupPath).listFiles();
         StringBuilder stringBuilder = new StringBuilder();
         for(File groupSubFolder: groupSubFolders) {
@@ -432,14 +445,17 @@ public class JobResource {
         return stringBuilder.toString();
     }
 
-    @Path("/{jobId}/stats/jobStats/{groupName}/counters")
+    @Path("/{jobId}/stats/combinedStats/{groupName}/counters")
     @GET
     @Timed
     @Produces(MediaType.TEXT_HTML)
     public String getJobGroupCounters(@PathParam("jobId") String jobId,
                                     @PathParam("groupName") String groupName,
                                     @Context HttpServletRequest request) {
-        String countersPath = jobFSConfig.getJobPath(jobId) + File.separator + "jobStats" + File.separator + groupName + File.separator + "counters";
+        String countersPath = jobFSConfig.getJobPath(jobId)
+                + File.separator + "combinedStats"
+                + File.separator + groupName
+                + File.separator + "counters";
         File[] countersSubFolders = new File(countersPath).listFiles();
         StringBuilder stringBuilder = new StringBuilder();
         for(File counterPath: countersSubFolders) {
@@ -449,7 +465,7 @@ public class JobResource {
         return stringBuilder.toString();
     }
 
-    @Path("/{jobId}/stats/jobStats/{groupName}/counters/{counter}")
+    @Path("/{jobId}/stats/combinedStats/{groupName}/counters/{counter}")
     @GET
     @Timed
     @Produces(MediaType.TEXT_HTML)
@@ -458,7 +474,7 @@ public class JobResource {
                                     @PathParam("counter") String counter,
                                     @QueryParam("lines") @DefaultValue("10")IntParam lastLines) throws IOException {
         String counterPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "jobStats"
+                + File.separator + "combinedStats"
                 + File.separator + groupName
                 + File.separator + "counters"
                 + File.separator + counter;
@@ -466,14 +482,17 @@ public class JobResource {
         return FileHelper.readContent(new FileInputStream(counterPath)).replace("\n","<br>");
     }
 
-    @Path("/{jobId}/stats/jobStats/{groupName}/timers")
+    @Path("/{jobId}/stats/combinedStats/{groupName}/timers")
     @GET
     @Timed
     @Produces(MediaType.TEXT_HTML)
     public String getJobGroupTimers(@PathParam("jobId") String jobId,
                                     @PathParam("groupName") String groupName,
                                     @Context HttpServletRequest request) {
-        String timersPath = jobFSConfig.getJobPath(jobId) + File.separator + "jobStats" + File.separator + groupName + File.separator + "timers";
+        String timersPath = jobFSConfig.getJobPath(jobId)
+                + File.separator + "combinedStats"
+                + File.separator + groupName
+                + File.separator + "timers";
         File[] timersSubFolders = new File(timersPath).listFiles();
         StringBuilder stringBuilder = new StringBuilder();
         for(File timerPath: timersSubFolders) {
@@ -483,7 +502,7 @@ public class JobResource {
         return stringBuilder.toString();
     }
 
-    @Path("/{jobId}/stats/jobStats/{groupName}/timers/{timer}")
+    @Path("/{jobId}/stats/combinedStats/{groupName}/timers/{timer}")
     @GET
     @Timed
     @Produces(MediaType.TEXT_HTML)
@@ -492,7 +511,7 @@ public class JobResource {
                                     @PathParam("timer") String timer,
                                     @QueryParam("lines") @DefaultValue("10")IntParam lastLines) throws IOException {
         String timerPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "jobStats"
+                + File.separator + "combinedStats"
                 + File.separator + groupName
                 + File.separator + "timers"
                 + File.separator + timer;

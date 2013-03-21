@@ -17,7 +17,7 @@ jobFSConfig:
   jobsPath: "/var/log/loader-server/jobs"
   jobRunNameFile: "/var/log/loader-server/jobs/{jobId}/runName.txt"
   jobPath: "/var/log/loader-server/jobs/{jobId}"
-  jobStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats"
+  combinedStatsPath: "/var/log/loader-server/jobs/{jobId}/combinedStats"
   jobAgentStatsPath: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/jobStats"
   jobResourceMonitoringFile: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/Resources/{resource}.txt"
 
