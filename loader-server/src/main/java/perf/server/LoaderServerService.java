@@ -11,6 +11,7 @@ import perf.server.cache.LibCache;
 import perf.server.config.LoaderServerConfiguration;
 import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
+import perf.server.daemon.TimerComputationThread;
 import perf.server.resource.AgentResource;
 import perf.server.resource.DeployLibResource;
 import perf.server.resource.JobResource;
@@ -28,7 +29,7 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         LibCache.initialize(configuration.getLibStorageFSConfig());
         CounterCompoundThread.initialize(configuration.getJobFSConfig(), 10000).start();
         CounterThroughputThread.initialize(configuration.getJobFSConfig(), 10000).start();
-
+        TimerComputationThread.initialize(configuration.getJobFSConfig(), 10000).start();
         environment.addResource(new DeployLibResource(configuration.getLibStorageFSConfig()));
         environment.addResource(new AgentResource(configuration.getAgentConfig()));
         environment.addResource(new JobResource(configuration.getAgentConfig(),

@@ -205,4 +205,12 @@ public class FileHelper {
     public static RandomAccessFile randomAccessFile(File file, String r) throws FileNotFoundException {
         return new RandomAccessFile(file, "r");
     }
+
+    public static BufferedReader bufferedReader(String absolutePath) throws FileNotFoundException {
+        return new BufferedReader(new InputStreamReader(new FileInputStream(absolutePath)));
+    }
+
+    public static void close(BufferedReader br) throws IOException {
+        br.close();
+    }
 }

@@ -1,5 +1,9 @@
 package com.open.perf.util;
 
+import com.open.perf.constant.MathConstant;
+
+import java.util.Date;
+
 /**
  * Time Helper
  */
@@ -31,5 +35,17 @@ public class Clock {
     }
     public static void sleepMin(int mins) {
         sleep(mins * 60 * 1000);
+    }
+
+    public static Date nsToSec(long oldNS) {
+        long currentNS = nsTick();
+        long nsPassed = currentNS - oldNS;
+        long msPassed = nsPassed / MathConstant.MILLION;
+        long oldMS = Clock.milliTick() - msPassed;
+        return new Date(oldMS);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(nsToSec(System.nanoTime()).toString());
     }
 }
