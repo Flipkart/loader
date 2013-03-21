@@ -126,18 +126,15 @@ public class CounterCompoundThread extends Thread {
         }
     }
 
-    public void crunchJobFileCounter(String jobId, File jobFile) {
-        logger.info("Crunching File :"+jobFile.getAbsolutePath() + " for job id :" + jobId);
+    synchronized public void crunchJobFileCounter(String jobId, File jobFile) {
         List<String> fileContentLines = readFileContentAsList(jobFile);
 
-        logger.info("New Content Size :"+fileContentLines.size());
         List<String> cachedContent = this.fileCachedContentMap.get(jobFile.getAbsolutePath());
         if(cachedContent == null) {
             cachedContent = new ArrayList<String>();
         }
         cachedContent.addAll(fileContentLines);
         Collections.sort(cachedContent);
-        logger.info("Cached Content Size :"+cachedContent.size());
 
         if(cachedContent.size() > 0) {
             String newFile = jobFile.getAbsolutePath() + "." + FILE_EXTENSION;
@@ -146,17 +143,11 @@ public class CounterCompoundThread extends Thread {
                 bw = FileHelper.bufferedWriter(newFile, true);
                 long firstEntryTime = Long.parseLong(cachedContent.get(0).split(",")[0]);
                 long lastEntryTime = Long.parseLong(cachedContent.get(cachedContent.size()-1).split(",")[0]);
-                logger.info("Job Over :"+jobOver(jobId));
-                logger.info("Data Duration in cached content :"+ (float)(lastEntryTime - firstEntryTime)/MathConstant.BILLION + " seconds");
 
                 List<String> dataToCrunch = new ArrayList<String>();
                 if(jobOver(jobId)) {
-
-                    logger.info("Job is over");
                     dataToCrunch.addAll(cachedContent);
-                    logger.info("Data To Crunch :"+dataToCrunch.size());
                     cachedContent.clear();
-                    logger.info("Data To Crunch :"+dataToCrunch.size());
                 }
                 else if((lastEntryTime - firstEntryTime) > (CRUNCH_DATA_OLDER_THAN + CLUB_CRUNCH_DURATION)){
                     while(cachedContent.size() > 0) {
@@ -229,7 +220,6 @@ public class CounterCompoundThread extends Thread {
             }
         }
 
-        logger.info("Cached Content Left :"+cachedContent.size());
         this.fileCachedContentMap.put(jobFile.getAbsolutePath(), cachedContent);
     }
 

@@ -37,7 +37,7 @@ public class CounterThroughputThread extends Thread {
         objectMapper.setDateFormat(dateFormat);
 
         logger = Logger.getLogger(CounterThroughputThread.class);
-        FILE_EXTENSION = "throughput";
+        FILE_EXTENSION = "stats";
     }
 
     private class CounterStatsInstance {
