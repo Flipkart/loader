@@ -15,6 +15,7 @@ import perf.server.config.JobFSConfig;
 import perf.server.config.MonitoringAgentConfig;
 import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
+import perf.server.daemon.TimerComputationThread;
 import perf.server.domain.JobInfo;
 import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
@@ -240,6 +241,7 @@ public class JobResource {
             stopMonitoring(jobId);
             CounterCompoundThread.getCounterCruncherThread().removeJob(jobId);
             CounterThroughputThread.getCounterCruncherThread().removeJob(jobId);
+            TimerComputationThread.getComputationThread().removeJob(jobId);
         }
     }
 
@@ -299,7 +301,7 @@ public class JobResource {
 
         CounterCompoundThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
         CounterThroughputThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
-
+        TimerComputationThread.getComputationThread().addJob(jobInfo.getJobId());
         return jobInfo;
     }
 

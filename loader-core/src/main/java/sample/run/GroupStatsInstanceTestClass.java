@@ -4,13 +4,14 @@ import com.open.perf.domain.Group;
 import com.open.perf.domain.GroupFunction;
 import com.open.perf.domain.GroupTimer;
 import com.open.perf.domain.Loader;
+import org.codehaus.jackson.map.ObjectMapper;
 import sample.function.DummyFunction;
 
 import java.util.UUID;
 
 public class GroupStatsInstanceTestClass {
     public static void main (String[]args) throws Exception {
-        System.out.println(new Loader("Run").
+        Loader l = new Loader("Run").
                 setJobId(UUID.randomUUID().toString()).
                 addGroup(
                         new Group("G1").
@@ -40,10 +41,9 @@ public class GroupStatsInstanceTestClass {
                                         setDuration(2000).
                                         setName("T4").
                                         setThreads(4).
-                                        setThroughput(4.2f))).
+                                        setThroughput(4.2f)));
 
-                start().
-                getJobId());
+        System.out.println(new ObjectMapper().writeValueAsString(l));
 
     }
 }

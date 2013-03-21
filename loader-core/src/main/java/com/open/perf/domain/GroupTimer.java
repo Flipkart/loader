@@ -1,6 +1,7 @@
 package com.open.perf.domain;
 
 import com.open.perf.util.Clock;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 public class GroupTimer {
     private String name;
@@ -49,6 +50,7 @@ public class GroupTimer {
         return this;
     }
 
+    @JsonIgnore
     public long getStartTimeMS() {
         return startTimeMS;
     }
