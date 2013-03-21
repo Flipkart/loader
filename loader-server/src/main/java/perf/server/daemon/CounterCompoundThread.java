@@ -1,6 +1,5 @@
 package perf.server.daemon;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.open.perf.constant.MathConstant;
 import com.open.perf.util.Clock;
 import com.open.perf.util.FileHelper;
@@ -8,8 +7,6 @@ import org.apache.log4j.Logger;
 import perf.server.config.JobFSConfig;
 
 import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -29,18 +26,12 @@ public class CounterCompoundThread extends Thread {
     private static CounterCompoundThread thread;
     private static final long CLUB_CRUNCH_DURATION; // Club and crunch duration to calculate throughput
     private static final long CRUNCH_DATA_OLDER_THAN; // As long as job is alive crunch data which is older than 30 secs
-    private static ObjectMapper objectMapper;
     private static Logger logger;
     private static final String FILE_EXTENSION;
 
     static {
         CLUB_CRUNCH_DURATION = 10 * MathConstant.BILLION; // Club and crunch duration to calculate throughput
         CRUNCH_DATA_OLDER_THAN = 30 * MathConstant.BILLION; // As long as job is alive crunch data which is older than 30 secs
-
-        objectMapper = new ObjectMapper();
-        DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
-        objectMapper.setDateFormat(dateFormat);
-
         logger = Logger.getLogger(CounterCompoundThread.class);
         FILE_EXTENSION = "cumulative";
     }
@@ -217,11 +208,7 @@ public class CounterCompoundThread extends Thread {
                                 lastCrunchPoint = new LastCrunchPoint(currentContentTime, totalOpsDoneSoFar);
                                 this.fileLastCrunchPointMap.put(jobFile.getAbsolutePath(), lastCrunchPoint);
 
-                                bw.write(objectMapper.
-                                        writeValueAsString(new CounterStatsInstance().
-                                                setCount(lastCrunchPoint.countSoFar).
-                                                setTime(Clock.nsToSec(lastCrunchPoint.time)))
-                                        + "\n");
+                                bw.write(lastCrunchPoint.time + "," + lastCrunchPoint.countSoFar + "\n");
                                 bw.flush();
                                 opsDone = 0;
                             }
