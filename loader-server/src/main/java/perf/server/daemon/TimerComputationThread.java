@@ -306,7 +306,7 @@ public class TimerComputationThread extends Thread {
         }
     }
 
-    public void crunchJobFileTimer(String jobId, File jobFile) throws IOException {
+    synchronized public void crunchJobFileTimer(String jobId, File jobFile) throws IOException {
         logger.info("Crunching File :"+jobFile.getAbsolutePath() + " for job id :" + jobId);
         BufferedReader br = FileHelper.bufferedReader(jobFile.getAbsolutePath());
 

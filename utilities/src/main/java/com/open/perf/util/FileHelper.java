@@ -157,7 +157,7 @@ public class FileHelper {
         String line = null;
         try {
             while((line = br.readLine()) != null)
-                content.append(line+"\n");
+                content.append(line + "\n");
         }
         catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
