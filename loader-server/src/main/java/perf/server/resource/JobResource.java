@@ -737,13 +737,17 @@ public class JobResource {
             ObjectNode jobPart = (ObjectNode) jobs.get(i);
             try {
                 // Submitting Job To Agent
-                String agentIp = jobPart.get("agent").textValue();
+                ArrayNode agentIps = (ArrayNode) jobPart.get("agents");
                 String operationClassListStr = jobPart.get("classList").toString();
-                new LoaderAgentClient(agentIp,
-                        agentConfig.getAgentPort()).
-                        submitJob(jobInfo.getJobId(), jobPart.get("jobPartInfo").toString(), operationClassListStr);
-                jobInfo.jobRunningInAgent(agentIp);
-                log.info("Load Job "+jobPart.get("jobPartInfo").toString()+" submitted to Agent "+agentIp);
+                for(int agentI=0; agentI<agentIps.size();agentI++) {
+                    String agentIp = agentIps.get(agentI).textValue();
+                    log.info("Agent Ip :"+agentIp);
+                    new LoaderAgentClient(agentIp,
+                            agentConfig.getAgentPort()).
+                            submitJob(jobInfo.getJobId(), jobPart.get("jobPartInfo").toString(), operationClassListStr);
+                    jobInfo.jobRunningInAgent(agentIp);
+                    log.info("Load Job "+jobPart.get("jobPartInfo").toString()+" submitted to Agent "+agentIp);
+                }
             }  catch (InterruptedException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             } catch (ExecutionException e) {
