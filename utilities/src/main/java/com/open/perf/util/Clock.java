@@ -37,7 +37,7 @@ public class Clock {
         sleep(mins * 60 * 1000);
     }
 
-    public static Date nsToSec(long oldNS) {
+    public static Date dateFromNS(long oldNS) {
         long currentNS = nsTick();
         long nsPassed = currentNS - oldNS;
         long msPassed = nsPassed / MathConstant.MILLION;
@@ -45,7 +45,11 @@ public class Clock {
         return new Date(oldMS);
     }
 
+    public static Date dateFromMS(long ms) {
+        return new Date(ms);
+    }
+
     public static void main(String[] args) {
-        System.out.println(nsToSec(System.nanoTime()).toString());
+        System.out.println(dateFromNS(System.nanoTime()).toString());
     }
 }

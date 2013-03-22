@@ -63,17 +63,17 @@ public class TimerComputationThread extends Thread {
     private class TimerStatsStamp {
         private long lastCount;
         private double lastSum;
-        private long lastTimeNS;
-        private long firstTimeNS;
+        private long lastTimeMS;
+        private long firstTimeMS;
 
-        private TimerStatsStamp(long lastCount, double lastSum, long lastTimeNS) {
+        private TimerStatsStamp(long lastCount, double lastSum, long lastTimeMS) {
             this.lastCount = lastCount;
-            this.lastTimeNS = lastTimeNS;
+            this.lastTimeMS = lastTimeMS;
             this.lastSum = lastSum;
         }
 
-        public TimerStatsStamp setFirstTimeNS(long firstTimeNS) {
-            this.firstTimeNS = firstTimeNS;
+        public TimerStatsStamp setFirstTimeMS(long firstTimeMS) {
+            this.firstTimeMS = firstTimeMS;
             return this;
         }
 
@@ -87,8 +87,8 @@ public class TimerComputationThread extends Thread {
             return this;
         }
 
-        public TimerStatsStamp setLastTimeNS(long lastTimeNS) {
-            this.lastTimeNS = lastTimeNS;
+        public TimerStatsStamp setLastTimeMS(long lastTimeMS) {
+            this.lastTimeMS = lastTimeMS;
             return this;
         }
     }
@@ -350,7 +350,7 @@ public class TimerComputationThread extends Thread {
                 String currentLine = cachedContent.remove(0);
                 String[] tokens = currentLine.split(",");
                 timerStatsStamp = new TimerStatsStamp(1, Double.parseDouble(tokens[1]), Long.parseLong(tokens[0])).
-                        setFirstTimeNS(Long.parseLong(tokens[0]));
+                        setFirstTimeMS(Long.parseLong(tokens[0]));
                 histogram.update((long) Double.parseDouble(tokens[1]));
             }
 
@@ -360,10 +360,13 @@ public class TimerComputationThread extends Thread {
                 countInThisIteration++;
 
                 StringTokenizer tokenizer = new StringTokenizer(currentLine, ",");
-                long lineTimeNS = Long.parseLong(tokenizer.nextElement().toString());
+                long lineTimeMS = Long.parseLong(tokenizer.nextElement().toString());
                 double lineResponseTimeNS = Double.parseDouble(tokenizer.nextElement().toString());
 
-                if((Clock.nsTick() - lineResponseTimeNS) > MathConstant.BILLION && !jobOver(jobId)) {
+                /**
+                 * Recently Added code. Check the functionality
+                 */
+                if (shouldBreak(jobId, lineTimeMS)) {
                     cachedContent.add(0, currentLine);
                     break;
                 }
@@ -373,12 +376,12 @@ public class TimerComputationThread extends Thread {
                 // Either you have collected 1 million instances or you have collected data worth 10 seconds
                 TimerStatsInstance timerStatsInstance;
                 if(countInThisIteration % MathConstant.MILLION == 0 ||
-                        (lineTimeNS - timerStatsStamp.lastTimeNS) > 10 * MathConstant.BILLION ||
+                        (lineTimeMS - timerStatsStamp.lastTimeMS) > 10 * MathConstant.THOUSAND ||
                         (jobOver(jobId) && cachedContent.size() == 0)) {
 
-                    double iterationTimeSec = (lineTimeNS - timerStatsStamp.lastTimeNS) / (float)MathConstant.BILLION;
+                    double iterationTimeSec = (lineTimeMS - timerStatsStamp.lastTimeMS) / (float)MathConstant.THOUSAND;
                     double iterationThroughputSec = countInThisIteration/iterationTimeSec;
-                    double overallThroughputSec = histogram.count()/((lineTimeNS - timerStatsStamp.firstTimeNS) / (float)MathConstant.BILLION);
+                    double overallThroughputSec = histogram.count()/((lineTimeMS - timerStatsStamp.firstTimeMS) / (float)MathConstant.THOUSAND);
                     double iterationMean = (histogram.sum() - timerStatsStamp.lastSum)/countInThisIteration;
 
                     Snapshot snapshot = histogram.getSnapshot();
@@ -398,7 +401,7 @@ public class TimerComputationThread extends Thread {
                             setNinetyEight(snapshot.get98thPercentile() / MathConstant.MILLION).
                             setNinetyNinth(snapshot.get99thPercentile() / MathConstant.MILLION).
                             setNineNineNine(snapshot.get999thPercentile() / MathConstant.MILLION).
-                            setTime(Clock.nsToSec(lineTimeNS));
+                            setTime(Clock.dateFromNS(lineTimeMS));
 
                     bw.write(objectMapper.writeValueAsString(timerStatsInstance) + "\n");
                     bw.flush();
@@ -409,7 +412,7 @@ public class TimerComputationThread extends Thread {
                     timerStatsStamp.
                             setLastCount(histogram.count()).
                             setLastSum(histogram.sum()).
-                            setLastTimeNS(lineTimeNS);
+                            setLastTimeMS(lineTimeMS);
                     countInThisIteration = 0;
                 }
 
@@ -420,14 +423,24 @@ public class TimerComputationThread extends Thread {
         FileHelper.close(br);
     }
 
+    /**
+     * If stepped on data which is in last 60 seconds.
+     * @param jobId
+     * @param lineTimeMS
+     * @return
+     */
+    private boolean shouldBreak(String jobId, double lineTimeMS) {
+        return ((Clock.milliTick() - lineTimeMS) < 60 * MathConstant.THOUSAND) && !jobOver(jobId);
+    }
+
     private boolean canParseContentNow(String jobId, List<String> cachedContent) {
         if(cachedContent.size() == 0)
             return false;
         String lastLine = cachedContent.get(cachedContent.size()-1);
         StringTokenizer tokenizer = new StringTokenizer(lastLine, ",");
-        long lineTimeNS = Long.parseLong(tokenizer.nextElement().toString());
-        long currentTimeNS = Clock.nsTick();
-        return (currentTimeNS - lineTimeNS) > (60 + 30) * MathConstant.BILLION || jobOver(jobId); // Crunch if data is older than 60 + 30 seconds
+        long lineTimeMS = Long.parseLong(tokenizer.nextElement().toString());
+        long currentTimeMS = Clock.milliTick();
+        return (currentTimeMS - lineTimeMS) > (60 + 30) * MathConstant.THOUSAND || jobOver(jobId); // Crunch if data is older than 60 + 30 seconds
     }
 
     private boolean keepRunning() {

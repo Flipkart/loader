@@ -155,15 +155,15 @@ public class CounterThroughputThread extends Thread {
                 while(fileContentLines.size() > 0) {
                     String currentContentLine = fileContentLines.remove(0);
                     String[] tokens = currentContentLine.split(",");
-                    long currentContentTime = Long.parseLong(tokens[0]);
+                    long currentContentTimeMS = Long.parseLong(tokens[0]);
                     long currentContentCount = Long.parseLong(tokens[1]);
                     long opsDone = currentContentCount - lastPoint.count;
-                    long timeTakenNS = currentContentTime - lastPoint.time;
-                    float timeTakenSec = (float)timeTakenNS / MathConstant.BILLION;
+                    long timeTakenMS = currentContentTimeMS - lastPoint.time;
+                    float timeTakenSec = (float)timeTakenMS / MathConstant.THOUSAND;
                     float tps = opsDone/timeTakenSec;
 
                     CounterStatsInstance counterStatsInstance = new CounterStatsInstance().
-                            setTime(Clock.nsToSec(currentContentTime)).
+                            setTime(Clock.dateFromMS(currentContentTimeMS)).
                             setCount(currentContentCount).
                             setThroughput(tps);
                     bw.write(objectMapper.
@@ -175,7 +175,7 @@ public class CounterThroughputThread extends Thread {
                     bwLast.write(objectMapper.writeValueAsString(counterStatsInstance) + "\n");
                     bwLast.flush();
 
-                    lastPoint = new LastPoint(currentContentTime, currentContentCount);
+                    lastPoint = new LastPoint(currentContentTimeMS, currentContentCount);
                     this.fileLastCrunchPointMap.put(jobFile.getAbsolutePath(), lastPoint);
                 }
 
