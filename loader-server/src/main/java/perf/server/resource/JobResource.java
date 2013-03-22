@@ -412,13 +412,13 @@ public class JobResource {
         return FileHelper.readContent(new FileInputStream(timerPath)).replace("\n", "<br>");
     }
 
-    @Path("/{jobId}/stats/jobStats")
+    @Path("/{jobId}/stats/combinedStats")
     @GET
     @Timed
     @Produces(MediaType.TEXT_HTML)
     public String getAllStatsFolder(@PathParam("jobId") String jobId, @Context HttpServletRequest request) {
         String groupsPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "jobStats";
+                + File.separator + "combinedStats";
         File[] groupFolders = new File(groupsPath).listFiles();
         StringBuilder stringBuilder = new StringBuilder();
         for(File groupFolder: groupFolders) {
@@ -427,7 +427,7 @@ public class JobResource {
         return stringBuilder.toString();
     }
 
-    @Path("/{jobId}/stats/jobStats/{groupName}")
+    @Path("/{jobId}/stats/combinedStats/{groupName}")
     @GET
     @Timed
     @Produces(MediaType.TEXT_HTML)
@@ -435,7 +435,7 @@ public class JobResource {
                                     @PathParam("groupName") String groupName,
                                     @Context HttpServletRequest request) {
         String groupPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "jobStats"
+                + File.separator + "combinedStats"
                 + File.separator + groupName;
         File[] groupSubFolders = new File(groupPath).listFiles();
         StringBuilder stringBuilder = new StringBuilder();
@@ -460,7 +460,7 @@ public class JobResource {
         StringBuilder stringBuilder = new StringBuilder();
         for(File counterPath: countersSubFolders) {
             if(counterPath.getAbsolutePath().contains("stats"))
-                stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + counterPath.getName()+"\">" + counterPath.getName().replace("_count.stats","") + "</a><br>");
+                stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + counterPath.getName()+"\">" + counterPath.getName().replace(".stats","") + "</a><br>");
         }
         return stringBuilder.toString();
     }

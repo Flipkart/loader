@@ -297,7 +297,6 @@ public class TimerComputationThread extends Thread {
     }
 
     private void crunchJobTimers(String jobId) throws IOException {
-        logger.info("Crunching Timers for Job Id :"+jobId);
         List<File> jobFiles = FileHelper.pathFiles(this.jobFSConfig.getJobPath(jobId), true);
         for(File jobFile : jobFiles) {
             if(jobFile.getAbsolutePath().contains("timer") && !jobFile.getAbsolutePath().contains("stats")) {
@@ -307,7 +306,6 @@ public class TimerComputationThread extends Thread {
     }
 
     synchronized public void crunchJobFileTimer(String jobId, File jobFile) throws IOException {
-        logger.info("Crunching File :"+jobFile.getAbsolutePath() + " for job id :" + jobId);
         BufferedReader br = FileHelper.bufferedReader(jobFile.getAbsolutePath());
 
         // Skip the number of lines that are already read from this file
@@ -373,6 +371,7 @@ public class TimerComputationThread extends Thread {
                 histogram.update((long)lineResponseTimeNS);
 
                 // Either you have collected 1 million instances or you have collected data worth 10 seconds
+                TimerStatsInstance timerStatsInstance;
                 if(countInThisIteration % MathConstant.MILLION == 0 ||
                         (lineTimeNS - timerStatsStamp.lastTimeNS) > 10 * MathConstant.BILLION ||
                         (jobOver(jobId) && cachedContent.size() == 0)) {
@@ -383,7 +382,7 @@ public class TimerComputationThread extends Thread {
                     double iterationMean = (histogram.sum() - timerStatsStamp.lastSum)/countInThisIteration;
 
                     Snapshot snapshot = histogram.getSnapshot();
-                    TimerStatsInstance timerStatsInstance = new TimerStatsInstance().
+                    timerStatsInstance = new TimerStatsInstance().
                             setMin(histogram.min() / MathConstant.MILLION).
                             setMax(histogram.max() / MathConstant.MILLION).
                             setDumpMean(iterationMean / MathConstant.MILLION).
@@ -403,6 +402,10 @@ public class TimerComputationThread extends Thread {
 
                     bw.write(objectMapper.writeValueAsString(timerStatsInstance) + "\n");
                     bw.flush();
+                    BufferedWriter bwLast = FileHelper.bufferedWriter(jobFile.getAbsolutePath()+"."+FILE_EXTENSION+".last", false);
+                    bwLast.write(objectMapper.writeValueAsString(timerStatsInstance) + "\n");
+                    bwLast.flush();
+                    FileHelper.close(bwLast);
                     timerStatsStamp.
                             setLastCount(histogram.count()).
                             setLastSum(histogram.sum()).

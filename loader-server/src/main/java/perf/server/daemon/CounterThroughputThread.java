@@ -128,7 +128,6 @@ public class CounterThroughputThread extends Thread {
     }
 
     private void crunchJobCounters(String jobId) {
-        logger.info("Crunching Counters for Job Id :"+jobId);
         List<File> jobFiles = FileHelper.pathFiles(this.jobFSConfig.getJobPath(jobId), true);
         for(File jobFile : jobFiles) {
             if(jobFile.getAbsolutePath().contains("cumulative")) {
@@ -138,7 +137,6 @@ public class CounterThroughputThread extends Thread {
     }
 
     public void crunchJobFileCounter(String jobId, File jobFile) {
-        logger.info("Crunching File :"+jobFile.getAbsolutePath() + " for job id :" + jobId);
         List<String> fileContentLines = readFileContentAsList(jobFile);
 
         if(fileContentLines.size() > 0) {
@@ -164,13 +162,18 @@ public class CounterThroughputThread extends Thread {
                     float timeTakenSec = (float)timeTakenNS / MathConstant.BILLION;
                     float tps = opsDone/timeTakenSec;
 
+                    CounterStatsInstance counterStatsInstance = new CounterStatsInstance().
+                            setTime(Clock.nsToSec(currentContentTime)).
+                            setCount(currentContentCount).
+                            setThroughput(tps);
                     bw.write(objectMapper.
-                            writeValueAsString(new CounterStatsInstance().
-                                    setTime(Clock.nsToSec(currentContentTime)).
-                                    setCount(currentContentCount).
-                                    setThroughput(tps))
+                            writeValueAsString(counterStatsInstance)
                             + "\n");
                     bw.flush();
+
+                    BufferedWriter bwLast = FileHelper.bufferedWriter(newFile+ "." + FILE_EXTENSION + ".last", false);
+                    bwLast.write(objectMapper.writeValueAsString(counterStatsInstance) + "\n");
+                    bwLast.flush();
 
                     lastPoint = new LastPoint(currentContentTime, currentContentCount);
                     this.fileLastCrunchPointMap.put(jobFile.getAbsolutePath(), lastPoint);
