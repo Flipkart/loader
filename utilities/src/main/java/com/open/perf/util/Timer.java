@@ -2,13 +2,6 @@ package com.open.perf.util;
 
 import java.util.*;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nitinka
- * Date: 14/2/13
- * Time: 10:17 AM
- * To change this template use File | Settings | File Templates.
- */
 
 /**
  * Allow you to capture time details of various functions.
@@ -18,12 +11,12 @@ import java.util.*;
 public class Timer{
     private String timerName;
     private final String groupName;
-    private Map<Long, Double> timeList;
+    private List<TimeInstance> timeList;
 
     public Timer(String groupName, String timerName) {
         this.timerName = timerName;
         this.groupName = groupName;
-        this.timeList = new LinkedHashMap<Long, Double>();
+        this.timeList = new LinkedList<TimeInstance>();
     }
 
     public TimerContext startTimer() {
@@ -38,7 +31,7 @@ public class Timer{
         return groupName;
     }
 
-    public Map getTimeList() {
+    public List getTimeList() {
         return timeList;
     }
 
@@ -51,7 +44,7 @@ public class Timer{
     }
 
     synchronized public void add(double time) {
-        add(System.nanoTime(), time);
+        add(System.currentTimeMillis(), time);
     }
 
     public void add(Map<Long, Double> timeList) {
@@ -59,7 +52,7 @@ public class Timer{
             add(timeStamp, timeList.get(timeStamp));
     }
 
-    synchronized public void add(long timeStamp, double time) {
-        this.timeList.put(timeStamp, time);
+    synchronized public void add(long timeStampMS, double time) {
+        this.timeList.add(new TimeInstance(timeStampMS, time));
     }
 }
