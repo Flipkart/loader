@@ -11,11 +11,11 @@ public class Counter {
 
     private long initialCount;
     private AtomicLong count;
-    private long lastUpdateTime;
+    private long lastUpdateTimeMS;
 
     public Counter(String groupName, String counterName) {
         this(groupName, counterName, 0);
-        this.lastUpdateTime = System.nanoTime();
+        this.lastUpdateTimeMS = Clock.milliTick();
     }
 
     public Counter(String groupName, String counterName, long initialCount) {
@@ -34,22 +34,22 @@ public class Counter {
     }
 
     synchronized public long increment() {
-        this.lastUpdateTime = System.nanoTime();
+        this.lastUpdateTimeMS = Clock.milliTick();
         return count.incrementAndGet();
     }
 
     synchronized public long increment(long by) {
-        this.lastUpdateTime = System.nanoTime();
+        this.lastUpdateTimeMS = Clock.milliTick();
         return count.addAndGet(by);
     }
 
     synchronized public long decrement() {
-        this.lastUpdateTime = System.nanoTime();
+        this.lastUpdateTimeMS = Clock.milliTick();
         return count.decrementAndGet();
     }
 
     synchronized public long decrement(long by) {
-        this.lastUpdateTime = System.nanoTime();
+        this.lastUpdateTimeMS = Clock.milliTick();
         return count.addAndGet(-by);
     }
 
@@ -58,8 +58,8 @@ public class Counter {
     }
 
     // In nano Second
-    public long getLastUpdateTime() {
-        return this.lastUpdateTime;
+    public long getLastUpdateTimeMS() {
+        return this.lastUpdateTimeMS;
     }
 
     synchronized public Counter reset() {

@@ -1,8 +1,6 @@
 package com.open.perf.core;
 
-import com.open.perf.util.Clock;
-import com.open.perf.util.Counter;
-import com.open.perf.util.FileHelper;
+import com.open.perf.util.*;
 import com.open.perf.util.Timer;
 import org.apache.log4j.Logger;
 
@@ -232,7 +230,7 @@ public class StatsCollectorThread extends Thread{
         for(Counter counter: this.allCounters) {
             BufferedWriter bw = this.fileWriters.get(counter.getCounterName());
             synchronized (counter) {
-                writeToFile(bw, counter.getLastUpdateTime() + "," + counter.count() + "\n");
+                writeToFile(bw, counter.getLastUpdateTimeMS() + "," + counter.count() + "\n");
                 counter.reset();
             }
         }
@@ -243,9 +241,9 @@ public class StatsCollectorThread extends Thread{
             int buffered = 0 ;
             String bufferedData = "";
             BufferedWriter bw = this.fileWriters.get(timer);
-            Map<Long, Double> timeList = timers.get(timer).getTimeList();
-            for(Long timerStamp : timeList.keySet()) {
-                bufferedData += timerStamp.toString() + "," + timeList.get(timerStamp).toString() + "\n";
+            List<TimeInstance> timeList = timers.get(timer).getTimeList();
+            for(TimeInstance timeInstance : timeList) {
+                bufferedData += timeInstance.getAtTime() + "," + timeInstance.getHowMuchTime() + "\n";
                 buffered++;
                 if(buffered % this.BULK_WRITE_SIZE == 0) {
                     writeToFile(bw, bufferedData);
