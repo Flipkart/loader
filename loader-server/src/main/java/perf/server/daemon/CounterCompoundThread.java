@@ -24,14 +24,14 @@ public class CounterCompoundThread extends Thread {
     private Map<String,LastCrunchPoint> fileLastCrunchPointMap;
 
     private static CounterCompoundThread thread;
-    private static final long CLUB_CRUNCH_DURATION; // Club and crunch duration to calculate throughput
-    private static final long CRUNCH_DATA_OLDER_THAN; // As long as job is alive crunch data which is older than 30 secs
+    private static final long CLUB_CRUNCH_DURATION_MS; // Club and crunch duration to calculate throughput
+    private static final long CRUNCH_DATA_OLDER_THAN_MS; // As long as job is alive crunch data which is older than 30 secs
     private static Logger logger;
     private static final String FILE_EXTENSION;
 
     static {
-        CLUB_CRUNCH_DURATION = 10 * MathConstant.BILLION; // Club and crunch duration to calculate throughput
-        CRUNCH_DATA_OLDER_THAN = 30 * MathConstant.BILLION; // As long as job is alive crunch data which is older than 30 secs
+        CLUB_CRUNCH_DURATION_MS = 10 * MathConstant.THOUSAND;
+        CRUNCH_DATA_OLDER_THAN_MS = 30 * MathConstant.THOUSAND;
         logger = Logger.getLogger(CounterCompoundThread.class);
         FILE_EXTENSION = "cumulative";
     }
@@ -140,20 +140,20 @@ public class CounterCompoundThread extends Thread {
             BufferedWriter bw = null;
             try {
                 bw = FileHelper.bufferedWriter(newFile, true);
-                long firstEntryTime = Long.parseLong(cachedContent.get(0).split(",")[0]);
-                long lastEntryTime = Long.parseLong(cachedContent.get(cachedContent.size()-1).split(",")[0]);
+                long firstEntryTimeMS = Long.parseLong(cachedContent.get(0).split(",")[0]);
+                long lastEntryTimeMS = Long.parseLong(cachedContent.get(cachedContent.size()-1).split(",")[0]);
 
                 List<String> dataToCrunch = new ArrayList<String>();
                 if(jobOver(jobId)) {
                     dataToCrunch.addAll(cachedContent);
                     cachedContent.clear();
                 }
-                else if((lastEntryTime - firstEntryTime) > (CRUNCH_DATA_OLDER_THAN + CLUB_CRUNCH_DURATION)){
+                else if((lastEntryTimeMS - firstEntryTimeMS) > (CRUNCH_DATA_OLDER_THAN_MS + CLUB_CRUNCH_DURATION_MS)){
                     while(cachedContent.size() > 0) {
                         String cachedContentLine = cachedContent.remove(0);
                         String[] tokens = cachedContentLine.split(",");
                         long currentContentTime = Long.parseLong(tokens[0]);
-                        if(lastEntryTime - currentContentTime < CRUNCH_DATA_OLDER_THAN) {
+                        if(lastEntryTimeMS - currentContentTime < CRUNCH_DATA_OLDER_THAN_MS) {
                             cachedContent.add(0, cachedContentLine);
                             break;
                         }
@@ -175,33 +175,30 @@ public class CounterCompoundThread extends Thread {
                     long opsDone = 0;
 
                     while(dataToCrunch.size() > 0) {
+                        String dataToCrunchLine = dataToCrunch.remove(0);
+                        String[] tokens = dataToCrunchLine.split(",");
+                        long currentContentTimeMS = Long.parseLong(tokens[0]);
+                        long currentContentCount = Long.parseLong(tokens[1]);
 
-                        while(dataToCrunch.size() > 0) {
-                            String dataToCrunchLine = dataToCrunch.remove(0);
-                            String[] tokens = dataToCrunchLine.split(",");
-                            long currentContentTime = Long.parseLong(tokens[0]);
-                            long currentContentCount = Long.parseLong(tokens[1]);
+                        // Collect Content To Crunch
+                        opsDone += currentContentCount;
 
-                            // Collect Content To Crunch
-                            opsDone += currentContentCount;
+                        // Next Content Time
+                        long nextContentTimeMS = -1;
+                        if(dataToCrunch.size() > 0) {
+                            nextContentTimeMS = Long.parseLong(dataToCrunch.get(0).split(",")[0]);
+                        }
 
-                            // Next Content Time
-                            long nextContentTime = -1;
-                            if(dataToCrunch.size() > 0) {
-                                nextContentTime = Long.parseLong(dataToCrunch.get(0).split(",")[0]);
-                            }
+                        // Crunch if collected data for 10 seconds have been collected and next Content Time is different
+                        if((currentContentTimeMS - lastCrunchPoint.time > CLUB_CRUNCH_DURATION_MS && currentContentTimeMS != nextContentTimeMS )
+                                || nextContentTimeMS == -1 ) {
+                            long totalOpsDoneSoFar = lastCrunchPoint.countSoFar + opsDone;
+                            lastCrunchPoint = new LastCrunchPoint(currentContentTimeMS, totalOpsDoneSoFar);
+                            this.fileLastCrunchPointMap.put(jobFile.getAbsolutePath(), lastCrunchPoint);
 
-                            // Crunch if collected data for 10 seconds have been collected and next Content Time is different
-                            if((currentContentTime - lastCrunchPoint.time > CLUB_CRUNCH_DURATION && currentContentTime != nextContentTime )
-                                    || nextContentTime == -1 ) {
-                                long totalOpsDoneSoFar = lastCrunchPoint.countSoFar + opsDone;
-                                lastCrunchPoint = new LastCrunchPoint(currentContentTime, totalOpsDoneSoFar);
-                                this.fileLastCrunchPointMap.put(jobFile.getAbsolutePath(), lastCrunchPoint);
-
-                                bw.write(lastCrunchPoint.time + "," + lastCrunchPoint.countSoFar + "\n");
-                                bw.flush();
-                                opsDone = 0;
-                            }
+                            bw.write(lastCrunchPoint.time + "," + lastCrunchPoint.countSoFar + "\n");
+                            bw.flush();
+                            opsDone = 0;
                         }
                     }
                 }
@@ -226,6 +223,8 @@ public class CounterCompoundThread extends Thread {
         return !this.aliveJobs.contains(jobId);
     }
 
+    // TBD Remove Random Access File Usage. Its too slow. Make use of BufferedReader smartly.
+    // Over usage of BR would still be faster than RAF
     private List<String> readFileContentAsList(File jobFile) {
         List<String> lines = new ArrayList<String>();
         FileTouchPoint fileTouchPoint = this.fileTouchPointMap.get(jobFile.getAbsolutePath());
