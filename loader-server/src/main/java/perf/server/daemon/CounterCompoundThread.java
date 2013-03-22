@@ -115,7 +115,6 @@ public class CounterCompoundThread extends Thread {
     }
 
     private void crunchJobCounters(String jobId) {
-        logger.info("Crunching Counters for Job Id :"+jobId);
         List<File> jobFiles = FileHelper.pathFiles(this.jobFSConfig.getJobPath(jobId), true);
         for(File jobFile : jobFiles) {
             if(jobFile.getAbsolutePath().contains("counter")
