@@ -20,6 +20,7 @@ import perf.server.daemon.TimerComputationThread;
 import perf.server.domain.JobInfo;
 import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
+import perf.server.domain.TimerStatsInstance;
 import perf.server.exception.JobException;
 import perf.server.util.ResponseBuilder;
 
@@ -28,8 +29,13 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+
 import static perf.server.domain.JobInfo.JOB_STATUS;
 
 /**
@@ -42,14 +48,17 @@ public class JobResource {
     private AgentConfig agentConfig;
     private JobFSConfig jobFSConfig;
 
-    private static ObjectMapper mapper;
+    private static ObjectMapper objectMapper;
     private static Map<String, JobInfo> jobIdInfoMap;
     private static Map<String,Map<String,String>> jobLastResourceMetricInstanceMap;
     private static Logger log;
 
     static {
         jobIdInfoMap = new HashMap<String, JobInfo>();
-        mapper = new ObjectMapper();
+        objectMapper = new ObjectMapper();
+        DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
+        objectMapper.setDateFormat(dateFormat);
+
         jobLastResourceMetricInstanceMap = new HashMap<String, Map<String, String>>();
         log = Logger.getLogger(JobResource.class);
     }
@@ -181,7 +190,7 @@ public class JobResource {
                                       @PathParam("jobId") String jobId,
                                       InputStream statsStream)
             throws IOException, InterruptedException {
-        Map<String,Object> stats = mapper.readValue(statsStream, Map.class);
+        Map<String,Object> stats = objectMapper.readValue(statsStream, Map.class);
         Map<String,String> resourcesLastInstance = jobLastResourceMetricInstanceMap.get(jobId);
         if(resourcesLastInstance == null)
             resourcesLastInstance = new HashMap<String, String>();
@@ -399,7 +408,7 @@ public class JobResource {
                                         @PathParam("agentIp") String agentIp,
                                         @PathParam("groupName") String groupName,
                                         @PathParam("timer") String timer,
-                                        @Context HttpServletRequest request) throws IOException {
+                                        @QueryParam("format") @DefaultValue("raw") String format) throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         String timerPath = jobFSConfig.getJobPath(jobId)
                 + File.separator + "agents"
@@ -409,7 +418,52 @@ public class JobResource {
                 + File.separator + "timers"
                 + File.separator + timer;
 
-        return FileHelper.readContent(new FileInputStream(timerPath)).replace("\n", "<br>");
+        if(format.equalsIgnoreCase("raw"))
+            return FileHelper.readContent(new FileInputStream(timerPath)).replace("\n","<br>");
+        else {
+            // Make Table and return
+
+            String table = "<table border=\"1\">\n" +
+                    "<caption><b>"+timer.replace(".stats","")+" Last Stats Instance</b></caption>" +
+                    "<tr>\n" +
+                    "<th>Stat</th>\n" +
+                    "<th>(Agent - "+agentIp+")Value</th>\n" +
+                    "<th>(All Agents Combined)Value</th>\n" +
+                    "</tr>\n";
+
+            String rowTemplate = "<tr>\n" +
+                    "<td>STAT_NAME</td>\n" +
+                    "<td>AGENT_STAT_VALUE</td>\n" +
+                    "<td>COMBINED_STAT_VALUE</td>\n" +
+                    "</tr>\n";
+
+            String[] stats = new String[]{"Time", "OpsDone", "Min", "Max", "DumpMean", "DumpThroughput", "OverallMean", "OverAllThroughput", "SD", "Fiftieth", "SeventyFifth",
+            "Ninetieth", "NinetyFifth", "NinetyEight", "NinetyNinth", "NineNineNine"};
+
+            Class timerStatsInstanceClass = TimerStatsInstance.class;
+
+            timerPath += ".last";
+            String agentStatsString = FileHelper.readContent(new FileInputStream(timerPath)).trim();
+            TimerStatsInstance agentTimerStatsInstance = objectMapper.
+                    readValue(agentStatsString, TimerStatsInstance.class);
+
+            String combinedStatsPath = timerPath.replace("agents/127.0.0.1/jobStats", "combinedStats");
+            String combinedStatsString = FileHelper.readContent(new FileInputStream(combinedStatsPath)).trim();
+            TimerStatsInstance combinedTimerStatsInstance = objectMapper.
+                    readValue(combinedStatsString, TimerStatsInstance.class);
+
+            for(String stat : stats) {
+                Method m = timerStatsInstanceClass.getDeclaredMethod("get"+stat, new Class[]{});
+                Object agentStatValue = m.invoke(agentTimerStatsInstance);
+                Object combinedStatValue = m.invoke(combinedTimerStatsInstance);
+                table += rowTemplate.
+                        replace("STAT_NAME", stat).
+                        replace("AGENT_STAT_VALUE", agentStatValue.toString()).
+                        replace("COMBINED_STAT_VALUE", combinedStatValue.toString());
+            }
+            table += "</table> ";
+            return table;
+        }
     }
 
     @Path("/{jobId}/stats/combinedStats")
@@ -509,14 +563,45 @@ public class JobResource {
     public String getJobGroupTimer(@PathParam("jobId") String jobId,
                                     @PathParam("groupName") String groupName,
                                     @PathParam("timer") String timer,
-                                    @QueryParam("lines") @DefaultValue("10")IntParam lastLines) throws IOException {
+                                    @QueryParam("format") @DefaultValue("raw")String format) throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         String timerPath = jobFSConfig.getJobPath(jobId)
                 + File.separator + "combinedStats"
                 + File.separator + groupName
                 + File.separator + "timers"
                 + File.separator + timer;
+        if(format.equalsIgnoreCase("raw"))
+            return FileHelper.readContent(new FileInputStream(timerPath)).replace("\n","<br>");
+        else {
+            // Make Table and return
+            timerPath += ".last";
+            String statsString = FileHelper.readContent(new FileInputStream(timerPath)).trim();
+            TimerStatsInstance timerStatsInstance = objectMapper.
+                    readValue(statsString, TimerStatsInstance.class);
 
-        return FileHelper.readContent(new FileInputStream(timerPath)).replace("\n","<br>");
+            String table = "<table border=\"1\">\n" +
+                    "<caption><b>"+timer.replace(".stats","")+" Last Stats Instance</b></caption>" +
+                    "<tr>\n" +
+                    "<th>Stat</th>\n" +
+                    "<th>(All Agents Combined)Value</th>\n" +
+                    "</tr>\n";
+
+            String rowTemplate = "<tr>\n" +
+                    "<td>STAT_NAME</td>\n" +
+                    "<td>STAT_VALUE</td>\n" +
+                    "</tr>\n";
+
+            String[] stats = new String[]{"Time", "OpsDone", "Min", "Max", "DumpMean", "DumpThroughput", "OverallMean", "OverAllThroughput", "SD", "Fiftieth", "SeventyFifth",
+            "Ninetieth", "NinetyFifth", "NinetyEight", "NinetyNinth", "NineNineNine"};
+
+            Class timerStatsInstanceClass = timerStatsInstance.getClass();
+            for(String stat : stats) {
+                Method m = timerStatsInstanceClass.getDeclaredMethod("get"+stat, new Class[]{});
+                Object object = m.invoke(timerStatsInstance);
+                table += rowTemplate.replace("STAT_NAME", stat).replace("STAT_VALUE", object.toString());
+            }
+            table += "</table> ";
+            return table;
+        }
     }
 
     /**
@@ -581,7 +666,7 @@ public class JobResource {
             throws IOException, ExecutionException, InterruptedException, JobException {
         JobInfo jobInfo = new JobInfo().
                 setJobId(UUID.randomUUID().toString());
-        JsonNode jobInfoJsonNode = mapper.readValue(jobJsonStream,JsonNode.class);
+        JsonNode jobInfoJsonNode = objectMapper.readValue(jobJsonStream,JsonNode.class);
 
         // Persisting Job Json in Local File system.
         persistJob(jobInfo.getJobId(), jobInfoJsonNode);
@@ -694,7 +779,7 @@ public class JobResource {
                     monitoringAgentConfig.getAgentPort()).
                     raiseOnDemandResourceRequest(new OnDemandCollectorRequest().
                             setRequestId(jobInfo.getJobId()).
-                            setCollectors(mapper.readValue(requestPart.get("collectors").toString(), List.class)));
+                            setCollectors(objectMapper.readValue(requestPart.get("collectors").toString(), List.class)));
             jobInfo.addMonitoringAgent(agentIp);
             log.info("Request "+requestPart.get("collectors").toString()+" raised on Agent "+agentIp);
         }
@@ -715,9 +800,9 @@ public class JobResource {
             String agentIp = requestPart.get("agent").textValue();
             new MonitoringClient(agentIp,
                     monitoringAgentConfig.getAgentPort()).
-                    raiseMetricPublishRequest(mapper.readValue(requestPart.get("request").
+                    raiseMetricPublishRequest(objectMapper.readValue(requestPart.get("request").
                             toString().
-                            replace("{jobId}",jobInfo.getJobId()),
+                            replace("{jobId}", jobInfo.getJobId()),
                             MetricPublisherRequest.class).
                             setRequestId(jobInfo.getJobId()));
             jobInfo.addMonitoringAgent(agentIp);
