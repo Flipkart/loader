@@ -2,7 +2,7 @@
     "runName":"SampleRun",
     "jobs":[
         {
-            "agents":["172.17.77.37","172.17.77.38","172.17.77.39"],
+            "agents":["127.0.0.1","172.17.77.37","172.17.77.38","172.17.77.39"],
             "classList":[
                 "com.open.perf.sample.function.DummyFunction"
             ],

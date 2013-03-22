@@ -304,6 +304,5 @@ public class CounterCompoundThread extends Thread {
     public static void main(String[] args) {
         CounterCompoundThread t = new CounterCompoundThread(null, 10);
         t.crunchJobFileCounter("", new File("/var/log/loader-server/jobs/a09cc4f7-e868-4b2c-ae55-d9e992c2bd46/jobStats/SampleGroup/counters/tmp1"));
-
     }
 }

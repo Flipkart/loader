@@ -401,7 +401,7 @@ public class TimerComputationThread extends Thread {
                             setNinetyEight(snapshot.get98thPercentile() / MathConstant.MILLION).
                             setNinetyNinth(snapshot.get99thPercentile() / MathConstant.MILLION).
                             setNineNineNine(snapshot.get999thPercentile() / MathConstant.MILLION).
-                            setTime(Clock.dateFromNS(lineTimeMS));
+                            setTime(Clock.dateFromMS(lineTimeMS));
 
                     bw.write(objectMapper.writeValueAsString(timerStatsInstance) + "\n");
                     bw.flush();
@@ -468,6 +468,5 @@ public class TimerComputationThread extends Thread {
         TimerComputationThread t = new TimerComputationThread(null, 10000);
         long startTime = Clock.nsTick();
         t.crunchJobFileTimer("", new File("/var/log/loader-server/jobs/eb9743df-0dfe-4d34-84fe-04054cee8b9d/agents/127.0.0.1/jobStats/SampleGroup/timers/DummyFunction"));
-        System.out.println(Clock.nsTick() - startTime);
     }
 }
