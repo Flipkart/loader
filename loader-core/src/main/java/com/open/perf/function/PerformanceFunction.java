@@ -15,7 +15,9 @@ abstract public class PerformanceFunction {
      * @param context
      * @throws Exception
      */
-    abstract public void init(FunctionContext context) throws Exception;
+    public void init(FunctionContext context) throws Exception{
+        logger.info("In Default PerformanceFunction Init");
+    }
 
     /**
      * Logic that user wants to execute as part of performance run
@@ -30,7 +32,9 @@ abstract public class PerformanceFunction {
      * @param context
      * @throws Exception
      */
-    abstract public void end(FunctionContext context) throws Exception;
+    public void end(FunctionContext context) throws Exception{
+        logger.info("In Default PerformanceFunction end");
+    }
 
     /**
      * Can be used by user to explicitly find out input parameters for a function
