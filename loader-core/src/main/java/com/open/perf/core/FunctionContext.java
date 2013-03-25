@@ -3,7 +3,6 @@ package com.open.perf.core;
 import com.open.perf.util.Clock;
 import com.open.perf.util.Counter;
 import com.open.perf.util.Timer;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
@@ -73,6 +72,11 @@ public class FunctionContext {
     public double getParameterAsDouble(String parameterName) {
         Object value = getParameter(parameterName);
         return value == null ? null : Double.parseDouble(getParameter(parameterName).toString());
+    }
+
+    public boolean getParameterAsBoolean(String parameterName) {
+        Object value = getParameter(parameterName);
+        return value == null ? null : Boolean.parseBoolean(getParameter(parameterName).toString());
     }
 
     public File getParameterAsFile(String parameterName) {
