@@ -17,6 +17,7 @@
             <groupId>com.open.perf</groupId>
             <artifactId>loader-core</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+	    <scope>provided</scope>
         </dependency>
 	<dependency>
   	    <groupId>com.ning</groupId>
@@ -41,6 +42,7 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
+		    <excludeScope>provided</excludeScope>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
