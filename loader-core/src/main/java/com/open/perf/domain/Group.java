@@ -16,7 +16,7 @@ public class Group {
     private int threadStartDelay ;
 
     private static final int DEFAULT_DURATION = 5 * 24 * 60 * 60 * 1000;
-    private static final int DEFAULT_THROUGHPUT = 10000; // per second
+    private static final int DEFAULT_THROUGHPUT = 15000; // per second
     private float throughput;
     private long repeats ;
     private long duration;

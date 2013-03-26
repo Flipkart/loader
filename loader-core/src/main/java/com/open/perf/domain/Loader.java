@@ -52,7 +52,7 @@ public class Loader {
         LoadController loadController =  new LoadController(this.jobId, this.groups);
         loadController.start();
         loadController.join();
-        logger.info("Logs in "+System.getProperty("BASE_PATH")+this.jobId);
+        logger.info("Logs in "+System.getProperty("BASE_PATH","/var/log/loader/")+this.jobId);
         return this;
     }
 
