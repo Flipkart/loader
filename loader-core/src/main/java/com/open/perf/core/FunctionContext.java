@@ -199,16 +199,21 @@ public class FunctionContext {
     }
 
     public FunctionContext async() {
-        try {
-            myThread.wait();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        synchronized (myThread) {
+            try {
+                myThread.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
         }
         return this;
     }
 
     public FunctionContext join() {
-        myThread.notify();
+        synchronized (myThread) {
+            myThread.notify();
+        }
         return this;
     }
 
