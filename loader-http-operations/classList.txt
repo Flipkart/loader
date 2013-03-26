@@ -1,0 +1,2 @@
+com.open.perf.sample.function.DelayFunction
+com.open.perf.sample.function.DummyFunction

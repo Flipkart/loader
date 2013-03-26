@@ -15,6 +15,7 @@
         <module>loader-core</module>
         <module>utilities</module>
         <module>loader-sample</module>
+	<module>loader-http-operations</module>
   </modules>
 
     <build>
