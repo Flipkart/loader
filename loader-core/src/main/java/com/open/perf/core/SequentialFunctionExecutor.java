@@ -18,6 +18,7 @@ public class SequentialFunctionExecutor extends Thread {
     private static final int PAUSE_CHECK_DELAY   =   200;
     private static Logger logger = Logger.getLogger(SequentialFunctionExecutor.class.getName());
     private static final int MILLION = 1000000;
+    private static final int MINIMUM_SLEEP_TIME = 10;
     private List<SyncFunctionExecutor> fExecutors;
 
     private long groupStartTimeNS;
@@ -44,6 +45,7 @@ public class SequentialFunctionExecutor extends Thread {
     private float throughput;
     private int forcedDurationPerIterationNS;
     private int accumulatedSleepIntervalNS; // When This accumulated Sleep Interval Goes above 1 ms then sleep for near by ms value
+    private long totalSleepTimeMS = 0;
 
     public SequentialFunctionExecutor(String threadExecutorName,
                                       List<GroupFunction> groupFunctions,
@@ -197,7 +199,7 @@ public class SequentialFunctionExecutor extends Thread {
         if(this.durationMS > (this.endTime - this.groupStartTimeNS)) {
             logger.info("Sequential Function Executor '" + this.getName() + "' Prematurely(" + (this.durationMS - (this.endTime - this.groupStartTimeNS)) + " ms) Over");
         }
-        logger.info("Sequential Function Executor '" + this.getName() + "' Over. Repeats Done :"+repeatCounter.count());
+        logger.info("Sequential Function Executor '" + this.getName() + "' Over. Repeats Done :"+repeatCounter.count()+". Total Sleep Time: "+this.totalSleepTimeMS+"ms");
     }
 
 
@@ -222,7 +224,7 @@ public class SequentialFunctionExecutor extends Thread {
             SyncFunctionExecutor fe = this.fExecutors.get(functionNo);
             Object classObject = fe.getClassObject();
             try {
-                Method m = classObject.getClass().getDeclaredMethod(methodName, new Class[]{FunctionContext.class});
+                Method m = classObject.getClass().getMethod(methodName, new Class[]{FunctionContext.class});
                 m.invoke(classObject, new Object[]{functionContext});
 
             } catch (Exception e) {
@@ -251,7 +253,7 @@ public class SequentialFunctionExecutor extends Thread {
      */
     private void sleepInterval() {
         int timeToSleepMS = this.accumulatedSleepIntervalNS/MILLION;
-        if(timeToSleepMS <= 0)
+        if(timeToSleepMS <= MINIMUM_SLEEP_TIME)
             return;
 
         // Keeping track of missed Nanoseconds
@@ -262,6 +264,7 @@ public class SequentialFunctionExecutor extends Thread {
         synchronized (this) {
             try {
                 Thread.sleep(timeToSleepMS);
+                this.totalSleepTimeMS += timeToSleepMS;
             } catch (InterruptedException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
