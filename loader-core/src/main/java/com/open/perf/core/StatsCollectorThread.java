@@ -8,7 +8,7 @@ import java.io.*;
 import java.util.*;
 
 public class StatsCollectorThread extends Thread{
-    private static final int STATS_QUEUE_POLL_INTERVAL = 1000; // ms
+    private static final int STATS_QUEUE_POLL_INTERVAL = 5000; // ms
     private static final int SWAP_QUEUE_INTERVAL = 5000; // ms
     private static final int BULK_WRITE_SIZE = 100;
 
@@ -28,7 +28,7 @@ public class StatsCollectorThread extends Thread{
     private final Map<String,FunctionCounter> functionCounters;
     private final List<String> customTimers;
     private final Map<String, Counter> customCounters;
-    private final long startTimeNS;
+    private final long startTimeMS;
     private final HashMap<String, BufferedWriter> filePathWriterMap;
 
     public StatsCollectorThread(String statsBasePath,
@@ -36,7 +36,7 @@ public class StatsCollectorThread extends Thread{
                                 Map<String, FunctionCounter> functionCounters,
                                 List<String> customTimerNames,
                                 Map<String, Counter> customCounters,
-                                long startTimeNS) throws FileNotFoundException {
+                                long startTimeMS) throws FileNotFoundException {
         this.statsBasePath = statsBasePath;
         this.groupStatsQueue = groupStatsQueue;
         this.lastQueueSwapTime = Clock.milliTick();
@@ -45,7 +45,7 @@ public class StatsCollectorThread extends Thread{
         this.functionCounters = functionCounters;
         this.customTimers = customTimerNames;
         this.customCounters = customCounters;
-        this.startTimeNS = startTimeNS;
+        this.startTimeMS = startTimeMS;
         for(String counter : customCounters.keySet()) {
             Counter customCounter = customCounters.get(counter);
             this.allCounters.add(customCounter);
@@ -121,7 +121,7 @@ public class StatsCollectorThread extends Thread{
             for(Counter counter : this.allCounters) {
                 BufferedWriter bw = this.fileWriters.get(counter.getCounterName());
                 try {
-                    bw.write(startTimeNS + ",0\n");
+                    bw.write(startTimeMS + ",0\n");
                     bw.flush();
                 } catch (IOException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -141,7 +141,6 @@ public class StatsCollectorThread extends Thread{
             collectionCount++;
         }
         waitForCollectionToGetOver();
-        swapQueues();
         collectStats(collectionCount++);
         swapQueues();
         collectStats(collectionCount++);
