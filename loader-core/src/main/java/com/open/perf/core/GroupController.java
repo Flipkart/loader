@@ -1,6 +1,5 @@
 package com.open.perf.core;
 
-import com.open.perf.constant.MathConstant;
 import com.open.perf.domain.Group;
 import com.open.perf.domain.GroupFunction;
 import com.open.perf.domain.GroupTimer;
@@ -26,7 +25,7 @@ public class GroupController {
 
     private List<SequentialFunctionExecutor> sequentialFEs;
     private final Group group;
-    private long startTimeNS = -1;
+    private long startTimeMS = -1;
     private RequestQueue requestQueue;
     private Map<String, Counter> customCounters;
     private Map<String, FunctionCounter> functionCounters;
@@ -106,7 +105,7 @@ public class GroupController {
         logger.info("************Group Controller "+this.groupName+" Started**************");
         groupStartDelay();
 
-        this.startTimeNS = Clock.nsTick();
+        this.startTimeMS = Clock.milliTick();
         this.groupStatsQueue = new GroupStatsQueue();
 
         this.started = true;
@@ -137,7 +136,7 @@ public class GroupController {
                 this.functionCounters,
                 this.group.getCustomTimers(),
                 this.customCounters,
-                this.startTimeNS);
+                this.startTimeMS);
 
         this.statsCollectorThread.start();
     }
@@ -168,7 +167,7 @@ public class GroupController {
                 this.group.getParams(),
                 this.group.getDuration(),
                 this.requestQueue,
-                this.startTimeNS,
+                this.startTimeMS,
                 this.functionCounters,
                 this.customCounters,
                 this.group.getCustomTimers(),
@@ -282,7 +281,7 @@ public class GroupController {
     }
 
     public long getRunTimeMS() {
-        return (Clock.nsTick() - this.startTimeNS) / MathConstant.MILLION;
+        return Clock.milliTick() - this.startTimeMS;
     }
 
     public void pause() {
