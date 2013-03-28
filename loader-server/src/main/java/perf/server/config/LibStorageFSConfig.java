@@ -1,38 +1,44 @@
 package perf.server.config;
 
-/**
- * Created by IntelliJ IDEA.
- * User: nitinka
- * Date: 28/12/12
- * Time: 7:07 PM
- * To change this template use File | Settings | File Templates.
- */
 public class LibStorageFSConfig {
-    private String mappingFile;
-    private String libPath;
+    private String userClassLibMappingFile;
+    private String userLibPath;
     private String platformLibPath;
+    private String userClassInfoPath;
 
-    public String getLibPath() {
-        return libPath;
+    public String getUserLibPath() {
+        return userLibPath;
     }
 
-    public void setLibPath(String libPath) {
-        this.libPath = libPath;
+    public LibStorageFSConfig setUserLibPath(String userLibPath) {
+        this.userLibPath = userLibPath;
+        return this;
     }
 
-    public String getMappingFile() {
-        return mappingFile;
+    public String getUserClassLibMappingFile() {
+        return userClassLibMappingFile;
     }
 
-    public void setMappingFile(String mappingFile) {
-        this.mappingFile = mappingFile;
+    public LibStorageFSConfig setUserClassLibMappingFile(String userClassLibMappingFile) {
+        this.userClassLibMappingFile = userClassLibMappingFile;
+        return this;
     }
 
     public String getPlatformLibPath() {
         return platformLibPath;
     }
 
-    public void setPlatformLibPath(String platformLibPath) {
+    public LibStorageFSConfig setPlatformLibPath(String platformLibPath) {
         this.platformLibPath = platformLibPath;
+        return this;
+    }
+
+    public String getUserClassInfoPath() {
+        return userClassInfoPath;
+    }
+
+    public LibStorageFSConfig setUserClassInfoPath(String userClassInfoPath) {
+        this.userClassInfoPath = userClassInfoPath;
+        return this;
     }
 }
