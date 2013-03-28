@@ -211,6 +211,17 @@ public class DeployLibResource {
         System.out.println(discoveredUserFunctions);
     }
 
+    /**
+     * Discover Performance Functions from the uploader userLibJar
+     * @param userLibJar
+     * @return
+     * @throws IOException
+     * @throws ClassNotFoundException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
     public Map<String,Map<String,LinkedHashMap>> discoverUserFunctions(String userLibJar) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Map<String,Map<String,LinkedHashMap>> discoveredUserFunctions = new HashMap<String, Map<String,LinkedHashMap>>();
 
@@ -247,6 +258,12 @@ public class DeployLibResource {
         return discoveredUserFunctions;
     }
 
+    /**
+     * Update Mapping file which has map of User Function Class and Jar containing that class
+     * @param libPath
+     * @param userFunctionClass
+     * @throws IOException
+     */
     synchronized private void mergeMappingFile(String libPath, String userFunctionClass) throws IOException {
         String mappingFile = storageConfig.getUserClassLibMappingFile();
 
