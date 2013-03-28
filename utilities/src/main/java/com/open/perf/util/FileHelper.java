@@ -3,7 +3,6 @@ package com.open.perf.util;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -29,33 +28,6 @@ public class FileHelper {
         bis.close();
         bos.close();
         return targetFile;
-    }
-
-    synchronized public static void mergeMappingFile(String libPath, InputStream classListInputStream, String mappingFile) throws IOException {
-        Properties prop = new Properties();
-        createFile(mappingFile);
-        InputStream mappingFileIS = new FileInputStream(mappingFile);
-        BufferedReader br = new BufferedReader(new InputStreamReader(classListInputStream));
-        try {
-            createFile(mappingFile);
-            prop.load(mappingFileIS);
-
-            String className;
-            while((className = br.readLine()) != null) {
-                if(!className.trim().equals(""))
-                    prop.put(className, libPath);
-            }
-
-            prop.store(new FileOutputStream(mappingFile), "Class and Library Mapping");
-
-        }
-        catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-        finally {
-            br.close();
-            mappingFileIS.close();
-        }
     }
 
     public static void createFile(String filePath) throws IOException {

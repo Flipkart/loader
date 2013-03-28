@@ -55,7 +55,7 @@ public class LibCache {
             classLibMap.clear();
 
             Properties prop = new Properties();
-            InputStream mappingFileIS = new FileInputStream(storageConfig.getMappingFile());
+            InputStream mappingFileIS = new FileInputStream(storageConfig.getUserClassLibMappingFile());
             try {
                 prop.load(mappingFileIS);
                 for(String className : prop.stringPropertyNames()) {

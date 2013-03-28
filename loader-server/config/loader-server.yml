@@ -1,9 +1,10 @@
 appName: "Loader Server"
 
 libStorageFSConfig:
-  libPath: "/usr/share/loader-server/libs"
+  userLibPath: "/usr/share/loader-server/libs"
   platformLibPath: "/usr/share/loader-server/platformLibs"
-  mappingFile: "/usr/share/loader-server/config/mapping.properties"
+  userClassInfoPath: "/usr/share/loader-server/config"
+  userClassLibMappingFile: "/usr/share/loader-server/config/classLibMapping.properties"
 
 agentConfig:
   agentPort: 8888
