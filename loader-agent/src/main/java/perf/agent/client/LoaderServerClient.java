@@ -10,7 +10,6 @@ import perf.agent.config.ServerInfo;
 import javax.ws.rs.core.MediaType;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -164,8 +163,7 @@ public class LoaderServerClient {
                                 replace("{file}", trimmedFileName)).
                 setBody(new FileInputStream(filePath));
 
-        Future<Response> r = b.execute();
-        r.get();
+        b.execute().get();
         asyncHttpClient.close();
     }
 

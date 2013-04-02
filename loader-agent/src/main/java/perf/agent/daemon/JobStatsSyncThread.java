@@ -81,7 +81,8 @@ public class JobStatsSyncThread extends Thread{
 
     private void publishAndDelete(String jobId, File jobFile) {
         try {
-            this.serverClient.publishJobStats(jobId,
+            if(jobFile.length() > 0)
+                this.serverClient.publishJobStats(jobId,
                     jobFile.getAbsolutePath(),
                     trimFileName(jobFile.getAbsolutePath()));
             jobFile.delete();

@@ -283,11 +283,12 @@ public class TimerComputationThread extends Thread {
     private boolean canParseContentNow(String jobId, List<String> cachedContent) {
         if(cachedContent.size() == 0)
             return false;
-        String lastLine = cachedContent.get(cachedContent.size()-1);
+        String lastLine = cachedContent.get(0);
         StringTokenizer tokenizer = new StringTokenizer(lastLine, ",");
         long lineTimeMS = Long.parseLong(tokenizer.nextElement().toString());
         long currentTimeMS = Clock.milliTick();
-        return (currentTimeMS - lineTimeMS) > (60 + 30) * MathConstant.THOUSAND || jobOver(jobId); // Crunch if data is older than 60 + 30 seconds
+        System.out.println("Time Passed :"+(currentTimeMS - lineTimeMS)+"ms");
+        return ((currentTimeMS - lineTimeMS) > (60 + 30) * MathConstant.THOUSAND) || jobOver(jobId); // Crunch if data is older than 60 + 30 seconds
     }
 
     private boolean keepRunning() {
