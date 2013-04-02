@@ -699,19 +699,7 @@ public class JobResource {
         String jobRunNameFile = jobFSConfig.getJobRunNameFile(oldJobId);
         String runName = FileHelper.readContent(new FileInputStream(jobRunNameFile));
         String oldJobJsonFile = jobFSConfig.getRunFile(runName);
-
-        InputStream is = new FileInputStream(oldJobJsonFile);
-        try {
-            return FileHelper.readContent(is);
-        }
-        catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            throw e;
-        }
-        finally {
-            if(is != null)
-                is.close();
-        }
+        return FileHelper.readContent(new FileInputStream(oldJobJsonFile));
     }
 
     private void killJobInAgents(String jobId, Collection<String> agents) throws InterruptedException, ExecutionException, JobException {

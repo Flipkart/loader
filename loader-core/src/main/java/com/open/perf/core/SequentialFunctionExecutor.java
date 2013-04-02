@@ -21,7 +21,7 @@ public class SequentialFunctionExecutor extends Thread {
     private static final int MINIMUM_SLEEP_TIME = 10;
     private List<SyncFunctionExecutor> fExecutors;
 
-    private long groupStartTimeNS;
+    private long groupStartTimeMS;
     private long endTime;
     private long durationMS;
 
@@ -52,7 +52,7 @@ public class SequentialFunctionExecutor extends Thread {
                                       HashMap<String, Object> groupParams,
                                       long durationMS,
                                       RequestQueue requestQueue,
-                                      long groupStartTimeNS,
+                                      long groupStartTimeMS,
                                       Map<String, FunctionCounter> functionCounters,
                                       Map<String, Counter> customCounters,
                                       List<String> customTimerNames,
@@ -70,7 +70,7 @@ public class SequentialFunctionExecutor extends Thread {
         this.durationMS = durationMS;
         this.groupFunctions = groupFunctions;
         this.groupParams = groupParams;
-        this.groupStartTimeNS = groupStartTimeNS;
+        this.groupStartTimeMS = groupStartTimeMS;
         this.requestQueue = requestQueue;
         this.functionCounters = functionCounters;
         this.customCounters = customCounters;
@@ -196,8 +196,8 @@ public class SequentialFunctionExecutor extends Thread {
         this.running = false;
         this.over = true;
 
-        if(this.durationMS > (this.endTime - this.groupStartTimeNS)) {
-            logger.info("Sequential Function Executor '" + this.getName() + "' Prematurely(" + (this.durationMS - (this.endTime - this.groupStartTimeNS)) + " ms) Over");
+        if(this.durationMS > (this.endTime - this.groupStartTimeMS)) {
+            logger.info("Sequential Function Executor '" + this.getName() + "' Prematurely(" + (this.durationMS - (this.endTime - this.groupStartTimeMS)) + " ms) Over");
         }
         logger.info("Sequential Function Executor '" + this.getName() + "' Over. Repeats Done :"+repeatCounter.count()+". Total Sleep Time: "+this.totalSleepTimeMS+"ms");
     }
@@ -290,8 +290,7 @@ public class SequentialFunctionExecutor extends Thread {
             return false;
 
         if(this.durationMS > 0) {
-            return (requestQueue.getRequest() && ((Clock.nsTick() - this.groupStartTimeNS) < this.durationMS * MathConstant.MILLION));
-
+            return (requestQueue.getRequest() && ((Clock.milliTick() - this.groupStartTimeMS) < this.durationMS));
         }
 
         return requestQueue.getRequest();

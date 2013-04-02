@@ -14,9 +14,10 @@ public class HttpGetRunTestClass {
                 addGroup(
                         new Group("HttpGet").
                                 setGroupStartDelay(0).
-                                setRepeats(Integer.parseInt(args[0])).
-                                setThreads(Integer.parseInt(args[1])).
-                                setThroughput(Integer.parseInt(args[2])).
+                                setDuration(Integer.parseInt(args[0])).
+                                setRepeats(Integer.parseInt(args[1])).
+                                setThreads(Integer.parseInt(args[2])).
+                                setThroughput(Integer.parseInt(args[3])).
                                 addFunction(new GroupFunction("HttpGet").
                                         setFunctionClass(HttpGet.class.getCanonicalName()).
                                         addParam(HttpGet.IP_PARAM_URL,"http://localhost:9999/loader-server/agents").
