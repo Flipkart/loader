@@ -1,6 +1,7 @@
 package com.open.perf.util;
 
 import java.io.*;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -18,7 +19,10 @@ public class FileHelper {
         byte[] buffer = new byte[8024];
         createFile(targetFile);
         BufferedInputStream bis = new BufferedInputStream(libStream);
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(targetFile, append));
+
+        FileOutputStream fos = new FileOutputStream(targetFile, append);
+        FileLock fLock = acquireLock(fos, 30000);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
 
         int bytesRead;
         while((bytesRead = bis.read(buffer)) > 0) {
@@ -26,8 +30,35 @@ public class FileHelper {
         }
         bos.flush();
         bis.close();
+        fLock.release();
         bos.close();
         return targetFile;
+    }
+
+    private static FileLock acquireLock(FileOutputStream fos, int timeoutMS) throws IOException {
+        FileLock fLock = null;
+        long timePassed = 0;
+        while(timePassed < timeoutMS && fLock == null) {
+            fLock = fos.getChannel().tryLock();
+            Clock.sleep(10);
+            timePassed += 10;
+        }
+        if(fLock == null)
+            throw new RuntimeException("Couldn't acquire Lock");
+        return fLock;
+    }
+
+    private static FileLock acquireLock(FileInputStream fis, int timeoutMS) throws IOException {
+        FileLock fLock = null;
+        long timePassed = 0;
+        while(timePassed < timeoutMS && fLock == null) {
+            fLock = fis.getChannel().tryLock();
+            Clock.sleep(10);
+            timePassed += 10;
+        }
+        if(fLock == null)
+            throw new RuntimeException("Couldn't acquire Lock");
+        return fLock;
     }
 
     public static void createFile(String filePath) throws IOException {

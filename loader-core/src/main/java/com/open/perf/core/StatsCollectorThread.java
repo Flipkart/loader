@@ -229,6 +229,7 @@ public class StatsCollectorThread extends Thread{
         for(Counter counter: this.allCounters) {
             BufferedWriter bw = this.fileWriters.get(counter.getCounterName());
             synchronized (counter) {
+                if((Clock.milliTick() - counter.getLastUpdateTimeMS() < (4 * STATS_QUEUE_POLL_INTERVAL))) //  Dumb optimization to avoid writing if counter is not being updated in last 4 dump cycles
                 writeToFile(bw, counter.getLastUpdateTimeMS() + "," + counter.count() + "\n");
                 counter.reset();
             }
