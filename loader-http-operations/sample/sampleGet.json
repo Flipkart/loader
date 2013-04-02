@@ -1,0 +1,48 @@
+{
+    "runName":"SampleRun",
+    "jobs":[
+        {
+            "agents":["127.0.0.1"],
+            "classList":[
+                "perf.operation.http.HttpGet"
+            ],
+            "jobPartInfo":{
+                "name":"SampleRun",
+                "groups":{
+                    "groups":[
+                        {
+                            "name":"SampleGroup",
+                            "groupStartDelay":0,
+                            "threadStartDelay":0,
+                            "repeats":-1,
+                            "duration":10000,
+                            "threads":1,
+                            "warmUpTime":-1,
+                            "warmUpRepeats":-1,
+                            "functions":[
+                                {
+                                    "functionalityName":"HttpGet",
+                                    "functionClass":"perf.operation.http.HttpGet",
+                                    "dumpData":true,
+                                    "params":{
+                                        "url" : "http://localhost:9999/loader-server/agents",
+                                        "passOnBody" : false,
+                                        "expectedStatusCode" : 200
+                                    }
+                                }
+                            ],
+                            "dependOnGroups":[],
+                            "params":{},
+                            "timers":[],
+                            "threadResources":[],
+                            "customTimers":[],
+                            "customCounters":[]
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "onDemandResourcesRequests":[],
+    "resourcePublishRequests":[]
+}
