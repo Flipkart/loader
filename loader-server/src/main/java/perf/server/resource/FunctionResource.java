@@ -10,14 +10,13 @@ import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.regex.Pattern;
 
 
 /**
- * Resource that deploy libs on the server
+ * Resource can be used to search available functions that can be used for load generation
  */
 @Path("/functions")
 public class FunctionResource {
@@ -86,15 +85,4 @@ public class FunctionResource {
         }
         return userFunctions;
     }
-
-    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        String externalJar = "/home/nitinka/git/loader2.0/loader-http-operations/target/loader-http-operations-1.0-SNAPSHOT-jar-with-dependencies.jar";
-        LibStorageFSConfig storageFSConfig = new LibStorageFSConfig().
-                setPlatformLibPath("/usr/share/loader-server/platformLibs/").
-                setUserClassInfoPath("/usr/share/loader-server/config").
-                setUserClassLibMappingFile("/usr/share/loader-server/config/classLibMapping.properties");
-        FunctionResource functionResource = new FunctionResource(storageFSConfig);
-        System.out.println(functionResource.getFunctions(".+Get", new BooleanParam("true")));
-    }
-
 }

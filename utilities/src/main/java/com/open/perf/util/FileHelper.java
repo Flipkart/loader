@@ -122,7 +122,7 @@ public class FileHelper {
         return allFiles;
     }
 
-    // Chane it to use Byte data instead of line. Would work for binary data as well
+    // Change it to use Byte data instead of line. Would work for binary data as well
     public static String readContent(InputStream stream) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(stream));
         StringBuffer content = new StringBuffer();
@@ -131,11 +131,20 @@ public class FileHelper {
             while((line = br.readLine()) != null)
                 content.append(line + "\n");
         }
+        catch (java.lang.IllegalStateException stateException) {
+            // Eating away the exception
+        }
         catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            throw e;
         }
         finally {
-            br.close();
+            try {
+                br.close();
+            }
+            catch (java.lang.IllegalStateException stateException) {
+                // Eating away the exception
+            }
         }
         return content.toString();
     }
