@@ -4,6 +4,7 @@ import com.open.perf.core.FunctionContext;
 import org.apache.log4j.Logger;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 abstract public class PerformanceFunction {
     protected static Logger logger = Logger.getLogger(PerformanceFunction.class);
@@ -34,6 +35,14 @@ abstract public class PerformanceFunction {
      */
     public void end(FunctionContext context) throws Exception{
         logger.info("In Default PerformanceFunction end");
+    }
+
+    /**
+     * Can be used by user to get some information about the functionality of this class
+     * @return
+     */
+    public List<String> description() {
+        return "Default Description : Its a Performance Function";
     }
 
     /**
