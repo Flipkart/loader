@@ -63,7 +63,7 @@ public class FunctionResource {
                     userFunctionFileName = userFunctionFileName.replace(".info","");
                     if(Pattern.matches(functionsRegEx, userFunctionFileName)) {
                         if(includeClassInfo.get()) {
-                            Map<String, LinkedHashMap> classInfoMap = new HashMap<String, LinkedHashMap>();
+                            Map<String, Object> classInfoMap = new HashMap<String, Object>();
                             LinkedHashMap classInfo = new LinkedHashMap();
                             Properties prop = new Properties();
                             prop.load(new FileInputStream(userFunctionFile));
@@ -71,7 +71,7 @@ public class FunctionResource {
                             while(classProperties.hasMoreElements()) {
                                 Object property = classProperties.nextElement();
                                 Object propertyValue = prop.get(property);
-                                classInfo.put(property.toString(), objectMapper.readValue(propertyValue.toString(),LinkedHashMap.class));
+                                classInfo.put(property.toString(), objectMapper.readValue(propertyValue.toString(),Object.class));
                             }
                             classInfoMap.put(userFunctionFileName, classInfo);
                             userFunctions.add(classInfoMap);
