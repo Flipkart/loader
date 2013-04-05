@@ -15,6 +15,7 @@
         <module>loader-core</module>
         <module>utilities</module>
 	<module>loader-http-operations</module>
+	<module>loader-common-operations</module>
   </modules>
 
     <build>

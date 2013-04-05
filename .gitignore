@@ -2,3 +2,5 @@ target/
 .log
 .idea/
 *.iml
+log
+*.zip
