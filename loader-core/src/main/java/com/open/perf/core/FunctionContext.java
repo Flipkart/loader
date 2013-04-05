@@ -100,6 +100,14 @@ public class FunctionContext {
     }
 
     /**
+     * Get all parameters
+     * @return
+     */
+    public Map<String, Object> getParameters() {
+        return getGroupedParameters(".*");
+    }
+
+    /**
      * this will group the parameter based in keys matching the regex, prepare a map and return
      * @param keyMatchingRegEx
      * @return

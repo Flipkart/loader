@@ -3,6 +3,7 @@ package com.open.perf.function;
 import com.open.perf.core.FunctionContext;
 import org.apache.log4j.Logger;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -42,7 +43,7 @@ abstract public class PerformanceFunction {
      * @return
      */
     public List<String> description() {
-        return "Default Description : Its a Performance Function";
+        return Arrays.asList(new String[]{"Default Description : Its a Performance Function"});
     }
 
     /**

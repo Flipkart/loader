@@ -31,8 +31,8 @@ public class CSVDataParser extends PerformanceFunction{
         if(csvParameters == null) {
             csvReader.close();
             initializeCSVReader(context);
+            csvParameters = this.csvReader.readNext();
         }
-        csvParameters = this.csvReader.readNext();
         if(csvParameters != null) {
             for(int headerI=0; headerI<headers.length; headerI++) {
                 context.addParameter(headers[headerI], csvParameters[headerI]);
