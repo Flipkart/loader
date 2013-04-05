@@ -8,15 +8,15 @@ import com.open.perf.util.JsonHelper;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class JsonDataParser extends PerformanceFunction{
     public static final String IP_JSON_SOURCE = "jsonSource";
+    public static final String IP_KEYS_TO_EXTRACT = "keysToExtract";
 
     @Override
     public void execute(FunctionContext context) throws Exception {
-        Map<String,Object> toExtractMap = context.getGroupedParameters("efj_(.+)",1);
-        for(String key : toExtractMap.keySet())
+        List<String> keysToExtract = context.getParameterAsList(IP_KEYS_TO_EXTRACT);
+        for(String key : keysToExtract)
             context.addParameter(key, JsonHelper.get(context.getParameterAsString("jsonSource"), key));
     }
 
@@ -40,6 +40,14 @@ public class JsonDataParser extends PerformanceFunction{
                         setMandatory(true).
                         setDefaultValue("").
                         setDescription("Json Source String"));
+
+        parameters.put(IP_KEYS_TO_EXTRACT,
+                new FunctionParameter().
+                        setName(IP_KEYS_TO_EXTRACT).
+                        setMandatory(true).
+                        setDefaultValue("[]").
+                        setDescription("List of keys to be extracted"));
+
         return parameters;
     }
 }
