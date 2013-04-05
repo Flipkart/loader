@@ -35,6 +35,7 @@ public class HttpGet extends PerformanceFunction {
 
     @Override
     public void execute(FunctionContext context) throws Exception {
+        System.out.println("Url: "+context.getParameterAsString(IP_PARAM_URL));
         AsyncHttpClient.BoundRequestBuilder requestBuilder = asyncHttpClient.prepareGet(context.getParameterAsString(IP_PARAM_URL));
         this.httpHandler.setFunctionContext(context);
 
