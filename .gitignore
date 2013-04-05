@@ -2,13 +2,3 @@ target/
 .log
 .idea/
 *.iml
-loader-core/loader-platform.iml
-loader-core/loader-core.iml
-monitoring-service/monitoring-service.iml
-utilities/utilities.iml
-loader-agent/loader-agent.iml
-loader2.0.iml
-loader-server/loader-server.iml
-loader-server/src/main/Main.iml
-loader-http-operations/loader-http-operations.iml
-loader-http-operations/loader-sample.iml
