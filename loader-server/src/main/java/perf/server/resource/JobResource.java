@@ -817,13 +817,19 @@ public class JobResource {
                 // Submitting Job To Agent
                 ArrayNode agentIps = (ArrayNode) jobPart.get("agents");
                 String classListStr = jobPart.get("classList").toString();
+                List<String> classList = objectMapper.readValue(classListStr, List.class);
+                StringBuilder classListWithNewLine = new StringBuilder();
+                for(String clazz : classList)
+                    classListWithNewLine.append(clazz+"\n");
+
                 for(int agentI=0; agentI<agentIps.size();agentI++) {
                     String agentIp = agentIps.get(agentI).textValue();
                     DeploymentHelper.instance().deployPlatformLibsOnAgent(agentIp);
+                    DeploymentHelper.instance().deployClassLibsOnAgent(agentIp, classListWithNewLine.toString().trim());
                     submitJobToAgent(agentIp,
                             jobInfo,
                             jobPart.get("jobPartInfo").toString(),
-                            classListStr);
+                            classListWithNewLine.toString());
                 }
             }  catch (InterruptedException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.

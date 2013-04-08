@@ -6,7 +6,6 @@ import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
 import perf.server.cache.AgentsCache;
-import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
 import perf.server.domain.LoaderAgent;
 import perf.server.util.DeploymentHelper;
@@ -114,7 +113,8 @@ public class AgentResource {
     @POST
     @Timed
     synchronized public void deployPlatformLib(
-            @PathParam("agentIPs") String agentIPs, @QueryParam("force") @DefaultValue("false")BooleanParam force) throws IOException, ExecutionException, InterruptedException {
+            @PathParam("agentIPs") String agentIPs,
+            @QueryParam("force") @DefaultValue("false")BooleanParam force) throws IOException, ExecutionException, InterruptedException {
         for(String agentIP : agentIPs.split(","))
             DeploymentHelper.instance().deployPlatformLibsOnAgent(agentIP, force.get());
     }
@@ -136,9 +136,10 @@ public class AgentResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     synchronized public void deployClassLib(
             @FormDataParam("classList") InputStream classListInputStream,
-            @PathParam("agentIPs") String agentIPs) throws IOException, ExecutionException, InterruptedException {
+            @PathParam("agentIPs") String agentIPs,
+            @QueryParam("force") @DefaultValue("false")BooleanParam force) throws IOException, ExecutionException, InterruptedException {
         String classes = FileHelper.readContent(classListInputStream);
         for(String agentIP : agentIPs.split(","))
-            new LoaderAgentClient(agentIP, agentConfig.getAgentPort()).deployOperationLibs(classes);
+            DeploymentHelper.instance().deployClassLibsOnAgent(agentIP, classes, force.get());
     }
 }

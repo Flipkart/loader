@@ -46,7 +46,7 @@ public class LibCache {
         return self;
     }
 
-    public static LibCache getInstance() {
+    public static LibCache instance() {
         return self;
     }
 
