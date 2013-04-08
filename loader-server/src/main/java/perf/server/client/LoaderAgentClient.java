@@ -97,10 +97,6 @@ public class LoaderAgentClient {
     }
 
     public void submitJob(String jobId, String jobJson, String classListStr) throws ExecutionException, InterruptedException, JobException {
-        //logger.debug("Job Id :"+jobId);
-        //logger.debug("Job Json :"+jobJson);
-        //logger.debug("Class List Str :"+classListStr);
-
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 preparePost("http://"+this.getHost()+":" +
