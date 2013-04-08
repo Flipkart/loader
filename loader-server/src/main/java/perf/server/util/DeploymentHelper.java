@@ -2,15 +2,13 @@ package perf.server.util;
 
 import com.open.perf.util.FileHelper;
 import org.apache.log4j.Logger;
+import perf.server.cache.LibCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
 import perf.server.config.LibStorageFSConfig;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Properties;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -21,6 +19,7 @@ import java.util.concurrent.ExecutionException;
  * To change this template use File | Settings | File Templates.
  */
 public class DeploymentHelper {
+    private static Logger log = Logger.getLogger(DeploymentHelper.class);
     private static DeploymentHelper myInstance;
     private final AgentConfig agentConfig;
     private final LibStorageFSConfig libStorageConfig;
@@ -40,7 +39,6 @@ public class DeploymentHelper {
         return myInstance;
     }
 
-    private static Logger log = Logger.getLogger(DeploymentHelper.class);
 
     /**
      * Deploy platform libs on agent if they are not already deployed at all or if new platform libs not deployed
@@ -95,4 +93,67 @@ public class DeploymentHelper {
             prop.store(new FileOutputStream(platformFile), "Platform Lib Information");
         }
     }
+
+    public void deployClassLibsOnAgent(String agentIP, String classListStr) throws IOException, ExecutionException, InterruptedException {
+        deployClassLibsOnAgent(agentIP, classListStr, false);
+    }
+
+    public void deployClassLibsOnAgent(String agentIP, String classListStr, boolean force) throws IOException, ExecutionException, InterruptedException {
+        Map<String, String> libClassListMap = makeLibClassListMap(classListStr);
+        String agentClassLibInfoFile = this.agentConfig.getAgentClassLibInfoFile(agentIP);
+        File classLibDeploymentFile = new File (agentClassLibInfoFile);
+
+        Properties prop = new Properties();
+        if(classLibDeploymentFile.exists()) {
+            prop.load(new FileInputStream(classLibDeploymentFile.getAbsolutePath()));
+            boolean deployLib;
+
+            for(String lib : libClassListMap.keySet()) {
+                Object libDeploymentTimeAgentObj = prop.get(lib);
+                if(libDeploymentTimeAgentObj == null)
+                    deployLib = true;
+                else {
+                    long libDeploymentTimeAgent = Long.parseLong(libDeploymentTimeAgentObj.toString());
+                    long libDeploymentTimeServer = new File(lib).lastModified();
+                    deployLib = libDeploymentTimeServer > libDeploymentTimeAgent;
+                }
+
+                if(deployLib || force) {
+                    new LoaderAgentClient(agentIP,agentConfig.getAgentPort()).
+                            deployClassLibs(lib,
+                                    libClassListMap.get(lib));
+                    prop.put(lib, String.valueOf(System.currentTimeMillis()));
+                }
+            }
+        }
+        else {
+            FileHelper.createFilePath(classLibDeploymentFile.getAbsolutePath());
+            for(String lib : libClassListMap.keySet()) {
+                new LoaderAgentClient(agentIP,agentConfig.getAgentPort()).
+                        deployClassLibs(lib,
+                                libClassListMap.get(lib));
+                prop.put(lib, String.valueOf(System.currentTimeMillis()));
+            }
+        }
+        prop.store(new FileOutputStream(classLibDeploymentFile), "ClassLib Deployment times");
+    }
+
+
+    private Map<String, String> makeLibClassListMap(String classListStr) {
+        Map<String,String> libClassListMap = new HashMap<String, String>();
+        List<String> libsRequired = new ArrayList<String>();
+        for(String className : classListStr.split("\n")) {
+            libsRequired.add(LibCache.instance().getLibsMapWithClassAsKey().get(className));
+        }
+
+        for(String libRequired : libsRequired) {
+            String libClassListStr = "";
+            List<String> libClassList = LibCache.instance().getLibsMapWithLibAsKey().get(libRequired);
+            for(String libClass : libClassList)
+                libClassListStr += libClass + "\n";
+            libClassListMap.put(libRequired, libClassListStr.trim());
+        }
+        return libClassListMap;
+    }
+
 }

@@ -11,10 +11,6 @@ import perf.server.exception.JobException;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -37,7 +33,7 @@ public class LoaderAgentClient {
     private static final String RESOURCE_JOB_KILL = "/loader-agent/jobs/{jobId}/kill";
 
     static {
-        libCache = LibCache.getInstance();
+        libCache = LibCache.instance();
     }
 
     public LoaderAgentClient(String host, int port) {
@@ -78,20 +74,17 @@ public class LoaderAgentClient {
         return this;
     }
 
-    public LoaderAgentClient deployOperationLibs(String classList) throws IOException, ExecutionException, InterruptedException {
+    public LoaderAgentClient deployClassLibs(String libPath, String classList) throws IOException, ExecutionException, InterruptedException {
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        Map<String,String> libClassListMap = makeLibClassListMap(classList);
 
-        for(String lib : libClassListMap.keySet()) {
-            AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
-                    preparePost("http://" + this.getHost() + ":" + this.getPort() + RESOURCE_OPERATION_LIB).
-                    setHeader("Content-Type", MediaType.MULTIPART_FORM_DATA).
-                    addBodyPart(new FilePart("lib", new File(lib))).
-                    addBodyPart(new StringPart("classList", libClassListMap.get(lib)));
+        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+                preparePost("http://" + this.getHost() + ":" + this.getPort() + RESOURCE_OPERATION_LIB).
+                setHeader("Content-Type", MediaType.MULTIPART_FORM_DATA).
+                addBodyPart(new FilePart("lib", new File(libPath))).
+                addBodyPart(new StringPart("classList", classList));
 
-            Future<Response> r = b.execute();
-            r.get();
-        }
+        Future<Response> r = b.execute();
+        r.get();
         asyncHttpClient.close();
         return this;
     }
@@ -143,25 +136,4 @@ public class LoaderAgentClient {
             asyncHttpClient.close();
         }
     }
-
-    private Map<String, String> makeLibClassListMap(String classList) {
-
-        Map<String,String> libClassListMap = new HashMap<String, String>();
-        List<String> libsRequired = new ArrayList<String>();
-        for(String className : classList.split("\n")) {
-            libsRequired.add(libCache.getLibsMapWithClassAsKey().get(className));
-        }
-
-        for(String libRequired : libsRequired) {
-            String libClassListStr = "";
-            List<String> libClassList = libCache.getLibsMapWithLibAsKey().get(libRequired);
-            for(String libClass : libClassList)
-                libClassListStr += libClass + "\n";
-            libClassListMap.put(libRequired, libClassListStr.trim());
-        }
-        return libClassListMap;
-    }
-
-
-
 }

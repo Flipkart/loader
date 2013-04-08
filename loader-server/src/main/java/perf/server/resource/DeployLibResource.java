@@ -37,7 +37,7 @@ public class DeployLibResource {
 
     public DeployLibResource(LibStorageFSConfig storageConfig) throws MalformedURLException {
         this.storageConfig = storageConfig;
-        this.libCache = LibCache.getInstance();
+        this.libCache = LibCache.instance();
         this.objectMapper = new ObjectMapper();
         loadPlatformLibsInCustomClassLoader();
     }

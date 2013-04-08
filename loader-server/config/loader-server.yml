@@ -9,8 +9,8 @@ libStorageFSConfig:
 agentConfig:
   agentPort: 8888
   agentInfoFile: "/usr/share/loader-server/agents/{agentIp}/agentInfo.json"
-  agentPlatformLibInfoFile: "/usr/share/loader-server/agents/{agentIp}/platformLibInfo.properties"
-  agentClassLibInfoFile: "/usr/share/loader-server/agents/{agentIp}/classLibInfo.json"
+  agentPlatformLibInfoFile: "/usr/share/loader-server/agents/{agentIp}/deployment/platform.properties"
+  agentClassLibInfoFile: "/usr/share/loader-server/agents/{agentIp}/deployment/classLib.properties"
 
 monitoringAgentConfig:
   agentPort: 7777

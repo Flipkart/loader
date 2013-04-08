@@ -14,7 +14,7 @@
                             "name":"SampleGroup",
                             "groupStartDelay":0,
                             "threadStartDelay":0,
-                            "repeats":100000,
+                            "repeats":10,
                             "duration":200000,
                             "threads":1,
                             "throughput":500,

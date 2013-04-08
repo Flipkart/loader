@@ -14,6 +14,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +41,7 @@ public class JobResource {
             @FormDataParam("jobJson") InputStream jobJson,
             @FormDataParam("classList") String classListStr) throws IOException {
 
-        List<String> classList = mapper.readValue(classListStr, List.class);
+        List<String> classList = Arrays.asList(classListStr.split("\n"));
 
         String jobClassPath = LibCache.getInstance().
                 buildJobClassPath(classList);
