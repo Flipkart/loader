@@ -28,7 +28,6 @@ public class TimerComputationThread extends Thread {
     private boolean stop = false;
     private List<String> aliveJobs;
 
-    private Map<String,FileTouchPoint> fileTouchPointMap;
     private Map<String,Long> fileAlreadyReadLinesMap;       // This would be further improved once i implement small file approach for big timer files
     private Map<String,Histogram> fileHistogramMap;       // This would be further improved once i implement small file approach for big timer files
     private Map<String,TimerStatsStamp> fileTimerStatsMap;       // This would be further improved once i implement small file approach for big timer files
@@ -98,7 +97,6 @@ public class TimerComputationThread extends Thread {
         this.jobFSConfig = jobFSConfig;
         this.checkInterval = checkInterval;
         this.aliveJobs = new ArrayList<String>();
-        this.fileTouchPointMap = new HashMap<String, FileTouchPoint>();
         this.fileAlreadyReadLinesMap = new HashMap<String, Long>();
         this.fileHistogramMap = new HashMap<String, Histogram>();
         this.fileTimerStatsMap = new HashMap<String, TimerStatsStamp>();
@@ -265,6 +263,7 @@ public class TimerComputationThread extends Thread {
 
             }
             this.fileTimerStatsMap.put(jobFile.getAbsolutePath(), timerStatsStamp);
+            this.fileHistogramMap.put(jobFile.getAbsolutePath(), histogram);
             FileHelper.close(bw);
         }
         FileHelper.close(br);

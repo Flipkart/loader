@@ -13,6 +13,7 @@ import perf.server.client.LoaderAgentClient;
 import perf.server.client.MonitoringClient;
 import perf.server.config.AgentConfig;
 import perf.server.config.JobFSConfig;
+import perf.server.config.LibStorageFSConfig;
 import perf.server.config.MonitoringAgentConfig;
 import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
@@ -22,6 +23,7 @@ import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
 import perf.server.domain.TimerStatsInstance;
 import perf.server.exception.JobException;
+import perf.server.util.DeploymentHelper;
 import perf.server.util.ResponseBuilder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,6 +49,7 @@ public class JobResource {
     private final MonitoringAgentConfig monitoringAgentConfig;
     private AgentConfig agentConfig;
     private JobFSConfig jobFSConfig;
+    private LibStorageFSConfig libStoragConfig;
 
     private static ObjectMapper objectMapper;
     private static Map<String, JobInfo> jobIdInfoMap;
@@ -65,10 +68,12 @@ public class JobResource {
 
     public JobResource(AgentConfig agentConfig,
                        MonitoringAgentConfig monitoringAgentConfig,
-                       JobFSConfig jobFSConfig) {
+                       JobFSConfig jobFSConfig,
+                       LibStorageFSConfig libStoragConfig) {
         this.agentConfig = agentConfig;
         this.monitoringAgentConfig = monitoringAgentConfig;
         this.jobFSConfig = jobFSConfig;
+        this.libStoragConfig = libStoragConfig;
     }
     /**
      Following call simulates html form post call, where somebody uploads a file to server
@@ -799,7 +804,7 @@ public class JobResource {
     }
 
     /**
-     * Submitting Job To Loader Agent
+     * Submitting Job To Loader Agents
      * @param jobs
      * @param jobInfo
      * @throws IOException
@@ -811,15 +816,14 @@ public class JobResource {
             try {
                 // Submitting Job To Agent
                 ArrayNode agentIps = (ArrayNode) jobPart.get("agents");
-                String operationClassListStr = jobPart.get("classList").toString();
+                String classListStr = jobPart.get("classList").toString();
                 for(int agentI=0; agentI<agentIps.size();agentI++) {
                     String agentIp = agentIps.get(agentI).textValue();
-                    log.info("Agent Ip :"+agentIp);
-                    new LoaderAgentClient(agentIp,
-                            agentConfig.getAgentPort()).
-                            submitJob(jobInfo.getJobId(), jobPart.get("jobPartInfo").toString(), operationClassListStr);
-                    jobInfo.jobRunningInAgent(agentIp);
-                    log.info("Load Job "+jobPart.get("jobPartInfo").toString()+" submitted to Agent "+agentIp);
+                    DeploymentHelper.instance().deployPlatformLibsOnAgent(agentIp);
+                    submitJobToAgent(agentIp,
+                            jobInfo,
+                            jobPart.get("jobPartInfo").toString(),
+                            classListStr);
                 }
             }  catch (InterruptedException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -827,6 +831,24 @@ public class JobResource {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
         }
+    }
+
+    /**
+     * Submitting Job To Loader Agent
+     * @param agentIp
+     * @param jobInfo
+     * @param jobPart
+     * @throws IOException
+     * @throws JobException
+     */
+    private void submitJobToAgent(String agentIp, JobInfo jobInfo, String jobPart, String classListStr)
+            throws InterruptedException, ExecutionException, JobException {
+        log.info("Agent Ip :"+agentIp);
+        new LoaderAgentClient(agentIp,
+                agentConfig.getAgentPort()).
+                submitJob(jobInfo.getJobId(), jobPart, classListStr);
+        jobInfo.jobRunningInAgent(agentIp);
+        log.info("Load Job " + jobPart + " submitted to Agent " + agentIp);
     }
 
     private void persistJob(String jobId, JsonNode jobInfoJsonNode) throws IOException {

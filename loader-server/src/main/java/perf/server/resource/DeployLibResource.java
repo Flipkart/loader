@@ -42,6 +42,7 @@ public class DeployLibResource {
         loadPlatformLibsInCustomClassLoader();
     }
 
+    // Needed. It allows me to instantiate UDF and extract information
     private void loadPlatformLibsInCustomClassLoader() throws MalformedURLException {
         customClassLoader = null;
         URLClassLoader loader = (URLClassLoader)ClassLoader.getSystemClassLoader();

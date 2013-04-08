@@ -2,21 +2,23 @@ package perf.server.resource;
 
 import com.open.perf.util.FileHelper;
 import com.sun.jersey.multipart.FormDataParam;
+import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
 import perf.server.cache.AgentsCache;
-import perf.server.cache.LibCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
 import perf.server.domain.LoaderAgent;
+import perf.server.util.DeploymentHelper;
 import perf.server.util.ResponseBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -112,10 +114,12 @@ public class AgentResource {
     @POST
     @Timed
     synchronized public void deployPlatformLib(
-            @PathParam("agentIPs") String agentIPs) throws IOException, ExecutionException, InterruptedException {
+            @PathParam("agentIPs") String agentIPs, @QueryParam("force") @DefaultValue("false")BooleanParam force) throws IOException, ExecutionException, InterruptedException {
         for(String agentIP : agentIPs.split(","))
-            new LoaderAgentClient(agentIP, agentConfig.getAgentPort()).deployPlatformLibs();
+            DeploymentHelper.instance().deployPlatformLibsOnAgent(agentIP, force.get());
     }
+
+
 
 /*
     Following call simulates html form post call
