@@ -8,18 +8,8 @@ package perf.agent.config;
  * To change this template use File | Settings | File Templates.
  */
 public class JobStatSyncConfig {
-    private String jobBasePath;
     private int syncInterval;
     private int linesToSyncInOneGo;
-
-    public String getJobBasePath() {
-        return jobBasePath;
-    }
-
-    public JobStatSyncConfig setJobBasePath(String jobBasePath) {
-        this.jobBasePath = jobBasePath;
-        return this;
-    }
 
     public int getSyncInterval() {
         return syncInterval;

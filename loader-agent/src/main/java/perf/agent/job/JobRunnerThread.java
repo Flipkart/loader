@@ -27,8 +27,8 @@ public class JobRunnerThread extends Thread{
         try {
             this.jobInfo.setPort(SocketHelper.getFreePort(10000, 10010));
             String jobCmd = jobInfo.getJobCmd().
-                    replace("$PORT", String.valueOf(jobInfo.getPort())).
-                    replace("$JOB_ID", jobInfo.getJobId());
+                    replace("{port}", String.valueOf(jobInfo.getPort())).
+                    replace("{portId}", jobInfo.getJobId());
 
             log.info("Running Command \n"+jobCmd);
             jobProcess = Runtime.getRuntime().exec(jobCmd);
