@@ -4,6 +4,7 @@ import com.open.perf.util.Clock;
 import com.open.perf.util.FileHelper;
 import org.apache.log4j.Logger;
 import perf.agent.client.LoaderServerClient;
+import perf.agent.config.JobFSConfig;
 import perf.agent.config.JobStatSyncConfig;
 import perf.agent.config.ServerInfo;
 
@@ -22,10 +23,13 @@ public class JobStatsSyncThread extends Thread{
     private ServerInfo serverInfo;
     private static Logger log = Logger.getLogger(JobStatsSyncThread.class);
     private LoaderServerClient serverClient;
+    private final JobFSConfig jobFSConfig;
 
-    public static JobStatsSyncThread initialize(JobStatSyncConfig config, LoaderServerClient serverClient) {
+    public static JobStatsSyncThread initialize(JobStatSyncConfig config,
+                                                JobFSConfig jobFSConfig,
+                                                LoaderServerClient serverClient) {
         if(jobStatsSyncThread == null) {
-            jobStatsSyncThread = new JobStatsSyncThread(config, serverClient);
+            jobStatsSyncThread = new JobStatsSyncThread(config, jobFSConfig, serverClient);
             jobStatsSyncThread.start();
         }
         return jobStatsSyncThread;
@@ -35,9 +39,10 @@ public class JobStatsSyncThread extends Thread{
         return jobStatsSyncThread;
     }
 
-    private JobStatsSyncThread(JobStatSyncConfig config, LoaderServerClient serverClient) {
+    private JobStatsSyncThread(JobStatSyncConfig config, JobFSConfig jobFSConfig, LoaderServerClient serverClient) {
         this.syncConfig = config;
         this.jobIds = new ArrayList<String>();
+        this.jobFSConfig = jobFSConfig;
         this.serverClient = serverClient;
     }
 
@@ -68,7 +73,7 @@ public class JobStatsSyncThread extends Thread{
     }
 
     private void syncJobStatFiles(String jobId) {
-        String jobPath = syncConfig.getJobBasePath() + File.separator + jobId;
+        String jobPath = jobFSConfig.getJobPath(jobId);
 
         List<File> jobFiles = FileHelper.pathFiles(jobPath, true);
         Collections.sort(jobFiles);
@@ -96,7 +101,7 @@ public class JobStatsSyncThread extends Thread{
     }
 
     private String trimFileName(String absoluteFileName) {
-        String trimmedFileName = absoluteFileName.replace(syncConfig.getJobBasePath(), "");
+        String trimmedFileName = absoluteFileName.replace(jobFSConfig.getJobBasePath(), "");
         trimmedFileName = trimmedFileName.substring(0, trimmedFileName.indexOf(".part"));
         return trimmedFileName;
     }

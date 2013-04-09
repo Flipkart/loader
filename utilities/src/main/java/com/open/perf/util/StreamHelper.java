@@ -1,9 +1,6 @@
 package com.open.perf.util;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -26,12 +23,35 @@ public class StreamHelper {
             }
         }
         catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
+            throw e;
         }
         finally {
             bufferedReader.close();
         }
 
         return content.toString();
+    }
+
+    public static void readAndWrite(InputStream is, OutputStream os) throws IOException {
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+
+        while((bytesRead = is.read(buffer)) > 0) {
+            os.write(buffer, 0, bytesRead);
+            os.flush();
+        }
+    }
+
+    public static void readAndWrite(InputStream inputStream, PrintWriter writer) throws IOException {
+        BufferedWriter bw = new BufferedWriter(writer);
+        InputStreamReader reader = new InputStreamReader(inputStream);
+        char[] buffer = new char[4096];
+        int charsRead;
+
+        while((charsRead = reader.read(buffer)) > 0) {
+            writer.write(buffer, 0, charsRead);
+            writer.flush();
+        }
     }
 }

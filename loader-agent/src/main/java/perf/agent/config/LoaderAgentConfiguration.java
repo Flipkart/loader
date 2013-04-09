@@ -9,8 +9,6 @@ package perf.agent.config;
  */
 
 import com.yammer.dropwizard.config.Configuration;
-import org.omg.PortableInterceptor.ServerRequestInfo;
-import perf.agent.job.JobInfo;
 
 import java.util.Map;
 
@@ -19,6 +17,7 @@ public class LoaderAgentConfiguration extends Configuration {
     private ServerInfo serverInfo;
     private LibStorageConfig libStorageConfig;
     private JobProcessorConfig jobProcessorConfig;
+    private JobFSConfig jobFSConfig;
     private JobStatSyncConfig jobStatSyncConfig;
     private Map registrationParams;
 
@@ -68,5 +67,13 @@ public class LoaderAgentConfiguration extends Configuration {
 
     public void setRegistrationParams(Map registrationParams) {
         this.registrationParams = registrationParams;
+    }
+
+    public JobFSConfig getJobFSConfig() {
+        return jobFSConfig;
+    }
+
+    public void setJobFSConfig(JobFSConfig jobFSConfig) {
+        this.jobFSConfig = jobFSConfig;
     }
 }
