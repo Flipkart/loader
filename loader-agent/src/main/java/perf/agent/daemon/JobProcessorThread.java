@@ -1,7 +1,9 @@
 package perf.agent.daemon;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.agent.client.LoaderServerClient;
+import perf.agent.config.JobFSConfig;
 import perf.agent.config.JobProcessorConfig;
 import perf.agent.job.JobInfo;
 import perf.agent.job.JobRunnerThread;
@@ -12,32 +14,30 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
- * Created by IntelliJ IDEA.
- * User: nitinka
- * Date: 30/12/12
- * Time: 7:59 PM
- * To change this template use File | Settings | File Templates.
+ * This thread processes the incoming job requests.
  */
 public class JobProcessorThread extends Thread{
 
     private Map<String, JobRunnerThread> jobRunners;
     private Queue<JobInfo> pendingJobs;
-    private static Logger log = Logger.getLogger(JobProcessorThread.class);
+    private static Logger logger = LoggerFactory.getLogger(JobProcessorThread.class);
     private JobProcessorConfig config;
     private static JobProcessorThread jobProcessorThread;
     private final LoaderServerClient serverClient;
+    private final JobFSConfig jobFSConfig;
 
-    private JobProcessorThread(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient) {
+    private JobProcessorThread(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient, JobFSConfig jobFSConfig) {
         this.config = jobProcessorConfig;
         this.jobRunners = new HashMap<String, JobRunnerThread>();
         this.pendingJobs = new LinkedBlockingDeque<JobInfo>();
         this.serverClient = serverClient;
+        this.jobFSConfig = jobFSConfig;
         start();
     }
 
-    public static JobProcessorThread initialize(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient) {
+    public static JobProcessorThread initialize(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient, JobFSConfig jobFSConfig) {
         if(jobProcessorThread == null)
-            jobProcessorThread = new JobProcessorThread(jobProcessorConfig, serverClient);
+            jobProcessorThread = new JobProcessorThread(jobProcessorConfig, serverClient, jobFSConfig);
         return jobProcessorThread;
     }
 
@@ -86,7 +86,7 @@ public class JobProcessorThread extends Thread{
 
                 }
             }
-            log.debug("Jobs Still Running :"+jobRunners.size());
+            logger.debug("Jobs Still Running :"+jobRunners.size());
         }
     }
 
@@ -99,18 +99,17 @@ public class JobProcessorThread extends Thread{
                     JobInfo jobInfo = pendingJobs.poll();
                     if(jobInfo == null)
                         break;
-                    jobRunners.put(jobInfo.getJobId(), new JobRunnerThread(jobInfo));
+                    jobRunners.put(jobInfo.getJobId(), new JobRunnerThread(jobInfo, jobFSConfig));
                     JobStatsSyncThread.getInstance().addJobToSync(jobInfo.getJobId());
                 }
             }
-            log.debug("Jobs Still Pending :"+pendingJobs.size());
+            logger.debug("Jobs Still Pending :"+pendingJobs.size());
 
         }
     }
 
     private void waitForNextIteration() {
         try {
-            //log.debug("Sleeping for "+config.getCheckInterval()+" ms before checking for completed/pending jobs");
             Thread.sleep(config.getCheckInterval());
         } catch (InterruptedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.

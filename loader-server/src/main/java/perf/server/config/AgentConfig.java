@@ -2,7 +2,7 @@ package perf.server.config;
 
 public class AgentConfig {
     private int agentPort;
-    private String agentInfoFile, agentPlatformLibInfoFile, agentClassLibInfoFile;
+    private String agentInfoFile, agentPlatformLibInfoFile, agentClassLibInfoFile, jobLogUrl;
 
     public int getAgentPort() {
         return agentPort;
@@ -38,5 +38,16 @@ public class AgentConfig {
     public AgentConfig setAgentClassLibInfoFile(String agentClassLibInfoFile) {
         this.agentClassLibInfoFile = agentClassLibInfoFile;
         return this;
+    }
+
+    public String getJobLogUrl(String jobId, String agentIp) {
+        return jobLogUrl.
+                replace("{jobId}", jobId).
+                replace("{agentIp}", agentIp).
+                replace("{port}", String.valueOf(agentPort));
+    }
+
+    public void setJobLogUrl(String jobLogUrl) {
+        this.jobLogUrl = jobLogUrl;
     }
 }

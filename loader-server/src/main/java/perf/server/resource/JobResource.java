@@ -124,18 +124,18 @@ public class JobResource {
     }
 
     @Produces(MediaType.APPLICATION_JSON)
+    @GET
+    @Timed
+    public Map getJobs() {
+        return jobIdInfoMap;
+    }
+
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/{jobId}")
     @GET
     @Timed
     public JobInfo getJob(@PathParam("jobId") String jobId) {
         return jobIdInfoMap.get(jobId);
-    }
-
-    @Produces(MediaType.APPLICATION_JSON)
-    @GET
-    @Timed
-    public Map getJobs() {
-        return jobIdInfoMap;
     }
 
     /**
@@ -235,6 +235,21 @@ public class JobResource {
         jobLastResourceMetricInstanceMap.put(jobId, resourcesLastInstance);
     }
 
+    @Path("/{jobId}/logs")
+    @GET
+    @Timed
+    @Produces(MediaType.TEXT_HTML)
+    public String getJobLogs(@PathParam("jobId") String jobId) throws IOException {
+        if(!isJobPresent(jobId))
+            throw new WebApplicationException(ResponseBuilder.jobNotFound(jobId));
+
+        JobInfo jobInfo = objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(jobId)), JobInfo.class);
+        StringBuilder stringBuilder = new StringBuilder();
+        for(String agentIp : jobInfo.getAgentsJobStatus().keySet()) {
+            stringBuilder.append("<a href=\"" + agentConfig.getJobLogUrl(jobId, agentIp) +"\">" + agentIp + ".log</a><br>");
+        }
+        return stringBuilder.toString();
+    }
 
     @Path("/{jobId}/stats")
     @GET
@@ -624,7 +639,8 @@ public class JobResource {
                         @PathParam("jobId") String jobId) throws InterruptedException, ExecutionException, IOException {
 
         String agentIp = request.getRemoteAddr();
-        jobIdInfoMap.get(jobId).jobCompletedInAgent(agentIp);
+        JobInfo jobInfo = jobIdInfoMap.get(jobId);
+        jobInfo.jobCompletedInAgent(agentIp);
 
         if(jobCompleted(jobId)) {
             stopMonitoring(jobId);
@@ -632,6 +648,8 @@ public class JobResource {
             CounterThroughputThread.getCounterCruncherThread().removeJob(jobId);
             TimerComputationThread.getComputationThread().removeJob(jobId);
         }
+        objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobId)), jobInfo);
+
     }
 
 
@@ -691,6 +709,8 @@ public class JobResource {
         CounterCompoundThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
         CounterThroughputThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
         TimerComputationThread.getComputationThread().addJob(jobInfo.getJobId());
+
+        objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobInfo.getJobId())), jobInfo);
         return jobInfo;
     }
 
@@ -707,7 +727,8 @@ public class JobResource {
         return FileHelper.readContent(new FileInputStream(oldJobJsonFile));
     }
 
-    private void killJobInAgents(String jobId, Collection<String> agents) throws InterruptedException, ExecutionException, JobException {
+    private void killJobInAgents(String jobId, Collection<String> agents)
+            throws InterruptedException, ExecutionException, JobException, IOException {
         JobInfo jobInfo = jobIdInfoMap.get(jobId);
         if(!jobInfo.getJobStatus().equals(JOB_STATUS.COMPLETED) &&
                 !jobInfo.getJobStatus().equals(JOB_STATUS.KILLED)) {
@@ -721,6 +742,7 @@ public class JobResource {
                 }
             }
         }
+        objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobId)), jobInfo);
     }
 
     /**

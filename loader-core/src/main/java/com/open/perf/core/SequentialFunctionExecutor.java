@@ -119,7 +119,11 @@ public class SequentialFunctionExecutor extends Thread {
         while(canRepeat()) {
             if(this.isPaused()) {
                 logger.info(this.getName()+" is paused");
-                Clock.sleep(PAUSE_CHECK_DELAY);
+                try {
+                    Clock.sleep(PAUSE_CHECK_DELAY);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
                 continue;
             }
             long iterationStartTimeNS = Clock.nsTick();

@@ -1,7 +1,10 @@
 package perf.agent.job;
 
+import com.open.perf.util.FileHelper;
 import com.open.perf.util.SocketHelper;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import perf.agent.config.JobFSConfig;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,14 +18,17 @@ public class JobRunnerThread extends Thread{
     private Process jobProcess;
     private boolean running = false;
 
-    private static Logger log = Logger.getLogger(JobRunnerThread.class);
-    public JobRunnerThread(JobInfo jobInfo) {
+    private static Logger logger = LoggerFactory.getLogger(JobRunnerThread.class);
+    private final JobFSConfig jobFSConfig;
+
+    public JobRunnerThread(JobInfo jobInfo, JobFSConfig jobFSConfig) {
         this.jobInfo = jobInfo;
+        this.jobFSConfig = jobFSConfig;
         start();
     }
 
     public void run() {
-        log.info("Running Job :"+jobInfo.getJobId());
+        logger.info("Running Job :"+jobInfo.getJobId());
         this.running = true;
         try {
             this.jobInfo.setPort(SocketHelper.getFreePort(10000, 10010));
@@ -30,8 +36,12 @@ public class JobRunnerThread extends Thread{
                     replace("{port}", String.valueOf(jobInfo.getPort())).
                     replace("{portId}", jobInfo.getJobId());
 
-            log.info("Running Command \n"+jobCmd);
-            jobProcess = Runtime.getRuntime().exec(jobCmd);
+            FileHelper.createFilePath(jobFSConfig.getJobLogFile(jobInfo.getJobId()));
+            logger.info("Running Command \n"+jobCmd);
+            jobProcess = Runtime.getRuntime().exec(new String[]{
+                    "/bin/sh",
+                    "-c",
+                    jobCmd});
             new JobStdOutThread();
             new JobStdErrThread();
             jobProcess.waitFor();
@@ -41,7 +51,7 @@ public class JobRunnerThread extends Thread{
         } catch (InterruptedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-        log.info("Job :"+jobInfo.getJobId() +" Ended");
+        logger.info("Job :"+jobInfo.getJobId() +" Ended");
         this.running = false;
     }
 
@@ -60,7 +70,7 @@ public class JobRunnerThread extends Thread{
                 String line;
                 try {
                     while((line = br.readLine()) != null) {
-                        log.info(line);
+                        logger.info(line);
                     }
                     br.close();
                     Thread.sleep(1000);
@@ -84,7 +94,7 @@ public class JobRunnerThread extends Thread{
                 String line;
                 try {
                     while((line = br.readLine()) != null) {
-                        log.error(line);
+                        logger.error(line);
                     }
                     br.close();
                     Thread.sleep(1000);

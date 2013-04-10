@@ -1,5 +1,6 @@
 package perf.agent.daemon;
 
+import com.open.perf.util.Clock;
 import perf.agent.client.LoaderServerClient;
 import java.io.IOException;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class AgentRegistrationThread extends Thread{
                 }
             }
             try {
-                Thread.sleep(registrationInterval);
+                Clock.sleep(registrationInterval);
             } catch (InterruptedException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }

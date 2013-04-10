@@ -21,19 +21,14 @@ public class Clock {
         return System.currentTimeMillis();
     }
 
-    public static void sleep(int ms) {
-        try {
-            Thread.sleep(ms);
-        }
-        catch(InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public static void sleep(int ms) throws InterruptedException {
+        Thread.sleep(ms);
     }
 
-    public static void sleepSec(int secs) {
+    public static void sleepSec(int secs) throws InterruptedException {
         sleep(secs * 1000);
     }
-    public static void sleepMin(int mins) {
+    public static void sleepMin(int mins) throws InterruptedException {
         sleep(mins * 60 * 1000);
     }
 

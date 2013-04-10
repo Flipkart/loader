@@ -247,8 +247,12 @@ public class CounterThroughputThread extends Thread {
         int totalInterval = 0;
         int granularSleep = 200;
         while(totalInterval < this.checkInterval && !this.stop) {
-            Clock.sleep(granularSleep);
-            totalInterval += granularSleep;
+            try {
+                Clock.sleep(granularSleep);
+                totalInterval += granularSleep;
+            } catch (InterruptedException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
         }
     }
 

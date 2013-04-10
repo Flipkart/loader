@@ -1,13 +1,13 @@
 package com.open.perf.core;
 
+import com.open.perf.domain.Group;
+import com.open.perf.domain.Groups;
+import com.open.perf.util.Clock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileNotFoundException;
 import java.util.*;
-
-import com.open.perf.domain.Group;
-import com.open.perf.util.Clock;
-import org.apache.log4j.Logger;
-
-import com.open.perf.domain.Groups;
 
 /**
  * Entry point of Load Generation.
@@ -23,11 +23,7 @@ public class LoadController extends Thread{
     // Map of Group Name and Group Bean (Which contains user information)
     private Map<String,Group> groupMap;
 
-    private static Logger logger;
-
-    static {
-        logger =   Logger.getLogger(LoadController.class);
-    }
+    private static Logger logger = LoggerFactory.getLogger(LoadController.class);
 
     private final String jobId;
 
@@ -128,16 +124,16 @@ public class LoadController extends Thread{
                     boolean groupCanRun = true;
 
                     List<String> dependencyList = this.groupDependency.get(group);
-                       if(dependencyList != null) {
-                           for(String dependOnGroup : dependencyList) {
-                               GroupController dependOnGroupController = this.groupControllersMap.get(dependOnGroup);
+                    if(dependencyList != null) {
+                        for(String dependOnGroup : dependencyList) {
+                            GroupController dependOnGroupController = this.groupControllersMap.get(dependOnGroup);
 
-                               if(!dependOnGroupController.started() || dependOnGroupController.isAlive()) {
-                                   groupCanRun = false;
-                                   break;
-                               }
-                           }
-                       }
+                            if(!dependOnGroupController.started() || dependOnGroupController.isAlive()) {
+                                groupCanRun = false;
+                                break;
+                            }
+                        }
+                    }
 
                     if(groupCanRun)
                         groupsToRun.add(this.groupControllersMap.get(group));
@@ -166,7 +162,11 @@ public class LoadController extends Thread{
                 break;
 
             logger.info("Groups Can not be started :"+groupsCanNotStartThisTime);
-            Clock.sleep(250);
+            try {
+                Clock.sleep(250);
+            } catch (InterruptedException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
         }
 
         // By now there is no group pending to get started
@@ -176,7 +176,11 @@ public class LoadController extends Thread{
 
     private void waitTillGroupsFinish(Collection<GroupController> groupControllers) {
         while(haveLiveGroups(groupControllers))
-            Clock.sleep(250);
+            try {
+                Clock.sleep(250);
+            } catch (InterruptedException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
     }
 
     private boolean haveLiveGroups(Collection<GroupController> groupControllers) {

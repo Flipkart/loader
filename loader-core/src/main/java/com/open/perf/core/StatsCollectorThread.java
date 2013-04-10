@@ -159,7 +159,11 @@ public class StatsCollectorThread extends Thread{
 
     private void waitForCollectionToGetOver() {
         while(this.collectingStats) {
-            Clock.sleep(200);
+            try {
+                Clock.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
         }
     }
 

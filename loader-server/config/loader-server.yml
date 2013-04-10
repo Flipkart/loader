@@ -11,6 +11,7 @@ agentConfig:
   agentInfoFile: "/usr/share/loader-server/agents/{agentIp}/agentInfo.json"
   agentPlatformLibInfoFile: "/usr/share/loader-server/agents/{agentIp}/deployment/platform.properties"
   agentClassLibInfoFile: "/usr/share/loader-server/agents/{agentIp}/deployment/classLib.properties"
+  jobLogUrl: "http://{agentIp}:{port}/loader-agent/jobs/{jobId}/log"
 
 monitoringAgentConfig:
   agentPort: 7777
@@ -21,6 +22,7 @@ jobFSConfig:
   jobsPath: "/var/log/loader-server/jobs"
   jobRunNameFile: "/var/log/loader-server/jobs/{jobId}/runName.txt"
   jobPath: "/var/log/loader-server/jobs/{jobId}"
+  jobStatusFile: "/var/log/loader-server/jobs/{jobId}/status.json"
   combinedStatsPath: "/var/log/loader-server/jobs/{jobId}/combinedStats"
   jobAgentStatsPath: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/jobStats"
   jobResourceMonitoringFile: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/Resources/{resource}.txt"

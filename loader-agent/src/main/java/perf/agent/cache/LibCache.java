@@ -1,18 +1,17 @@
 package perf.agent.cache;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import perf.agent.config.LibStorageConfig;
 
 import javax.xml.ws.WebServiceException;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: nitinka
- * Date: 28/12/12
- * Time: 9:25 PM
- * To change this template use File | Settings | File Templates.
+ * Maintain information about the libraries deployed on the agent
+ * Which is further used in forking loader process to do performance run
  */
 public class LibCache {
     private Map<String,String> classLibMap;
