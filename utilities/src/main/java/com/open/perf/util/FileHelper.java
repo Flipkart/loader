@@ -40,8 +40,12 @@ public class FileHelper {
         long timePassed = 0;
         while(timePassed < timeoutMS && fLock == null) {
             fLock = fos.getChannel().tryLock();
-            Clock.sleep(10);
-            timePassed += 10;
+            try {
+                Clock.sleep(10);
+                timePassed += 10;
+            } catch (InterruptedException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
         }
         if(fLock == null)
             throw new RuntimeException("Couldn't acquire Lock");
@@ -53,8 +57,12 @@ public class FileHelper {
         long timePassed = 0;
         while(timePassed < timeoutMS && fLock == null) {
             fLock = fis.getChannel().tryLock();
-            Clock.sleep(10);
-            timePassed += 10;
+            try {
+                Clock.sleep(10);
+                timePassed += 10;
+            } catch (InterruptedException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
         }
         if(fLock == null)
             throw new RuntimeException("Couldn't acquire Lock");

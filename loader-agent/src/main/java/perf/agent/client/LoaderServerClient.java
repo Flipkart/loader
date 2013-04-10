@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.agent.config.ServerInfo;
 
 import javax.ws.rs.core.MediaType;
@@ -15,11 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
- * Created with IntelliJ IDEA.
- * User: nitinka
- * Date: 7/2/13
- * Time: 3:23 PM
- * To change this template use File | Settings | File Templates.
+ * Client to interact with Loader Server
  */
 public class LoaderServerClient {
     private String host;
@@ -28,7 +25,7 @@ public class LoaderServerClient {
     private static final String RESOURCE_JOB_STATS = "/loader-server/jobs/{jobId}/jobStats?file={file}";
     private static final String RESOURCE_AGENTS = "/loader-server/agents";
 
-    private static Logger log = Logger.getLogger(LoaderServerClient.class);
+    private static Logger logger = LoggerFactory.getLogger(LoaderServerClient.class);
 
     public LoaderServerClient(String host, int port) {
         this.host = host;
@@ -63,7 +60,7 @@ public class LoaderServerClient {
     public void register(Map<String, Object> registrationParams)
             throws ExecutionException, InterruptedException, IOException {
 
-        log.info("Registering to Loader Server");
+        logger.info("Registering to Loader Server");
         ObjectNode node = new ObjectMapper().createObjectNode();
         for(String key : registrationParams.keySet())
         node.put(key, registrationParams.get(key).toString());
@@ -79,11 +76,11 @@ public class LoaderServerClient {
         Future<Response> r = b.execute();
         r.get();
         if(r.get().getStatusCode() != 200) {
-            log.error("Post on "+RESOURCE_AGENTS);
+            logger.error("Post on "+RESOURCE_AGENTS);
         }
         else {
-            log.info("Registration Succeeded");
-            log.info(r.get().getResponseBody());
+            logger.info("Registration Succeeded");
+            logger.info(r.get().getResponseBody());
         }
 
         asyncHttpClient.close();
@@ -108,42 +105,14 @@ public class LoaderServerClient {
         Future<Response> r = b.execute();
         r.get();
         if(r.get().getStatusCode() != 204) {
-            log.error("Delete on "+RESOURCE_JOB_OVER.
+            logger.error("Delete on "+RESOURCE_JOB_OVER.
                     replace("{jobId}", jobId));
         }
         asyncHttpClient.close();
     }
 
     /**
-     * Publish Job Stats to Loader Agent
-     * @param jobId
-     * @param filePath
-     * @param linesRead
-     * @throws IOException
-     * @throws ExecutionException
-     * @throws InterruptedException
-     */
-/*
-    public void publishJobStats(String jobId, String filePath, String linesRead) throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
-                preparePost("http://" +
-                        this.getHost() +
-                        ":" +
-                        this.getPort() +
-                        RESOURCE_JOB_STATS.
-                                replace("{jobId}", jobId).
-                                replace("{file}", filePath)).
-                setBody(linesRead);
-
-        Future<Response> r = b.execute();
-        r.get();
-        asyncHttpClient.close();
-    }
-*/
-
-    /**
-     * Publish Job Stats to Loader Agent
+     * Publish Job Stats to Loader Server
      * @param jobId
      * @param filePath
      * @param trimmedFileName

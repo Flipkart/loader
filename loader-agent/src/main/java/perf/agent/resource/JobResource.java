@@ -1,6 +1,5 @@
 package perf.agent.resource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.open.perf.util.FileHelper;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.dropwizard.jersey.params.IntParam;
@@ -13,9 +12,7 @@ import perf.agent.daemon.JobStatsSyncThread;
 import perf.agent.job.JobInfo;
 import perf.agent.util.ResponseBuilder;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -34,7 +31,6 @@ public class JobResource {
     private JobProcessorThread jobProcessorThread = JobProcessorThread.getInstance();
     private JobProcessorConfig jobProcessorConfig;
     private JobStatsSyncThread statsSyncThread;
-    private static ObjectMapper mapper = new ObjectMapper();
     private final JobFSConfig jobFSconfig;
 
     public JobResource(JobProcessorConfig jobProcessorConfig, JobFSConfig jobFSConfig) {
@@ -90,13 +86,14 @@ public class JobResource {
     @Timed
     public InputStream log(@PathParam("jobId") String jobId,
                       @QueryParam("lines") @DefaultValue("100") IntParam lines,
-                      @QueryParam("grep") @DefaultValue("") String grepExp,
-                      @Context HttpServletResponse httpResponse) throws IOException, InterruptedException {
+                      @QueryParam("grep") @DefaultValue("") String grepExp)
+            throws IOException, InterruptedException {
         if(jobExists(jobId)) {
             String jobLogFile = jobFSconfig.getJobLogFile(jobId);
             if(new File(jobLogFile).exists()) {
-                StringBuilder cmdBuilder = new StringBuilder();
 
+                // Build Command
+                StringBuilder cmdBuilder = new StringBuilder();
                 if(lines.get().intValue() > 0) {
                     cmdBuilder.append("tail -"+lines.get().intValue() + " " + jobLogFile);
                 }
@@ -110,7 +107,9 @@ public class JobResource {
                     }
                 }
 
+                // Execute Command
                 if(!cmdBuilder.equals("")) {
+                    cmdBuilder.append(" | sed 's/$/<br>/'");
                     String[] cmd = {
                             "/bin/sh",
                             "-c",

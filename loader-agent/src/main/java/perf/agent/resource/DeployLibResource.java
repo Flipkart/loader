@@ -4,7 +4,8 @@ import com.open.perf.util.FileHelper;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.agent.cache.LibCache;
 import perf.agent.config.LibStorageConfig;
 
@@ -25,7 +26,7 @@ import java.util.Properties;
 @Path("/libs")
 
 public class DeployLibResource {
-    private static Logger log = Logger.getLogger(DeployLibResource.class);
+    private static Logger logger = LoggerFactory.getLogger(DeployLibResource.class);
     private LibStorageConfig storageConfig;
     private LibCache libCache;
 

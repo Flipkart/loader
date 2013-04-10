@@ -153,7 +153,11 @@ public class GroupController {
      * induce delay before starting a thread
      */
     private void threadStartDelay() {
-        Clock.sleep(group.getThreadStartDelay());
+        try {
+            Clock.sleep(group.getThreadStartDelay());
+        } catch (InterruptedException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
     }
 
     /**

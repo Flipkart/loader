@@ -2,15 +2,17 @@ package perf.agent.daemon;
 
 import com.open.perf.util.Clock;
 import com.open.perf.util.FileHelper;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobFSConfig;
 import perf.agent.config.JobStatSyncConfig;
-import perf.agent.config.ServerInfo;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -20,8 +22,7 @@ public class JobStatsSyncThread extends Thread{
     private List<String> jobIds;
     private JobStatSyncConfig syncConfig;
     private static JobStatsSyncThread jobStatsSyncThread;
-    private ServerInfo serverInfo;
-    private static Logger log = Logger.getLogger(JobStatsSyncThread.class);
+    private static Logger logger = LoggerFactory.getLogger(JobStatsSyncThread.class);
     private LoaderServerClient serverClient;
     private final JobFSConfig jobFSConfig;
 
@@ -66,10 +67,12 @@ public class JobStatsSyncThread extends Thread{
                     syncJobStatFiles(jobId);
                 }
             }
-            System.out.println("Sleeping for :"+this.syncConfig.getSyncInterval()+"ms");
-            Clock.sleep(this.syncConfig.getSyncInterval());
+            try {
+                Clock.sleep(this.syncConfig.getSyncInterval());
+            } catch (InterruptedException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
         }
-
     }
 
     private void syncJobStatFiles(String jobId) {
@@ -77,7 +80,7 @@ public class JobStatsSyncThread extends Thread{
 
         List<File> jobFiles = FileHelper.pathFiles(jobPath, true);
         Collections.sort(jobFiles);
-        log.info("Job "+jobId+" Files to Read and may have to publish "+jobFiles.size());
+        logger.info("Job "+jobId+" Files to Read and may have to publish "+jobFiles.size());
         for(File jobFile : jobFiles) {
             if(jobFile.getAbsolutePath().endsWith("done"))
                 publishAndDelete(jobId, jobFile);

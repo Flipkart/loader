@@ -16,6 +16,7 @@ public class JobFSConfig {
     private String runsPath;
     private String jobsPath;
     private String jobPath;
+    private String jobStatusFile;
 
     public String getJobStatsPath(String jobId) {
         return combinedStatsPath.replace("{jobId}", jobId);
@@ -82,6 +83,14 @@ public class JobFSConfig {
 
     public void setJobPath(String jobPath) {
         this.jobPath = jobPath;
+    }
+
+    public String getJobStatusFile(String jobId) {
+        return jobStatusFile.replace("{jobId}", jobId);
+    }
+
+    public void setJobStatusFile(String jobStatusFile) {
+        this.jobStatusFile = jobStatusFile;
     }
 }
 

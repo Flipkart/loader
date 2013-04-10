@@ -2,13 +2,6 @@ package perf.server.domain;
 
 import java.util.*;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nitinka
- * Date: 7/2/13
- * Time: 3:32 PM
- * To change this template use File | Settings | File Templates.
- */
 public class JobInfo {
 
     public static enum JOB_STATUS {
