@@ -42,10 +42,6 @@ public class SyncFunctionExecutor {
             this.executionSuccessful = false;
             this.exceptionCause = exception.getCause();
             this.exception 		= exception;
-            if(this.exceptionCause != null)
-                this.exceptionCause.getStackTrace();
-            if(this.exception != null)
-                this.exception.printStackTrace();
 
         } finally {
             executed = true;
