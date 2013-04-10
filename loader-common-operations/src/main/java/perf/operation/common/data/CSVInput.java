@@ -15,7 +15,7 @@ import java.util.List;
  * Can be used for data driven Performance Runs.
  * Pass in a csv file and
  */
-public class CSVDataParser extends PerformanceFunction{
+public class CSVInput extends PerformanceFunction{
     private String[] headers;
     private CSVReader csvReader;
     public static final String IP_CSV_FILE = "csvFile";
