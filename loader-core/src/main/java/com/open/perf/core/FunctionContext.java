@@ -55,28 +55,27 @@ public class FunctionContext {
         return value == null ? null : value.toString();
     }
 
-    public int getParameterAsInteger(String parameterName) {
+    public Integer getParameterAsInteger(String parameterName) {
         Object value = getParameter(parameterName);
         return value == null ? null : Integer.parseInt(getParameter(parameterName).toString());
     }
 
-    public long getParameterAsLong(String parameterName) {
+    public Long getParameterAsLong(String parameterName) {
         Object value = getParameter(parameterName);
         return value == null ? null : Long.parseLong(getParameter(parameterName).toString());
     }
 
-    public float getParameterAsFloat(String parameterName) {
+    public Float getParameterAsFloat(String parameterName) {
         Object value = getParameter(parameterName);
         return value == null ? null : Float.parseFloat(getParameter(parameterName).toString());
     }
-    public double getParameterAsDouble(String parameterName) {
+    public Double getParameterAsDouble(String parameterName) {
         Object value = getParameter(parameterName);
         return value == null ? null : Double.parseDouble(getParameter(parameterName).toString());
     }
 
     public boolean getParameterAsBoolean(String parameterName) {
-        Object value = getParameter(parameterName);
-        return value == null ? null : Boolean.parseBoolean(getParameter(parameterName).toString());
+        return Boolean.parseBoolean((String)getParameter(parameterName));
     }
 
     public File getParameterAsFile(String parameterName) {
@@ -91,7 +90,7 @@ public class FunctionContext {
 
     public Map getParameterAsMap(String parameterName) throws IOException {
         Object value = getParameter(parameterName);
-        return value == null ? null : mapper.readValue(value.toString().replace("'", "\""), Map.class);
+        return value == null ? new HashMap() : mapper.readValue(value.toString().replace("'", "\""), Map.class);
     }
 
     public List getParameterAsList(String parameterName) throws IOException {
