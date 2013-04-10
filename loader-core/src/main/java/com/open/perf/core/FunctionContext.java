@@ -89,7 +89,7 @@ public class FunctionContext {
         return value == null ? null : new FileInputStream(getParameter(parameterName).toString());
     }
 
-    public Map getParameterAsHash(String parameterName) throws IOException {
+    public Map getParameterAsMap(String parameterName) throws IOException {
         Object value = getParameter(parameterName);
         return value == null ? null : mapper.readValue(value.toString().replace("'", "\""), Map.class);
     }

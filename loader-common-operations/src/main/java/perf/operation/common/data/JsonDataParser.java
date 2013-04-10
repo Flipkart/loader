@@ -8,6 +8,7 @@ import com.open.perf.util.JsonHelper;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class JsonDataParser extends PerformanceFunction{
     public static final String IP_JSON_SOURCE = "jsonSource";
@@ -15,9 +16,10 @@ public class JsonDataParser extends PerformanceFunction{
 
     @Override
     public void execute(FunctionContext context) throws Exception {
-        List<String> keysToExtract = context.getParameterAsList(IP_KEYS_TO_EXTRACT);
-        for(String key : keysToExtract)
-            context.addParameter(key, JsonHelper.get(context.getParameterAsString("jsonSource"), key));
+        Map keysToExtract = context.getParameterAsMap(IP_KEYS_TO_EXTRACT);
+        for(Object key : keysToExtract.keySet())
+            context.addParameter(keysToExtract.get(key).toString(),
+                    JsonHelper.get(context.getParameterAsString("jsonSource"), key.toString()));
     }
 
     @Override
@@ -45,8 +47,9 @@ public class JsonDataParser extends PerformanceFunction{
                 new FunctionParameter().
                         setName(IP_KEYS_TO_EXTRACT).
                         setMandatory(true).
-                        setDefaultValue("[]").
-                        setDescription("List of keys to be extracted"));
+                        setDefaultValue("{}").
+                        setDescription("json representing key (key is nested json keys) " +
+                                "and value is the name with which you want to store the extracted values"));
 
         return parameters;
     }
