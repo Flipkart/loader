@@ -2,17 +2,16 @@ package perf.operation.http;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
-import com.ning.http.client.ProxyServer;
 import com.ning.http.client.Response;
 import com.open.perf.core.FunctionContext;
 import com.open.perf.function.FunctionParameter;
 import com.open.perf.function.PerformanceFunction;
+import perf.operation.http.constant.Constants;
+import perf.operation.http.util.HttpRequestHelper;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Future;
 
 import static com.open.perf.core.FunctionContext.FailureType.FUNCTIONAL_FAILURE;
@@ -23,17 +22,7 @@ import static com.open.perf.core.FunctionContext.FailureType.FUNCTIONAL_FAILURE;
     Example docs to follow :
     - http://jfarcand.wordpress.com/2010/12/21/going-asynchronous-using-asynchttpclient-the-basic/
  */
-public class HttpGet extends PerformanceFunction {
-    public static final String IP_PARAM_URL = "url";
-    public static final String IP_EXPECTED_STATUS_CODE = "expectedStatusCode";
-    public static final String IP_PASS_ON_BODY = "passOnBody";
-    private static final String IP_FOLLOW_REDIRECTS = "followRedirects";
-    private static final String IP_HEADERS = "headers";
-    private static final String IP_PARAMETERS = "parameters";
-    private static final String IP_QUERY_PARAMETERS = "queryParameters";
-    private static final String IP_PROXY = "proxy";
-
-    private static final String OP_HTTP_RESPONSE = "httpResponse";
+public class HttpGet extends PerformanceFunction implements Constants {
     private AsyncHttpClient asyncHttpClient;
 
     @Override
@@ -53,11 +42,11 @@ public class HttpGet extends PerformanceFunction {
         AsyncHttpClient.BoundRequestBuilder requestBuilder = asyncHttpClient.
                 prepareGet(context.getParameterAsString(IP_PARAM_URL));
 
-        addHeaders(context, requestBuilder);
-        addQueryParameters(context, requestBuilder);
-        addParameters(context, requestBuilder);
-        addProxy(context, requestBuilder);
-        setFollowRedirects(context, requestBuilder);
+        HttpRequestHelper.addHeaders(context, requestBuilder);
+        HttpRequestHelper.addQueryParameters(context, requestBuilder);
+        HttpRequestHelper.addParameters(context, requestBuilder);
+        HttpRequestHelper.addProxy(context, requestBuilder);
+        HttpRequestHelper.setFollowRedirects(context, requestBuilder);
 
         context.startMe();
         Future<Response> responseF = requestBuilder.execute();
