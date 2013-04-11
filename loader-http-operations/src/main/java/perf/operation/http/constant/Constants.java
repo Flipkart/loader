@@ -17,4 +17,5 @@ public interface Constants {
     public static final String IP_QUERY_PARAMETERS = "queryParameters";
     public static final String IP_PROXY = "proxy";
     public static final String OP_HTTP_RESPONSE = "httpResponse";
+    public static final String IP_COOKIES = "cookies";
 }

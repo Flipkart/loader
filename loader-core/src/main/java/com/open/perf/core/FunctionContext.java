@@ -90,7 +90,7 @@ public class FunctionContext {
 
     public Map getParameterAsMap(String parameterName) throws IOException {
         Object value = getParameter(parameterName);
-        return value == null ? new HashMap() : mapper.readValue(value.toString().replace("'", "\""), Map.class);
+        return value == null ? null : mapper.readValue(value.toString().replace("'", "\""), Map.class);
     }
 
     public List getParameterAsList(String parameterName) throws IOException {

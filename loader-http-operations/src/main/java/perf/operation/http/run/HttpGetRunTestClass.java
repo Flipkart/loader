@@ -3,7 +3,7 @@ package perf.operation.http.run;
 import com.open.perf.domain.Group;
 import com.open.perf.domain.GroupFunction;
 import com.open.perf.domain.Loader;
-import perf.operation.http.HttpGet;
+import perf.operation.http.function.HttpGet;
 
 import java.util.UUID;
 

@@ -4,7 +4,7 @@
         {
             "agents":["127.0.0.1"],
             "classList":[
-                "perf.operation.http.HttpGet"
+                "perf.operation.http.function.HttpGet"
             ],
             "jobPartInfo":{
                 "name":"SampleRun",
@@ -23,7 +23,7 @@
                             "functions":[
                                 {
                                     "functionalityName":"HttpGet",
-                                    "functionClass":"perf.operation.http.HttpGet",
+                                    "functionClass":"perf.operation.http.function.HttpGet",
                                     "dumpData":true,
                                     "params":{
                                         "url" : "http://localhost:9999/loader-server/agents",

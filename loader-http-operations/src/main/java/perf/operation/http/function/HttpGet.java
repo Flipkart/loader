@@ -1,4 +1,4 @@
-package perf.operation.http;
+package perf.operation.http.function;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
@@ -47,6 +47,7 @@ public class HttpGet extends PerformanceFunction implements Constants {
         HttpRequestHelper.addParameters(context, requestBuilder);
         HttpRequestHelper.addProxy(context, requestBuilder);
         HttpRequestHelper.setFollowRedirects(context, requestBuilder);
+        HttpRequestHelper.addCookies(context, requestBuilder);
 
         context.startMe();
         Future<Response> responseF = requestBuilder.execute();
@@ -113,6 +114,13 @@ public class HttpGet extends PerformanceFunction implements Constants {
                                 setMandatory(false).
                                 setDefaultValue("{}").
                                 setDescription("Proxy for the request as json. Eg : {'host' : '127.0.0.1', 'port' : '1234'}"));
+
+        parameters.put(IP_COOKIES,
+                        new FunctionParameter().
+                                setName(IP_COOKIES).
+                                setMandatory(false).
+                                setDefaultValue("[]").
+                                setDescription("Proxy for the request as json. Eg : [{'name' : 'value'}]"));
         return parameters;
     }
 
