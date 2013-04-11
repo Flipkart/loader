@@ -9,6 +9,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
@@ -58,7 +59,6 @@ public class FunctionResource {
         if(userFunctionsBaseFolder.exists()) {
             for(File userFunctionFile : userFunctionsBaseFolder.listFiles()){
                 String userFunctionFileName = userFunctionFile.getName();
-                System.out.println("userFunctionFileName: "+userFunctionFileName);
                 if(userFunctionFileName.endsWith("info")) {
                     userFunctionFileName = userFunctionFileName.replace(".info","");
                     if(Pattern.matches(functionsRegEx, userFunctionFileName)) {
@@ -85,4 +85,34 @@ public class FunctionResource {
         }
         return userFunctions;
     }
+
+
+    /**
+     * Get All Deployed Functions
+     * @return
+     * @throws IOException
+     */
+    @Path("/{functionsRegEx}")
+    @DELETE
+    public void deleteFunctions(@PathParam("functionsRegEx") @DefaultValue("$%^&*") String functionsRegEx) throws IOException {
+        functionsRegEx = ".*" + functionsRegEx + ".*";
+        System.out.println("functionsRegEx: "+functionsRegEx);
+        File userFunctionsBaseFolder = new File(storageConfig.getUserClassInfoPath());
+        if(userFunctionsBaseFolder.exists()) {
+            Properties mappingProp = new Properties();
+            mappingProp.load(new FileInputStream(storageConfig.getUserClassLibMappingFile()));
+            for(File userFunctionFile : userFunctionsBaseFolder.listFiles()){
+                String userFunctionFileName = userFunctionFile.getName();
+                if(userFunctionFileName.endsWith("info")) {
+                    userFunctionFileName = userFunctionFileName.replace(".info","");
+                    if(Pattern.matches(functionsRegEx, userFunctionFileName)) {
+                        userFunctionFile.delete();
+                        mappingProp.remove(userFunctionFileName);
+                    }
+                }
+            }
+            mappingProp.store(new FileOutputStream(storageConfig.getUserClassLibMappingFile()), "Class and Library Mapping");
+        }
+    }
+
 }
