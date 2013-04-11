@@ -6,6 +6,8 @@ import com.open.perf.function.FunctionParameter;
 import org.codehaus.jackson.map.ObjectMapper;
 import perf.operation.http.constant.Constants;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -94,7 +96,43 @@ public class HttpRequestHelper {
             }
         }
     }
-    
+
+    /**
+     * Should be called only for http post and put calls
+     * @param context
+     * @param requestBuilder
+     */
+    public static void addRequestBody(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder)
+            throws FileNotFoundException {
+        Object bodyStringObj = context.getParameter(Constants.IP_BODY_STRING);
+        if(bodyStringObj != null) {
+            requestBuilder.setBody(bodyStringObj.toString());
+            return;
+        }
+        else {
+            Object bodyFileObj = context.getParameter(Constants.IP_BODY_FILE);
+            if(bodyFileObj != null) {
+                requestBuilder.setBody(new FileInputStream(bodyFileObj.toString()));
+                return;
+            }
+        }
+
+        throw new RuntimeException("For Http Put/Post Either '" +
+                Constants.IP_BODY_STRING +
+                "' or '" +
+                Constants.IP_BODY_STRING +
+                "' parameter is necessary");
+    }
+
+    /**
+     * Should be called only for http post and put calls
+     * @param context
+     * @param requestBuilder
+     */
+    public static void setCharacterEncoding(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) {
+        requestBuilder.setBodyEncoding(context.getParameterAsString(Constants.IP_BODY_ENCODING, "UTF-8"));
+    }
+
     public static void addInputCookies(LinkedHashMap<String, FunctionParameter> parameters) {
         parameters.put(Constants.IP_COOKIES,
                         new FunctionParameter().
@@ -166,5 +204,39 @@ public class HttpRequestHelper {
                         setDefaultValue("").
                         setDescription("Url to do http Get"));
     }
-    
+
+    public static void addInputBodyString(LinkedHashMap<String,FunctionParameter> parameters) {
+        parameters.put(Constants.IP_BODY_STRING,
+                new FunctionParameter().
+                        setName(Constants.IP_BODY_STRING).
+                        setMandatory(false).
+                        setDefaultValue("").
+                        setDescription("Body for Put/Post. Use either of '" +
+                                        Constants.IP_BODY_STRING +
+                                        "' or '" +
+                                        Constants.IP_BODY_STRING +
+                                        "'"));
+    }
+
+    public static void addInputBodyFile(LinkedHashMap<String,FunctionParameter> parameters) {
+        parameters.put(Constants.IP_BODY_FILE,
+                new FunctionParameter().
+                        setName(Constants.IP_BODY_FILE).
+                        setMandatory(false).
+                        setDefaultValue("").
+                        setDescription("Body for Put/Post. Use either of '" +
+                                        Constants.IP_BODY_STRING +
+                                        "' or '" +
+                                        Constants.IP_BODY_STRING +
+                                        "'"));
+    }
+
+    public static void addInputCharacterEncoding(LinkedHashMap<String,FunctionParameter> parameters) {
+        parameters.put(Constants.IP_BODY_ENCODING,
+                new FunctionParameter().
+                        setName(Constants.IP_BODY_ENCODING).
+                        setMandatory(true).
+                        setDefaultValue("UTF-8").
+                        setDescription("Character Encoding for Body"));
+    }
 }
