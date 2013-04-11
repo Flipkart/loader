@@ -11,12 +11,14 @@ public class JobFSConfig {
     private String combinedStatsPath;
     private String jobAgentStatsPath;
     private String jobResourceMonitoringFile;
+    private String runsPath;
+    private String runPath;
     private String runFile;
     private String jobRunNameFile;
-    private String runsPath;
     private String jobsPath;
     private String jobPath;
     private String jobStatusFile;
+    private String runJobsFile;
 
     public String getJobStatsPath(String jobId) {
         return combinedStatsPath.replace("{jobId}", jobId);
@@ -91,6 +93,22 @@ public class JobFSConfig {
 
     public void setJobStatusFile(String jobStatusFile) {
         this.jobStatusFile = jobStatusFile;
+    }
+
+    public String getRunPath(String runName) {
+        return runPath.replace("{runName}", runName);
+    }
+
+    public void setRunPath(String runPath) {
+        this.runPath = runPath;
+    }
+
+    public String getRunJobsFile(String runName) {
+        return runJobsFile.replace("{runName}", runName);
+    }
+
+    public void setRunJobsFile(String runJobsFile) {
+        this.runJobsFile = runJobsFile;
     }
 }
 

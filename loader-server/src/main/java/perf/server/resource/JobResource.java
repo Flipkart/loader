@@ -13,7 +13,6 @@ import perf.server.client.LoaderAgentClient;
 import perf.server.client.MonitoringClient;
 import perf.server.config.AgentConfig;
 import perf.server.config.JobFSConfig;
-import perf.server.config.LibStorageFSConfig;
 import perf.server.config.MonitoringAgentConfig;
 import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
@@ -49,7 +48,6 @@ public class JobResource {
     private final MonitoringAgentConfig monitoringAgentConfig;
     private AgentConfig agentConfig;
     private JobFSConfig jobFSConfig;
-    private LibStorageFSConfig libStoragConfig;
 
     private static ObjectMapper objectMapper;
     private static Map<String, JobInfo> jobIdInfoMap;
@@ -68,14 +66,14 @@ public class JobResource {
 
     public JobResource(AgentConfig agentConfig,
                        MonitoringAgentConfig monitoringAgentConfig,
-                       JobFSConfig jobFSConfig,
-                       LibStorageFSConfig libStoragConfig) {
+                       JobFSConfig jobFSConfig) {
         this.agentConfig = agentConfig;
         this.monitoringAgentConfig = monitoringAgentConfig;
         this.jobFSConfig = jobFSConfig;
-        this.libStoragConfig = libStoragConfig;
     }
-    /**
+/*
+    */
+/**
      Following call simulates html form post call, where somebody uploads a file to server
      curl
      -X POST
@@ -86,7 +84,8 @@ public class JobResource {
      * @throws IOException
      * @throws ExecutionException
      * @throws InterruptedException
-     */
+     *//*
+
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @POST
@@ -94,6 +93,28 @@ public class JobResource {
     public JobInfo submitJob(@FormDataParam("jobJson") InputStream jobJsonInfoStream)
             throws IOException, ExecutionException, InterruptedException, JobException {
         return jobSubmitWorkflow(jobJsonInfoStream);
+    }
+*/
+    /**
+     Following call simulates html form post call, where somebody uploads a file to server
+     curl
+     -X POST
+     -H "Content-Type: multipart/form-data"
+     -F "jobJson=@Path-To-File-Containing-Job-Json"
+     http://localhost:9999/loader-server/jobs
+     {"runName" : "runName"}
+     * @param runNameInputStream
+     * @throws IOException
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @POST
+    @Timed
+    public JobInfo submitJob(@FormDataParam("jobJson") InputStream runNameInputStream)
+            throws IOException, ExecutionException, InterruptedException, JobException {
+        return submitJobForRun(runNameInputStream);
     }
 
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -685,6 +706,12 @@ public class JobResource {
             stopMonitoring(jobId);
     }
 
+    private JobInfo submitJobForRun(InputStream jobJsonInfoStream) throws IOException, ExecutionException, InterruptedException, JobException {
+        Map<String,String> info = objectMapper.readValue(jobJsonInfoStream, Map.class);
+        String runFile = jobFSConfig.getRunFile(info.get("runName"));
+        return jobSubmitWorkflow(new FileInputStream(runFile));
+    }
+
     private JobInfo jobSubmitWorkflow(InputStream jobJsonStream)
             throws IOException, ExecutionException, InterruptedException, JobException {
         JobInfo jobInfo = new JobInfo().
@@ -881,16 +908,26 @@ public class JobResource {
 
     private void persistJob(String jobId, JsonNode jobInfoJsonNode) throws IOException {
         String runName = jobInfoJsonNode.get("runName").textValue();
+
+        // Persisting run details
         String runFile = jobFSConfig.getRunFile(runName);
         FileHelper.createFilePath(runFile);
         FileHelper.persistStream(new ByteArrayInputStream(jobInfoJsonNode.toString().getBytes()),
                 runFile,
                 false);
 
+        // Add file containing run name in job folder
         String jobRunNameFile = jobFSConfig.getJobRunNameFile(jobId);
         FileHelper.createFilePath(jobRunNameFile);
         FileHelper.persistStream(new ByteArrayInputStream(runName.getBytes()),
                 jobRunNameFile,
                 false);
+
+        // Adding job ids in run folder file
+        String runJobsFile = jobFSConfig.getRunJobsFile(runName);
+        FileHelper.createFilePath(runJobsFile);
+        FileHelper.persistStream(new ByteArrayInputStream((jobId+"\n").getBytes()),
+                runJobsFile,
+                true);
     }
 }

@@ -28,5 +28,15 @@ public class ResponseBuilder {
         return ResponseBuilder.response(Response.Status.NOT_FOUND,
                 String.format("{\"reason\" : \"Agent %s not registered yet\"}", agentIp));
     }
+
+    public static Response runNameAlreadyExists(String runName) {
+        return ResponseBuilder.response(Response.Status.CONFLICT,
+                String.format("{\"reason\" : \"Run %s Already exists\"}", runName));
+    }
+
+    public static Response runNameDoesNotExist(String runName) {
+        return ResponseBuilder.response(Response.Status.NOT_FOUND,
+                String.format("{\"reason\" : \"Run %s Does Not exist\"}", runName));
+    }
 }
 

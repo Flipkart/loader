@@ -12,10 +12,7 @@ import perf.server.config.LoaderServerConfiguration;
 import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
 import perf.server.daemon.TimerComputationThread;
-import perf.server.resource.AgentResource;
-import perf.server.resource.DeployLibResource;
-import perf.server.resource.FunctionResource;
-import perf.server.resource.JobResource;
+import perf.server.resource.*;
 import perf.server.util.DeploymentHelper;
 
 public class LoaderServerService extends Service<LoaderServerConfiguration> {
@@ -38,7 +35,8 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         environment.addResource(new AgentResource(configuration.getAgentConfig()));
         environment.addResource(new JobResource(configuration.getAgentConfig(),
                 configuration.getMonitoringAgentConfig(),
-                configuration.getJobFSConfig(),configuration.getLibStorageFSConfig()));
+                configuration.getJobFSConfig()));
+        environment.addResource(new RunResource(configuration.getJobFSConfig()));
 
         environment.addResource(new FunctionResource(configuration.getLibStorageFSConfig()));
     }

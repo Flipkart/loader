@@ -18,7 +18,9 @@ monitoringAgentConfig:
 
 jobFSConfig:
   runsPath: "/var/log/loader-server/runs"
+  runPath: "/var/log/loader-server/runs/{runName}"
   runFile: "/var/log/loader-server/runs/{runName}/run.json"
+  runJobsFile: "/var/log/loader-server/runs/{runName}/jobs.txt"
   jobsPath: "/var/log/loader-server/jobs"
   jobRunNameFile: "/var/log/loader-server/jobs/{jobId}/runName.txt"
   jobPath: "/var/log/loader-server/jobs/{jobId}"
