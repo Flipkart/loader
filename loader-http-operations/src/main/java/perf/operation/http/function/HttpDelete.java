@@ -12,14 +12,12 @@ import perf.operation.http.util.HttpResponseHelper;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+
 /**
  * Does Http Get Operation
  */
-/*
-    Example docs to follow :
-    - http://jfarcand.wordpress.com/2010/12/21/going-asynchronous-using-asynchttpclient-the-basic/
- */
-public class HttpGet extends PerformanceFunction implements Constants {
+
+public class HttpDelete extends PerformanceFunction implements Constants {
     private AsyncHttpClient asyncHttpClient;
 
     @Override
@@ -30,7 +28,7 @@ public class HttpGet extends PerformanceFunction implements Constants {
     @Override
     public void execute(FunctionContext context) throws Exception {
         AsyncHttpClient.BoundRequestBuilder requestBuilder = asyncHttpClient.
-                prepareGet(context.getParameterAsString(IP_PARAM_URL));
+                prepareDelete(context.getParameterAsString(IP_PARAM_URL));
 
         HttpRequestHelper.enhanceRequest(context, requestBuilder);
 
@@ -64,7 +62,7 @@ public class HttpGet extends PerformanceFunction implements Constants {
     @Override
     public List<String> description() {
         return Arrays.asList(new String[]{
-                "This Performance function is useful in doing Http Get Operation",
+                "This Performance function is useful in doing Http Delete Operation",
                 "Time out for request is 120seconds"
         });
     }
