@@ -51,27 +51,48 @@ public class FunctionContext {
     }
 
     public String getParameterAsString(String parameterName) {
+        return getParameterAsString(parameterName, null);
+    }
+
+    public String getParameterAsString(String parameterName, String defaultValue) {
         Object value = getParameter(parameterName);
-        return value == null ? null : value.toString();
+        return value == null ? defaultValue : value.toString();
     }
 
     public Integer getParameterAsInteger(String parameterName) {
+        return getParameterAsInteger(parameterName, null);
+    }
+
+    public Integer getParameterAsInteger(String parameterName, Integer defaultValue) {
         Object value = getParameter(parameterName);
-        return value == null ? null : Integer.parseInt(getParameter(parameterName).toString());
+        return value == null ? defaultValue : Integer.parseInt(getParameter(parameterName).toString());
     }
 
     public Long getParameterAsLong(String parameterName) {
+        return  getParameterAsLong(parameterName, null);
+    }
+
+    public Long getParameterAsLong(String parameterName, Long defaultValue) {
         Object value = getParameter(parameterName);
-        return value == null ? null : Long.parseLong(getParameter(parameterName).toString());
+        return value == null ? defaultValue : Long.parseLong(getParameter(parameterName).toString());
     }
 
     public Float getParameterAsFloat(String parameterName) {
-        Object value = getParameter(parameterName);
-        return value == null ? null : Float.parseFloat(getParameter(parameterName).toString());
+        return getParameterAsFloat(parameterName, null);
     }
-    public Double getParameterAsDouble(String parameterName) {
+
+    public Float getParameterAsFloat(String parameterName, Float defaultValue) {
         Object value = getParameter(parameterName);
-        return value == null ? null : Double.parseDouble(getParameter(parameterName).toString());
+        return value == null ? defaultValue : Float.parseFloat(getParameter(parameterName).toString());
+    }
+
+    public Double getParameterAsDouble(String parameterName) {
+        return getParameterAsDouble(parameterName, null);
+    }
+
+    public Double getParameterAsDouble(String parameterName, Double defaultValue) {
+        Object value = getParameter(parameterName);
+        return value == null ? defaultValue : Double.parseDouble(getParameter(parameterName).toString());
     }
 
     public boolean getParameterAsBoolean(String parameterName) {
@@ -89,13 +110,21 @@ public class FunctionContext {
     }
 
     public Map getParameterAsMap(String parameterName) throws IOException {
+        return getParameterAsMap(parameterName, null);
+    }
+
+    public Map getParameterAsMap(String parameterName, Map defaultValue) throws IOException {
         Object value = getParameter(parameterName);
-        return value == null ? null : mapper.readValue(value.toString().replace("'", "\""), Map.class);
+        return value == null ? defaultValue : mapper.readValue(value.toString().replace("'", "\""), Map.class);
     }
 
     public List getParameterAsList(String parameterName) throws IOException {
+        return getParameterAsList(parameterName, null);
+    }
+
+    public List getParameterAsList(String parameterName, List defaultValue) throws IOException {
         Object value = getParameter(parameterName);
-        return value == null ? null : mapper.readValue(value.toString(), List.class);
+        return value == null ? defaultValue : mapper.readValue(value.toString(), List.class);
     }
 
     /**

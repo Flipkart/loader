@@ -18,4 +18,7 @@ public interface Constants {
     public static final String IP_PROXY = "proxy";
     public static final String OP_HTTP_RESPONSE = "httpResponse";
     public static final String IP_COOKIES = "cookies";
+    public static final String IP_BODY_STRING = "bodyString";
+    public static final String IP_BODY_FILE = "bodyFile";
+    public static final String IP_BODY_ENCODING = "bodyEncoding";
 }

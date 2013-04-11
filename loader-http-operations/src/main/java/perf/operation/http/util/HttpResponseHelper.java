@@ -2,7 +2,6 @@ package perf.operation.http.util;
 
 import com.ning.http.client.Response;
 import com.open.perf.core.FunctionContext;
-import org.codehaus.jackson.map.ObjectMapper;
 import perf.operation.http.constant.Constants;
 
 import java.io.IOException;
@@ -10,8 +9,6 @@ import java.io.IOException;
 import static com.open.perf.core.FunctionContext.FailureType.FUNCTIONAL_FAILURE;
 
 public class HttpResponseHelper {
-    private static ObjectMapper objectMapper = new ObjectMapper();
-
     public static boolean successfulRequest(FunctionContext context, Response response) {
         boolean success = (response.getStatusCode() == context.getParameterAsInteger(Constants.IP_EXPECTED_STATUS_CODE));
         if(!success) {
