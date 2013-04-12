@@ -10,33 +10,40 @@ import javax.ws.rs.core.Response;
  * To change this template use File | Settings | File Templates.
  */
 public class ResponseBuilder {
-    public static Response response(Response.Status status, Object message) {
-        return Response.status(status).entity(message).build();
-    }
-
     public static Response jobNotOver(String jobId) {
-        return ResponseBuilder.response(Response.Status.BAD_REQUEST,
+        return response(Response.Status.BAD_REQUEST,
                 String.format("{\"reason\" : \"Job %s Not Over Yet\"}", jobId));
     }
 
     public static Response jobNotFound(String jobId) {
-        return ResponseBuilder.response(Response.Status.NOT_FOUND,
-                String.format("{\"reason\" : \"Job %s doesn't exist\"}", jobId));
+        return resourceNotFound("Job", jobId);
     }
 
     public static Response agentNotRegistered(String agentIp) {
-        return ResponseBuilder.response(Response.Status.NOT_FOUND,
-                String.format("{\"reason\" : \"Agent %s not registered yet\"}", agentIp));
+        return resourceNotFound("Agent", agentIp);
     }
 
     public static Response runNameAlreadyExists(String runName) {
-        return ResponseBuilder.response(Response.Status.CONFLICT,
-                String.format("{\"reason\" : \"Run %s Already exists\"}", runName));
+        return resourceAlreadyExists("Run", runName);
     }
 
     public static Response runNameDoesNotExist(String runName) {
-        return ResponseBuilder.response(Response.Status.NOT_FOUND,
-                String.format("{\"reason\" : \"Run %s Does Not exist\"}", runName));
+        return resourceNotFound("Run", runName);
     }
+
+    public static Response resourceAlreadyExists(String resourceType, String resourceName) {
+        return response(Response.Status.NOT_FOUND,
+                String.format("{\"reason\" : \"%s %s Already Exists\"}", resourceType, resourceName));
+    }
+
+    public static Response resourceNotFound(String resourceType, String resourceName) {
+        return response(Response.Status.NOT_FOUND,
+                String.format("{\"reason\" : \"%s %s Does Not exist\"}", resourceType, resourceName));
+    }
+
+    public static Response response(Response.Status status, Object message) {
+        return Response.status(status).entity(message).build();
+    }
+
 }
 
