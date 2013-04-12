@@ -76,7 +76,7 @@ public class GroupFunction implements Cloneable {
     }
 
     @JsonIgnore
-    public String getUniqueFunctionName() {
+    public String uniqueFunctionName() {
         return this.functionalityName
                 + "." + this.functionClass
                 + "." + FUNCTION_NAME;

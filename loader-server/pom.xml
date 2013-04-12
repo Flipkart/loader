@@ -16,11 +16,17 @@
 
 
     <dependencies>
-	<dependency>
-    	    <groupId>com.open.perf</groupId>
+        <dependency>
+            <groupId>com.open.perf</groupId>
+            <artifactId>loader-core</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.open.perf</groupId>
             <artifactId>utilities</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-	</dependency>
+        </dependency>
         <dependency>
             <groupId>com.yammer.dropwizard</groupId>
             <artifactId>dropwizard-core</artifactId>
@@ -36,11 +42,11 @@
             <artifactId>async-http-client</artifactId>
             <version>1.7.9</version>
         </dependency>
- 	<dependency>
-             <groupId>org.reflections</groupId>
-             <artifactId>reflections</artifactId>
-             <version>0.9.9-RC1</version>
-     	</dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.9-RC1</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -69,7 +75,6 @@
                     <arguments>
                         <argument>${project.basedir}/config/loader-server.yml</argument>
                     </arguments>
-		    <forkMode>always</forkMode>
                 </configuration>
             </plugin>
             <plugin>

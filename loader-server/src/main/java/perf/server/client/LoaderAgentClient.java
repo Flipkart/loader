@@ -1,9 +1,12 @@
 package perf.server.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.ning.http.multipart.FilePart;
 import com.ning.http.multipart.StringPart;
+import com.open.perf.domain.Load;
 import org.apache.log4j.Logger;
 import perf.server.cache.LibCache;
 import perf.server.exception.JobException;
@@ -31,6 +34,7 @@ public class LoaderAgentClient {
     private static final String RESOURCE_OPERATION_LIB = "/loader-agent/libs/classLibs";
     private static final String RESOURCE_JOB = "/loader-agent/jobs";
     private static final String RESOURCE_JOB_KILL = "/loader-agent/jobs/{jobId}/kill";
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     static {
         libCache = LibCache.instance();
@@ -89,7 +93,8 @@ public class LoaderAgentClient {
         return this;
     }
 
-    public void submitJob(String jobId, String jobJson, String classListStr) throws ExecutionException, InterruptedException, JobException {
+    public void submitJob(String jobId, Load load, String classListStr)
+            throws ExecutionException, InterruptedException, JobException, JsonProcessingException {
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 preparePost("http://"+this.getHost()+":" +
@@ -97,7 +102,7 @@ public class LoaderAgentClient {
                         RESOURCE_JOB).
                 setHeader("Content-Type", MediaType.MULTIPART_FORM_DATA).
                 addBodyPart(new StringPart("jobId", jobId)).
-                addBodyPart(new StringPart("jobJson", jobJson)).
+                addBodyPart(new StringPart("jobJson", objectMapper.writeValueAsString(load))).
                 addBodyPart(new StringPart("classList", classListStr));
 
         try {

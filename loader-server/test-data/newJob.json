@@ -1,14 +1,12 @@
 {
     "runName":"SampleRun",
-    "jobs":[
+    "loadParts":[
         {
             "agents":["127.0.0.1"],
-            "classList":[
+            "classes":[
                 "com.open.perf.sample.function.DummyFunction"
             ],
-            "jobPartInfo":{
-                "name":"SampleRun",
-                "groups":{
+            "load":{
                     "groups":[
                         {
                             "name":"SampleGroup",
@@ -84,39 +82,30 @@
                             ]
                         }
                     ]
-                }
             }
         }
     ],
-    "onDemandResourcesRequests":[
-        {
-            "agent":"127.0.0.1",
-            "collectors":[
-                {
-                    "name":"jmx1",
-                    "klass":"server.monitor.collector.jmx.JMXCollector",
-                    "interval":30000,
-                    "params":{
-                        "host":"localhost",
-                        "port":4444
-                    }
-                }
-            ]
-        }
-    ],
-    "resourcePublishRequests":[
-        {
-            "agent":"127.0.0.1",
-            "request":{
-                "resources":[
-                    "cpu.total",
-                    "jmx1"
-                ],
-                "lastHowManyInstances":1,
-                "publishUrl":"http://127.0.0.1:9999/loader-server/jobs/{jobId}/monitoringStats",
-                "interval":20000
-            }
-        }
-    ]
+  "onDemandMetricCollections" : [ {
+    "agent" : "127.0.0.1",
+    "collectors" : [ {
+      "name" : "jmx1",
+      "klass" : "server.monitor.collector.jmx.JMXCollector",
+      "interval" : 30000,
+      "params" : {
+        "host" : "localhost",
+        "port" : 4444
+      }
+    } ]
+  } ],
+  "metricCollections" : [ {
+    "agent" : "127.0.0.1",
+    "collectionInfo" : {
+      "resources" : [ "jmx1", "cpu.total" ],
+      "lastHowManyInstances" : 1,
+      "publishUrl" : "http://127.0.0.1:9999/loader-server/jobs/{jobId}/monitoringStats",
+      "forHowLong" : 0,
+      "interval" : 20000
+    }
+  } ]
 
 }

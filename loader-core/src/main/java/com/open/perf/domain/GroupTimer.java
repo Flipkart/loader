@@ -1,17 +1,12 @@
 package com.open.perf.domain;
 
-import com.open.perf.util.Clock;
-import org.codehaus.jackson.annotate.JsonIgnore;
-
 public class GroupTimer {
     private String name;
     private long duration;
     private int threads ;
     private float throughput ;
-    private long startTimeMS;
 
     public GroupTimer() {
-        this.startTimeMS = Clock.milliTick();
     }
 
     public String getName() {
@@ -49,17 +44,4 @@ public class GroupTimer {
         this.throughput = throughput;
         return this;
     }
-
-    @JsonIgnore
-    public long getStartTimeMS() {
-        return startTimeMS;
-    }
-
-    /*
-
-    public GroupTimer clone() throws CloneNotSupportedException {
-        return (GroupTimer) super.clone();
-    }
-
-*/
 }
