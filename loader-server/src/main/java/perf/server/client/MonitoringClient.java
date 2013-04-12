@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import org.apache.log4j.Logger;
+import perf.server.domain.MetricCollectionInfo;
 import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
 
@@ -179,7 +180,6 @@ public class MonitoringClient {
             log.error("Post on "+RESOURCE_ON_DEMAND_RESOURCES_REQUESTS);
         }
         asyncHttpClient.close();
-
     }
 
     public void deleteOnDemandResourceRequest(String requestId) throws IOException, ExecutionException, InterruptedException {
@@ -240,19 +240,18 @@ public class MonitoringClient {
 
     public static void main(String[] args) throws InterruptedException, ExecutionException, IOException {
         MetricPublisherRequest request = new MetricPublisherRequest();
-        request.setInterval(10000);
-        request.setLastHowManyInstances(1);
-        request.setPublishUrl("http://localhost:9999/dummy");
+        MetricCollectionInfo collectionInfo = new MetricCollectionInfo();
+        collectionInfo.setInterval(10000);
+        collectionInfo.setLastHowManyInstances(1);
+        collectionInfo.setPublishUrl("http://localhost:9999/dummy");
         request.setRequestId("1");
         Set<String> resources = new HashSet<String>();
         resources.add("cpu.total");
-        request.setResources(resources);
-
+        collectionInfo.setResources(resources);
+        request.setCollectionInfo(collectionInfo).setRequestId("abcd");
         new MonitoringClient("localhost", 7777).raiseMetricPublishRequest(request);
-
         Thread.sleep(30000);
         new MonitoringClient("localhost", 7777).deletePublishResourceRequest(request.getRequestId());
-
     }
 
 }

@@ -95,8 +95,13 @@ public class FunctionContext {
         return value == null ? defaultValue : Double.parseDouble(getParameter(parameterName).toString());
     }
 
-    public boolean getParameterAsBoolean(String parameterName) {
-        return Boolean.parseBoolean((String)getParameter(parameterName));
+    public Boolean getParameterAsBoolean(String parameterName) {
+        return getParameterAsBoolean(parameterName, false);
+    }
+
+    public Boolean getParameterAsBoolean(String parameterName, Boolean defaultValue) {
+        Object value = getParameter(parameterName);
+        return value == null ? defaultValue : Boolean.parseBoolean(value.toString());
     }
 
     public File getParameterAsFile(String parameterName) {

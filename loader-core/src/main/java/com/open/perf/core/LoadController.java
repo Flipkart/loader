@@ -1,7 +1,7 @@
 package com.open.perf.core;
 
 import com.open.perf.domain.Group;
-import com.open.perf.domain.Groups;
+import com.open.perf.domain.Load;
 import com.open.perf.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,12 +27,12 @@ public class LoadController extends Thread{
 
     private final String jobId;
 
-    public LoadController(String jobId, Groups groupsInfo) throws Exception {
+    public LoadController(String jobId, Load load) throws Exception {
         this.setName("Thread-LoadController");
         this.jobId = jobId;
 
-        this.groupMap   =   groupsInfo.getGroupMap();
-        logger.info("Number of groups : "+this.groupMap.size());
+        this.groupMap   =   load.groupMap();
+        logger.info(jobId+" Number of groups : "+this.groupMap.size());
 
         validateCyclicDependency(); //Seems to be becoming expensive
 
@@ -57,15 +57,14 @@ public class LoadController extends Thread{
      * Validate cyclic dependencies in the group
      */
     private void validateCyclicDependency() {
-//        if(System.getenv("VALIDATE_DEPENDENCY") != null)
         for(String group : groupMap.keySet()) {
             String dependencyGraph  =   getDependencyGraph(group);
-            logger.info("Dependency graph for '"+group+"' is '"+dependencyGraph+"'");
+            logger.info(jobId+" Dependency graph for '"+group+"' is '"+dependencyGraph+"'");
             String[] dependencies   =   dependencyGraph.split("->");
             if(dependencies.length > 1)
                 if(dependencies[dependencies.length-1].trim().equals(dependencies[dependencies.length-2].trim())
                         ||dependencies[dependencies.length-1].trim().equals(dependencies[0].trim()))
-                    throw new RuntimeException("Cyclic Dependency '"+dependencyGraph+"' for group '"+group+"'");
+                    throw new RuntimeException(jobId+" Cyclic Dependency '"+dependencyGraph+"' for group '"+group+"'");
 
         }
     }
@@ -76,7 +75,7 @@ public class LoadController extends Thread{
                 dependencyFlow  +=  " -> "+depGroup;
                 Group depGroupBean    = groupMap.get(depGroup);
                 if(depGroupBean == null)
-                    throw new RuntimeException("Group '"+depGroup+"' doesn't exist!!!");
+                    throw new RuntimeException(jobId+" Group '"+depGroup+"' doesn't exist!!!");
                 else {
                     // Following Code Can catch Transitive and immediate dependency
                     if(depGroup.equals(group))
@@ -110,7 +109,7 @@ public class LoadController extends Thread{
      * Function that starts the load generation
      */
     public void run() {
-        logger.info("****LOAD CONTROLLER STARTED****");
+        logger.info("****"+jobId+" LOAD CONTROLLER STARTED****");
         long startTime = Clock.milliTick();
 
         while(true) {
@@ -145,7 +144,7 @@ public class LoadController extends Thread{
 
             // Start Group Controllers which can be started
             for(GroupController groupController : groupsToRun) {
-                logger.info("******"+"Running Group [" + groupController.getGroupName() + "]"+"******");
+                logger.info("******"+jobId+" Running Group [" + groupController.getGroupName() + "]"+"******");
 
                 try {
                     groupController.start();
@@ -161,17 +160,17 @@ public class LoadController extends Thread{
             if(groupsCanNotStartThisTime == 0 )
                 break;
 
-            logger.info("Groups Can not be started :"+groupsCanNotStartThisTime);
+            logger.info(jobId+" Groups Can not be started :"+groupsCanNotStartThisTime);
             try {
                 Clock.sleep(250);
             } catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                e.printStackTrace();
             }
         }
 
         // By now there is no group pending to get started
         waitTillGroupsFinish(this.groupControllersMap.values());
-        logger.info("Loader Execution Time :" + (System.currentTimeMillis() - startTime) + " milli seconds");
+        logger.info(jobId+" Loader Execution Time :" + (System.currentTimeMillis() - startTime) + " milli seconds");
     }
 
     private void waitTillGroupsFinish(Collection<GroupController> groupControllers) {
@@ -179,7 +178,7 @@ public class LoadController extends Thread{
             try {
                 Clock.sleep(250);
             } catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                e.printStackTrace();
             }
     }
 

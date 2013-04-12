@@ -16,11 +16,10 @@ import java.util.Map;
 
 public class GroupController {
     private boolean started = false;
-
-    private String              groupName;
-    private static Logger           logger;
+    private String groupName;
+    private static Logger logger;
     static {
-        logger      = Logger.getLogger(GroupController.class);
+        logger = Logger.getLogger(GroupController.class);
     }
 
     private List<SequentialFunctionExecutor> sequentialFEs;
@@ -33,7 +32,6 @@ public class GroupController {
     private StatsCollectorThread statsCollectorThread;
     private String basePath;
     private final List<String> ignoreDumpFunctions;
-    private float throughput;
 
     public GroupController(String jobId, Group group) {
         this.basePath = System.getProperty("BASE_PATH", "/var/log/loader/");

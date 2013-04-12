@@ -1,2 +1,0 @@
-perf.operation.http.function.HttpGet
-perf.operation.http.function.HttpGet

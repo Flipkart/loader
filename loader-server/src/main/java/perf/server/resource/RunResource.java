@@ -91,7 +91,7 @@ public class RunResource {
     @PUT
     @Timed
     public void updateRun(@PathParam("runName") String runName,
-                          @FormDataParam("jobJson") InputStream runJsonInfoStream)
+                          @FormDataParam("runJson") InputStream runJsonInfoStream)
             throws IOException, ExecutionException, InterruptedException, JobException {
         updateRunInfo(runName, runJsonInfoStream);
     }

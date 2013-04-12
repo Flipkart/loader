@@ -1,20 +1,18 @@
 {
     "runName":"SampleRun",
-    "jobs":[
+    "loadParts":[
         {
             "agents":["127.0.0.1"],
-            "classList":[
+            "classes":[
                 "perf.operation.http.function.HttpGet"
             ],
-            "jobPartInfo":{
-                "name":"SampleRun",
-                "groups":{
+            "load":{
                     "groups":[
                         {
                             "name":"SampleGroup",
                             "groupStartDelay":0,
                             "threadStartDelay":0,
-                            "repeats":10,
+                            "repeats":100000,
                             "duration":200000,
                             "threads":1,
                             "throughput":500,
@@ -40,10 +38,9 @@
                             "customCounters":[]
                         }
                     ]
-                }
             }
         }
     ],
-    "onDemandResourcesRequests":[],
-    "resourcePublishRequests":[]
+    "onDemandMetricCollections":[],
+    "metricCollections":[]
 }

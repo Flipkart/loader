@@ -1,9 +1,11 @@
 package perf.server.resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.open.perf.domain.Load;
 import com.open.perf.util.FileHelper;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.dropwizard.jersey.params.IntParam;
@@ -17,10 +19,7 @@ import perf.server.config.MonitoringAgentConfig;
 import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
 import perf.server.daemon.TimerComputationThread;
-import perf.server.domain.JobInfo;
-import perf.server.domain.MetricPublisherRequest;
-import perf.server.domain.OnDemandCollectorRequest;
-import perf.server.domain.TimerStatsInstance;
+import perf.server.domain.*;
 import perf.server.exception.JobException;
 import perf.server.util.DeploymentHelper;
 import perf.server.util.ResponseBuilder;
@@ -716,6 +715,32 @@ public class JobResource {
             throws IOException, ExecutionException, InterruptedException, JobException {
         JobInfo jobInfo = new JobInfo().
                 setJobId(UUID.randomUUID().toString());
+
+        PerformanceRun performanceRun = objectMapper.readValue(jobJsonStream, PerformanceRun.class);
+
+        // Persisting Job Json in Local File system.
+        persistJob(jobInfo.getJobId(), performanceRun);
+
+        // Raising request to monitoring agents to start collecting metrics from on demand resource collectors
+        raiseOnDemandResourceRequest(jobInfo, performanceRun.getOnDemandMetricCollections());
+
+        // Raising request to monitoring agents to start publishing collected metrics to Loader server
+        raiseMetricPublishRequest(jobInfo, performanceRun.getMetricCollections());
+
+        // Submitting Jobs to Loader Agent
+        submitJobToAgents(jobInfo, performanceRun.getLoadParts());
+
+        // Persisting Job Info(mostly status) in memory
+        jobIdInfoMap.put(jobInfo.getJobId(), jobInfo);
+
+        CounterCompoundThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
+        CounterThroughputThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
+        TimerComputationThread.getComputationThread().addJob(jobInfo.getJobId());
+
+        objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobInfo.getJobId())), jobInfo);
+        return jobInfo;
+
+/*
         JsonNode jobInfoJsonNode = objectMapper.readValue(jobJsonStream,JsonNode.class);
 
         // Persisting Job Json in Local File system.
@@ -739,6 +764,7 @@ public class JobResource {
 
         objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobInfo.getJobId())), jobInfo);
         return jobInfo;
+*/
     }
 
     /**
@@ -804,26 +830,20 @@ public class JobResource {
 
     /**
      * Raise On Demand Resource Request to Monitoring Agent as Part of Load Job
-     * @param onDemandResourcesRequests
      * @param jobInfo
-     * @throws IOException
-     * @throws ExecutionException
+     * @param onDemandMetricCollections
      * @throws InterruptedException
+     * @throws ExecutionException
+     * @throws IOException
      */
-    private void raiseOnDemandResourceRequest(ArrayNode onDemandResourcesRequests, JobInfo jobInfo)
-            throws IOException, ExecutionException, InterruptedException {
-
-        for(int i=0; i<onDemandResourcesRequests.size(); i++) {
-            ObjectNode requestPart = (ObjectNode) onDemandResourcesRequests.get(i);
-
-            String agentIp = requestPart.get("agent").textValue();
+    private void raiseOnDemandResourceRequest(JobInfo jobInfo, List<OnDemandMetricCollection> onDemandMetricCollections) throws InterruptedException, ExecutionException, IOException {
+        for(OnDemandMetricCollection onDemandMetricCollection : onDemandMetricCollections) {
+            String agentIp = onDemandMetricCollection.getAgent();
             new MonitoringClient(agentIp,
                     monitoringAgentConfig.getAgentPort()).
-                    raiseOnDemandResourceRequest(new OnDemandCollectorRequest().
-                            setRequestId(jobInfo.getJobId()).
-                            setCollectors(objectMapper.readValue(requestPart.get("collectors").toString(), List.class)));
+                    raiseOnDemandResourceRequest(onDemandMetricCollection.buildRequest(jobInfo.getJobId()));
             jobInfo.addMonitoringAgent(agentIp);
-            log.info("Request "+requestPart.get("collectors").toString()+" raised on Agent "+agentIp);
+            log.info("Request "+onDemandMetricCollection+" raised on Agent "+agentIp);
         }
     }
 
@@ -853,12 +873,32 @@ public class JobResource {
     }
 
     /**
+     * Raise Metric Publish request to Monitoring Agent
+     * @param jobInfo
+     * @param metricCollections
+     * @throws InterruptedException
+     * @throws ExecutionException
+     * @throws IOException
+     */
+    private void raiseMetricPublishRequest(JobInfo jobInfo, List<MetricCollection> metricCollections) throws InterruptedException, ExecutionException, IOException {
+        for(MetricCollection metricCollection : metricCollections) {
+            String agentIp = metricCollection.getAgent();
+            new MonitoringClient(agentIp,
+                    monitoringAgentConfig.getAgentPort()).
+                    raiseMetricPublishRequest(metricCollection.buildRequest(jobInfo.getJobId()));
+            jobInfo.addMonitoringAgent(agentIp);
+            log.info("Request "+metricCollection+" raised on Agent "+agentIp);
+        }
+    }
+
+    /**
      * Submitting Job To Loader Agents
      * @param jobs
      * @param jobInfo
      * @throws IOException
      * @throws JobException
      */
+/*
     private void submitJobToAgents(ArrayNode jobs, JobInfo jobInfo) throws IOException, JobException {
         for(int i=0; i<jobs.size(); i++) {
             ObjectNode jobPart = (ObjectNode) jobs.get(i);
@@ -887,23 +927,55 @@ public class JobResource {
             }
         }
     }
+*/
+
+    /**
+     * Submitting Load Job To Loader Agents
+     * @param jobInfo
+     * @param loadParts
+     * @throws IOException
+     * @throws JobException
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    private void submitJobToAgents(JobInfo jobInfo, List<LoadPart> loadParts)
+            throws IOException, JobException, ExecutionException, InterruptedException {
+        for(LoadPart loadPart : loadParts) {
+            // Submitting Job To Agent
+            List<String> agentIps = loadPart.getAgents();
+            List<String> classes = loadPart.getClasses();
+
+            StringBuilder classListWithNewLine = new StringBuilder();
+            for(String clazz : classes)
+                classListWithNewLine.append(clazz+"\n");
+
+            for(String agentIp : agentIps) {
+                DeploymentHelper.instance().deployPlatformLibsOnAgent(agentIp);
+                DeploymentHelper.instance().deployClassLibsOnAgent(agentIp, classListWithNewLine.toString().trim());
+                submitJobToAgent(agentIp,
+                        jobInfo,
+                        loadPart.getLoad(),
+                        classListWithNewLine.toString());
+            }
+        }
+    }
 
     /**
      * Submitting Job To Loader Agent
      * @param agentIp
      * @param jobInfo
-     * @param jobPart
+     * @param load
      * @throws IOException
      * @throws JobException
      */
-    private void submitJobToAgent(String agentIp, JobInfo jobInfo, String jobPart, String classListStr)
-            throws InterruptedException, ExecutionException, JobException {
+    private void submitJobToAgent(String agentIp, JobInfo jobInfo, Load load, String classListStr)
+            throws InterruptedException, ExecutionException, JobException, JsonProcessingException {
         log.info("Agent Ip :"+agentIp);
         new LoaderAgentClient(agentIp,
                 agentConfig.getAgentPort()).
-                submitJob(jobInfo.getJobId(), jobPart, classListStr);
+                submitJob(jobInfo.getJobId(), load, classListStr);
         jobInfo.jobRunningInAgent(agentIp);
-        log.info("Load Job " + jobPart + " submitted to Agent " + agentIp);
+        log.info("Load Job " + load + " submitted to Agent " + agentIp);
     }
 
     private void persistJob(String jobId, JsonNode jobInfoJsonNode) throws IOException {
@@ -915,6 +987,29 @@ public class JobResource {
         FileHelper.persistStream(new ByteArrayInputStream(jobInfoJsonNode.toString().getBytes()),
                 runFile,
                 false);
+
+        // Add file containing run name in job folder
+        String jobRunNameFile = jobFSConfig.getJobRunNameFile(jobId);
+        FileHelper.createFilePath(jobRunNameFile);
+        FileHelper.persistStream(new ByteArrayInputStream(runName.getBytes()),
+                jobRunNameFile,
+                false);
+
+        // Adding job ids in run folder file
+        String runJobsFile = jobFSConfig.getRunJobsFile(runName);
+        FileHelper.createFilePath(runJobsFile);
+        FileHelper.persistStream(new ByteArrayInputStream((jobId+"\n").getBytes()),
+                runJobsFile,
+                true);
+    }
+
+    private void persistJob(String jobId, PerformanceRun performanceRun) throws IOException {
+        String runName = performanceRun.getRunName();
+
+        // Persisting run details
+        String runFile = jobFSConfig.getRunFile(runName);
+        FileHelper.createFilePath(runFile);
+        objectMapper.writeValue(new FileOutputStream(runFile), performanceRun);
 
         // Add file containing run name in job folder
         String jobRunNameFile = jobFSConfig.getJobRunNameFile(jobId);

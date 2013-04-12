@@ -2,15 +2,14 @@ package perf.operation.http.run;
 
 import com.open.perf.domain.Group;
 import com.open.perf.domain.GroupFunction;
-import com.open.perf.domain.Loader;
+import com.open.perf.domain.Load;
 import perf.operation.http.function.HttpGet;
 
 import java.util.UUID;
 
 public class HttpGetRunTestClass {
     public static void main (String[]args) throws Exception {
-        new Loader("HttpGetRun").
-                setJobId(UUID.randomUUID().toString()).
+        new Load().
                 addGroup(
                         new Group("HttpGet").
                                 setGroupStartDelay(0).
@@ -24,7 +23,7 @@ public class HttpGetRunTestClass {
                                         addParam(HttpGet.IP_PASS_ON_BODY, false).
                                         addParam(HttpGet.IP_EXPECTED_STATUS_CODE, 200).
                                         dumpData())).
-                start();
+                start(UUID.randomUUID().toString());
 
     }
 }

@@ -79,7 +79,7 @@ public class HttpRequestHelper {
     }
 
     public static void setFollowRedirects(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) {
-        requestBuilder.setFollowRedirects(context.getParameterAsBoolean(Constants.IP_FOLLOW_REDIRECTS));
+        requestBuilder.setFollowRedirects(context.getParameterAsBoolean(Constants.IP_FOLLOW_REDIRECTS).booleanValue());
     }
 
     public static void addCookies(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) throws IOException {

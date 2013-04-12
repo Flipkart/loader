@@ -2,13 +2,6 @@ package perf.server.util;
 
 import javax.ws.rs.core.Response;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nitinka
- * Date: 9/2/13
- * Time: 3:47 PM
- * To change this template use File | Settings | File Templates.
- */
 public class ResponseBuilder {
     public static Response jobNotOver(String jobId) {
         return response(Response.Status.BAD_REQUEST,

@@ -1,13 +1,6 @@
 package perf.server.domain;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: nitinka
- * Date: 25/1/13
- * Time: 3:31 PM
- * To change this template use File | Settings | File Templates.
- */
 public class OnDemandCollectorRequest {
     private List<OnDemandCollector> collectors;
     private String requestId;

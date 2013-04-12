@@ -1,6 +1,6 @@
 package com.open.perf.main;
 
-import com.open.perf.domain.Loader;
+import com.open.perf.domain.Load;
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -44,8 +44,7 @@ public class Main {
 
             System.setProperty("BASE_PATH", statsFolder(line));
             buildLoader(jobJsonFile(line)).
-                    setJobId(jobId(line)).
-                    start();
+                    start(jobId(line));
         }
         catch (Exception e) {
             logger.error(e);
@@ -53,9 +52,9 @@ public class Main {
         }
     }
 
-    private static Loader buildLoader(String jobJsonFile) throws IOException {
+    private static Load buildLoader(String jobJsonFile) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(new FileInputStream(jobJsonFile), Loader.class);
+        return mapper.readValue(new FileInputStream(jobJsonFile), Load.class);
     }
 
     private static String jobId(CommandLine line) {
