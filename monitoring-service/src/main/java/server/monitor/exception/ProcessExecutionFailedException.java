@@ -7,8 +7,8 @@ package server.monitor.exception;
  * Time: 12:43 PM
  * To change this template use File | Settings | File Templates.
  */
-public class ProcessExcutionFailedException extends Exception {
-    public ProcessExcutionFailedException(String error) {
+public class ProcessExecutionFailedException extends Exception {
+    public ProcessExecutionFailedException(String error) {
         super(error);
     }
 }

@@ -1,8 +1,9 @@
 package perf.server.resource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.open.perf.jackson.ObjectMapperUtil;
 import com.yammer.dropwizard.jersey.params.BooleanParam;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
 import perf.server.config.LibStorageFSConfig;
 
 import javax.ws.rs.*;
@@ -22,12 +23,11 @@ import java.util.regex.Pattern;
 @Path("/functions")
 public class FunctionResource {
     private static Logger log = Logger.getLogger(FunctionResource.class);
+    private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
     private LibStorageFSConfig storageConfig;
-    private ObjectMapper objectMapper;
 
     public FunctionResource(LibStorageFSConfig storageConfig) throws MalformedURLException {
         this.storageConfig = storageConfig;
-        this.objectMapper = new ObjectMapper();
     }
 
     /**

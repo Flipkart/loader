@@ -1,10 +1,11 @@
 package perf.server.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.FileHelper;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
+import org.codehaus.jackson.map.ObjectMapper;
 import perf.server.config.JobFSConfig;
 import perf.server.exception.JobException;
 import perf.server.util.ResponseBuilder;
@@ -23,11 +24,7 @@ import java.util.concurrent.ExecutionException;
 public class RunResource {
 
     private final JobFSConfig jobFSConfig;
-    private static ObjectMapper objectMapper;
-
-    static {
-        objectMapper = new ObjectMapper();
-    }
+    private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
 
     public RunResource(JobFSConfig jobFSConfig) {
         this.jobFSConfig = jobFSConfig;

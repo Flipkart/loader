@@ -1,6 +1,7 @@
 package perf.server.domain;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.open.perf.jackson.ObjectMapperUtil;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class PerformanceRun {
     }
 
     public static void main(String[] args) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = ObjectMapperUtil.instance();
         PerformanceRun performanceRun = mapper.readValue(new File("/home/nitinka/git/loader2.0/loader-http-operations/sample/sampleGet.json"), PerformanceRun.class);
         System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(performanceRun));
     }

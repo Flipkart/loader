@@ -1,13 +1,5 @@
 package perf.server.domain;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nitinka
- * Date: 22/3/13
- * Time: 6:51 PM
- * To change this template use File | Settings | File Templates.
- */
-
 import java.util.Date;
 
 /**

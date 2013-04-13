@@ -1,13 +1,14 @@
 package perf.server.resource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
+import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.ClassHelper;
 import com.open.perf.util.FileHelper;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.reflections.Reflections;
 import org.reflections.Store;
 import perf.server.cache.LibCache;
@@ -33,12 +34,11 @@ public class DeployLibResource {
     private LibStorageFSConfig storageConfig;
     private LibCache libCache;
     private CustomClassLoader customClassLoader;
-    private ObjectMapper objectMapper;
+    private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
 
     public DeployLibResource(LibStorageFSConfig storageConfig) throws MalformedURLException {
         this.storageConfig = storageConfig;
         this.libCache = LibCache.instance();
-        this.objectMapper = new ObjectMapper();
         loadPlatformLibsInCustomClassLoader();
     }
 

@@ -1,6 +1,6 @@
 package com.open.perf.function;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.open.perf.jackson.ObjectMapperUtil;
 
 import java.io.IOException;
 
@@ -52,7 +52,7 @@ public class FunctionParameter {
 
     public String toString() {
         try {
-            return new ObjectMapper().writeValueAsString(this);
+            return ObjectMapperUtil.instance().writeValueAsString(this);
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }

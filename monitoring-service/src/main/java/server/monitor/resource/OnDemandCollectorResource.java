@@ -1,20 +1,26 @@
 package server.monitor.resource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.open.perf.jackson.ObjectMapperUtil;
+import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
 import server.monitor.collector.BaseCollector;
 import server.monitor.collector.CollectorFactory;
 import server.monitor.collector.CollectorThread;
 import server.monitor.config.OnDemandCollectorConfig;
 import server.monitor.domain.OnDemandCollector;
 import server.monitor.domain.OnDemandCollectorRequest;
-import org.apache.log4j.Logger;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -88,13 +94,19 @@ public class OnDemandCollectorResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public void startCollectors(@Valid OnDemandCollectorRequest request) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        startcollection(request);
+        startCollection(request);
     }
 
-    private void startcollection(OnDemandCollectorRequest request) throws InvocationTargetException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException {
+    private void startCollection(OnDemandCollectorRequest request) throws InvocationTargetException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         try {
-            log.info("Request :"+new ObjectMapper().writeValueAsString(request));
+            log.info("Request :" + ObjectMapperUtil.instance().writeValueAsString(request));
         } catch (JsonProcessingException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (JsonMappingException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (JsonGenerationException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         List<BaseCollector> collectors = new ArrayList<BaseCollector>();

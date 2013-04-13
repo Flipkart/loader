@@ -10,7 +10,7 @@ import com.open.perf.function.PerformanceFunction;
  * Time: 11:57 AM
  * To change this template use File | Settings | File Templates.
  */
-public class PlainPrintParam extends PerformanceFunction{
+public class PrintAllContextParams extends PerformanceFunction{
     @Override
     public void execute(FunctionContext context) throws Exception {
         System.out.println(context.getParameters());

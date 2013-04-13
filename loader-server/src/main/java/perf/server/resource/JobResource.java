@@ -1,6 +1,5 @@
 package perf.server.resource;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -969,7 +968,7 @@ public class JobResource {
      * @throws JobException
      */
     private void submitJobToAgent(String agentIp, JobInfo jobInfo, Load load, String classListStr)
-            throws InterruptedException, ExecutionException, JobException, JsonProcessingException {
+            throws InterruptedException, ExecutionException, JobException, IOException {
         log.info("Agent Ip :"+agentIp);
         new LoaderAgentClient(agentIp,
                 agentConfig.getAgentPort()).

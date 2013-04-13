@@ -2,7 +2,7 @@ package server.monitor.collector;
 
 import com.open.perf.util.ProcessHelper;
 import server.monitor.domain.ResourceCollectionInstance;
-import server.monitor.exception.ProcessExcutionFailedException;
+import server.monitor.exception.ProcessExecutionFailedException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -16,16 +16,16 @@ public abstract class NativeCmdBaseCollector extends BaseCollector{
         super(name, params, interval);
     }
 
-    public Process executeCmd() throws IOException, InterruptedException, ProcessExcutionFailedException {
+    public Process executeCmd() throws IOException, InterruptedException, ProcessExecutionFailedException {
         Process process = Runtime.getRuntime().exec(getCmd());
 
         if(!ProcessHelper.wait(process, MAX_CMD_TIME)) {
             process.destroy();
-            throw new ProcessExcutionFailedException("Process Didn't complete in "+MAX_CMD_TIME+"ms");
+            throw new ProcessExecutionFailedException("Process Didn't complete in "+MAX_CMD_TIME+"ms");
         }
 
         if(process.exitValue() != 0)
-            throw new ProcessExcutionFailedException(ProcessHelper.getError(process));
+            throw new ProcessExecutionFailedException(ProcessHelper.getError(process));
 
             return process;
     }
@@ -45,7 +45,7 @@ public abstract class NativeCmdBaseCollector extends BaseCollector{
         } catch (InterruptedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             supported = false;
-        } catch (ProcessExcutionFailedException e) {
+        } catch (ProcessExecutionFailedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         return supported;
@@ -55,5 +55,5 @@ public abstract class NativeCmdBaseCollector extends BaseCollector{
      * implement it the set OS related Command
      */
     protected abstract String getCmd();
-    abstract public ResourceCollectionInstance collect() throws IOException, InterruptedException, ProcessExcutionFailedException;
+    abstract public ResourceCollectionInstance collect() throws IOException, InterruptedException, ProcessExecutionFailedException;
 }

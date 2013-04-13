@@ -1,7 +1,7 @@
 package perf.server.daemon;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.open.perf.constant.MathConstant;
+import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.Clock;
 import com.open.perf.util.FileHelper;
 import com.yammer.metrics.Metrics;
@@ -9,6 +9,7 @@ import com.yammer.metrics.core.Histogram;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.stats.Snapshot;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
 import perf.server.config.JobFSConfig;
 import perf.server.domain.TimerStatsInstance;
 
@@ -38,7 +39,7 @@ public class TimerComputationThread extends Thread {
     private static final String FILE_EXTENSION;
 
     static {
-        objectMapper = new ObjectMapper();
+        objectMapper = ObjectMapperUtil.instance();
         DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
         objectMapper.setDateFormat(dateFormat);
 

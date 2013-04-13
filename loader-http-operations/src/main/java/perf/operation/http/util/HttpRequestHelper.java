@@ -3,6 +3,7 @@ package perf.operation.http.util;
 import com.ning.http.client.*;
 import com.open.perf.core.FunctionContext;
 import com.open.perf.function.FunctionParameter;
+import com.open.perf.jackson.ObjectMapperUtil;
 import org.codehaus.jackson.map.ObjectMapper;
 import perf.operation.http.constant.Constants;
 
@@ -16,7 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class HttpRequestHelper {
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
 
     public static AsyncHttpClient buildClient() {
         AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
