@@ -1,6 +1,7 @@
 package perf.server.resource;
 
 import com.google.common.collect.Multimap;
+import com.open.perf.function.FunctionParameter;
 import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.ClassHelper;
 import com.open.perf.util.FileHelper;
@@ -13,6 +14,7 @@ import org.reflections.Reflections;
 import org.reflections.Store;
 import perf.server.cache.LibCache;
 import perf.server.config.LibStorageFSConfig;
+import perf.server.domain.FunctionInfo;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -87,7 +89,7 @@ public class DeployLibResource {
     @Timed
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    synchronized public Map<String, Map<String, Object>> deployLib(
+    synchronized public Map<String, FunctionInfo> deployLib(
             @FormDataParam("lib") InputStream libInputStream,
             @FormDataParam("lib") FormDataContentDisposition libFileDetails) throws IOException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
 
@@ -97,7 +99,7 @@ public class DeployLibResource {
 
         FileHelper.persistStream(libInputStream, userLibPath);
 
-        Map<String,Map<String,Object>> discoveredUserFunctions = discoverUserFunctions(userLibPath);
+        Map<String, FunctionInfo> discoveredUserFunctions = discoverUserFunctions(userLibPath);
 
         persistDiscoveredUserFunctions(libFileDetails.getFileName(), discoveredUserFunctions);
 
@@ -113,20 +115,17 @@ public class DeployLibResource {
      * @param discoveredUserFunctions
      * @throws IOException
      */
-    private void persistDiscoveredUserFunctions(String libFileName, Map<String, Map<String,Object>> discoveredUserFunctions) throws IOException {
-        for(String userFunctionClass : discoveredUserFunctions.keySet()) {
+    private void persistDiscoveredUserFunctions(String libFileName, Map<String, FunctionInfo> discoveredUserFunctions) throws IOException {
+        for(String userFunction : discoveredUserFunctions.keySet()) {
             mergeMappingFile(storageConfig.getUserLibPath()
                     + File.separator
                     + libFileName,
-                    userFunctionClass);
+                    userFunction);
 
-            Map<String,Object> classProperties = discoveredUserFunctions.get(userFunctionClass);
-            Properties prop = new Properties();
-            for(String property : classProperties.keySet())
-            prop.put(property, objectMapper.writeValueAsString(classProperties.get(property)));
-            String classInfoFile = storageConfig.getUserClassInfoPath() + File.separator + userFunctionClass + ".info";
-            FileHelper.createFile(classInfoFile);
-            prop.store(new FileOutputStream(classInfoFile), "User Defined Class Information");
+            FunctionInfo functionInfo = discoveredUserFunctions.get(userFunction);
+            String functionInfoFile = storageConfig.getUserClassInfoPath() + File.separator + userFunction + ".info.json";
+            FileHelper.createFile(functionInfoFile);
+            objectMapper.writeValue(new File(functionInfoFile), functionInfo);
         }
     }
 
@@ -207,7 +206,7 @@ public class DeployLibResource {
                 setUserClassInfoPath("/usr/share/loader-server/config").
                 setUserClassLibMappingFile("/usr/share/loader-server/config/classLibMapping.properties");
         DeployLibResource deploy = new DeployLibResource(storageFSConfig);
-        Map<String,Map<String,Object>> discoveredUserFunctions = deploy.discoverUserFunctions(externalJar);
+        Map<String, FunctionInfo> discoveredUserFunctions = deploy.discoverUserFunctions(externalJar);
         deploy.persistDiscoveredUserFunctions("sample", discoveredUserFunctions);
         System.out.println(discoveredUserFunctions);
     }
@@ -223,8 +222,8 @@ public class DeployLibResource {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public Map<String,Map<String,Object>> discoverUserFunctions(String userLibJar) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Map<String,Map<String,Object>> discoveredUserFunctions = new HashMap<String, Map<String,Object>>();
+    public Map<String,FunctionInfo> discoverUserFunctions(String userLibJar) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Map<String, FunctionInfo> discoveredUserFunctions = new HashMap<String, FunctionInfo>();
 
         customClassLoader.addURL(new URL("file://" + userLibJar));
         System.out.println("User Lib Path = " + userLibJar);
@@ -236,29 +235,40 @@ public class DeployLibResource {
         Multimap<String,String> subTypesScanner = storeMap.get("SubTypesScanner");
 
         if(subTypesScanner != null) {
-            Collection<String> performanceFunctionClassesCollection = subTypesScanner.get("com.open.perf.function.PerformanceFunction");
-            for(String performanceFunctionClass : performanceFunctionClassesCollection) {
-                if(!discoveredUserFunctions.containsKey(performanceFunctionClass)) {
+            Collection<String> performanceFunctions = subTypesScanner.get("com.open.perf.function.PerformanceFunction");
+            for(String performanceFunction : performanceFunctions) {
+                if(!discoveredUserFunctions.containsKey(performanceFunction)) {
                     Map<String,Object> classProperties = new HashMap<String, Object>();
-
+                    FunctionInfo functionInfo = new FunctionInfo();
                     // Discover Usage description for the UDF
-                    Object object = ClassHelper.getClassInstance(performanceFunctionClass, new Class[]{}, new Object[]{}, customClassLoader);
-                    Method method = ClassHelper.getMethod(performanceFunctionClass , "description", new Class[]{}, customClassLoader);
-                    List<String> functionDescriptionLines = (List<String>) method.invoke(object, new Object[]{});
+                    Object object = ClassHelper.getClassInstance(performanceFunction, new Class[]{}, new Object[]{}, customClassLoader);
+                    Method method = ClassHelper.getMethod(performanceFunction , "description", new Class[]{}, customClassLoader);
+                    functionInfo.setDescription((List<String>) method.invoke(object, new Object[]{}));
+/*
+                    List<String> functionDescriptionLines = ;
                     classProperties.put("description", functionDescriptionLines);
+*/
 
                     // Discover Input parameters for the UDF
-                    object = ClassHelper.getClassInstance(performanceFunctionClass, new Class[]{}, new Object[]{}, customClassLoader);
-                    method = ClassHelper.getMethod(performanceFunctionClass , "inputParameters", new Class[]{}, customClassLoader);
-                    LinkedHashMap<String, Object> functionInputParameters = (LinkedHashMap<String, Object>) method.invoke(object, new Object[]{});
+                    object = ClassHelper.getClassInstance(performanceFunction, new Class[]{}, new Object[]{}, customClassLoader);
+                    functionInfo.setInputParameters((LinkedHashMap<String, FunctionParameter>) method.invoke(object, new Object[]{}));
+
+/*
+                    method = ClassHelper.getMethod(performanceFunction , "inputParameters", new Class[]{}, customClassLoader);
+                    LinkedHashMap<String, FunctionParameter> functionInputParameters = (LinkedHashMap<String, FunctionParameter>) method.invoke(object, new Object[]{});
                     classProperties.put("inputParameters", functionInputParameters);
+*/
 
                     // Discover Output parameters for the UDF
-                    method = ClassHelper.getMethod(performanceFunctionClass , "outputParameters", new Class[]{}, customClassLoader);
+                    method = ClassHelper.getMethod(performanceFunction , "outputParameters", new Class[]{}, customClassLoader);
+                    functionInfo.setOutputParameters((LinkedHashMap<String, FunctionParameter>) method.invoke(object, new Object[]{}));
+
+/*
                     LinkedHashMap<String, Object> functionOutputParameters = (LinkedHashMap<String, Object>) method.invoke(object, new Object[]{});
                     classProperties.put("outputParameters", functionOutputParameters);
+*/
 
-                    discoveredUserFunctions.put(performanceFunctionClass, classProperties);
+                    discoveredUserFunctions.put(performanceFunction, functionInfo);
                 }
            }
         }

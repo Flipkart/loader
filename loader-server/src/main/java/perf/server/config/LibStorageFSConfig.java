@@ -1,5 +1,7 @@
 package perf.server.config;
 
+import java.io.File;
+
 public class LibStorageFSConfig {
     private String userClassLibMappingFile;
     private String userLibPath;
@@ -35,6 +37,10 @@ public class LibStorageFSConfig {
 
     public String getUserClassInfoPath() {
         return userClassInfoPath;
+    }
+
+    public String getUserClassInfoFile(String function) {
+        return userClassInfoPath + File.separator + function + ".info.json";
     }
 
     public LibStorageFSConfig setUserClassInfoPath(String userClassInfoPath) {

@@ -121,6 +121,11 @@ public class Group {
         return functions;
     }
 
+    public Group setFunctions(List<GroupFunction> functions) {
+        this.functions = functions;
+        return this;
+    }
+
     public Group setName(String name) {
         this.name = name;
         return this;
