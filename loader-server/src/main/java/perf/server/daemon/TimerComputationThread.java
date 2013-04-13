@@ -203,10 +203,8 @@ public class TimerComputationThread extends Thread {
                 histogram.update((long) Double.parseDouble(tokens[1]));
             }
 
-            int countSinceLastCalculation = 0;
             while(cachedContent.size() > 0) {
                 String currentLine = cachedContent.remove(0);
-                countSinceLastCalculation++;
 
                 StringTokenizer tokenizer = new StringTokenizer(currentLine, ",");
                 long lineTimeMS = Long.parseLong(tokenizer.nextElement().toString());
@@ -224,6 +222,7 @@ public class TimerComputationThread extends Thread {
 
                 // Either you have collected 1 million instances or you have collected data worth 10 seconds
                 TimerStatsInstance timerStatsInstance;
+                long countSinceLastCalculation = histogram.count() - timerStatsStamp.lastCount;
                 if(countSinceLastCalculation % MathConstant.MILLION == 0 ||
                         (lineTimeMS - timerStatsStamp.lastTimeMS) > 10 * MathConstant.THOUSAND ||
                         (jobOver(jobId) && cachedContent.size() == 0)) {
@@ -262,7 +261,6 @@ public class TimerComputationThread extends Thread {
                             setLastCount(histogram.count()).
                             setLastSum(histogram.sum()).
                             setLastTimeMS(lineTimeMS);
-                    countSinceLastCalculation = 0;
                 }
 
             }
