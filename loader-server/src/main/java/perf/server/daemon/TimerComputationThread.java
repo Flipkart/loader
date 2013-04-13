@@ -203,10 +203,10 @@ public class TimerComputationThread extends Thread {
                 histogram.update((long) Double.parseDouble(tokens[1]));
             }
 
-            int countInThisIteration = 0;
+            int countSinceLastCalculation = 0;
             while(cachedContent.size() > 0) {
                 String currentLine = cachedContent.remove(0);
-                countInThisIteration++;
+                countSinceLastCalculation++;
 
                 StringTokenizer tokenizer = new StringTokenizer(currentLine, ",");
                 long lineTimeMS = Long.parseLong(tokenizer.nextElement().toString());
@@ -224,14 +224,14 @@ public class TimerComputationThread extends Thread {
 
                 // Either you have collected 1 million instances or you have collected data worth 10 seconds
                 TimerStatsInstance timerStatsInstance;
-                if(countInThisIteration % MathConstant.MILLION == 0 ||
+                if(countSinceLastCalculation % MathConstant.MILLION == 0 ||
                         (lineTimeMS - timerStatsStamp.lastTimeMS) > 10 * MathConstant.THOUSAND ||
                         (jobOver(jobId) && cachedContent.size() == 0)) {
 
                     double iterationTimeSec = (lineTimeMS - timerStatsStamp.lastTimeMS) / (float)MathConstant.THOUSAND;
-                    double iterationThroughputSec = countInThisIteration/iterationTimeSec;
+                    double iterationThroughputSec = countSinceLastCalculation/iterationTimeSec;
                     double overallThroughputSec = histogram.count()/((lineTimeMS - timerStatsStamp.firstTimeMS) / (float)MathConstant.THOUSAND);
-                    double iterationMean = (histogram.sum() - timerStatsStamp.lastSum)/countInThisIteration;
+                    double iterationMean = (histogram.sum() - timerStatsStamp.lastSum)/countSinceLastCalculation;
 
                     Snapshot snapshot = histogram.getSnapshot();
                     timerStatsInstance = new TimerStatsInstance().
@@ -262,7 +262,7 @@ public class TimerComputationThread extends Thread {
                             setLastCount(histogram.count()).
                             setLastSum(histogram.sum()).
                             setLastTimeMS(lineTimeMS);
-                    countInThisIteration = 0;
+                    countSinceLastCalculation = 0;
                 }
 
             }
@@ -286,12 +286,18 @@ public class TimerComputationThread extends Thread {
     private boolean canParseContentNow(String jobId, List<String> cachedContent) {
         if(cachedContent.size() == 0)
             return false;
-        String lastLine = cachedContent.get(0);
-        StringTokenizer tokenizer = new StringTokenizer(lastLine, ",");
-        long lineTimeMS = Long.parseLong(tokenizer.nextElement().toString());
+        String firstLine = cachedContent.get(0);
+        StringTokenizer firstLineTokenizer = new StringTokenizer(firstLine, ",");
+        long firstLineTimeMS = Long.parseLong(firstLineTokenizer.nextElement().toString());
         long currentTimeMS = Clock.milliTick();
-        System.out.println("Time Passed :"+(currentTimeMS - lineTimeMS)+"ms");
-        return ((currentTimeMS - lineTimeMS) > (60 + 30) * MathConstant.THOUSAND) || jobOver(jobId); // Crunch if data is older than 60 + 30 seconds
+        logger.info("First Lines in Cached Content is  :"+(currentTimeMS - firstLineTimeMS)+"ms old");
+
+        String lastLine = cachedContent.get(cachedContent.size()-1);
+        StringTokenizer lastLineTokenizer = new StringTokenizer(lastLine, ",");
+        long lastLineTimeMS = Long.parseLong(lastLineTokenizer.nextElement().toString());
+        logger.info("Cached Content has data for  :"+(lastLineTimeMS - firstLineTimeMS)+"ms time");
+
+        return ((currentTimeMS - firstLineTimeMS) > (60 + 30) * MathConstant.THOUSAND) || jobOver(jobId); // Crunch if data is older than 60 + 30 seconds
     }
 
     private boolean keepRunning() {
@@ -318,6 +324,6 @@ public class TimerComputationThread extends Thread {
     public static void main(String[] args) throws IOException {
         TimerComputationThread t = new TimerComputationThread(null, 10000);
         long startTime = Clock.nsTick();
-        t.crunchJobFileTimer("", new File("/var/log/loader-server/jobs/eb9743df-0dfe-4d34-84fe-04054cee8b9d/agents/127.0.0.1/jobStats/SampleGroup/timers/DummyFunction"));
+        t.crunchJobFileTimer("", new File("/var/log/loader-server/jobs/452e04ca-5c2f-45d9-8a5c-24a9b0f30e72/combinedStats/SampleGroup/timers/HttpGet"));
     }
 }
