@@ -1,10 +1,16 @@
 package perf.server.resource;
 
+import com.open.perf.domain.Group;
+import com.open.perf.domain.GroupFunction;
+import com.open.perf.domain.Load;
+import com.open.perf.function.FunctionParameter;
 import com.open.perf.jackson.ObjectMapperUtil;
 import com.yammer.dropwizard.jersey.params.BooleanParam;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import perf.server.config.LibStorageFSConfig;
+import perf.server.domain.*;
+import perf.server.util.ResponseBuilder;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -51,7 +57,6 @@ public class FunctionResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<Object> getFunctions(@PathParam("functionsRegEx") @DefaultValue(".+") String functionsRegEx,
                                      @QueryParam("classInfo") @DefaultValue("false") BooleanParam includeClassInfo) throws IOException {
-
         functionsRegEx = ".*" + functionsRegEx + ".*";
         System.out.println("functionsRegEx: "+functionsRegEx);
         List<Object> userFunctions = new ArrayList<Object>();
@@ -59,31 +64,70 @@ public class FunctionResource {
         if(userFunctionsBaseFolder.exists()) {
             for(File userFunctionFile : userFunctionsBaseFolder.listFiles()){
                 String userFunctionFileName = userFunctionFile.getName();
-                if(userFunctionFileName.endsWith("info")) {
-                    userFunctionFileName = userFunctionFileName.replace(".info","");
-                    if(Pattern.matches(functionsRegEx, userFunctionFileName)) {
+                if(userFunctionFileName.endsWith("info.json")) {
+                    String function = userFunctionFileName.replace(".info.json","");
+                    if(Pattern.matches(functionsRegEx, function)) {
                         if(includeClassInfo.get()) {
-                            Map<String, Object> classInfoMap = new HashMap<String, Object>();
-                            LinkedHashMap classInfo = new LinkedHashMap();
-                            Properties prop = new Properties();
-                            prop.load(new FileInputStream(userFunctionFile));
-                            Enumeration classProperties = prop.propertyNames();
-                            while(classProperties.hasMoreElements()) {
-                                Object property = classProperties.nextElement();
-                                Object propertyValue = prop.get(property);
-                                classInfo.put(property.toString(), objectMapper.readValue(propertyValue.toString(),Object.class));
-                            }
-                            classInfoMap.put(userFunctionFileName, classInfo);
-                            userFunctions.add(classInfoMap);
+                            FunctionInfo functionInfo = objectMapper.readValue(userFunctionFile, FunctionInfo.class);
+                            userFunctions.add(functionInfo);
                         }
                         else {
-                            userFunctions.add(userFunctionFileName.replace(".info",""));
+                            userFunctions.add(function);
                         }
                     }
                 }
             }
         }
         return userFunctions;
+    }
+
+    /**
+     * Get All Deployed Functions
+     * @return
+     * @throws IOException
+     */
+    @Path("/{function}/performanceRun")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public PerformanceRun getFunctions(@PathParam("function") String function,
+                                     @QueryParam("runName") String runName) throws IOException {
+
+        File userFunctionsInfoFile = new File(storageConfig.getUserClassInfoFile(function));
+        if(!userFunctionsInfoFile.exists())
+            throw new WebApplicationException(ResponseBuilder.resourceNotFound("Function", function));
+
+        String functionClassName = function.split("\\.")[function.split("\\.").length-1];
+        if(runName == null)
+            runName = "defaultRun_" + function;
+
+        FunctionInfo functionInfo = objectMapper.readValue(userFunctionsInfoFile, FunctionInfo.class);
+
+        GroupFunction groupFunction = new GroupFunction().
+                dumpData().
+                setFunctionalityName(functionClassName + "_with_" + function).setFunctionClass(function);
+        Map<String, FunctionParameter> functionInputParameters = functionInfo.getInputParameters();
+        for(String inputParameterName : functionInputParameters.keySet()) {
+            FunctionParameter inputParameterInfo = functionInputParameters.get(inputParameterName);
+            groupFunction.addParam(inputParameterName, inputParameterInfo.getDefaultValue());
+        }
+
+        Group group = new Group().
+                setName("defaultGroup_" + functionClassName + "_" + function).
+                setFunctions(Arrays.asList(new GroupFunction[]{groupFunction}));
+
+        Load load = new Load().
+                setGroups(Arrays.asList(new Group[]{group}));
+
+        LoadPart loadPart = new LoadPart().
+                setAgents(Arrays.asList(new String[]{"127.0.0.1"})).
+                setClasses(Arrays.asList(new String[]{function})).
+                setLoad(load);
+
+        return new PerformanceRun().
+                setRunName(runName).
+                setMetricCollections(Arrays.asList(new MetricCollection[]{})).
+                setOnDemandMetricCollections(Arrays.asList(new OnDemandMetricCollection[]{})).
+                setLoadParts(Arrays.asList(new LoadPart[]{loadPart}));
     }
 
 
@@ -104,7 +148,7 @@ public class FunctionResource {
             for(File userFunctionFile : userFunctionsBaseFolder.listFiles()){
                 String userFunctionFileName = userFunctionFile.getName();
                 if(userFunctionFileName.endsWith("info")) {
-                    userFunctionFileName = userFunctionFileName.replace(".info","");
+                    userFunctionFileName = userFunctionFileName.replace(".info.json","");
                     if(Pattern.matches(functionsRegEx, userFunctionFileName)) {
                         userFunctionFile.delete();
                         mappingProp.remove(userFunctionFileName);
@@ -115,4 +159,7 @@ public class FunctionResource {
         }
     }
 
+    public static void main(String[] args) {
+        System.out.println("H.L".split("\\.").length);
+    }
 }
