@@ -72,10 +72,7 @@ public class LibCache {
     }
 
     public String buildJobClassPath(List<String> classList) throws IOException {
-//        List<String> classList = new ObjectMapper().readValue(classListStr, List.class);
         Set<String> libs = new HashSet<String>();
-//        String[] classList = classListStr.split("\n");
-
         String classPath = platformLibClassPath + File.pathSeparator;
 
         for(String className : classList) {
@@ -94,7 +91,7 @@ public class LibCache {
                 classPath;
     }
 
-    public List getPlatformlibs() {
+    public List getPlatformLibs() {
         return Arrays.asList(platformLibClassPath.split(File.pathSeparator));
     }
 
