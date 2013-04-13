@@ -147,7 +147,7 @@ public class DeployLibResource {
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
     synchronized public List getPlatformLib(){
-        return this.libCache.getPlatformlibs();
+        return this.libCache.getPlatformLibs();
     }
 
     synchronized public static void mergeMappingFile(String libPath, String classListStr, String mappingFile) throws IOException {

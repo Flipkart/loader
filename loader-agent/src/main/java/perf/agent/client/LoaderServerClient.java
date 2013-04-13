@@ -1,9 +1,10 @@
 package perf.agent.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
+import com.open.perf.jackson.ObjectMapperUtil;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import perf.agent.config.ServerInfo;
@@ -26,7 +27,7 @@ public class LoaderServerClient {
     private static final String RESOURCE_AGENTS = "/loader-server/agents";
 
     private static Logger logger = LoggerFactory.getLogger(LoaderServerClient.class);
-
+    private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
     public LoaderServerClient(String host, int port) {
         this.host = host;
         this.port = port;
@@ -61,7 +62,7 @@ public class LoaderServerClient {
             throws ExecutionException, InterruptedException, IOException {
 
         logger.info("Registering to Loader Server");
-        ObjectNode node = new ObjectMapper().createObjectNode();
+        ObjectNode node = objectMapper.createObjectNode();
         for(String key : registrationParams.keySet())
         node.put(key, registrationParams.get(key).toString());
 
