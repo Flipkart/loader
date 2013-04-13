@@ -1,5 +1,6 @@
 package com.open.perf.core;
 
+import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.Clock;
 import com.open.perf.util.Counter;
 import com.open.perf.util.Timer;
@@ -25,7 +26,7 @@ public class FunctionContext {
         GENERAL, DATA_MISSING, FUNCTIONAL_FAILURE, WRONG_INPUT
     }
 
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static ObjectMapper mapper = ObjectMapperUtil.instance();
     private Thread myThread;
     private Map<String, Object> functionParameters;
     private Map<String, Counter> counters;

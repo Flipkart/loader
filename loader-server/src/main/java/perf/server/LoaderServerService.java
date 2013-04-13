@@ -32,7 +32,7 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         DeploymentHelper.initialize(configuration.getAgentConfig(),
                 configuration.getLibStorageFSConfig());
         environment.addResource(new DeployLibResource(configuration.getLibStorageFSConfig()));
-        environment.addResource(new AgentResource(configuration.getAgentConfig()));
+        environment.addResource(new AgentResource());
         environment.addResource(new JobResource(configuration.getAgentConfig(),
                 configuration.getMonitoringAgentConfig(),
                 configuration.getJobFSConfig()));

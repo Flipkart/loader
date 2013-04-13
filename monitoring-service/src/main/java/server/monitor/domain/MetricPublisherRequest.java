@@ -1,13 +1,16 @@
 package server.monitor.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
+import com.open.perf.jackson.ObjectMapperUtil;
 import server.monitor.cache.ResourceCache;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -100,7 +103,7 @@ public class MetricPublisherRequest {
             resourceCollectionInstances.put(resoucre, ResourceCache.getStats(resoucre, this.lastHowManyInstances));
         }
 
-        String metrics = new ObjectMapper().writeValueAsString(resourceCollectionInstances);
+        String metrics = ObjectMapperUtil.instance().writeValueAsString(resourceCollectionInstances);
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.preparePost(this.publishUrl).
                 addHeader("Content-Type", "application/json").

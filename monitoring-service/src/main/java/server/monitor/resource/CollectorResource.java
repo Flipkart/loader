@@ -51,7 +51,6 @@ public class CollectorResource {
     @Timed
     synchronized public void addMetric(String metricFromCollector) throws IOException, InterruptedException {
         Map<String, ResourceCollectionInstance> resourceMetrics = metricHash(metricFromCollector);
-        //log.info(new ObjectMapper().writeValueAsString(resourceMetrics));
         cacheResources(resourceMetrics);
     }
 

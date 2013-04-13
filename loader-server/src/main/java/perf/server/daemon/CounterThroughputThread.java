@@ -1,10 +1,11 @@
 package perf.server.daemon;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.open.perf.constant.MathConstant;
+import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.Clock;
 import com.open.perf.util.FileHelper;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
 import perf.server.config.JobFSConfig;
 
 import java.io.*;
@@ -32,7 +33,7 @@ public class CounterThroughputThread extends Thread {
     private static final String FILE_EXTENSION;
 
     static {
-        objectMapper = new ObjectMapper();
+        objectMapper = ObjectMapperUtil.instance();
         DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
         objectMapper.setDateFormat(dateFormat);
 

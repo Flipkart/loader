@@ -6,7 +6,6 @@ import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
 import perf.server.cache.AgentsCache;
-import perf.server.config.AgentConfig;
 import perf.server.domain.LoaderAgent;
 import perf.server.util.DeploymentHelper;
 import perf.server.util.ResponseBuilder;
@@ -26,11 +25,8 @@ import java.util.concurrent.ExecutionException;
 @Path("/agents")
 public class AgentResource {
     private static Logger log = Logger.getLogger(AgentResource.class);
-    private AgentConfig agentConfig;
 
-    public AgentResource(AgentConfig agentConfig) {
-        this.agentConfig = agentConfig;
-    }
+    public AgentResource(){}
 
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)

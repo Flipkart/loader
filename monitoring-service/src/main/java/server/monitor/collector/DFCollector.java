@@ -2,7 +2,7 @@ package server.monitor.collector;
 
 import com.open.perf.util.ProcessHelper;
 import server.monitor.domain.ResourceCollectionInstance;
-import server.monitor.exception.ProcessExcutionFailedException;
+import server.monitor.exception.ProcessExecutionFailedException;
 
 import java.io.IOException;
 import java.util.*;
@@ -30,7 +30,7 @@ public class DFCollector extends NativeCmdBaseCollector {
     }
 
     @Override
-    public ResourceCollectionInstance collect() throws IOException, InterruptedException, ProcessExcutionFailedException {
+    public ResourceCollectionInstance collect() throws IOException, InterruptedException, ProcessExecutionFailedException {
         Process process = executeCmd();
         String cmdOutput = ProcessHelper.getOutput(process);
 

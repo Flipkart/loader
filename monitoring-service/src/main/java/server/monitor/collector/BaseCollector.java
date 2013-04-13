@@ -1,18 +1,12 @@
 package server.monitor.collector;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import server.monitor.domain.ResourceCollectionInstance;
+import com.open.perf.jackson.ObjectMapperUtil;
 import org.apache.log4j.Logger;
+import server.monitor.domain.ResourceCollectionInstance;
 
-import java.util.*;
-
-/**
- * Created by IntelliJ IDEA.
- * User: nitinka
- * Date: 3/1/13
- * Time: 3:01 PM
- * To change this template use File | Settings | File Templates.
- */
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 enum OS {
     SOLARIS, LINUX, HPUX , AIX, OSX, WINDOWS, UNKNOWN;
@@ -102,7 +96,7 @@ public abstract class BaseCollector{
      */
     final public ResourceCollectionInstance collect0() throws Exception {
         ResourceCollectionInstance collectionInstance = collect();
-        log.debug(new ObjectMapper().writeValueAsString(collectionInstance));
+        log.debug(ObjectMapperUtil.instance().writeValueAsString(collectionInstance));
         return collectionInstance;
     }
 

@@ -1,6 +1,7 @@
 package com.open.perf.main;
 
 import com.open.perf.domain.Load;
+import com.open.perf.jackson.ObjectMapperUtil;
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -14,8 +15,9 @@ import java.util.UUID;
 public class Main {
     private static Logger logger;
     private static Options options;
-
+    private static ObjectMapper objectMapper;
     static {
+        objectMapper = ObjectMapperUtil.instance();
         logger = Logger.getLogger(Main.class);
         options = new Options();
 
@@ -53,8 +55,7 @@ public class Main {
     }
 
     private static Load buildLoader(String jobJsonFile) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(new FileInputStream(jobJsonFile), Load.class);
+        return objectMapper.readValue(new FileInputStream(jobJsonFile), Load.class);
     }
 
     private static String jobId(CommandLine line) {

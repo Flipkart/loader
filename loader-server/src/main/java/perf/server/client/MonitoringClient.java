@@ -1,9 +1,10 @@
 package perf.server.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
+import com.open.perf.jackson.ObjectMapperUtil;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
 import perf.server.domain.MetricCollectionInfo;
 import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
@@ -70,7 +71,7 @@ public class MonitoringClient {
         Future<Response> r = b.execute();
         r.get();
         if(r.get().getStatusCode() == 200) {
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = ObjectMapperUtil.instance();
             resources = mapper.readValue(r.get().getResponseBody(), List.class);
         }
         else {
