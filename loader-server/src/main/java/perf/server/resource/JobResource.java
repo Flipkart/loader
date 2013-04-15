@@ -69,30 +69,6 @@ public class JobResource {
         this.monitoringAgentConfig = monitoringAgentConfig;
         this.jobFSConfig = jobFSConfig;
     }
-/*
-    */
-/**
-     Following call simulates html form post call, where somebody uploads a file to server
-     curl
-     -X POST
-     -H "Content-Type: multipart/form-data"
-     -F "jobJson=@Path-To-File-Containing-Job-Json"
-     http://localhost:9999/loader-server/jobs
-     * @param jobJsonInfoStream
-     * @throws IOException
-     * @throws ExecutionException
-     * @throws InterruptedException
-     *//*
-
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
-    @POST
-    @Timed
-    public JobInfo submitJob(@FormDataParam("jobJson") InputStream jobJsonInfoStream)
-            throws IOException, ExecutionException, InterruptedException, JobException {
-        return jobSubmitWorkflow(jobJsonInfoStream);
-    }
-*/
     /**
      Following call simulates html form post call, where somebody uploads a file to server
      curl
