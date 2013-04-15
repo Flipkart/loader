@@ -457,7 +457,7 @@ public class JobResource {
             TimerStatsInstance agentTimerStatsInstance = objectMapper.
                     readValue(agentStatsString, TimerStatsInstance.class);
 
-            String combinedStatsPath = timerPath.replace("agents/127.0.0.1/jobStats", "combinedStats");
+            String combinedStatsPath = timerPath.replace("agents/"+agentIp+"/jobStats", "combinedStats");
             String combinedStatsString = FileHelper.readContent(new FileInputStream(combinedStatsPath)).trim();
             TimerStatsInstance combinedTimerStatsInstance = objectMapper.
                     readValue(combinedStatsString, TimerStatsInstance.class);
