@@ -12,8 +12,18 @@ model. User can define work load on server UI and also mention how many agents s
 This feature is extremely important when user need to generate in the order of 10s-100s of 1000s of requests per second
 , which is not possible if you generate from single machine.
 <br>
-* 3) <b>Customizable/extendable Workload :<b/> Users are free to used Out of the box functions like HTTPGet, HTTPPost, HTTPDelete 
+* 3) <b>Customizable/extendable Workload :</b> Users are free to used Out of the box functions like HTTPGet, HTTPPost, HTTPDelete 
 etc to build their performance workload. But if such functions are not enough/suitable to simulate you use case. 
 Loader comes along with SDK which allows user to write their own specific performance functions. These functions 
 can then be clubbed in 'jar' and deployed on the loader instance. and now you can use your own functions and build 
 performance workflow.
+<br>
+* 4) <b>Server Side and App stats Monitoring :</b> Loader deployment comes along with monitoring-agent deployment. This
+monitoring-agent allows user to monitor/collect system metrics like cpu, memory, processes, network usage etc while the
+your application is under performance test. In addition to monitoring system stats of box where your application under 
+test is deployed, monitoring-agent also allows user to monitor application stats like stats exposed by JMX, mysql
+connections etc.
+<br>
+* 5) <b>Live Reporting :</b> While Load generation activity is going on you can monitor both Load stats like throughput,
+mean response times, standard deviations, percentiles and monitoring stats like cpu, memory , jmx, network usage etc in LIVE.
+
