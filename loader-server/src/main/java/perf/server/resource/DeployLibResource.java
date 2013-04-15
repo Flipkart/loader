@@ -250,7 +250,7 @@ public class DeployLibResource {
 */
 
                     // Discover Input parameters for the UDF
-                    object = ClassHelper.getClassInstance(performanceFunction, new Class[]{}, new Object[]{}, customClassLoader);
+                    method = ClassHelper.getMethod(performanceFunction , "inputParameters", new Class[]{}, customClassLoader);
                     functionInfo.setInputParameters((LinkedHashMap<String, FunctionParameter>) method.invoke(object, new Object[]{}));
 
 /*
