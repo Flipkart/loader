@@ -239,7 +239,8 @@ public class DeployLibResource {
             for(String performanceFunction : performanceFunctions) {
                 if(!discoveredUserFunctions.containsKey(performanceFunction)) {
                     Map<String,Object> classProperties = new HashMap<String, Object>();
-                    FunctionInfo functionInfo = new FunctionInfo();
+                    FunctionInfo functionInfo = new FunctionInfo().
+                            setFunction(performanceFunction);
                     // Discover Usage description for the UDF
                     Object object = ClassHelper.getClassInstance(performanceFunction, new Class[]{}, new Object[]{}, customClassLoader);
                     Method method = ClassHelper.getMethod(performanceFunction , "description", new Class[]{}, customClassLoader);
