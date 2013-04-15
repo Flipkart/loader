@@ -34,6 +34,11 @@ public class ResponseBuilder {
                 String.format("{\"reason\" : \"%s %s Does Not exist\"}", resourceType, resourceName));
     }
 
+    public static Response resourceCreated(String resourceType, String resourceName) {
+        return response(Response.Status.CREATED,
+                String.format("{\"message\" : \"Resource %s %s created\"}", resourceType, resourceName));
+    }
+
     public static Response response(Response.Status status, Object message) {
         return Response.status(status).entity(message).build();
     }
