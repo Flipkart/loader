@@ -1,16 +1,18 @@
 package server.monitor.resource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.open.perf.jackson.ObjectMapperUtil;
 import com.yammer.metrics.annotation.Timed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.monitor.domain.MetricPublisherRequest;
 import server.monitor.publisher.MetricPublisherThread;
-import org.apache.log4j.Logger;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -22,7 +24,7 @@ import java.util.*;
 @Path("/publishResourcesRequests")
 public class PublishRequestResource {
     private static Map<String, MetricPublisherRequest> publisherRequestMap;
-    private static Logger log;
+    private static Logger log = LoggerFactory.getLogger(PublishRequestResource.class);
     private MetricPublisherThread metricPublisherThread;
 
     public PublishRequestResource(MetricPublisherThread metricPublisherThread) {
@@ -31,7 +33,6 @@ public class PublishRequestResource {
 
     static {
         publisherRequestMap = new HashMap<String, MetricPublisherRequest>();
-        log = Logger.getLogger(PublishRequestResource.class);
     }
 
     /**
@@ -49,10 +50,9 @@ public class PublishRequestResource {
     @POST
     @Timed
     synchronized public void addRequest(@Valid MetricPublisherRequest metricPublisherRequest) throws IOException, InterruptedException {
-        log.info("Publisher Request :"+new ObjectMapper().writeValueAsString(metricPublisherRequest));
+        log.info("Publisher Request :" + ObjectMapperUtil.instance().writeValueAsString(metricPublisherRequest));
         metricPublisherThread.addRequest(metricPublisherRequest);
         publisherRequestMap.put(metricPublisherRequest.getRequestId(), metricPublisherRequest);
-        log.info("All Publisher Requests :"+publisherRequestMap.toString());
     }
 
     @Path("/{requestId}")

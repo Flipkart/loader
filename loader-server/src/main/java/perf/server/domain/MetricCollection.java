@@ -25,8 +25,11 @@ public class MetricCollection {
 
     public MetricPublisherRequest buildRequest(String jobId) {
         return new MetricPublisherRequest().
-                setCollectionInfo(collectionInfo.
-                        setPublishUrl(collectionInfo.getPublishUrl().replace("{jobId}", jobId))).
-                setRequestId(jobId);
+                setRequestId(jobId).
+                setForHowLong(collectionInfo.getForHowLong()).
+                setLastHowManyInstances(collectionInfo.getLastHowManyInstances()).
+                setPublishUrl(collectionInfo.getPublishUrl().replace("{jobId}", jobId)).
+                setResources(collectionInfo.getResources()).
+                setInterval(collectionInfo.getInterval());
     }
 }
