@@ -11,8 +11,8 @@ public class SocketHelper {
     public static int getFreePort(int startPort, int endPort) {
         for(int port = startPort; port <= endPort; port++) {
             try {
-                log.info("Trying Port '"+startPort+"' to host graphs");
-                new Socket("localhost",startPort);
+                log.info("Trying Port '"+port+"' to host graphs");
+                new Socket("localhost",port);
             } catch (ConnectException ce) {
                 return port;
             } catch (IOException e) {

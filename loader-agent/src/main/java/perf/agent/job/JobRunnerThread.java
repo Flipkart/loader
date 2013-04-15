@@ -50,9 +50,10 @@ public class JobRunnerThread extends Thread{
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (InterruptedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } finally {
+            logger.info("Job :"+jobInfo.getJobId() +" Ended");
+            this.running = false;
         }
-        logger.info("Job :"+jobInfo.getJobId() +" Ended");
-        this.running = false;
     }
 
     public boolean running() {
