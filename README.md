@@ -11,3 +11,9 @@ them and visualize reports in near real time.
 model. User can define work load on server UI and also mention how many agents should be used to generate the load. 
 This feature is extremely important when user need to generate in the order of 10s-100s of 1000s of requests per second
 , which is not possible if you generate from single machine.
+<br>
+* 3) <b>Customizable/extendable Workload :<b/> Users are free to used Out of the box functions like HTTPGet, HTTPPost, HTTPDelete 
+etc to build their performance workload. But if such functions are not enough/suitable to simulate you use case. 
+Loader comes along with SDK which allows user to write their own specific performance functions. These functions 
+can then be clubbed in 'jar' and deployed on the loader instance. and now you can use your own functions and build 
+performance workflow.
