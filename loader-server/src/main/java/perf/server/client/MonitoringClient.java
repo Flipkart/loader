@@ -5,13 +5,15 @@ import com.ning.http.client.Response;
 import com.open.perf.jackson.ObjectMapperUtil;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
-import perf.server.domain.MetricCollectionInfo;
 import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
 
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -203,6 +205,7 @@ public class MonitoringClient {
     }
 
     public void raiseMetricPublishRequest(MetricPublisherRequest request) throws IOException, ExecutionException, InterruptedException {
+        log.info(ObjectMapperUtil.instance().writeValueAsString(request));
         ObjectMapper mapper = new ObjectMapper();
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
@@ -238,21 +241,4 @@ public class MonitoringClient {
         }
         asyncHttpClient.close();
     }
-
-    public static void main(String[] args) throws InterruptedException, ExecutionException, IOException {
-        MetricPublisherRequest request = new MetricPublisherRequest();
-        MetricCollectionInfo collectionInfo = new MetricCollectionInfo();
-        collectionInfo.setInterval(10000);
-        collectionInfo.setLastHowManyInstances(1);
-        collectionInfo.setPublishUrl("http://localhost:9999/dummy");
-        request.setRequestId("1");
-        Set<String> resources = new HashSet<String>();
-        resources.add("cpu.total");
-        collectionInfo.setResources(resources);
-        request.setCollectionInfo(collectionInfo).setRequestId("abcd");
-        new MonitoringClient("localhost", 7777).raiseMetricPublishRequest(request);
-        Thread.sleep(30000);
-        new MonitoringClient("localhost", 7777).deletePublishResourceRequest(request.getRequestId());
-    }
-
 }

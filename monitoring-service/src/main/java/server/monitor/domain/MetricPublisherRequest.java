@@ -99,8 +99,8 @@ public class MetricPublisherRequest {
         }
 
         Map<String, List<ResourceCollectionInstance>> resourceCollectionInstances = new HashMap<String, List<ResourceCollectionInstance>>();
-        for(String resoucre : this.resources) {
-            resourceCollectionInstances.put(resoucre, ResourceCache.getStats(resoucre, this.lastHowManyInstances));
+        for(String resource : this.resources) {
+            resourceCollectionInstances.put(resource, ResourceCache.getStats(resource, this.lastHowManyInstances));
         }
 
         String metrics = ObjectMapperUtil.instance().writeValueAsString(resourceCollectionInstances);

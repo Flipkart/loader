@@ -4,6 +4,7 @@ package server.monitor;
  * Date : 28/12/2012
  * USer : nitinka
  */
+
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
@@ -14,6 +15,7 @@ import server.monitor.resource.CollectorResource;
 import server.monitor.resource.OnDemandCollectorResource;
 import server.monitor.resource.PublishRequestResource;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
 public class MonitoringService extends Service<ServerMonitoringConfig> {
@@ -51,6 +53,7 @@ public class MonitoringService extends Service<ServerMonitoringConfig> {
     }
 
     public static void main(String[] args) throws Exception {
+        System.out.println(new File(".").getAbsolutePath());
         args = new String[]{"server", args[0]};
         new MonitoringService().run(args);
     }
