@@ -307,13 +307,17 @@ public class TimerComputationThread extends Thread {
         stop = true;
     }
 
-    synchronized public void addJob(String jobId) {
-        this.aliveJobs.add(jobId);
+    public void addJob(String jobId) {
+        synchronized (this.aliveJobs) {
+            this.aliveJobs.add(jobId);
+        }
     }
 
-    synchronized public void removeJob(String jobId) throws IOException {
-        this.aliveJobs.remove(jobId);
-        crunchJobTimers(jobId);
+    public void removeJob(String jobId) throws IOException {
+        synchronized (this.aliveJobs) {
+            this.aliveJobs.remove(jobId);
+            crunchJobTimers(jobId);
+        }
     }
 
     private boolean jobOver(String jobId) {
