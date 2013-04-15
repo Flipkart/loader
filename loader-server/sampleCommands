@@ -1,14 +1,8 @@
 To Deploy Platform Libs : 
-curl -X POST -H "Content-Type: multipart/form-data" -F "lib=@loader-core/deploy/platform.zip.8thMatch2013"  http://localhost:9999/loader-server/libs/platformLibs
+curl -X POST -H "Content-Type: multipart/form-data" -F "lib=@loader-core/deploy/platform.zip"  http://localhost:9999/loader-server/libs/platformLibs
 
 To Deploy Class Libs :
-curl -X POST -H "Content-Type: multipart/form-data" -F "lib=@Path-To-Jar-File" -F "classList=@Path-To-File-Containing-Class-Names-Separated-With-New-Line" http://localhost:9999/loader-server/libs/classLibs
-
-To Deploy Platform Libs on agent
-curl -X POST  http://localhost:9999/loader-server/agents/127.0.0.1/libs/platformLibs
-
-To Deploy Class Libs To Agents:
-curl -X POST -H "Content-Type: multipart/form-data" -F "classList=@Path-To-File-Containing-Class-Names-Separated-With-New-Line" http://localhost:9999/loader-server/agents/127.0.0.1/libs/classLibs
+curl -X POST -H "Content-Type: multipart/form-data" -F "lib=@Path-To-Jar-File" http://localhost:9999/loader-server/libs/classLibs
 
 To Submit Job :
-curl -X POST -H "Content-Type: multipart/form-data" -F "jobJson=@Path-To-File-Containing-Job-Json"  http://localhost:9999/loader-server/jobs
+curl -X POST -d @loader-http-operations/sample/sampleGetJob.json http://localhost:9999/loader-server/jobs --header "Content-Type:application/json"

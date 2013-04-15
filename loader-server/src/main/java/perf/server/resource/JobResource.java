@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.open.perf.domain.Load;
 import com.open.perf.util.FileHelper;
-import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.dropwizard.jersey.params.IntParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
@@ -71,24 +70,20 @@ public class JobResource {
     }
     /**
      Following call simulates html form post call, where somebody uploads a file to server
-     curl
-     -X POST
-     -H "Content-Type: multipart/form-data"
-     -F "jobJson=@Path-To-File-Containing-Job-Json"
-     http://localhost:9999/loader-server/jobs
+     curl -X POST -d @file-containing-runName http://localhost:9999/loader-server/jobs --header "Content-Type:application/json"
      {"runName" : "runName"}
-     * @param runNameInputStream
+     * @param jobInfoMap
      * @throws IOException
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @POST
     @Timed
-    public JobInfo submitJob(@FormDataParam("jobJson") InputStream runNameInputStream)
+    public JobInfo submitJob(Map jobInfoMap)
             throws IOException, ExecutionException, InterruptedException, JobException {
-        return submitJobForRun(runNameInputStream);
+        return submitJobForRun(jobInfoMap.get("runName").toString());
     }
 
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -680,9 +675,8 @@ public class JobResource {
             stopMonitoring(jobId);
     }
 
-    private JobInfo submitJobForRun(InputStream jobJsonInfoStream) throws IOException, ExecutionException, InterruptedException, JobException {
-        Map<String,String> info = objectMapper.readValue(jobJsonInfoStream, Map.class);
-        String runFile = jobFSConfig.getRunFile(info.get("runName"));
+    private JobInfo submitJobForRun(String runName) throws IOException, InterruptedException, ExecutionException, JobException {
+        String runFile = jobFSConfig.getRunFile(runName);
         return jobSubmitWorkflow(new FileInputStream(runFile));
     }
 

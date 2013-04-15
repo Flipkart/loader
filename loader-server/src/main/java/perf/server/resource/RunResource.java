@@ -1,18 +1,20 @@
 package perf.server.resource;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.FileHelper;
-import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import org.codehaus.jackson.map.ObjectMapper;
 import perf.server.config.JobFSConfig;
+import perf.server.domain.PerformanceRun;
 import perf.server.exception.JobException;
 import perf.server.util.ResponseBuilder;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.io.*;
+import javax.ws.rs.core.Response;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -32,22 +34,20 @@ public class RunResource {
 
     /**
      Following call simulates html form post call, where somebody uploads a file to server
-     curl
-     -X POST
-     -H "Content-Type: multipart/form-data"
-     -F "runJson=@Path-To-File-Containing-Job-Json"
-     http://localhost:9999/loader-server/runs
-     * @param runJsonInfoStream
+     curl -X POST -d @file-containing-run-details http://localhost:9999/loader-server/runs --header "Content-Type:application/json"
+     *
+     * @param performanceRun
      * @throws IOException
      * @throws java.util.concurrent.ExecutionException
      * @throws InterruptedException
      */
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes(MediaType.APPLICATION_JSON)
     @POST
     @Timed
-    public void createRun(@FormDataParam("runJson") InputStream runJsonInfoStream)
+    public Response createRun(PerformanceRun performanceRun)
             throws IOException, ExecutionException, InterruptedException, JobException {
-        persistRunInfo(runJsonInfoStream);
+        persistRunInfo(performanceRun);
+        return ResponseBuilder.resourceCreated("Run", performanceRun.getRunName());
     }
 
     @Produces(MediaType.APPLICATION_JSON)
@@ -66,31 +66,27 @@ public class RunResource {
     @GET
     @Path(value = "/{runName}")
     @Timed
-    public String getRun(@PathParam("runName") String runName) throws IOException {
+    public PerformanceRun getRun(@PathParam("runName") String runName) throws IOException {
         runExistsOrException(runName);
-        return FileHelper.readContent(new FileInputStream(jobFSConfig.getRunFile(runName)));
+        return objectMapper.readValue(new File(jobFSConfig.getRunFile(runName)), PerformanceRun.class);
     }
 
     /**
      Following call simulates html form post call, where somebody uploads a file to server
-     curl
-     -X PUT
-     -H "Content-Type: multipart/form-data"
-     -F "runJson=@Path-To-File-Containing-Job-Json"
-     http://localhost:9999/loader-server/runs/runName
-     * @param runJsonInfoStream
+     curl -X PUT -d @file-containing-run-details http://localhost:9999/loader-server/runs/runName --header "Content-Type:application/json"
+     * @param performanceRun
      * @throws IOException
      * @throws java.util.concurrent.ExecutionException
      * @throws InterruptedException
      */
     @Path("/{runName}")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes(MediaType.APPLICATION_JSON)
     @PUT
     @Timed
     public void updateRun(@PathParam("runName") String runName,
-                          @FormDataParam("runJson") InputStream runJsonInfoStream)
+                          PerformanceRun performanceRun)
             throws IOException, ExecutionException, InterruptedException, JobException {
-        updateRunInfo(runName, runJsonInfoStream);
+        updateRunInfo(runName, performanceRun);
     }
 
     /**
@@ -126,26 +122,20 @@ public class RunResource {
         return jobs;
     }
 
-    private void persistRunInfo(InputStream jobJsonInfoStream) throws IOException {
-        JsonNode jobInfoJsonNode = objectMapper.readValue(jobJsonInfoStream, JsonNode.class);
-        String runName = jobInfoJsonNode.get("runName").textValue();
+    private void persistRunInfo(PerformanceRun performanceRun) throws IOException {
+        String runName = performanceRun.getRunName();
         if(new File(jobFSConfig.getRunPath(runName)).exists()) {
             throw new WebApplicationException(ResponseBuilder.runNameAlreadyExists(runName));
         }
 
         String runFile = jobFSConfig.getRunFile(runName);
         FileHelper.createFilePath(runFile);
-        FileHelper.persistStream(new ByteArrayInputStream(jobInfoJsonNode.toString().getBytes()),
-                runFile,
-                false);
+        objectMapper.writeValue(new File(runFile), performanceRun);
     }
 
-    private void updateRunInfo(String runName, InputStream jobJsonInfoStream) throws IOException {
-        JsonNode jobInfoJsonNode = objectMapper.readValue(jobJsonInfoStream, JsonNode.class);
+    private void updateRunInfo(String runName, PerformanceRun performanceRun) throws IOException {
         runExistsOrException(runName);
-        FileHelper.persistStream(new ByteArrayInputStream(jobInfoJsonNode.toString().getBytes()),
-                jobFSConfig.getRunFile(runName),
-                false);
+        objectMapper.writeValue(new File(jobFSConfig.getRunFile(runName)), performanceRun);
     }
 
     private void deleteRunInfo(String runName) {
