@@ -25,9 +25,9 @@ jobFSConfig:
   jobRunNameFile: "/var/log/loader-server/jobs/{jobId}/runName.txt"
   jobPath: "/var/log/loader-server/jobs/{jobId}"
   jobStatusFile: "/var/log/loader-server/jobs/{jobId}/status.json"
-  combinedStatsPath: "/var/log/loader-server/jobs/{jobId}/combinedStats"
-  jobAgentStatsPath: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/jobStats"
-  jobResourceMonitoringFile: "/var/log/loader-server/jobs/{jobId}/agents/{agentIp}/Resources/{resource}.txt"
+  jobStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats"
+  jobGroupStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}"
+  jobResourceMonitoringFile: "/var/log/loader-server/jobs/{jobId}/monitoringStats/agents/{agentIp}/Resources/{resource}.txt"
 
 http:
   port: 9999

@@ -147,7 +147,7 @@ public class TimerComputationThread extends Thread {
     }
 
     private void crunchJobTimers(String jobId) throws IOException {
-        List<File> jobFiles = FileHelper.pathFiles(this.jobFSConfig.getJobPath(jobId), true);
+        List<File> jobFiles = FileHelper.pathFiles(this.jobFSConfig.getJobStatsPath(jobId), true);
         for(File jobFile : jobFiles) {
             if(jobFile.getAbsolutePath().contains("timer") && !jobFile.getAbsolutePath().contains("stats")) {
                 crunchJobFileTimer(jobId, jobFile);
@@ -202,6 +202,39 @@ public class TimerComputationThread extends Thread {
                 timerStatsStamp = new TimerStatsStamp(1, Double.parseDouble(tokens[1]), Long.parseLong(tokens[0])).
                         setFirstTimeMS(Long.parseLong(tokens[0]));
                 histogram.update((long) Double.parseDouble(tokens[1]));
+
+                // Group in performance run had only one repeat
+                if(cachedContent.size() == 0 && jobOver(jobId)) {
+
+                    double iterationTimeSec = Double.parseDouble(tokens[1]) / (float)MathConstant.BILLION;
+                    double iterationThroughputSec = 1/iterationTimeSec;
+
+                    Snapshot snapshot = histogram.getSnapshot();
+                    TimerStatsInstance timerStatsInstance = new TimerStatsInstance().
+                            setMin(histogram.min() / MathConstant.MILLION).
+                            setMax(histogram.max() / MathConstant.MILLION).
+                            setDumpMean(histogram.mean() / MathConstant.MILLION).
+                            setDumpThroughput(iterationThroughputSec).
+                            setOpsDone(histogram.count()).
+                            setOverallMean(histogram.mean() / MathConstant.MILLION).
+                            setOverAllThroughput(iterationThroughputSec).
+                            setSD(histogram.stdDev() / MathConstant.MILLION).
+                            setFiftieth(snapshot.getValue(0.50) / MathConstant.MILLION).
+                            setSeventyFifth(snapshot.get75thPercentile() / MathConstant.MILLION).
+                            setNinetieth(snapshot.getValue(0.90) / MathConstant.MILLION).
+                            setNinetyFifth(snapshot.get95thPercentile() / MathConstant.MILLION).
+                            setNinetyEight(snapshot.get98thPercentile() / MathConstant.MILLION).
+                            setNinetyNinth(snapshot.get99thPercentile() / MathConstant.MILLION).
+                            setNineNineNine(snapshot.get999thPercentile() / MathConstant.MILLION).
+                            setTime(Clock.dateFromMS(Long.parseLong(tokens[0])));
+
+                    bw.write(objectMapper.writeValueAsString(timerStatsInstance) + "\n");
+                    bw.flush();
+                    BufferedWriter bwLast = FileHelper.bufferedWriter(jobFile.getAbsolutePath()+"."+FILE_EXTENSION+".last", false);
+                    bwLast.write(objectMapper.writeValueAsString(timerStatsInstance) + "\n");
+                    bwLast.flush();
+                    FileHelper.close(bwLast);
+                }
             }
 
             while(cachedContent.size() > 0) {
