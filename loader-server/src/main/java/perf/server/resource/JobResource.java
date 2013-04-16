@@ -173,24 +173,38 @@ public class JobResource {
                                       InputStream statsStream)
             throws IOException, InterruptedException {
 
+        // Remove job Id from relative path as loader-server has already created path
+        relatedFilePath = relatedFilePath.replace("/"+jobId + "/","");
+        String[] relatedFilePathTokens = relatedFilePath.split("\\/");
+
+        // Persist the stats in temporary file. As we have to read and write the stats at two places, same input stream can't be used twice.
         String tmpPath = "/tmp/"+jobId+"-"+System.nanoTime()+".txt";
         FileHelper.persistStream(statsStream, tmpPath, true);
 
         //TBD Move Following Code to be executed in request queue mode by a daemon thread.
         String[] jobStatsPaths = new String[] {
-                jobFSConfig.getJobAgentStatsPath(jobId, request.getRemoteAddr()),
-                jobFSConfig.getJobStatsPath(jobId)
 
+                jobFSConfig.getJobGroupStatsPath(jobId, relatedFilePathTokens[0])
+                        + File.separator + relatedFilePathTokens[1]
+                        + File.separator + relatedFilePathTokens[2]
+                        + File.separator + "agents"
+                        + File.separator + request.getRemoteAddr()
+                        + File.separator + "data",
+
+                jobFSConfig.getJobGroupStatsPath(jobId, relatedFilePathTokens[0])
+                        + File.separator + relatedFilePathTokens[1]
+                        + File.separator + relatedFilePathTokens[2]
+                        + File.separator + "agents"
+                        + File.separator + "combined"
+                        + File.separator + "data",
         };
 
+        // Persisting stats at agent and combined path
         for(String jobStatsPath : jobStatsPaths) {
             FileInputStream fis = new FileInputStream(tmpPath);
-            String statFilePath = jobStatsPath +
-                    File.separator +
-                    relatedFilePath.replace("/"+jobId,"");
 
-            FileHelper.createFilePath(statFilePath);
-            FileHelper.persistStream(fis, statFilePath, true);
+            FileHelper.createFilePath(jobStatsPath);
+            FileHelper.persistStream(fis, jobStatsPath, true);
             fis.close();
         }
 
@@ -1015,5 +1029,12 @@ public class JobResource {
         return !jobIdInfoMap.containsKey(jobId) ||
                 (jobIdInfoMap.get(jobId).getJobStatus().equals(JOB_STATUS.KILLED) ||
                 jobIdInfoMap.get(jobId).getJobStatus().equals(JOB_STATUS.COMPLETED));
+    }
+
+    public static void main(String[] args) {
+        String statsPath = "/d7030544-d3b1-4265-869c-fdcdd3427b7c/defaultGroup_HttpGet_perf.operation.http.function.HttpGet/counters/HttpGet_with_perf.operation.http.function.HttpGet_count";
+        StringTokenizer tokenizer = new StringTokenizer(statsPath,"\\/");
+        for(;tokenizer.hasMoreElements();)
+            System.out.println(tokenizer.nextElement());
     }
 }

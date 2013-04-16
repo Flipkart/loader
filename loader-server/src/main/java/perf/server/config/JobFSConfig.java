@@ -8,8 +8,6 @@ package perf.server.config;
  * To change this template use File | Settings | File Templates.
  */
 public class JobFSConfig {
-    private String combinedStatsPath;
-    private String jobAgentStatsPath;
     private String jobResourceMonitoringFile;
     private String runsPath;
     private String runPath;
@@ -19,14 +17,8 @@ public class JobFSConfig {
     private String jobPath;
     private String jobStatusFile;
     private String runJobsFile;
-
-    public String getJobStatsPath(String jobId) {
-        return combinedStatsPath.replace("{jobId}", jobId);
-    }
-
-    public void setCombinedStatsPath(String combinedStatsPath) {
-        this.combinedStatsPath = combinedStatsPath;
-    }
+    private String jobStatsPath;
+    private String jobGroupStatsPath;
 
     public String getJobResourceMonitoringFile(String jobId, String agentIp, String resource) {
         return jobResourceMonitoringFile.replace("{jobId}", jobId).
@@ -70,15 +62,6 @@ public class JobFSConfig {
         this.jobsPath = jobsPath;
     }
 
-    public String getJobAgentStatsPath(String jobId, String agentIp) {
-        return jobAgentStatsPath.replace("{jobId}", jobId).
-                replace("{agentIp}", agentIp);
-    }
-
-    public void setJobAgentStatsPath(String jobAgentStatsPath) {
-        this.jobAgentStatsPath = jobAgentStatsPath;
-    }
-
     public String getJobPath(String jobId) {
         return jobPath.replace("{jobId}", jobId);
     }
@@ -110,6 +93,25 @@ public class JobFSConfig {
     public void setRunJobsFile(String runJobsFile) {
         this.runJobsFile = runJobsFile;
     }
+
+    public String getJobGroupStatsPath(String jobId, String groupName) {
+        return jobGroupStatsPath.
+                replace("{jobId}", jobId).
+                replace("{groupName}", groupName);
+    }
+
+    public void setJobGroupStatsPath(String jobGroupStatsPath) {
+        this.jobGroupStatsPath = jobGroupStatsPath;
+    }
+
+    public String getJobStatsPath(String jobId) {
+        return jobStatsPath.replace("{jobId}", jobId);
+    }
+
+    public void setJobStatsPath(String jobStatsPath) {
+        this.jobStatsPath = jobStatsPath;
+    }
 }
+
 
 
