@@ -19,6 +19,7 @@ public class JobFSConfig {
     private String runJobsFile;
     private String jobStatsPath;
     private String jobGroupStatsPath;
+    private String jobFunctionStatsFile;
 
     public String getJobResourceMonitoringFile(String jobId, String agentIp, String resource) {
         return jobResourceMonitoringFile.replace("{jobId}", jobId).
@@ -110,6 +111,18 @@ public class JobFSConfig {
 
     public void setJobStatsPath(String jobStatsPath) {
         this.jobStatsPath = jobStatsPath;
+    }
+
+    public String getJobFunctionStatsFile(String jobId, String groupName, String functionName, String agentIp) {
+        return jobFunctionStatsFile.
+                replace("{jobId}", jobId).
+                replace("{groupName}", groupName).
+                replace("{functionName}", functionName).
+                replace("{agentIp}", agentIp);
+    }
+
+    public void setJobFunctionStatsFile(String jobFunctionStatsFile) {
+        this.jobFunctionStatsFile = jobFunctionStatsFile;
     }
 }
 

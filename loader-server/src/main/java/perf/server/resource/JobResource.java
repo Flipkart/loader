@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.open.perf.domain.Load;
 import com.open.perf.util.FileHelper;
-import com.yammer.dropwizard.jersey.params.IntParam;
+import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
 import perf.server.client.LoaderAgentClient;
@@ -27,8 +27,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -106,6 +104,15 @@ public class JobResource {
         return jobSubmitWorkflow(new ByteArrayInputStream(oldJobJson.getBytes()));
     }
 
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{jobId}")
+    @GET
+    @Timed
+    public JobInfo getJob(@PathParam("jobId") String jobId) throws IOException {
+        jobExistsOrException(jobId);
+        return objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(jobId)), JobInfo.class);
+    }
+
     /**
      * Search Job based on runName, jobId and job status
      * By default it would search all running jobs only (And its little slow)
@@ -145,14 +152,6 @@ public class JobResource {
             }
         }
         return jobs;
-    }
-
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{jobId}")
-    @GET
-    @Timed
-    public JobInfo getJob(@PathParam("jobId") String jobId) {
-        return jobIdInfoMap.get(jobId);
     }
 
     /**
@@ -282,377 +281,118 @@ public class JobResource {
         return stringBuilder.toString();
     }
 
-    @Path("/{jobId}/stats")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobStats(@PathParam("jobId") String jobId, @Context HttpServletRequest request) {
-        String jobPath = jobFSConfig.getJobPath(jobId);
-        File[] statsFolders = new File(jobPath).listFiles();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File statsFolder: statsFolders) {
-            if(!statsFolder.getAbsolutePath().contains("runName"))
-                stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + statsFolder.getName()+"\">" + statsFolder.getName() + "</a><br>");
+
+    //==================== New Stats APIs starts here
+
+    class FunctionStatsMeta {
+        private String functionName;
+        private List<String> agents;
+
+        public String getFunctionName() {
+            return functionName;
         }
-        return stringBuilder.toString();
-    }
 
-    @Path("/{jobId}/stats/agents")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobStatAgents(@PathParam("jobId") String jobId, @Context HttpServletRequest request) {
-        String jobPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "agents";
-        File[] agentFolders = new File(jobPath).listFiles();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File agentFolder: agentFolders) {
-            stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + agentFolder.getName()+"\">" + agentFolder.getName() + "</a><br>");
+        public void setFunctionName(String functionName) {
+            this.functionName = functionName;
         }
-        return stringBuilder.toString();
-    }
 
-    @Path("/{jobId}/stats/agents/{agentIp}")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobStatAgent(@PathParam("jobId") String jobId,
-                                  @PathParam("agentIp") String agentIp,
-                                  @Context HttpServletRequest request) {
-        String agentPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "agents"
-                + File.separator + agentIp;
-        File[] agentSubFolders = new File(agentPath).listFiles();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File agentSubFolder: agentSubFolders) {
-            if(agentSubFolder.getAbsolutePath().contains("jobStats")) // Not showing Resource Folder yet
-                stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + agentSubFolder.getName()+"\">" + agentSubFolder.getName() + "</a><br>");
+        public List<String> getAgents() {
+            return agents;
         }
-        return stringBuilder.toString();
-    }
 
-    @Path("/{jobId}/stats/agents/{agentIp}/jobStats")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobAgentStats(@PathParam("jobId") String jobId,
-                                  @PathParam("agentIp") String agentIp,
-                                  @Context HttpServletRequest request) {
-
-        String groupsPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "agents"
-                + File.separator + agentIp
-                + File.separator + "jobStats";
-        File[] groupFolders = new File(groupsPath).listFiles();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File groupFolder: groupFolders) {
-            stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + groupFolder.getName()+"\">" + groupFolder.getName() + "</a><br>");
+        public void setAgents(List<String> agents) {
+            this.agents = agents;
         }
-        return stringBuilder.toString();
     }
 
-    @Path("/{jobId}/stats/agents/{agentIp}/jobStats/{groupName}")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobAgentGroupStats(@PathParam("jobId") String jobId,
-                                        @PathParam("agentIp") String agentIp,
-                                        @PathParam("groupName") String groupName,
-                                        @Context HttpServletRequest request) {
+    class GroupStatsMeta {
+        private String groupName;
+        private List<FunctionStatsMeta> functions;
 
-        String groupPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "agents"
-                + File.separator + agentIp
-                + File.separator + "jobStats"
-                + File.separator + groupName;
-
-        File[] groupSubFolders = new File(groupPath).listFiles();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File groupSubFolder: groupSubFolders) {
-            stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + groupSubFolder.getName()+"\">" + groupSubFolder.getName() + "</a><br>");
+        public String getGroupName() {
+            return groupName;
         }
-        return stringBuilder.toString();
-    }
 
-    @Path("/{jobId}/stats/agents/{agentIp}/jobStats/{groupName}/counters")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobAgentGroupCounters(@PathParam("jobId") String jobId,
-                                        @PathParam("agentIp") String agentIp,
-                                        @PathParam("groupName") String groupName,
-                                        @Context HttpServletRequest request) {
-
-        String countersPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "agents"
-                + File.separator + agentIp
-                + File.separator + "jobStats"
-                + File.separator + groupName
-                + File.separator + "counters";
-
-        File[] countersSubFolders = new File(countersPath).listFiles();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File counterPath: countersSubFolders) {
-            if(counterPath.getAbsolutePath().contains("stats"))
-
-                stringBuilder.append("<a href=\""
-                        + request.getRequestURL().toString()
-                        + "/" + counterPath.getName()
-                        +"\">"
-                        + counterPath.getName()
-                        .replace(".stats","")
-                        + "</a><br>");
+        public void setGroupName(String groupName) {
+            this.groupName = groupName;
         }
-        return stringBuilder.toString();
-    }
 
-    @Path("/{jobId}/stats/agents/{agentIp}/jobStats/{groupName}/counters/{counter}")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobAgentGroupCounter(@PathParam("jobId") String jobId,
-                                          @PathParam("agentIp") String agentIp,
-                                          @PathParam("groupName") String groupName,
-                                          @PathParam("counter") String counter,
-                                          @QueryParam("lines") @DefaultValue("10")IntParam lastLines) throws IOException {
-        String counterPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "agents"
-                + File.separator + agentIp
-                + File.separator + "jobStats"
-                + File.separator + groupName
-                + File.separator + "counters"
-                + File.separator + counter;
-
-        return FileHelper.readContent(new FileInputStream(counterPath)).replace("\n","<br>");
-    }
-
-    @Path("/{jobId}/stats/agents/{agentIp}/jobStats/{groupName}/timers")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobAgentGroupTimers(@PathParam("jobId") String jobId,
-                                        @PathParam("agentIp") String agentIp,
-                                        @PathParam("groupName") String groupName,
-                                        @Context HttpServletRequest request) {
-
-        String timersPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "agents"
-                + File.separator + agentIp
-                + File.separator + "jobStats"
-                + File.separator + groupName
-                + File.separator + "timers";
-
-        File[] timersSubFolders = new File(timersPath).listFiles();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File timerPath: timersSubFolders) {
-            if(timerPath.getAbsolutePath().contains("stats"))
-                stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + timerPath.getName()+"\">" + timerPath.getName().replace(".stats","") + "</a><br>");
+        public List<FunctionStatsMeta> getFunctions() {
+            return functions;
         }
-        return stringBuilder.toString();
+
+        public void setFunctions(List<FunctionStatsMeta> functions) {
+            this.functions = functions;
+        }
     }
 
-    @Path("/{jobId}/stats/agents/{agentIp}/jobStats/{groupName}/timers/{timer}")
+    /**
+     * Returns Groups for which stats have been collected so far
+     * @param jobId
+     * @return
+     */
+    @Path("/{jobId}/jobStats")
     @GET
     @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobAgentGroupTimer(@PathParam("jobId") String jobId,
-                                        @PathParam("agentIp") String agentIp,
-                                        @PathParam("groupName") String groupName,
-                                        @PathParam("timer") String timer,
-                                        @QueryParam("format") @DefaultValue("raw") String format) throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<GroupStatsMeta> getJobStats(@PathParam("jobId") String jobId) {
+        List<GroupStatsMeta> groups = new ArrayList<GroupStatsMeta>();
+        File groupsPath = new File(jobFSConfig.getJobStatsPath(jobId));
+        for(File groupPath : groupsPath.listFiles()) {
+            GroupStatsMeta groupStatsMeta = new GroupStatsMeta();
+            groupStatsMeta.setGroupName(groupPath.getName());
 
-        String timerPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "agents"
-                + File.separator + agentIp
-                + File.separator + "jobStats"
-                + File.separator + groupName
-                + File.separator + "timers"
-                + File.separator + timer;
+            List<FunctionStatsMeta> functions = new ArrayList<FunctionStatsMeta>();
 
-        if(format.equalsIgnoreCase("raw"))
-            return FileHelper.readContent(new FileInputStream(timerPath)).replace("\n","<br>");
-        else {
-            // Make Table and return
+            File timersPath = new File(groupPath.getAbsoluteFile() + File.separator + "timers");
+            if(timersPath.exists()) {
+                for(File timerPath : timersPath.listFiles()) {
+                    // I am using timer name here as function name
+                    FunctionStatsMeta functionStatsMeta = new FunctionStatsMeta();
+                    functionStatsMeta.setFunctionName(timerPath.getName());
 
-            String table = "<table border=\"1\">\n" +
-                    "<caption><b>"+timer.replace(".stats","")+" Last Stats Instance</b></caption>" +
-                    "<tr>\n" +
-                    "<th>Stat</th>\n" +
-                    "<th>(Agent - "+agentIp+")Value</th>\n" +
-                    "<th>(All Agents Combined)Value</th>\n" +
-                    "</tr>\n";
+                    File agentsPath = new File(timerPath.getAbsoluteFile() + File.separator + "agents");
 
-            String rowTemplate = "<tr>\n" +
-                    "<td>STAT_NAME</td>\n" +
-                    "<td>AGENT_STAT_VALUE</td>\n" +
-                    "<td>COMBINED_STAT_VALUE</td>\n" +
-                    "</tr>\n";
+                    List<String> allAgents = Arrays.asList(agentsPath.list());
+                    List<String> agentsHavingData = new ArrayList<String>();
 
-            String[] stats = new String[]{"Time", "OpsDone", "Min", "Max", "DumpMean", "DumpThroughput", "OverallMean", "OverAllThroughput", "SD", "Fiftieth", "SeventyFifth",
-            "Ninetieth", "NinetyFifth", "NinetyEight", "NinetyNinth", "NineNineNine"};
+                    for(String agent : allAgents) {
+                        if(new File(jobFSConfig.getJobFunctionStatsFile(jobId, groupPath.getName(), timerPath.getName(), agent)).exists())
+                            agentsHavingData.add(agent);
+                    }
 
-            Class timerStatsInstanceClass = TimerStatsInstance.class;
-
-            timerPath += ".last";
-            String agentStatsString = FileHelper.readContent(new FileInputStream(timerPath)).trim();
-            TimerStatsInstance agentTimerStatsInstance = objectMapper.
-                    readValue(agentStatsString, TimerStatsInstance.class);
-
-            String combinedStatsPath = timerPath.replace("agents/"+agentIp+"/jobStats", "combinedStats");
-            String combinedStatsString = FileHelper.readContent(new FileInputStream(combinedStatsPath)).trim();
-            TimerStatsInstance combinedTimerStatsInstance = objectMapper.
-                    readValue(combinedStatsString, TimerStatsInstance.class);
-
-            for(String stat : stats) {
-                Method m = timerStatsInstanceClass.getDeclaredMethod("get"+stat, new Class[]{});
-                Object agentStatValue = m.invoke(agentTimerStatsInstance);
-                Object combinedStatValue = m.invoke(combinedTimerStatsInstance);
-                table += rowTemplate.
-                        replace("STAT_NAME", stat).
-                        replace("AGENT_STAT_VALUE", agentStatValue.toString()).
-                        replace("COMBINED_STAT_VALUE", combinedStatValue.toString());
+                    functionStatsMeta.setAgents(agentsHavingData);
+                    functions.add(functionStatsMeta);
+                }
             }
-            table += "</table> ";
-            return table;
+            groupStatsMeta.setFunctions(functions);
+            groups.add(groupStatsMeta);
         }
+        return groups;
     }
 
-    @Path("/{jobId}/stats/combinedStats")
+    /**
+     * Returns particular function stats
+     * @param jobId
+     * @return
+     */
+    @Path("/{jobId}/jobStats/groups/{groupName}/functions/{functionName}/agents/{agent}")
     @GET
     @Timed
     @Produces(MediaType.TEXT_HTML)
-    public String getAllStatsFolder(@PathParam("jobId") String jobId, @Context HttpServletRequest request) {
-        String groupsPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "combinedStats";
-        File[] groupFolders = new File(groupsPath).listFiles();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File groupFolder: groupFolders) {
-            stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + groupFolder.getName()+"\">" + groupFolder.getName() + "</a><br>");
-        }
-        return stringBuilder.toString();
-    }
+    public InputStream getJobFunctionStats(@PathParam("jobId") String jobId,
+                                                    @PathParam("groupName") String groupName,
+                                                    @PathParam("functionName") String functionName,
+                                                    @PathParam("agent") String agent,
+                                                    @QueryParam("last") @DefaultValue("false") BooleanParam last) throws FileNotFoundException {
+        jobExistsOrException(jobId);
+        File statsFile = new File(jobFSConfig.getJobFunctionStatsFile(jobId, groupName, functionName, agent));
+        if(!statsFile.exists())
+            throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, "Stats for function "+functionName + "Not computed yet"));
 
-    @Path("/{jobId}/stats/combinedStats/{groupName}")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobGroupStats(@PathParam("jobId") String jobId,
-                                    @PathParam("groupName") String groupName,
-                                    @Context HttpServletRequest request) {
-        String groupPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "combinedStats"
-                + File.separator + groupName;
-        File[] groupSubFolders = new File(groupPath).listFiles();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File groupSubFolder: groupSubFolders) {
-            stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + groupSubFolder.getName()+"\">" + groupSubFolder.getName() + "</a><br>");
-        }
-        return stringBuilder.toString();
-    }
-
-    @Path("/{jobId}/stats/combinedStats/{groupName}/counters")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobGroupCounters(@PathParam("jobId") String jobId,
-                                    @PathParam("groupName") String groupName,
-                                    @Context HttpServletRequest request) {
-        String countersPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "combinedStats"
-                + File.separator + groupName
-                + File.separator + "counters";
-        File[] countersSubFolders = new File(countersPath).listFiles();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File counterPath: countersSubFolders) {
-            if(counterPath.getAbsolutePath().contains("stats"))
-                stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + counterPath.getName()+"\">" + counterPath.getName().replace(".stats","") + "</a><br>");
-        }
-        return stringBuilder.toString();
-    }
-
-    @Path("/{jobId}/stats/combinedStats/{groupName}/counters/{counter}")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobGroupCounter(@PathParam("jobId") String jobId,
-                                    @PathParam("groupName") String groupName,
-                                    @PathParam("counter") String counter,
-                                    @QueryParam("lines") @DefaultValue("10")IntParam lastLines) throws IOException {
-        String counterPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "combinedStats"
-                + File.separator + groupName
-                + File.separator + "counters"
-                + File.separator + counter;
-
-        return FileHelper.readContent(new FileInputStream(counterPath)).replace("\n","<br>");
-    }
-
-    @Path("/{jobId}/stats/combinedStats/{groupName}/timers")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobGroupTimers(@PathParam("jobId") String jobId,
-                                    @PathParam("groupName") String groupName,
-                                    @Context HttpServletRequest request) {
-        String timersPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "combinedStats"
-                + File.separator + groupName
-                + File.separator + "timers";
-        File[] timersSubFolders = new File(timersPath).listFiles();
-        StringBuilder stringBuilder = new StringBuilder();
-        for(File timerPath: timersSubFolders) {
-            if(timerPath.getAbsolutePath().contains("stats"))
-                stringBuilder.append("<a href=\"" + request.getRequestURL().toString() + "/" + timerPath.getName()+"\">" + timerPath.getName().replace(".stats","") + "</a><br>");
-        }
-        return stringBuilder.toString();
-    }
-
-    @Path("/{jobId}/stats/combinedStats/{groupName}/timers/{timer}")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobGroupTimer(@PathParam("jobId") String jobId,
-                                    @PathParam("groupName") String groupName,
-                                    @PathParam("timer") String timer,
-                                    @QueryParam("format") @DefaultValue("raw")String format) throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        String timerPath = jobFSConfig.getJobPath(jobId)
-                + File.separator + "combinedStats"
-                + File.separator + groupName
-                + File.separator + "timers"
-                + File.separator + timer;
-        if(format.equalsIgnoreCase("raw"))
-            return FileHelper.readContent(new FileInputStream(timerPath)).replace("\n","<br>");
-        else {
-            // Make Table and return
-            timerPath += ".last";
-            String statsString = FileHelper.readContent(new FileInputStream(timerPath)).trim();
-            TimerStatsInstance timerStatsInstance = objectMapper.
-                    readValue(statsString, TimerStatsInstance.class);
-
-            String table = "<table border=\"1\">\n" +
-                    "<caption><b>"+timer.replace(".stats","")+" Last Stats Instance</b></caption>" +
-                    "<tr>\n" +
-                    "<th>Stat</th>\n" +
-                    "<th>(All Agents Combined)Value</th>\n" +
-                    "</tr>\n";
-
-            String rowTemplate = "<tr>\n" +
-                    "<td>STAT_NAME</td>\n" +
-                    "<td>STAT_VALUE</td>\n" +
-                    "</tr>\n";
-
-            String[] stats = new String[]{"Time", "OpsDone", "Min", "Max", "DumpMean", "DumpThroughput", "OverallMean", "OverAllThroughput", "SD", "Fiftieth", "SeventyFifth",
-            "Ninetieth", "NinetyFifth", "NinetyEight", "NinetyNinth", "NineNineNine"};
-
-            Class timerStatsInstanceClass = timerStatsInstance.getClass();
-            for(String stat : stats) {
-                Method m = timerStatsInstanceClass.getDeclaredMethod("get"+stat, new Class[]{});
-                Object object = m.invoke(timerStatsInstance);
-                table += rowTemplate.replace("STAT_NAME", stat).replace("STAT_VALUE", object.toString());
-            }
-            table += "</table> ";
-            return table;
-        }
+        if(last.get())
+            statsFile = new File(statsFile.getAbsoluteFile()+".last");
+        return new FileInputStream(statsFile.getAbsoluteFile());
     }
 
     /**
@@ -1029,6 +769,12 @@ public class JobResource {
         return !jobIdInfoMap.containsKey(jobId) ||
                 (jobIdInfoMap.get(jobId).getJobStatus().equals(JOB_STATUS.KILLED) ||
                 jobIdInfoMap.get(jobId).getJobStatus().equals(JOB_STATUS.COMPLETED));
+    }
+
+    private void jobExistsOrException(String jobId) {
+        if(!new File(jobFSConfig.getJobPath(jobId)).exists()) {
+            throw new WebApplicationException(ResponseBuilder.resourceNotFound("Job", jobId));
+        }
     }
 
     public static void main(String[] args) {
