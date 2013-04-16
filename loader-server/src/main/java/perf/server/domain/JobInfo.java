@@ -5,9 +5,11 @@ import java.util.*;
 public class JobInfo {
 
     public static enum JOB_STATUS {
-        RUNNING, PAUSED, COMPLETED, KILLED
+        RUNNING, PAUSED, COMPLETED, KILLED, FAILED_TO_START;
     }
     private String jobId;
+    private String runName;
+    private Date startTime, endTime;
     private JOB_STATUS jobStatus;
     private Map<String,JOB_STATUS> agentsJobStatus;
     private Set<String> monitoringAgents;
@@ -24,6 +26,34 @@ public class JobInfo {
 
     public JobInfo setJobId(String jobId) {
         this.jobId = jobId;
+        return this;
+    }
+
+    public String getRunName() {
+        return runName;
+    }
+
+    public JobInfo setRunName(String runName) {
+        this.runName = runName;
+        return this;
+    }
+
+    public Date getStartTime() {
+        return startTime;
+    }
+
+    public JobInfo setStartTime(Date startTime) {
+        if(startTime == null)
+            this.startTime = startTime;
+        return this;
+    }
+
+    public Date getEndTime() {
+        return endTime;
+    }
+
+    public JobInfo setEndTime(Date endTime) {
+        this.endTime = endTime;
         return this;
     }
 
