@@ -1,6 +1,5 @@
 package perf.server.resource;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -26,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -81,9 +81,12 @@ public class JobResource {
     @Produces(MediaType.APPLICATION_JSON)
     @POST
     @Timed
-    public JobInfo submitJob(Map jobInfoMap)
-            throws IOException, ExecutionException, InterruptedException, JobException {
-        return submitJobForRun(jobInfoMap.get("runName").toString());
+    public JobInfo submitJob(Map jobInfoMap) {
+        try {
+            return jobSubmitWorkflow(jobInfoMap.get("runName").toString());
+        } catch (FileNotFoundException e) {
+            throw new WebApplicationException(ResponseBuilder.response(Response.Status.INTERNAL_SERVER_ERROR, e));
+        }
     }
 
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -103,21 +106,45 @@ public class JobResource {
         return jobSubmitWorkflow(new ByteArrayInputStream(oldJobJson.getBytes()));
     }
 
-    private boolean isJobPresent(String jobId) {
-        return new File(jobFSConfig.getJobsPath() + "/" + jobId).exists();
-    }
-
-    private boolean isJobOver(String jobId) {
-        return !jobIdInfoMap.containsKey(jobId) ||
-                (jobIdInfoMap.get(jobId).getJobStatus().equals(JOB_STATUS.KILLED) ||
-                jobIdInfoMap.get(jobId).getJobStatus().equals(JOB_STATUS.COMPLETED));
-    }
-
+    /**
+     * Search Job based on runName, jobId and job status
+     * By default it would search all running jobs only (And its little slow)
+     * @param searchRunName
+     * @param searchJobId
+     * @param searchJobStatus
+     * @return
+     */
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     @Timed
-    public Map getJobs() {
-        return jobIdInfoMap;
+    public List<JobInfo> getJobs(@QueryParam("runName") @DefaultValue("") String searchRunName,
+                                        @QueryParam("jobId") @DefaultValue("") String searchJobId,
+                                        @QueryParam("jobStatus") @DefaultValue("RUNNING")String searchJobStatus) {
+        List<JobInfo> jobs = new ArrayList<JobInfo>();
+        File runsPath = new File(jobFSConfig.getRunsPath());
+        for(File runPath : runsPath.listFiles()) {
+            if(runPath.getName().toUpperCase().contains(searchRunName.toUpperCase())) {
+                try {
+                    BufferedReader runJobsFileReader = FileHelper.bufferedReader(jobFSConfig.getRunJobsFile(runPath.getName()));
+                    String runJobId;
+                    while((runJobId = runJobsFileReader.readLine()) != null) {
+                        if(runJobId.toUpperCase().contains(searchJobId.toUpperCase())) {
+                            JobInfo jobInfo = objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(runJobId)), JobInfo.class);
+                            if(searchJobStatus.equals("ANY")) {
+                                jobs.add(jobInfo);
+                            }
+                            else if(jobInfo.getJobStatus().toString().equalsIgnoreCase(searchJobStatus)) {
+                                jobs.add(jobInfo);
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    log.error(e);
+                    throw new WebApplicationException(ResponseBuilder.response(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage()));
+                }
+            }
+        }
+        return jobs;
     }
 
     @Produces(MediaType.APPLICATION_JSON)
@@ -627,7 +654,6 @@ public class JobResource {
     @Timed
     public void jobOver(@Context HttpServletRequest request,
                         @PathParam("jobId") String jobId) throws InterruptedException, ExecutionException, IOException {
-
         String agentIp = request.getRemoteAddr();
         JobInfo jobInfo = jobIdInfoMap.get(jobId);
         jobInfo.jobCompletedInAgent(agentIp);
@@ -637,6 +663,7 @@ public class JobResource {
             CounterCompoundThread.getCounterCruncherThread().removeJob(jobId);
             CounterThroughputThread.getCounterCruncherThread().removeJob(jobId);
             TimerComputationThread.getComputationThread().removeJob(jobId);
+            jobInfo.setEndTime(new Date());
         }
         objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobId)), jobInfo);
 
@@ -656,6 +683,7 @@ public class JobResource {
     public void killJob(@PathParam("jobId") String jobId) throws InterruptedException, ExecutionException, IOException, JobException {
         killJobInAgents(jobId, jobIdInfoMap.get(jobId).getAgentsJobStatus().keySet());
         stopMonitoring(jobId);
+        jobIdInfoMap.get(jobId).setEndTime(new Date());
     }
 
     /**
@@ -675,65 +703,81 @@ public class JobResource {
             stopMonitoring(jobId);
     }
 
-    private JobInfo submitJobForRun(String runName) throws IOException, InterruptedException, ExecutionException, JobException {
+    private void runExistsOrException(String runName) {
+        if(!new File(jobFSConfig.getRunPath(runName)).exists()) {
+            throw new WebApplicationException(ResponseBuilder.runNameDoesNotExist(runName));
+        }
+    }
+
+    private JobInfo jobSubmitWorkflow(String runName) throws FileNotFoundException {
+        runExistsOrException(runName);
         String runFile = jobFSConfig.getRunFile(runName);
         return jobSubmitWorkflow(new FileInputStream(runFile));
     }
+    /**
+     * Starts monitoring, deploy platform/class libs on agents and then trigger job
+     * @param jobJsonStream
+     * @return
+     * @throws IOException
+     * @throws ExecutionException
+     * @throws InterruptedException
+     * @throws JobException
+     */
+    private JobInfo jobSubmitWorkflow(InputStream jobJsonStream) {
+        JobInfo jobInfo = null;
+        try {
 
-    private JobInfo jobSubmitWorkflow(InputStream jobJsonStream)
-            throws IOException, ExecutionException, InterruptedException, JobException {
-        JobInfo jobInfo = new JobInfo().
-                setJobId(UUID.randomUUID().toString());
+            jobInfo = new JobInfo().
+                    setJobId(UUID.randomUUID().toString());
 
-        PerformanceRun performanceRun = objectMapper.readValue(jobJsonStream, PerformanceRun.class);
+            PerformanceRun performanceRun = objectMapper.readValue(jobJsonStream , PerformanceRun.class);
+            jobInfo.setRunName(performanceRun.getRunName());
 
-        // Persisting Job Json in Local File system.
-        persistJob(jobInfo.getJobId(), performanceRun);
+            // Persisting Job Info(mostly status) in memory
+            jobIdInfoMap.put(jobInfo.getJobId(), jobInfo);
 
-        // Raising request to monitoring agents to start collecting metrics from on demand resource collectors
-        raiseOnDemandResourceRequest(jobInfo, performanceRun.getOnDemandMetricCollections());
+            // Persisting Job Json in Local File system.
+            persistJob(jobInfo.getJobId(), performanceRun);
 
-        // Raising request to monitoring agents to start publishing collected metrics to Loader server
-        raiseMetricPublishRequest(jobInfo, performanceRun.getMetricCollections());
+            // Raising request to monitoring agents to start collecting metrics from on demand resource collectors
+            raiseOnDemandResourceRequest(jobInfo, performanceRun.getOnDemandMetricCollections());
 
-        // Submitting Jobs to Loader Agent
-        submitJobToAgents(jobInfo, performanceRun.getLoadParts());
+            // Raising request to monitoring agents to start publishing collected metrics to Loader server
+            raiseMetricPublishRequest(jobInfo, performanceRun.getMetricCollections());
 
-        // Persisting Job Info(mostly status) in memory
-        jobIdInfoMap.put(jobInfo.getJobId(), jobInfo);
+            // Deploy Libraries on Agents
+            deployLibrariesOnAgents(performanceRun.getLoadParts());
 
-        CounterCompoundThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
-        CounterThroughputThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
-        TimerComputationThread.getComputationThread().addJob(jobInfo.getJobId());
+            // Submitting Jobs to Loader Agent
+            submitJobToAgents(jobInfo, performanceRun.getLoadParts());
 
-        objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobInfo.getJobId())), jobInfo);
-        return jobInfo;
+            CounterCompoundThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
+            CounterThroughputThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
+            TimerComputationThread.getComputationThread().addJob(jobInfo.getJobId());
 
-/*
-        JsonNode jobInfoJsonNode = objectMapper.readValue(jobJsonStream,JsonNode.class);
+            objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobInfo.getJobId())), jobInfo);
+            return jobInfo;
+        }
+        catch (Exception e) {
+            log.error(e);
+            jobInfo.setJobStatus(JOB_STATUS.FAILED_TO_START);
+            try {
+                jobCleanUpOnFailure(jobInfo);
+            } catch (Exception e1) {
+                log.error(e);
+            }
 
-        // Persisting Job Json in Local File system.
-        persistJob(jobInfo.getJobId(), jobInfoJsonNode);
+            throw new WebApplicationException(ResponseBuilder.response(Response.Status.INTERNAL_SERVER_ERROR, e));
+        }
+    }
 
-        // Raising request to monitoring agents to start collecting metrics from on demand resource collectors
-        raiseOnDemandResourceRequest((ArrayNode) jobInfoJsonNode.get("onDemandResourcesRequests"), jobInfo);
-
-        // Raising request to monitoring agents to start publishing collected metrics to Loader server
-        raiseMetricPublishRequest((ArrayNode) jobInfoJsonNode.get("resourcePublishRequests"), jobInfo);
-
-        // Submitting Jobs to Loader Agent
-        submitJobToAgents((ArrayNode) jobInfoJsonNode.get("jobs"), jobInfo);
-
-        // Persisting Job Info(mostly status) in memory
-        jobIdInfoMap.put(jobInfo.getJobId(), jobInfo);
-
-        CounterCompoundThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
-        CounterThroughputThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
-        TimerComputationThread.getComputationThread().addJob(jobInfo.getJobId());
-
-        objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobInfo.getJobId())), jobInfo);
-        return jobInfo;
-*/
+    /**
+     * Clean up Running Job In case Something went wrong while job was being submitted
+     * @param jobInfo
+     */
+    private void jobCleanUpOnFailure(JobInfo jobInfo) throws InterruptedException, ExecutionException, JobException, IOException {
+        killJobInAgents(jobInfo.getJobId(), jobInfo.getAgentsJobStatus().keySet());
+        stopMonitoring(jobInfo.getJobId());
     }
 
     /**
@@ -861,44 +905,6 @@ public class JobResource {
     }
 
     /**
-     * Submitting Job To Loader Agents
-     * @param jobs
-     * @param jobInfo
-     * @throws IOException
-     * @throws JobException
-     */
-/*
-    private void submitJobToAgents(ArrayNode jobs, JobInfo jobInfo) throws IOException, JobException {
-        for(int i=0; i<jobs.size(); i++) {
-            ObjectNode jobPart = (ObjectNode) jobs.get(i);
-            try {
-                // Submitting Job To Agent
-                ArrayNode agentIps = (ArrayNode) jobPart.get("agents");
-                String classListStr = jobPart.get("classList").toString();
-                List<String> classList = objectMapper.readValue(classListStr, List.class);
-                StringBuilder classListWithNewLine = new StringBuilder();
-                for(String clazz : classList)
-                    classListWithNewLine.append(clazz+"\n");
-
-                for(int agentI=0; agentI<agentIps.size();agentI++) {
-                    String agentIp = agentIps.get(agentI).textValue();
-                    DeploymentHelper.instance().deployPlatformLibsOnAgent(agentIp);
-                    DeploymentHelper.instance().deployClassLibsOnAgent(agentIp, classListWithNewLine.toString().trim());
-                    submitJobToAgent(agentIp,
-                            jobInfo,
-                            jobPart.get("jobPartInfo").toString(),
-                            classListWithNewLine.toString());
-                }
-            }  catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (ExecutionException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-        }
-    }
-*/
-
-    /**
      * Submitting Load Job To Loader Agents
      * @param jobInfo
      * @param loadParts
@@ -908,6 +914,36 @@ public class JobResource {
      * @throws InterruptedException
      */
     private void submitJobToAgents(JobInfo jobInfo, List<LoadPart> loadParts)
+            throws IOException, JobException, ExecutionException, InterruptedException {
+        jobInfo.setStartTime(new Date());
+        for(LoadPart loadPart : loadParts) {
+            // Submitting Job To Agent
+            List<String> agentIps = loadPart.getAgents();
+            List<String> classes = loadPart.getClasses();
+
+            StringBuilder classListWithNewLine = new StringBuilder();
+            for(String clazz : classes)
+                classListWithNewLine.append(clazz+"\n");
+
+            for(String agentIp : agentIps) {
+                submitJobToAgent(agentIp,
+                        jobInfo.getJobId(),
+                        loadPart.getLoad(),
+                        classListWithNewLine.toString());
+                jobInfo.jobRunningInAgent(agentIp);
+            }
+        }
+    }
+
+    /**
+     * Deploy Platform Libs and Class Libs on Loader agents If Required
+     * @param loadParts
+     * @throws IOException
+     * @throws JobException
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    private void deployLibrariesOnAgents(List<LoadPart> loadParts)
             throws IOException, JobException, ExecutionException, InterruptedException {
         for(LoadPart loadPart : loadParts) {
             // Submitting Job To Agent
@@ -921,10 +957,6 @@ public class JobResource {
             for(String agentIp : agentIps) {
                 DeploymentHelper.instance().deployPlatformLibsOnAgent(agentIp);
                 DeploymentHelper.instance().deployClassLibsOnAgent(agentIp, classListWithNewLine.toString().trim());
-                submitJobToAgent(agentIp,
-                        jobInfo,
-                        loadPart.getLoad(),
-                        classListWithNewLine.toString());
             }
         }
     }
@@ -932,46 +964,26 @@ public class JobResource {
     /**
      * Submitting Job To Loader Agent
      * @param agentIp
-     * @param jobInfo
+     * @param jobId
      * @param load
      * @throws IOException
      * @throws JobException
      */
-    private void submitJobToAgent(String agentIp, JobInfo jobInfo, Load load, String classListStr)
+    private void submitJobToAgent(String agentIp, String jobId, Load load, String classListStr)
             throws InterruptedException, ExecutionException, JobException, IOException {
-        log.info("Agent Ip :"+agentIp);
+        log.info("Agent Ip :" + agentIp);
         new LoaderAgentClient(agentIp,
                 agentConfig.getAgentPort()).
-                submitJob(jobInfo.getJobId(), load, classListStr);
-        jobInfo.jobRunningInAgent(agentIp);
+                submitJob(jobId, load, classListStr);
         log.info("Load Job " + load + " submitted to Agent " + agentIp);
     }
 
-    private void persistJob(String jobId, JsonNode jobInfoJsonNode) throws IOException {
-        String runName = jobInfoJsonNode.get("runName").textValue();
-
-        // Persisting run details
-        String runFile = jobFSConfig.getRunFile(runName);
-        FileHelper.createFilePath(runFile);
-        FileHelper.persistStream(new ByteArrayInputStream(jobInfoJsonNode.toString().getBytes()),
-                runFile,
-                false);
-
-        // Add file containing run name in job folder
-        String jobRunNameFile = jobFSConfig.getJobRunNameFile(jobId);
-        FileHelper.createFilePath(jobRunNameFile);
-        FileHelper.persistStream(new ByteArrayInputStream(runName.getBytes()),
-                jobRunNameFile,
-                false);
-
-        // Adding job ids in run folder file
-        String runJobsFile = jobFSConfig.getRunJobsFile(runName);
-        FileHelper.createFilePath(runJobsFile);
-        FileHelper.persistStream(new ByteArrayInputStream((jobId+"\n").getBytes()),
-                runJobsFile,
-                true);
-    }
-
+    /**
+     * Persist Job Details in FS
+     * @param jobId
+     * @param performanceRun
+     * @throws IOException
+     */
     private void persistJob(String jobId, PerformanceRun performanceRun) throws IOException {
         String runName = performanceRun.getRunName();
 
@@ -990,8 +1002,18 @@ public class JobResource {
         // Adding job ids in run folder file
         String runJobsFile = jobFSConfig.getRunJobsFile(runName);
         FileHelper.createFilePath(runJobsFile);
-        FileHelper.persistStream(new ByteArrayInputStream((jobId+"\n").getBytes()),
+        FileHelper.persistStream(new ByteArrayInputStream((jobId + "\n").getBytes()),
                 runJobsFile,
                 true);
+    }
+
+    private boolean isJobPresent(String jobId) {
+        return new File(jobFSConfig.getJobsPath() + "/" + jobId).exists();
+    }
+
+    private boolean isJobOver(String jobId) {
+        return !jobIdInfoMap.containsKey(jobId) ||
+                (jobIdInfoMap.get(jobId).getJobStatus().equals(JOB_STATUS.KILLED) ||
+                jobIdInfoMap.get(jobId).getJobStatus().equals(JOB_STATUS.COMPLETED));
     }
 }
