@@ -172,7 +172,7 @@ public class CounterThroughputThread extends Thread {
                             + "\n");
                     bw.flush();
 
-                    BufferedWriter bwLast = FileHelper.bufferedWriter(newFile+ "." + FILE_EXTENSION + ".last", false);
+                    BufferedWriter bwLast = FileHelper.bufferedWriter(newFile + ".last", false);
                     bwLast.write(objectMapper.writeValueAsString(counterStatsInstance) + "\n");
                     bwLast.flush();
 
