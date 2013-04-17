@@ -119,6 +119,7 @@ public class FunctionResource {
                 setGroups(Arrays.asList(new Group[]{group}));
 
         LoadPart loadPart = new LoadPart().
+                setName("default").
                 setAgents(Arrays.asList(new String[]{"127.0.0.1"})).
                 setClasses(Arrays.asList(new String[]{function})).
                 setLoad(load);
