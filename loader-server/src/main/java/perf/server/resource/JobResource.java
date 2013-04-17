@@ -210,80 +210,6 @@ public class JobResource {
         FileHelper.remove(tmpPath);
     }
 
-    /**
-     * Monitoring Agents publishes job Related Monitoring stats here
-     * @param request
-     * @param jobId
-     * @param statsStream
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    @Path("/{jobId}/monitoringStats")
-    @POST
-    @Timed
-    public void jobMonitoringStats(@Context HttpServletRequest request,
-                                      @PathParam("jobId") String jobId,
-                                      InputStream statsStream)
-            throws IOException, InterruptedException {
-        Map<String,Object> stats = objectMapper.readValue(statsStream, Map.class);
-        Map<String,String> resourcesLastInstance = jobLastResourceMetricInstanceMap.get(jobId);
-        if(resourcesLastInstance == null)
-            resourcesLastInstance = new HashMap<String, String>();
-
-        for(String resource : stats.keySet()) {
-            String jobMonitoringStatsPath = jobFSConfig.getJobResourceMonitoringFile(jobId,
-                    request.getRemoteAddr(),
-                    resource);
-
-            List resourceInstances = (ArrayList) stats.get(resource);
-            FileHelper.createFilePath(jobMonitoringStatsPath);
-
-            // Get Last Persisted Metric Instance. Compare it with new one, if changed then persist
-            String resourceLastInstance = resourcesLastInstance.get(resource);
-
-            for(int i=0; i<resourceInstances.size(); i++) {
-                boolean persistStat = true;
-                String resourceNewInstance = resourceInstances.
-                        get(i).
-                        toString().
-                        replace("resourceName="+resource+", ","");
-
-                if(resourceLastInstance != null) {
-                    persistStat = !resourceLastInstance.equals(resourceNewInstance);
-                }
-
-                if(persistStat) {
-                    FileHelper.persistStream(new ByteArrayInputStream((resourceNewInstance+"\n"). // knocking off resource name from the files
-                            getBytes()),
-                            jobMonitoringStatsPath, true);
-                    resourcesLastInstance.put(resource, resourceNewInstance);
-                    resourceLastInstance = resourceNewInstance;
-                }
-            }
-            resourcesLastInstance.put(resource, resourceLastInstance);
-        }
-        jobLastResourceMetricInstanceMap.put(jobId, resourcesLastInstance);
-    }
-
-    @Path("/{jobId}/logs")
-    @GET
-    @Timed
-    @Produces(MediaType.TEXT_HTML)
-    public String getJobLogs(@PathParam("jobId") String jobId) throws IOException {
-        if(!isJobPresent(jobId))
-            throw new WebApplicationException(ResponseBuilder.jobNotFound(jobId));
-
-        JobInfo jobInfo = objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(jobId)), JobInfo.class);
-        StringBuilder stringBuilder = new StringBuilder();
-        for(String agentIp : jobInfo.getAgentsJobStatus().keySet()) {
-            stringBuilder.append("<a href=\"" + agentConfig.getJobLogUrl(jobId, agentIp) +"\">" + agentIp + ".log</a><br>");
-        }
-        return stringBuilder.toString();
-    }
-
-
-    //==================== New Stats APIs starts here
-
     class MetricStatsMeta {
 
         private String name;
@@ -345,7 +271,7 @@ public class JobResource {
     @GET
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
-    public List<GroupStatsMeta> getJobStats(@PathParam("jobId") String jobId) {
+    public List<GroupStatsMeta> getJobMetricStats(@PathParam("jobId") String jobId) {
         List<GroupStatsMeta> groups = new ArrayList<GroupStatsMeta>();
         File groupsPath = new File(jobFSConfig.getJobStatsPath(jobId));
         for(File groupPath : groupsPath.listFiles()) {
@@ -400,7 +326,7 @@ public class JobResource {
     @GET
     @Timed
     @Produces(MediaType.TEXT_HTML)
-    public InputStream getJobFunctionStats(@PathParam("jobId") String jobId,
+    public InputStream getJobMetricStats(@PathParam("jobId") String jobId,
                                                     @PathParam("groupName") String groupName,
                                                     @PathParam("metricType") String metricType,
                                                     @PathParam("metricName") String metricName,
@@ -416,7 +342,6 @@ public class JobResource {
             statsFile = new File(statsFile.getAbsoluteFile()+".last");
         return new FileInputStream(statsFile.getAbsoluteFile());
     }
-
 
     class MonitoringAgentStats {
         private String agent;
@@ -440,6 +365,63 @@ public class JobResource {
     }
 
     /**
+     * Monitoring Agents publishes job Related Monitoring stats here
+     * @param request
+     * @param jobId
+     * @param statsStream
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Path("/{jobId}/monitoringStats")
+    @POST
+    @Timed
+    public void jobMonitoringStats(@Context HttpServletRequest request,
+                                      @PathParam("jobId") String jobId,
+                                      InputStream statsStream)
+            throws IOException, InterruptedException {
+        Map<String,Object> stats = objectMapper.readValue(statsStream, Map.class);
+        Map<String,String> resourcesLastInstance = jobLastResourceMetricInstanceMap.get(jobId);
+        if(resourcesLastInstance == null)
+            resourcesLastInstance = new HashMap<String, String>();
+
+        for(String resource : stats.keySet()) {
+            String jobMonitoringStatsPath = jobFSConfig.getJobResourceMonitoringFile(jobId,
+                    request.getRemoteAddr(),
+                    resource);
+
+            List resourceInstances = (ArrayList) stats.get(resource);
+            FileHelper.createFilePath(jobMonitoringStatsPath);
+
+            // Get Last Persisted Metric Instance. Compare it with new one, if changed then persist
+            String resourceLastInstance = resourcesLastInstance.get(resource);
+
+            for(int i=0; i<resourceInstances.size(); i++) {
+                boolean persistStat = true;
+                String resourceNewInstance = resourceInstances.
+                        get(i).
+                        toString().
+                        replace("resourceName="+resource+", ","");
+
+                if(resourceLastInstance != null) {
+                    persistStat = !resourceLastInstance.equals(resourceNewInstance);
+                }
+
+                if(persistStat) {
+                    FileHelper.persistStream(new ByteArrayInputStream((resourceNewInstance+"\n"). // knocking off resource name from the files
+                            getBytes()),
+                            jobMonitoringStatsPath, true);
+                    resourcesLastInstance.put(resource, resourceNewInstance);
+                    resourceLastInstance = resourceNewInstance;
+                }
+            }
+            if(resourceLastInstance != null)
+                FileHelper.persistStream(new ByteArrayInputStream(resourceLastInstance.getBytes()), jobMonitoringStatsPath+".last", false);
+            resourcesLastInstance.put(resource, resourceLastInstance);
+        }
+        jobLastResourceMetricInstanceMap.put(jobId, resourcesLastInstance);
+    }
+
+    /**
      * Returns Monitoring Stats Meta Data. Useful to see what all monitoring stats are being collected as part of performance testing
      * @param jobId
      * @return
@@ -457,7 +439,8 @@ public class JobResource {
                 monitoringAgentStats.setAgent(agentPath.getName());
                 List<String> resources = new ArrayList<String>();
                 for(File resourceFile : new File(agentPath.getAbsolutePath() + File.separator + "Resources").listFiles()) {
-                    resources.add(resourceFile.getName().replace(".txt", ""));
+                    if(resourceFile.getName().endsWith(".txt"))
+                        resources.add(resourceFile.getName().replace(".txt", ""));
                 }
                 monitoringAgentStats.setResources(resources);
                 monitoringStats.add(monitoringAgentStats);
@@ -466,6 +449,47 @@ public class JobResource {
         return monitoringStats;
     }
 
+    /**
+     * Returns particular function stats
+     * Example /jobId/jobStats/groups/sampleGroup/timers/timer1/agents/127.0.0.1
+     * Example /jobId/jobStats/groups/sampleGroup/counters/counter1/agents/127.0.0.1
+     * @param jobId
+     * @return
+     */
+    @Path("/{jobId}/monitoringStats/agents/{agent}/resources/{resourceName}")
+    @GET
+    @Timed
+    @Produces(MediaType.TEXT_HTML)
+    public InputStream getJobMonitoringResourceStats(@PathParam("jobId") String jobId,
+                                                     @PathParam("agent") String agent,
+                                                     @PathParam("resourceName") String resourceName,
+                                                    @QueryParam("last") @DefaultValue("false") BooleanParam last) throws FileNotFoundException {
+        jobExistsOrException(jobId);
+        File statsFile = new File(jobFSConfig.getJobResourceMonitoringFile(jobId, agent, resourceName));
+        log.info(statsFile.getAbsolutePath());
+        if(!statsFile.exists())
+            throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Monitoring Stats for %s %s Not collected yet",agent,resourceName)));
+
+        if(last.get())
+            statsFile = new File(statsFile.getAbsoluteFile()+".last");
+        return new FileInputStream(statsFile.getAbsoluteFile());
+    }
+
+    @Path("/{jobId}/logs")
+    @GET
+    @Timed
+    @Produces(MediaType.TEXT_HTML)
+    public String getJobLogs(@PathParam("jobId") String jobId) throws IOException {
+        if(!isJobPresent(jobId))
+            throw new WebApplicationException(ResponseBuilder.jobNotFound(jobId));
+
+        JobInfo jobInfo = objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(jobId)), JobInfo.class);
+        StringBuilder stringBuilder = new StringBuilder();
+        for(String agentIp : jobInfo.getAgentsJobStatus().keySet()) {
+            stringBuilder.append("<a href=\"" + agentConfig.getJobLogUrl(jobId, agentIp) +"\">" + agentIp + ".log</a><br>");
+        }
+        return stringBuilder.toString();
+    }
 
     /**
      * This resource is called by Loader agent once job is completed
@@ -492,7 +516,6 @@ public class JobResource {
             jobInfo.setEndTime(new Date());
         }
         objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobId)), jobInfo);
-
     }
 
 
