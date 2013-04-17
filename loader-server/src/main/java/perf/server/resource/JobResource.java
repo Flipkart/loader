@@ -1,13 +1,13 @@
 package perf.server.resource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.open.perf.domain.Load;
 import com.open.perf.util.FileHelper;
 import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.ObjectNode;
 import perf.server.client.LoaderAgentClient;
 import perf.server.client.MonitoringClient;
 import perf.server.config.AgentConfig;
@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
+import static org.codehaus.jackson.JsonParser.Feature;
 import static perf.server.domain.JobInfo.JOB_STATUS;
 
 /**
@@ -46,7 +47,7 @@ public class JobResource {
 
     private static ObjectMapper objectMapper;
     private static Map<String, JobInfo> jobIdInfoMap;
-    private static Map<String,Map<String,String>> jobLastResourceMetricInstanceMap;
+    private static Map<String,Map<String,ResourceCollectionInstance>> jobLastResourceMetricInstanceMap;
     private static Logger log;
 
     static {
@@ -54,8 +55,9 @@ public class JobResource {
         objectMapper = new ObjectMapper();
         DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
         objectMapper.setDateFormat(dateFormat);
+        objectMapper.configure(Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
 
-        jobLastResourceMetricInstanceMap = new HashMap<String, Map<String, String>>();
+        jobLastResourceMetricInstanceMap = new HashMap<String, Map<String, ResourceCollectionInstance>>();
         log = Logger.getLogger(JobResource.class);
     }
 
@@ -364,58 +366,63 @@ public class JobResource {
         }
     }
 
+
     /**
      * Monitoring Agents publishes job Related Monitoring stats here
      * @param request
      * @param jobId
-     * @param statsStream
+     * @param resourcesCollectionInstances
      * @throws IOException
      * @throws InterruptedException
      */
+    @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{jobId}/monitoringStats")
     @POST
     @Timed
     public void jobMonitoringStats(@Context HttpServletRequest request,
                                       @PathParam("jobId") String jobId,
-                                      InputStream statsStream)
+                                      Map<String, List<ResourceCollectionInstance>> resourcesCollectionInstances)
             throws IOException, InterruptedException {
-        Map<String,Object> stats = objectMapper.readValue(statsStream, Map.class);
-        Map<String,String> resourcesLastInstance = jobLastResourceMetricInstanceMap.get(jobId);
-        if(resourcesLastInstance == null)
-            resourcesLastInstance = new HashMap<String, String>();
 
-        for(String resource : stats.keySet()) {
+        Map<String,ResourceCollectionInstance> resourcesLastInstance = jobLastResourceMetricInstanceMap.get(jobId);
+
+        if(resourcesLastInstance == null)
+            resourcesLastInstance = new HashMap<String, ResourceCollectionInstance>();
+
+        for(String resource : resourcesCollectionInstances.keySet()) {
             String jobMonitoringStatsPath = jobFSConfig.getJobResourceMonitoringFile(jobId,
                     request.getRemoteAddr(),
                     resource);
 
-            List resourceInstances = (ArrayList) stats.get(resource);
+            List<ResourceCollectionInstance> resourceCollectionInstances = resourcesCollectionInstances.get(resource);
             FileHelper.createFilePath(jobMonitoringStatsPath);
 
             // Get Last Persisted Metric Instance. Compare it with new one, if changed then persist
-            String resourceLastInstance = resourcesLastInstance.get(resource);
+            ResourceCollectionInstance resourceLastInstance = resourcesLastInstance.get(resource);
 
-            for(int i=0; i<resourceInstances.size(); i++) {
+            for(ResourceCollectionInstance resourceCollectionInstance : resourceCollectionInstances) {
                 boolean persistStat = true;
+/*
                 String resourceNewInstance = resourceInstances.
                         get(i).
                         toString().
                         replace("resourceName="+resource+", ","");
+*/
 
                 if(resourceLastInstance != null) {
-                    persistStat = !resourceLastInstance.equals(resourceNewInstance);
+                    persistStat = !resourceLastInstance.toString().equals(resourceCollectionInstance.toString());
                 }
 
                 if(persistStat) {
-                    FileHelper.persistStream(new ByteArrayInputStream((resourceNewInstance+"\n"). // knocking off resource name from the files
+                    FileHelper.persistStream(new ByteArrayInputStream((objectMapper.writeValueAsString(resourceCollectionInstances)+"\n"). // knocking off resource name from the files
                             getBytes()),
                             jobMonitoringStatsPath, true);
-                    resourcesLastInstance.put(resource, resourceNewInstance);
-                    resourceLastInstance = resourceNewInstance;
+                    resourcesLastInstance.put(resource, resourceCollectionInstance);
+                    resourceLastInstance = resourceCollectionInstance;
                 }
             }
             if(resourceLastInstance != null)
-                FileHelper.persistStream(new ByteArrayInputStream(resourceLastInstance.getBytes()), jobMonitoringStatsPath+".last", false);
+                FileHelper.persistStream(new ByteArrayInputStream(objectMapper.writeValueAsString(resourceLastInstance).getBytes()), jobMonitoringStatsPath+".last", false);
             resourcesLastInstance.put(resource, resourceLastInstance);
         }
         jobLastResourceMetricInstanceMap.put(jobId, resourcesLastInstance);
@@ -450,10 +457,7 @@ public class JobResource {
     }
 
     /**
-     * Returns particular function stats
-     * Example /jobId/jobStats/groups/sampleGroup/timers/timer1/agents/127.0.0.1
-     * Example /jobId/jobStats/groups/sampleGroup/counters/counter1/agents/127.0.0.1
-     * @param jobId
+     * Returns stats for particular resource being monitored at particular box
      * @return
      */
     @Path("/{jobId}/monitoringStats/agents/{agent}/resources/{resourceName}")
@@ -473,6 +477,29 @@ public class JobResource {
         if(last.get())
             statsFile = new File(statsFile.getAbsoluteFile()+".last");
         return new FileInputStream(statsFile.getAbsoluteFile());
+    }
+
+    /**
+     * Return resource metric Keys that are being collected
+     * @param jobId
+     * @return
+     */
+    @Path("/{jobId}/monitoringStats/agents/{agent}/resources/{resourceName}/meta")
+    @GET
+    @Timed
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<String> getJobMonitoringResourceMeta(@PathParam("jobId") String jobId,
+                                                    @PathParam("agent") String agent,
+                                                    @PathParam("resourceName") String resourceName) throws IOException {
+        jobExistsOrException(jobId);
+        File statsFile = new File(jobFSConfig.getJobResourceMonitoringFile(jobId, agent, resourceName));
+        log.info(statsFile.getAbsolutePath());
+        if(!statsFile.exists())
+            throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Monitoring Stats for %s %s Not collected yet",agent,resourceName)));
+
+        Map<String, Object> resourceLastInstance = objectMapper.readValue(new File(statsFile.getAbsolutePath()+".last"), Map.class);
+        Map<String, Object> metricValueMap = (Map<String, Object>) resourceLastInstance.get("metrics");
+        return metricValueMap.keySet();
     }
 
     @Path("/{jobId}/logs")
@@ -721,7 +748,7 @@ public class JobResource {
         for(int i=0; i<resourcePublishRequests.size(); i++) {
             ObjectNode requestPart = (ObjectNode) resourcePublishRequests.get(i);
 
-            String agentIp = requestPart.get("agent").textValue();
+            String agentIp = requestPart.get("agent").getTextValue();
             new MonitoringClient(agentIp,
                     monitoringAgentConfig.getAgentPort()).
                     raiseMetricPublishRequest(objectMapper.readValue(requestPart.get("request").
