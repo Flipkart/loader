@@ -337,7 +337,7 @@ public class JobResource {
     }
 
     /**
-     * Returns Groups for which stats have been collected so far
+     * Returns Job Stats Meta Data. Useful to see what all stats are being collected as part of performance testing
      * @param jobId
      * @return
      */
@@ -416,6 +416,56 @@ public class JobResource {
             statsFile = new File(statsFile.getAbsoluteFile()+".last");
         return new FileInputStream(statsFile.getAbsoluteFile());
     }
+
+
+    class MonitoringAgentStats {
+        private String agent;
+        private List<String> resources;
+
+        public String getAgent() {
+            return agent;
+        }
+
+        public void setAgent(String agent) {
+            this.agent = agent;
+        }
+
+        public List<String> getResources() {
+            return resources;
+        }
+
+        public void setResources(List<String> resources) {
+            this.resources = resources;
+        }
+    }
+
+    /**
+     * Returns Monitoring Stats Meta Data. Useful to see what all monitoring stats are being collected as part of performance testing
+     * @param jobId
+     * @return
+     */
+    @Path("/{jobId}/monitoringStats")
+    @GET
+    @Timed
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<MonitoringAgentStats> getJobMonitoringStats(@PathParam("jobId") String jobId) {
+        List<MonitoringAgentStats> monitoringStats = new ArrayList<MonitoringAgentStats>();
+        File monitoringResourcesPath = new File(jobFSConfig.getJobMonitoringStatsPath(jobId));
+        if(monitoringResourcesPath.exists()) {
+            for(File agentPath : new File(monitoringResourcesPath.getAbsolutePath() + File.separator + "agents").listFiles()) {
+                MonitoringAgentStats monitoringAgentStats = new MonitoringAgentStats();
+                monitoringAgentStats.setAgent(agentPath.getName());
+                List<String> resources = new ArrayList<String>();
+                for(File resourceFile : new File(agentPath.getAbsolutePath() + File.separator + "Resources").listFiles()) {
+                    resources.add(resourceFile.getName().replace(".txt", ""));
+                }
+                monitoringAgentStats.setResources(resources);
+                monitoringStats.add(monitoringAgentStats);
+            }
+        }
+        return monitoringStats;
+    }
+
 
     /**
      * This resource is called by Loader agent once job is completed

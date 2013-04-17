@@ -8,7 +8,6 @@ package perf.server.config;
  * To change this template use File | Settings | File Templates.
  */
 public class JobFSConfig {
-    private String jobResourceMonitoringFile;
     private String runsPath;
     private String runPath;
     private String runFile;
@@ -19,7 +18,9 @@ public class JobFSConfig {
     private String runJobsFile;
     private String jobStatsPath;
     private String jobGroupStatsPath;
-    private String jobFunctionStatsFile;
+    private String jobMetricStatsFile;
+    private String jobMonitoringStatsPath;
+    private String jobResourceMonitoringFile;
 
     public String getJobResourceMonitoringFile(String jobId, String agentIp, String resource) {
         return jobResourceMonitoringFile.replace("{jobId}", jobId).
@@ -33,6 +34,14 @@ public class JobFSConfig {
 
     public String getRunFile(String runName) {
         return runFile.replace("{runName}", runName);
+    }
+
+    public String getJobMonitoringStatsPath(String jobId) {
+        return jobMonitoringStatsPath.replace("{jobId}", jobId);
+    }
+
+    public void setJobMonitoringStatsPath(String jobMonitoringStatsPath) {
+        this.jobMonitoringStatsPath = jobMonitoringStatsPath;
     }
 
     public void setRunFile(String runFile) {
@@ -113,8 +122,10 @@ public class JobFSConfig {
         this.jobStatsPath = jobStatsPath;
     }
 
+
+
     public String getJobFunctionStatsFile(String jobId, String groupName, String metricType, String metricName, String agentIp) {
-        return jobFunctionStatsFile.
+        return jobMetricStatsFile.
                 replace("{jobId}", jobId).
                 replace("{groupName}", groupName).
                 replace("{metricType}", metricType).
@@ -122,8 +133,8 @@ public class JobFSConfig {
                 replace("{agentIp}", agentIp);
     }
 
-    public void setJobFunctionStatsFile(String jobFunctionStatsFile) {
-        this.jobFunctionStatsFile = jobFunctionStatsFile;
+    public void setJobMetricStatsFile(String jobMetricStatsFile) {
+        this.jobMetricStatsFile = jobMetricStatsFile;
     }
 }
 

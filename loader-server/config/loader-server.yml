@@ -27,7 +27,8 @@ jobFSConfig:
   jobStatusFile: "/var/log/loader-server/jobs/{jobId}/status.json"
   jobStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats"
   jobGroupStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}"
-  jobFunctionStatsFile: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/{metricType}/{metricName}/agents/{agentIp}/data.stats"
+  jobMetricStatsFile: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/{metricType}/{metricName}/agents/{agentIp}/data.stats"
+  jobMonitoringStatsPath: "/var/log/loader-server/jobs/{jobId}/monitoringStats"
   jobResourceMonitoringFile: "/var/log/loader-server/jobs/{jobId}/monitoringStats/agents/{agentIp}/Resources/{resource}.txt"
 
 http:
