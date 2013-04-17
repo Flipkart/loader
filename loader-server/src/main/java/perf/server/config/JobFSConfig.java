@@ -113,11 +113,12 @@ public class JobFSConfig {
         this.jobStatsPath = jobStatsPath;
     }
 
-    public String getJobFunctionStatsFile(String jobId, String groupName, String functionName, String agentIp) {
+    public String getJobFunctionStatsFile(String jobId, String groupName, String metricType, String metricName, String agentIp) {
         return jobFunctionStatsFile.
                 replace("{jobId}", jobId).
                 replace("{groupName}", groupName).
-                replace("{functionName}", functionName).
+                replace("{metricType}", metricType).
+                replace("{metricName}", metricName).
                 replace("{agentIp}", agentIp);
     }
 
