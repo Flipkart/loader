@@ -484,7 +484,7 @@ public class JobResource {
      * @param jobId
      * @return
      */
-    @Path("/{jobId}/monitoringStats/agents/{agent}/resources/{resourceName}/meta")
+    @Path("/{jobId}/monitoringStats/agents/{agent}/resources/{resourceName}/metrics")
     @GET
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
