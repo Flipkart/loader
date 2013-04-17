@@ -284,17 +284,10 @@ public class JobResource {
 
     //==================== New Stats APIs starts here
 
-    class FunctionStatsMeta {
-        private String functionName;
+    class MetricStatsMeta {
+
+        private String name;
         private List<String> agents;
-
-        public String getFunctionName() {
-            return functionName;
-        }
-
-        public void setFunctionName(String functionName) {
-            this.functionName = functionName;
-        }
 
         public List<String> getAgents() {
             return agents;
@@ -303,11 +296,20 @@ public class JobResource {
         public void setAgents(List<String> agents) {
             this.agents = agents;
         }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
     }
 
     class GroupStatsMeta {
         private String groupName;
-        private List<FunctionStatsMeta> functions;
+        private List<MetricStatsMeta> timers;
+        private List<MetricStatsMeta> counters;
 
         public String getGroupName() {
             return groupName;
@@ -317,12 +319,20 @@ public class JobResource {
             this.groupName = groupName;
         }
 
-        public List<FunctionStatsMeta> getFunctions() {
-            return functions;
+        public List<MetricStatsMeta> getTimers() {
+            return timers;
         }
 
-        public void setFunctions(List<FunctionStatsMeta> functions) {
-            this.functions = functions;
+        public void setTimers(List<MetricStatsMeta> timers) {
+            this.timers = timers;
+        }
+
+        public List<MetricStatsMeta> getCounters() {
+            return counters;
+        }
+
+        public void setCounters(List<MetricStatsMeta> counters) {
+            this.counters = counters;
         }
     }
 
@@ -342,30 +352,38 @@ public class JobResource {
             GroupStatsMeta groupStatsMeta = new GroupStatsMeta();
             groupStatsMeta.setGroupName(groupPath.getName());
 
-            List<FunctionStatsMeta> functions = new ArrayList<FunctionStatsMeta>();
 
-            File timersPath = new File(groupPath.getAbsoluteFile() + File.separator + "timers");
-            if(timersPath.exists()) {
-                for(File timerPath : timersPath.listFiles()) {
+            for(File metricTypeFolder : groupPath.getAbsoluteFile().listFiles()) {
+                List<MetricStatsMeta> metrics = new ArrayList<MetricStatsMeta>();
+                for(File metricPath : metricTypeFolder.listFiles()) {
+
                     // I am using timer name here as function name
-                    FunctionStatsMeta functionStatsMeta = new FunctionStatsMeta();
-                    functionStatsMeta.setFunctionName(timerPath.getName());
+                    MetricStatsMeta metricStatsMeta = new MetricStatsMeta();
+                    metricStatsMeta.setName(metricPath.getName());
 
-                    File agentsPath = new File(timerPath.getAbsoluteFile() + File.separator + "agents");
+                    File agentsPath = new File(metricPath.getAbsoluteFile() + File.separator + "agents");
 
                     List<String> allAgents = Arrays.asList(agentsPath.list());
                     List<String> agentsHavingData = new ArrayList<String>();
 
                     for(String agent : allAgents) {
-                        if(new File(jobFSConfig.getJobFunctionStatsFile(jobId, groupPath.getName(), timerPath.getName(), agent)).exists())
+                        if(new File(jobFSConfig.getJobFunctionStatsFile(jobId,
+                                groupPath.getName(),
+                                metricTypeFolder.getName(),
+                                metricPath.getName(),
+                                agent)).exists())
                             agentsHavingData.add(agent);
                     }
 
-                    functionStatsMeta.setAgents(agentsHavingData);
-                    functions.add(functionStatsMeta);
+                    metricStatsMeta.setAgents(agentsHavingData);
+                    metrics.add(metricStatsMeta);
                 }
+
+                if(metricTypeFolder.getName().equals("timers"))
+                    groupStatsMeta.setTimers(metrics);
+                if(metricTypeFolder.getName().equals("counters"))
+                    groupStatsMeta.setCounters(metrics);
             }
-            groupStatsMeta.setFunctions(functions);
             groups.add(groupStatsMeta);
         }
         return groups;
@@ -373,22 +391,26 @@ public class JobResource {
 
     /**
      * Returns particular function stats
+     * Example /jobId/jobStats/groups/sampleGroup/timers/timer1/agents/127.0.0.1
+     * Example /jobId/jobStats/groups/sampleGroup/counters/counter1/agents/127.0.0.1
      * @param jobId
      * @return
      */
-    @Path("/{jobId}/jobStats/groups/{groupName}/functions/{functionName}/agents/{agent}")
+    @Path("/{jobId}/jobStats/groups/{groupName}/{metricType}/{metricName}/agents/{agent}")
     @GET
     @Timed
     @Produces(MediaType.TEXT_HTML)
     public InputStream getJobFunctionStats(@PathParam("jobId") String jobId,
                                                     @PathParam("groupName") String groupName,
-                                                    @PathParam("functionName") String functionName,
+                                                    @PathParam("metricType") String metricType,
+                                                    @PathParam("metricName") String metricName,
                                                     @PathParam("agent") String agent,
                                                     @QueryParam("last") @DefaultValue("false") BooleanParam last) throws FileNotFoundException {
         jobExistsOrException(jobId);
-        File statsFile = new File(jobFSConfig.getJobFunctionStatsFile(jobId, groupName, functionName, agent));
+        File statsFile = new File(jobFSConfig.getJobFunctionStatsFile(jobId, groupName, metricType, metricName, agent));
+        log.info(statsFile.getAbsolutePath());
         if(!statsFile.exists())
-            throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, "Stats for function "+functionName + "Not computed yet"));
+            throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Stats for %s %s Not computed yet",metricType,metricName)));
 
         if(last.get())
             statsFile = new File(statsFile.getAbsoluteFile()+".last");
