@@ -7,9 +7,19 @@ import java.util.List;
  * Represents a Performance LoadPart in a Performance Run
  */
 public class LoadPart {
+    private String name;
     private List<String> agents;
     private List<String> classes;
     private Load load;
+
+    public String getName() {
+        return name;
+    }
+
+    public LoadPart setName(String name) {
+        this.name = name;
+        return this;
+    }
 
     public List<String> getAgents() {
         return agents;
