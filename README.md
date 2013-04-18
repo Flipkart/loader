@@ -26,4 +26,6 @@ connections etc.
 <br><br>
 * 5) <b>Live Reporting :</b> While Load generation activity is going on you can monitor both Load stats like throughput,
 mean response times, standard deviations, percentiles and monitoring stats like cpu, memory , jmx, network usage etc in LIVE.
-
+<br><br>
+* 6) <b>Report Archiving/ Comparison(TBD) :</b> All Performance run related stats are archived and available by hitting Http End Points.
+In future we are going to use these archived reports to compare with new runs.
