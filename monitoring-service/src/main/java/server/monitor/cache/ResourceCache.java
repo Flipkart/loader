@@ -47,8 +47,8 @@ public class ResourceCache {
     synchronized public static List<ResourceCollectionInstance> getStats(String resource, int howMany) {
         List<ResourceCollectionInstance> toSendBack = new ArrayList<ResourceCollectionInstance>();
         List<ResourceCollectionInstance> resourceStats = resourceStatsCache.get(resource);
-        if(resourceStats != null && resourceStats.size() > 1) {
-            for(int last=resourceStats.size()-2; last >= 0 && howMany > 0; last--, howMany--) {
+        if(resourceStats != null && resourceStats.size() > 0) {
+            for(int last=resourceStats.size()-1; last >= 0 && howMany > 0; last--, howMany--) {
                 toSendBack.add(resourceStats.get(last));
             }
         }

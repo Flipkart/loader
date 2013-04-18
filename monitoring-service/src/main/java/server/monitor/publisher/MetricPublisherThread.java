@@ -1,5 +1,6 @@
 package server.monitor.publisher;
 
+import com.open.perf.util.Clock;
 import server.monitor.domain.MetricPublisherRequest;
 import org.apache.log4j.Logger;
 
@@ -47,7 +48,7 @@ public class MetricPublisherThread extends Thread{
                 }
             }
             try {
-                Thread.sleep(this.interval);
+                Clock.sleep(interval);
             } catch (InterruptedException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
