@@ -4,9 +4,12 @@ package perf.server;
  * Date : 28/12/2012
  * USer : nitinka
  */
+
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
+import com.yammer.dropwizard.config.FilterBuilder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import perf.server.cache.AgentsCache;
 import perf.server.cache.LibCache;
 import perf.server.config.LoaderServerConfiguration;
@@ -36,6 +39,9 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
                 configuration.getLibStorageFSConfig());
         AgentsCache.initialize(configuration.getAgentConfig());
 
+        FilterBuilder filterConfig = environment.addFilter(CrossOriginFilter.class, "/*");
+        filterConfig.setInitParam(CrossOriginFilter.PREFLIGHT_MAX_AGE_PARAM, String.valueOf(60*60*24)); // 1 day - jetty-servlet CrossOriginFilter will convert to Int.
+        //filterConfig.setInitParam(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "http://localhost"); // comma separated list of allowed origin domains
         // Adding Resource End Points
         environment.addResource(new DeployLibResource(configuration.getLibStorageFSConfig()));
         environment.addResource(new AgentResource(configuration.getAgentConfig()));
