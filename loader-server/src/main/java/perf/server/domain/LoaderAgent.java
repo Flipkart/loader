@@ -21,6 +21,8 @@ public class LoaderAgent {
     private LoaderAgentStatus status;
     private List<String> runningJobs;
 
+    public LoaderAgent() {}
+
     public LoaderAgent(String ip, Map<String,Object> agentAttributes) {
         this.ip = ip;
         this.attributes = agentAttributes;

@@ -6,6 +6,8 @@ import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
 import perf.server.cache.AgentsCache;
+import perf.server.client.LoaderAgentClient;
+import perf.server.config.AgentConfig;
 import perf.server.domain.LoaderAgent;
 import perf.server.util.DeploymentHelper;
 import perf.server.util.ResponseBuilder;
@@ -25,8 +27,16 @@ import java.util.concurrent.ExecutionException;
 @Path("/agents")
 public class AgentResource {
     private static Logger log = Logger.getLogger(AgentResource.class);
+    private AgentConfig agentConfig;
 
-    public AgentResource(){}
+    public AgentResource(AgentConfig agentConfig){
+        this.agentConfig = agentConfig;
+
+        // Connect Will all agents which were not disabled earlier.
+        for(LoaderAgent loaderAgent : AgentsCache.getAgentInfoMap().values()) {
+            refreshAgentInfo(loaderAgent);
+        }
+    }
 
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -35,7 +45,7 @@ public class AgentResource {
     synchronized public LoaderAgent addAgent(@Context HttpServletRequest request,
                                              Map registrationParams) throws IOException, ExecutionException, InterruptedException {
 
-        AgentsCache.addAgentInfoMap(new LoaderAgent(request.getRemoteAddr(), registrationParams));
+        AgentsCache.addAgent(new LoaderAgent(request.getRemoteAddr(), registrationParams));
         return AgentsCache.getAgentInfo(request.getRemoteAddr());
     }
 
@@ -68,7 +78,7 @@ public class AgentResource {
     synchronized public LoaderAgent deleteAgent(@PathParam("agentIp") String agentIp)
             throws IOException, ExecutionException, InterruptedException {
 
-        LoaderAgent agent = AgentsCache.removeAgentInfo(agentIp);
+        LoaderAgent agent = AgentsCache.removeAgent(agentIp);
         if(agent != null)
             return agent;
 
@@ -97,13 +107,15 @@ public class AgentResource {
             throws IOException, ExecutionException, InterruptedException {
 
         LoaderAgent agent = AgentsCache.getAgentInfo(agentIp);
-        if(agent != null)
-            return agent.setEnabled();
+        if(agent != null) {
+            refreshAgentInfo(agent);
+            if(agent.getStatus() != LoaderAgent.LoaderAgentStatus.NOT_REACHABLE)
+                agent.setEnabled();
+            return agent;
+        }
 
         throw new WebApplicationException(ResponseBuilder.agentNotRegistered(agentIp));
     }
-
-
 
     @Path("/{agentIPs}/libs/platformLibs")
     @POST
@@ -115,16 +127,14 @@ public class AgentResource {
             DeploymentHelper.instance().deployPlatformLibsOnAgent(agentIP, force.get());
     }
 
-
-
-/*
-    Following call simulates html form post call
-    curl
-       -X POST
-       -H "Content-Type: multipart/form-data"
-       -F "classList=@Path-To-File-Containing-Class-Names-Separated-With-New-Line"
-       http://localhost:9999/loader-server/agents/{comma separated ips}/libs/classLibs
-*/
+    /*
+        Following call simulates html form post call
+        curl
+           -X POST
+           -H "Content-Type: multipart/form-data"
+           -F "classList=@Path-To-File-Containing-Class-Names-Separated-With-New-Line"
+           http://localhost:9999/loader-server/agents/{comma separated ips}/libs/classLibs
+    */
 
     @Path("/{agentIPs}/libs/classLibs")
     @POST
@@ -138,4 +148,20 @@ public class AgentResource {
         for(String agentIP : agentIPs.split(","))
             DeploymentHelper.instance().deployClassLibsOnAgent(agentIP, classes, force.get());
     }
+
+    private void refreshAgentInfo(LoaderAgent loaderAgent) {
+        try {
+            Map<String, Object> agentRegistrationParams = new LoaderAgentClient(loaderAgent.getIp(), agentConfig.getAgentPort()).registrationInfo();
+            loaderAgent.setAttributes(agentRegistrationParams);
+        } catch (Exception e) {
+            loaderAgent.setStatus(LoaderAgent.LoaderAgentStatus.NOT_REACHABLE);
+            log.error(e);
+        }
+        try {
+            AgentsCache.addAgent(loaderAgent);
+        } catch (IOException e) {
+            log.error(e);
+        }
+    }
+
 }
