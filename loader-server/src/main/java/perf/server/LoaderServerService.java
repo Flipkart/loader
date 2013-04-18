@@ -7,6 +7,7 @@ package perf.server;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
+import perf.server.cache.AgentsCache;
 import perf.server.cache.LibCache;
 import perf.server.config.LoaderServerConfiguration;
 import perf.server.daemon.CounterCompoundThread;
@@ -25,19 +26,23 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
     @Override
     public void run(LoaderServerConfiguration configuration, Environment environment) throws Exception {
         environment.addProvider(com.sun.jersey.multipart.impl.MultiPartReaderServerSide.class);
+
+        // Initialization
         LibCache.initialize(configuration.getLibStorageFSConfig());
         CounterCompoundThread.initialize(configuration.getJobFSConfig(), 10000).start();
         CounterThroughputThread.initialize(configuration.getJobFSConfig(), 10000).start();
         TimerComputationThread.initialize(configuration.getJobFSConfig(), 10000).start();
         DeploymentHelper.initialize(configuration.getAgentConfig(),
                 configuration.getLibStorageFSConfig());
+        AgentsCache.initialize(configuration.getAgentConfig());
+
+        // Adding Resource End Points
         environment.addResource(new DeployLibResource(configuration.getLibStorageFSConfig()));
-        environment.addResource(new AgentResource());
+        environment.addResource(new AgentResource(configuration.getAgentConfig()));
         environment.addResource(new JobResource(configuration.getAgentConfig(),
                 configuration.getMonitoringAgentConfig(),
                 configuration.getJobFSConfig()));
         environment.addResource(new RunResource(configuration.getJobFSConfig()));
-
         environment.addResource(new FunctionResource(configuration.getLibStorageFSConfig()));
     }
 

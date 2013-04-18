@@ -2,7 +2,7 @@ package perf.server.config;
 
 public class AgentConfig {
     private int agentPort;
-    private String agentInfoFile, agentPlatformLibInfoFile, agentClassLibInfoFile, jobLogUrl;
+    private String agentsPath, agentInfoFile, agentPlatformLibInfoFile, agentClassLibInfoFile, jobLogUrl;
 
     public int getAgentPort() {
         return agentPort;
@@ -10,6 +10,15 @@ public class AgentConfig {
 
     public AgentConfig setAgentPort(int agentPort) {
         this.agentPort = agentPort;
+        return this;
+    }
+
+    public String getAgentsPath() {
+        return agentsPath;
+    }
+
+    public AgentConfig setAgentsPath(String agentsPath) {
+        this.agentsPath = agentsPath;
         return this;
     }
 

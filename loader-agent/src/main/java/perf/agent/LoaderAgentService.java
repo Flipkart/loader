@@ -12,6 +12,7 @@ import perf.agent.daemon.AgentRegistrationThread;
 import perf.agent.daemon.JobProcessorThread;
 import perf.agent.daemon.JobStatsSyncThread;
 import perf.agent.health.JobProcessorHealthCheck;
+import perf.agent.resource.AdminResource;
 import perf.agent.resource.DeployLibResource;
 import perf.agent.resource.JobResource;
 
@@ -27,6 +28,10 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
     @Override
     public void run(final LoaderAgentConfiguration configuration, Environment environment) throws Exception {
         environment.addProvider(com.sun.jersey.multipart.impl.MultiPartReaderServerSide.class);
+
+        AgentRegistrationThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
+                configuration.getRegistrationParams());
+
         LibCache.initialize(configuration.getLibStorageConfig());
 
         JobProcessorThread.initialize(configuration.getJobProcessorConfig(),
@@ -37,10 +42,8 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
                 configuration.getJobFSConfig(),
                 LoaderServerClient.buildClient(configuration.getServerInfo()));
 
-        AgentRegistrationThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
-                configuration.getRegistrationParams());
-
         environment.addResource(new DeployLibResource(configuration.getLibStorageConfig()));
+        environment.addResource(new AdminResource(configuration));
         environment.addResource(new JobResource(configuration.getJobProcessorConfig(),
                 configuration.getJobFSConfig()));
         environment.addHealthCheck(new JobProcessorHealthCheck("JobProcessorThread"));

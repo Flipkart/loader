@@ -14,6 +14,7 @@ import perf.server.exception.JobException;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -34,6 +35,7 @@ public class LoaderAgentClient {
     private static final String RESOURCE_OPERATION_LIB = "/loader-agent/libs/classLibs";
     private static final String RESOURCE_JOB = "/loader-agent/jobs";
     private static final String RESOURCE_JOB_KILL = "/loader-agent/jobs/{jobId}/kill";
+    private static final String RESOURCE_ADMIN_REGISTRATION_INFO = "/loader-agent/admin/registrationInfo";
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
 
     static {
@@ -61,6 +63,17 @@ public class LoaderAgentClient {
     public LoaderAgentClient setPort(int port) {
         this.port = port;
         return this;
+    }
+
+    public Map registrationInfo() throws IOException, ExecutionException, InterruptedException {
+        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+                prepareGet("http://" + this.getHost() + ":" + this.getPort() + RESOURCE_ADMIN_REGISTRATION_INFO);
+
+        Future<Response> r = b.execute();
+        Response response = r.get();
+        asyncHttpClient.close();
+        return objectMapper.readValue(response.getResponseBodyAsStream(), Map.class);
     }
 
     public LoaderAgentClient deployPlatformLibs() throws IOException, ExecutionException, InterruptedException {
