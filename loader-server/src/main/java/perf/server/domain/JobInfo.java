@@ -5,7 +5,7 @@ import java.util.*;
 public class JobInfo {
 
     public static enum JOB_STATUS {
-        RUNNING, PAUSED, COMPLETED, KILLED, FAILED_TO_START;
+        QUEUED, RUNNING, PAUSED, COMPLETED, KILLED, FAILED_TO_START;
     }
     private String jobId;
     private String runName;
@@ -15,7 +15,7 @@ public class JobInfo {
     private Set<String> monitoringAgents;
 
     public JobInfo() {
-        this.jobStatus = JOB_STATUS.RUNNING;
+        this.jobStatus = JOB_STATUS.QUEUED;
         this.monitoringAgents = new HashSet<String>();
         this.agentsJobStatus = new HashMap<String, JOB_STATUS>();
     }
@@ -89,6 +89,7 @@ public class JobInfo {
     }
 
     public JobInfo jobRunningInAgent(String agentIp) {
+        this.jobStatus = JOB_STATUS.RUNNING;
         this.agentsJobStatus.put(agentIp, JOB_STATUS.RUNNING);
         return this;
     }

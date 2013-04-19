@@ -6,8 +6,6 @@ import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
 import perf.server.client.LoaderAgentClient;
 import perf.server.client.MonitoringClient;
 import perf.server.config.AgentConfig;
@@ -590,6 +588,7 @@ public class JobResource {
         String runFile = jobFSConfig.getRunFile(runName);
         return jobSubmitWorkflow(new FileInputStream(runFile));
     }
+
     /**
      * Starts monitoring, deploy platform/class libs on agents and then trigger job
      * @param jobJsonStream
@@ -733,31 +732,6 @@ public class JobResource {
                     raiseOnDemandResourceRequest(onDemandMetricCollection.buildRequest(jobInfo.getJobId()));
             jobInfo.addMonitoringAgent(agentIp);
             log.info("Request "+onDemandMetricCollection+" raised on Agent "+agentIp);
-        }
-    }
-
-    /**
-     * Raise Metric Publish request to Monitoring Agent
-     * @param resourcePublishRequests
-     * @param jobInfo
-     * @throws IOException
-     * @throws ExecutionException
-     * @throws InterruptedException
-     */
-    private void raiseMetricPublishRequest(ArrayNode resourcePublishRequests, JobInfo jobInfo) throws IOException, ExecutionException, InterruptedException {
-        for(int i=0; i<resourcePublishRequests.size(); i++) {
-            ObjectNode requestPart = (ObjectNode) resourcePublishRequests.get(i);
-
-            String agentIp = requestPart.get("agent").getTextValue();
-            new MonitoringClient(agentIp,
-                    monitoringAgentConfig.getAgentPort()).
-                    raiseMetricPublishRequest(objectMapper.readValue(requestPart.get("request").
-                            toString().
-                            replace("{jobId}", jobInfo.getJobId()),
-                            MetricPublisherRequest.class).
-                            setRequestId(jobInfo.getJobId()));
-            jobInfo.addMonitoringAgent(agentIp);
-            log.info("Request "+requestPart.get("request").toString()+" raised on Agent "+agentIp);
         }
     }
 

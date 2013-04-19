@@ -154,7 +154,7 @@ public class AgentResource {
             Map<String, Object> agentRegistrationParams = new LoaderAgentClient(loaderAgent.getIp(), agentConfig.getAgentPort()).registrationInfo();
             loaderAgent.setAttributes(agentRegistrationParams);
         } catch (Exception e) {
-            loaderAgent.setStatus(LoaderAgent.LoaderAgentStatus.NOT_REACHABLE);
+            loaderAgent.setNotReachable();
             log.error(e);
         }
         try {
