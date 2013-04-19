@@ -14,8 +14,6 @@ import perf.server.config.JobFSConfig;
 import perf.server.domain.TimerStatsInstance;
 
 import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -40,8 +38,8 @@ public class TimerComputationThread extends Thread {
 
     static {
         objectMapper = ObjectMapperUtil.instance();
-        DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
-        objectMapper.setDateFormat(dateFormat);
+//        DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
+//        objectMapper.setDateFormat(dateFormat);
 
         logger = Logger.getLogger(TimerComputationThread.class);
         FILE_EXTENSION = "stats";
@@ -190,7 +188,7 @@ public class TimerComputationThread extends Thread {
         }
 
         // Iterate and compute
-        if(canParseContentNow(jobId, cachedContent)) {
+        if(canParseContentNow(jobId, cachedContent, isAgentStats(jobFile))) {
 
             BufferedWriter bw = FileHelper.bufferedWriter(jobFile.getAbsolutePath()+"."+FILE_EXTENSION, true);
 
@@ -247,7 +245,7 @@ public class TimerComputationThread extends Thread {
                 /**
                  * Recently Added code. Check the functionality
                  */
-                if (shouldBreak(jobId, lineTimeMS)) {
+                if (shouldBreak(jobId, lineTimeMS, isAgentStats(jobFile))) {
                     cachedContent.add(0, currentLine);
                     break;
                 }
@@ -305,17 +303,21 @@ public class TimerComputationThread extends Thread {
         FileHelper.close(br);
     }
 
+    private boolean isAgentStats(File jobFile) {
+        return !jobFile.getAbsolutePath().contains("combined");
+    }
+
     /**
      * If stepped on data which is in last 60 seconds.
      * @param jobId
      * @param lineTimeMS
      * @return
      */
-    private boolean shouldBreak(String jobId, double lineTimeMS) {
-        return ((Clock.milliTick() - lineTimeMS) < 60 * MathConstant.THOUSAND) && !jobOver(jobId);
+    private boolean shouldBreak(String jobId, double lineTimeMS, boolean isAgentStats) {
+        return ((Clock.milliTick() - lineTimeMS) < (isAgentStats ? 20 : 60) * MathConstant.THOUSAND) && !jobOver(jobId);
     }
 
-    private boolean canParseContentNow(String jobId, List<String> cachedContent) {
+    private boolean canParseContentNow(String jobId, List<String> cachedContent, boolean isAgentStats) {
         if(cachedContent.size() == 0)
             return false;
         String firstLine = cachedContent.get(0);
@@ -329,7 +331,7 @@ public class TimerComputationThread extends Thread {
         long lastLineTimeMS = Long.parseLong(lastLineTokenizer.nextElement().toString());
         logger.info("Cached Content has data for  :"+(lastLineTimeMS - firstLineTimeMS)+"ms time");
 
-        return ((currentTimeMS - firstLineTimeMS) > (60 + 30) * MathConstant.THOUSAND) || jobOver(jobId); // Crunch if data is older than 60 + 30 seconds
+        return ((currentTimeMS - firstLineTimeMS) > ((isAgentStats ? 20 : 60) + 30) * MathConstant.THOUSAND) || jobOver(jobId); // Crunch if data is older than 60 + 30 seconds
     }
 
     private boolean keepRunning() {
