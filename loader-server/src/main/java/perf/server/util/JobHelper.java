@@ -6,6 +6,7 @@ import com.open.perf.util.FileHelper;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import perf.server.cache.AgentsCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.client.MonitoringClient;
 import perf.server.config.AgentConfig;
@@ -19,19 +20,12 @@ import perf.server.exception.JobException;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Created with IntelliJ IDEA.
- * User: nitinka
- * Date: 18/4/13
- * Time: 4:50 PM
- * To change this template use File | Settings | File Templates.
+ * Helps in doing operations around Job
  */
 public class JobHelper {
     private JobFSConfig jobFSConfig;
@@ -49,7 +43,7 @@ public class JobHelper {
         this.monitoringAgentConfig = monitoringAgentConfig;
     }
 
-    public static JobHelper initialize(JobFSConfig jobFSConfig, AgentConfig agentConfig, MonitoringAgentConfig monitoringAgentConfig) {
+    public static JobHelper build(JobFSConfig jobFSConfig, AgentConfig agentConfig, MonitoringAgentConfig monitoringAgentConfig) {
         if(myInstance == null)
             myInstance = new JobHelper(jobFSConfig, agentConfig, monitoringAgentConfig);
         return myInstance;
@@ -59,59 +53,51 @@ public class JobHelper {
         return myInstance;
     }
 
-    public void submitJob(JobInfo jobInfo) {
-        String runFile = jobFSConfig.getRunFile(jobInfo.getRunName());
+    public void submitJob(Job job) {
+        String runFile = jobFSConfig.getRunFile(job.getRunName());
         try {
             PerformanceRun performanceRun = objectMapper.readValue(new File(runFile) , PerformanceRun.class);
-            jobInfo.setRunName(performanceRun.getRunName());
+            job.setRunName(performanceRun.getRunName());
 
-/*
-            // Persisting Job Info(mostly status) in memory
-            jobIdInfoMap.put(jobInfo.getJobId(), jobInfo);
-
-*/
             // Persisting Job Json in Local File system.
-            persistJob(jobInfo.getJobId(), performanceRun);
+            persistJobAndRunInfo(job.getJobId(), performanceRun);
 
             // Raising request to monitoring agents to start collecting metrics from on demand resource collectors
-            raiseOnDemandResourceRequest(jobInfo, performanceRun.getOnDemandMetricCollections());
+            raiseOnDemandResourceRequest(job, performanceRun.getOnDemandMetricCollections());
 
             // Raising request to monitoring agents to start publishing collected metrics to Loader server
-            raiseMetricPublishRequest(jobInfo, performanceRun.getMetricCollections());
+            raiseMetricPublishRequest(job, performanceRun.getMetricCollections());
 
             // Deploy Libraries on Agents
             deployLibrariesOnAgents(performanceRun.getLoadParts());
 
             // Submitting Jobs to Loader Agent
-            submitJobToAgents(jobInfo, performanceRun.getLoadParts());
+            submitJobToAgents(job, performanceRun.getLoadParts());
 
-            CounterCompoundThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
-            CounterThroughputThread.getCounterCruncherThread().addJob(jobInfo.getJobId());
-            TimerComputationThread.getComputationThread().addJob(jobInfo.getJobId());
+            CounterCompoundThread.getCounterCruncherThread().addJob(job.getJobId());
+            CounterThroughputThread.getCounterCruncherThread().addJob(job.getJobId());
+            TimerComputationThread.getComputationThread().addJob(job.getJobId());
 
-            objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobInfo.getJobId())), jobInfo);
+            persistJob(job);
         }
         catch (Exception e) {
             log.error("Job Submission Failed",e);
-            jobInfo.setJobStatus(JobInfo.JOB_STATUS.FAILED_TO_START);
+            job.setJobStatus(Job.JOB_STATUS.FAILED_TO_START);
             try {
-                jobCleanUpOnFailure(jobInfo);
+                jobCleanUpOnFailure(job);
             } catch (Exception e1) {
                 log.error("Job Clean up Failure",e);
             }
-
-            throw new WebApplicationException(ResponseBuilder.response(Response.Status.INTERNAL_SERVER_ERROR, e));
         }
-
     }
 
     /**
      * Clean up Running Job In case Something went wrong while job was being submitted
-     * @param jobInfo
+     * @param job
      */
-    private void jobCleanUpOnFailure(JobInfo jobInfo) throws InterruptedException, ExecutionException, JobException, IOException {
-        killJobInAgents(jobInfo.getJobId(), jobInfo.getAgentsJobStatus().keySet());
-        stopMonitoring(jobInfo.getJobId());
+    private void jobCleanUpOnFailure(Job job) throws InterruptedException, ExecutionException, JobException, IOException {
+        killJobInAgents(job, job.getAgentsJobStatus().keySet());
+        stopMonitoring(job);
     }
 
     /**
@@ -120,7 +106,7 @@ public class JobHelper {
      * @param performanceRun
      * @throws java.io.IOException
      */
-    private void persistJob(String jobId, PerformanceRun performanceRun) throws IOException {
+    private void persistJobAndRunInfo(String jobId, PerformanceRun performanceRun) throws IOException {
         String runName = performanceRun.getRunName();
 
         // Add file containing run name in job folder
@@ -140,54 +126,54 @@ public class JobHelper {
 
     /**
      * Raise On Demand Resource Request to Monitoring Agent as Part of Load Job
-     * @param jobInfo
+     * @param job
      * @param onDemandMetricCollections
      * @throws InterruptedException
      * @throws java.util.concurrent.ExecutionException
      * @throws IOException
      */
-    private void raiseOnDemandResourceRequest(JobInfo jobInfo, List<OnDemandMetricCollection> onDemandMetricCollections) throws InterruptedException, ExecutionException, IOException {
+    private void raiseOnDemandResourceRequest(Job job, List<OnDemandMetricCollection> onDemandMetricCollections) throws InterruptedException, ExecutionException, IOException {
         for(OnDemandMetricCollection onDemandMetricCollection : onDemandMetricCollections) {
             String agentIp = onDemandMetricCollection.getAgent();
             new MonitoringClient(agentIp,
                     monitoringAgentConfig.getAgentPort()).
-                    raiseOnDemandResourceRequest(onDemandMetricCollection.buildRequest(jobInfo.getJobId()));
-            jobInfo.addMonitoringAgent(agentIp);
+                    raiseOnDemandResourceRequest(onDemandMetricCollection.buildRequest(job.getJobId()));
+            job.addMonitoringAgent(agentIp);
             log.info("Request "+onDemandMetricCollection+" raised on Agent "+agentIp);
         }
     }
 
     /**
      * Raise Metric Publish request to Monitoring Agent
-     * @param jobInfo
+     * @param job
      * @param metricCollections
      * @throws InterruptedException
      * @throws ExecutionException
      * @throws IOException
      */
-    private void raiseMetricPublishRequest(JobInfo jobInfo, List<MetricCollection> metricCollections) throws InterruptedException, ExecutionException, IOException {
+    private void raiseMetricPublishRequest(Job job, List<MetricCollection> metricCollections) throws InterruptedException, ExecutionException, IOException {
         for(MetricCollection metricCollection : metricCollections) {
             String agentIp = metricCollection.getAgent();
             new MonitoringClient(agentIp,
                     monitoringAgentConfig.getAgentPort()).
-                    raiseMetricPublishRequest(metricCollection.buildRequest(jobInfo.getJobId()));
-            jobInfo.addMonitoringAgent(agentIp);
+                    raiseMetricPublishRequest(metricCollection.buildRequest(job.getJobId()));
+            job.addMonitoringAgent(agentIp);
             log.info("Request "+metricCollection+" raised on Agent "+agentIp);
         }
     }
 
     /**
      * Submitting Load Job To Loader Agents
-     * @param jobInfo
+     * @param job
      * @param loadParts
      * @throws IOException
      * @throws perf.server.exception.JobException
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    private void submitJobToAgents(JobInfo jobInfo, List<LoadPart> loadParts)
+    private void submitJobToAgents(Job job, List<LoadPart> loadParts)
             throws IOException, JobException, ExecutionException, InterruptedException {
-        jobInfo.setStartTime(new Date());
+        job.setStartTime(new Date());
         for(LoadPart loadPart : loadParts) {
             // Submitting Job To Agent
             List<String> agentIps = loadPart.getAgents();
@@ -199,10 +185,12 @@ public class JobHelper {
 
             for(String agentIp : agentIps) {
                 submitJobToAgent(agentIp,
-                        jobInfo.getJobId(),
+                        job.getJobId(),
                         loadPart.getLoad(),
                         classListWithNewLine.toString());
-                jobInfo.jobRunningInAgent(agentIp);
+                job.jobRunningInAgent(agentIp);
+                AgentsCache.getAgentInfo(agentIp).addRunningJob(job.getJobId());
+                AgentsCache.getAgentInfo(agentIp).setBusy();
             }
         }
     }
@@ -250,36 +238,37 @@ public class JobHelper {
         log.info("Load Job " + load + " submitted to Agent " + agentIp);
     }
 
-    public void killJobInAgents(String jobId, Collection<String> agents)
+    public void killJobInAgents(Job job, Collection<String> agents)
             throws InterruptedException, ExecutionException, JobException, IOException {
-        if(!jobInfo.getJobStatus().equals(JobInfo.JOB_STATUS.COMPLETED) &&
-                !jobInfo.getJobStatus().equals(JobInfo.JOB_STATUS.KILLED)) {
+        String jobId = job.getJobId();
+        if(!job.getJobStatus().equals(Job.JOB_STATUS.COMPLETED) &&
+                !job.getJobStatus().equals(Job.JOB_STATUS.KILLED)) {
 
-            Map<String, JobInfo.JOB_STATUS> agentsJobStatusMap = jobInfo.getAgentsJobStatus();
+            Map<String, Job.JOB_STATUS> agentsJobStatusMap = job.getAgentsJobStatus();
             for(String agent : agents) {
-                if(!agentsJobStatusMap.get(agent).equals(JobInfo.JOB_STATUS.KILLED) &&
-                        !agentsJobStatusMap.get(agent).equals(JobInfo.JOB_STATUS.COMPLETED)) {
+                if(!agentsJobStatusMap.get(agent).equals(Job.JOB_STATUS.KILLED) &&
+                        !agentsJobStatusMap.get(agent).equals(Job.JOB_STATUS.COMPLETED)) {
                     new LoaderAgentClient(agent, agentConfig.getAgentPort()).killJob(jobId);
-                    jobInfo.jobKilledInAgent(agent);
+                    job.jobKilledInAgent(agent);
                 }
             }
         }
-        objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(jobId)), jobInfo);
+        persistJob(job);
     }
 
     /**
      * Stop monitoring in all agents for the job
-     * @param jobId
+     * @param job
      * @throws IOException
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public void stopMonitoring(String jobId, Set<String> monitoringAgentIps) throws IOException, ExecutionException, InterruptedException {
-        jobLastResourceMetricInstanceMap.remove(jobId);
+    public void stopMonitoring(Job job) throws IOException, ExecutionException, InterruptedException {
+//        jobLastResourceMetricInstanceMap.remove(jobId);
 
         // Need to get All
-        Set<String> monitoringAgentIps = jobIdInfoMap.get(jobId).getMonitoringAgents();
-
+        Set<String> monitoringAgentIps = job.getMonitoringAgents();
+        String jobId = job.getJobId();
         for(String agentIp : monitoringAgentIps) {
             MonitoringClient monitoringAgent = new MonitoringClient(agentIp, monitoringAgentConfig.getAgentPort());
             monitoringAgent.deleteOnDemandResourceRequest(jobId);
@@ -287,5 +276,313 @@ public class JobHelper {
         }
     }
 
+    public Job getJob(String jobId) throws IOException {
+        return objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(jobId)), Job.class);
+    }
+
+    /**
+     * Search Jobs in File System
+     * @param searchJobId
+     * @param searchRunName
+     * @param searchJobStatus
+     * @return
+     */
+    public List<Job> searchJobs(String searchJobId, String searchRunName, String searchJobStatus) throws IOException {
+        List<Job> jobs = new ArrayList<Job>();
+        File runsPath = new File(jobFSConfig.getRunsPath());
+        for(File runPath : runsPath.listFiles()) {
+            if(runPath.getName().toUpperCase().contains(searchRunName.toUpperCase())) {
+                BufferedReader runJobsFileReader = FileHelper.bufferedReader(jobFSConfig.getRunJobsFile(runPath.getName()));
+                String runJobId;
+                while((runJobId = runJobsFileReader.readLine()) != null) {
+                    if(runJobId.toUpperCase().contains(searchJobId.toUpperCase())) {
+                        Job job = objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(runJobId)), Job.class);
+                        if(searchJobStatus.equals("ANY")) {
+                            jobs.add(job);
+                        }
+                        else if(job.getJobStatus().toString().equalsIgnoreCase(searchJobStatus)) {
+                            jobs.add(job);
+                        }
+                    }
+                }
+            }
+        }
+        return jobs;
+    }
+
+    public void persistJobStatsComingFromAgent(String jobId, String agentIp, String relatedFilePath, InputStream jobStatsStream) throws IOException {
+                // Remove job Id from relative path as loader-server has already created path
+        relatedFilePath = relatedFilePath.replace("/"+jobId + "/","");
+        String[] relatedFilePathTokens = relatedFilePath.split("\\/");
+
+        // Persist the stats in temporary file. As we have to read and write the stats at two places, same input stream can't be used twice.
+        String tmpPath = "/tmp/"+jobId+"-"+System.nanoTime()+".txt";
+        FileHelper.persistStream(jobStatsStream, tmpPath, true);
+
+        //TBD Move Following Code to be executed in request queue mode by a daemon thread.
+        String[] jobStatsPaths = new String[] {
+
+                jobFSConfig.getJobGroupStatsPath(jobId, relatedFilePathTokens[0])
+                        + File.separator + relatedFilePathTokens[1]
+                        + File.separator + relatedFilePathTokens[2]
+                        + File.separator + "agents"
+                        + File.separator + agentIp
+                        + File.separator + "data",
+
+                jobFSConfig.getJobGroupStatsPath(jobId, relatedFilePathTokens[0])
+                        + File.separator + relatedFilePathTokens[1]
+                        + File.separator + relatedFilePathTokens[2]
+                        + File.separator + "agents"
+                        + File.separator + "combined"
+                        + File.separator + "data",
+        };
+
+        // Persisting stats at agent and combined path
+        for(String jobStatsPath : jobStatsPaths) {
+            FileInputStream fis = new FileInputStream(tmpPath);
+
+            FileHelper.createFilePath(jobStatsPath);
+            FileHelper.persistStream(fis, jobStatsPath, true);
+            fis.close();
+        }
+
+        FileHelper.remove(tmpPath);
+    }
+
+    public static class MetricStatsMeta {
+
+        private String name;
+        private List<String> agents;
+
+        public List<String> getAgents() {
+            return agents;
+        }
+
+        public void setAgents(List<String> agents) {
+            this.agents = agents;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+    public static class GroupStatsMeta {
+        private String groupName;
+        private List<MetricStatsMeta> timers;
+        private List<MetricStatsMeta> counters;
+
+        public String getGroupName() {
+            return groupName;
+        }
+
+        public void setGroupName(String groupName) {
+            this.groupName = groupName;
+        }
+
+        public List<MetricStatsMeta> getTimers() {
+            return timers;
+        }
+
+        public void setTimers(List<MetricStatsMeta> timers) {
+            this.timers = timers;
+        }
+
+        public List<MetricStatsMeta> getCounters() {
+            return counters;
+        }
+
+        public void setCounters(List<MetricStatsMeta> counters) {
+            this.counters = counters;
+        }
+    }
+
+    /**
+     * Get Meta information about all the metrics present for a job
+     * @param jobId
+     * @return
+     */
+    public List<GroupStatsMeta> getJobMetricsStatsMeta(String jobId) {
+        List<GroupStatsMeta> groups = new ArrayList<GroupStatsMeta>();
+        File groupsPath = new File(jobFSConfig.getJobStatsPath(jobId));
+        for(File groupPath : groupsPath.listFiles()) {
+            GroupStatsMeta groupStatsMeta = new GroupStatsMeta();
+            groupStatsMeta.setGroupName(groupPath.getName());
+
+
+            for(File metricTypeFolder : groupPath.getAbsoluteFile().listFiles()) {
+                List<MetricStatsMeta> metrics = new ArrayList<MetricStatsMeta>();
+                for(File metricPath : metricTypeFolder.listFiles()) {
+
+                    // I am using timer name here as function name
+                    MetricStatsMeta metricStatsMeta = new MetricStatsMeta();
+                    metricStatsMeta.setName(metricPath.getName());
+
+                    File agentsPath = new File(metricPath.getAbsoluteFile() + File.separator + "agents");
+
+                    List<String> allAgents = Arrays.asList(agentsPath.list());
+                    List<String> agentsHavingData = new ArrayList<String>();
+
+                    for(String agent : allAgents) {
+                        if(new File(jobFSConfig.getJobFunctionStatsFile(jobId,
+                                groupPath.getName(),
+                                metricTypeFolder.getName(),
+                                metricPath.getName(),
+                                agent)).exists())
+                            agentsHavingData.add(agent);
+                    }
+
+                    metricStatsMeta.setAgents(agentsHavingData);
+                    metrics.add(metricStatsMeta);
+                }
+
+                if(metricTypeFolder.getName().equals("timers"))
+                    groupStatsMeta.setTimers(metrics);
+                if(metricTypeFolder.getName().equals("counters"))
+                    groupStatsMeta.setCounters(metrics);
+            }
+            groups.add(groupStatsMeta);
+        }
+        return groups;
+
+    }
+
+    /**
+     * Get Stats for specific metric for a job
+     * @param jobId
+     * @param groupName
+     * @param metricType
+     * @param metricName
+     * @param agent
+     * @param last
+     * @return
+     * @throws FileNotFoundException
+     */
+    public InputStream getJobMetricStats(String jobId, String groupName, String metricType, String metricName, String agent, boolean last) throws FileNotFoundException {
+        File statsFile = new File(jobFSConfig.getJobFunctionStatsFile(jobId, groupName, metricType, metricName, agent));
+        log.info(statsFile.getAbsolutePath());
+        if(!statsFile.exists())
+            throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Stats for %s %s Not computed yet",metricType,metricName)));
+
+        if(last)
+            statsFile = new File(statsFile.getAbsoluteFile()+".last");
+        return new FileInputStream(statsFile.getAbsoluteFile());
+
+    }
+
+    public static class MonitoringAgentStats {
+        private String agent;
+        private List<String> resources;
+
+        public String getAgent() {
+            return agent;
+        }
+
+        public void setAgent(String agent) {
+            this.agent = agent;
+        }
+
+        public List<String> getResources() {
+            return resources;
+        }
+
+        public void setResources(List<String> resources) {
+            this.resources = resources;
+        }
+    }
+
+    /**
+     * Get Meta Information about all the monitoring metrics stored for a Job
+     * @param jobId
+     * @return
+     */
+    public List<MonitoringAgentStats> getJobMonitoringStatsMeta(String jobId) {
+        List<MonitoringAgentStats> monitoringStats = new ArrayList<MonitoringAgentStats>();
+        File monitoringResourcesPath = new File(jobFSConfig.getJobMonitoringStatsPath(jobId));
+        if(monitoringResourcesPath.exists()) {
+            for(File agentPath : new File(monitoringResourcesPath.getAbsolutePath() + File.separator + "agents").listFiles()) {
+                MonitoringAgentStats monitoringAgentStats = new MonitoringAgentStats();
+                monitoringAgentStats.setAgent(agentPath.getName());
+                List<String> resources = new ArrayList<String>();
+                for(File resourceFile : new File(agentPath.getAbsolutePath() + File.separator + "Resources").listFiles()) {
+                    if(resourceFile.getName().endsWith(".txt"))
+                        resources.add(resourceFile.getName().replace(".txt", ""));
+                }
+                monitoringAgentStats.setResources(resources);
+                monitoringStats.add(monitoringAgentStats);
+            }
+        }
+        return monitoringStats;
+
+    }
+
+    /**
+     * Get collected resource stats that is being monitored for a job
+     * @param jobId
+     * @param agent
+     * @param resourceName
+     * @param last
+     * @return
+     * @throws FileNotFoundException
+     */
+    public InputStream getJobMonitoringResourceStats(String jobId, String agent, String resourceName, Boolean last) throws FileNotFoundException {
+        File statsFile = new File(jobFSConfig.getJobResourceMonitoringFile(jobId, agent, resourceName));
+        log.info(statsFile.getAbsolutePath());
+        if(!statsFile.exists())
+            throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Monitoring Stats for %s %s Not collected yet",agent,resourceName)));
+
+        if(last)
+            statsFile = new File(statsFile.getAbsoluteFile()+".last");
+        return new FileInputStream(statsFile.getAbsoluteFile());
+
+    }
+
+    /**
+     * Returns metric key value collected for a Resource
+     * @param jobId
+     * @param agent
+     * @param resourceName
+     * @return
+     */
+    public Set<String> getJobMonitoringResourceMeta(String jobId, String agent, String resourceName) throws IOException {
+        File statsFile = new File(jobFSConfig.getJobResourceMonitoringFile(jobId, agent, resourceName));
+        log.info(statsFile.getAbsolutePath());
+        if(!statsFile.exists())
+            throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Monitoring Stats for %s %s Not collected yet",agent,resourceName)));
+
+        Map<String, Object> resourceLastInstance = objectMapper.readValue(new File(statsFile.getAbsolutePath()+".last"), Map.class);
+        Map<String, Object> metricValueMap = (Map<String, Object>) resourceLastInstance.get("metrics");
+        return metricValueMap.keySet();
+    }
+
+    /**
+     * This function really doesn't belong here. Just added here for the time being.
+     * @param runName
+     * @return
+     */
+    public PerformanceRun getPerformanceRun(String runName) throws IOException {
+        return objectMapper.readValue(new File(jobFSConfig.getRunFile(runName)), PerformanceRun.class);
+    }
+
+
+    public Job jobExistsOrException(String jobId) throws IOException {
+        if(!new File(jobFSConfig.getJobPath(jobId)).exists()) {
+            throw new WebApplicationException(ResponseBuilder.resourceNotFound("Job", jobId));
+        }
+        return JobHelper.instance().getJob(jobId);
+    }
+
+    /**
+     * Persist Job Status in File System
+     * @param job
+     * @throws IOException
+     */
+    public void persistJob(Job job) throws IOException {
+        objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(job.getJobId())), job);
+    }
 
 }

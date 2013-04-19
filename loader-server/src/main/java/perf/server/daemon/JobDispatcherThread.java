@@ -3,9 +3,14 @@ package perf.server.daemon;
 import com.open.perf.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import perf.server.domain.JobInfo;
+import perf.server.cache.AgentsCache;
+import perf.server.domain.Job;
+import perf.server.domain.LoadPart;
+import perf.server.domain.LoaderAgent;
+import perf.server.domain.PerformanceRun;
 import perf.server.util.JobHelper;
 
+import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -13,15 +18,15 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class JobDispatcherThread extends Thread{
     private static Logger logger = LoggerFactory.getLogger(JobDispatcherThread.class);
-    private LinkedBlockingQueue<JobInfo> jobRequestQueue;
+    private LinkedBlockingQueue<Job> jobRequestQueue;
     private static JobDispatcherThread thread;
     private boolean keepRunning;
     private boolean pause;
     private static int PAUSE_SLEEP_INTERVAL = 1000;
-    private static int CHECK_INTERVAL = 1000;
+    private static int CHECK_INTERVAL = 2000;
 
     public JobDispatcherThread() {
-        jobRequestQueue = new LinkedBlockingQueue<JobInfo>();
+        jobRequestQueue = new LinkedBlockingQueue<Job>();
         this.keepRunning = true;
         this.pause = false;
     }
@@ -40,8 +45,8 @@ public class JobDispatcherThread extends Thread{
             }
 
             //Peek The Run Name
-            JobInfo jobInfo = jobRequestQueue.peek();
-            if(jobInfo == null) {
+            Job job = jobRequestQueue.peek();
+            if(job == null) {
                 try {
                     Clock.sleep(CHECK_INTERVAL);
                 } catch (InterruptedException e) {
@@ -51,21 +56,40 @@ public class JobDispatcherThread extends Thread{
             }
 
             //Check if required number of agents are free
-            if(agentsAvailable(jobInfo.getRunName())) {
-                jobInfo = jobRequestQueue.remove();
-                JobHelper.submitJob(jobInfo);
+            try {
+                if(agentsAvailable(job.getRunName())) {
+                    job = jobRequestQueue.remove();
+                    JobHelper.instance().submitJob(job);
+                }
+            } catch (IOException e) {
+                logger.error("", e);  //To change body of catch statement use File | Settings | File Templates.
             }
         }
         logger.info("Job Dispatcher Thread Ended");
     }
 
-    private boolean agentsAvailable(String runName) {
-        return false;  //To change body of created methods use File | Settings | File Templates.
+    /**
+     * Check if agents are free to trigger the run
+     * @param runName
+     * @return
+     * @throws IOException
+     */
+    private boolean agentsAvailable(String runName) throws IOException {
+        PerformanceRun performanceRun = JobHelper.instance().getPerformanceRun(runName);
+
+        for(LoadPart loadPart : performanceRun.getLoadParts()) {
+            for(String agent : loadPart.getAgents()) {
+                if(!AgentsCache.getAgentInfo(agent).getStatus().equals(LoaderAgent.LoaderAgentStatus.FREE))
+                    return false;
+            }
+        }
+        return true;
     }
 
     public static JobDispatcherThread initialize() {
         if(thread == null) {
             thread = new JobDispatcherThread();
+            thread.start();
         }
         return thread;
     }
@@ -74,8 +98,8 @@ public class JobDispatcherThread extends Thread{
         return thread;
     }
 
-    public void addJobRequest(JobInfo jobInfo) {
-        jobRequestQueue.add(jobInfo);
+    public void addJobRequest(Job job) {
+        jobRequestQueue.add(job);
     }
 
     public void stopIt() {
