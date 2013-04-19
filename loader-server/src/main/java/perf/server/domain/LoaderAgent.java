@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class LoaderAgent {
     public static enum LoaderAgentStatus {
-        ENABLED, BUSY, DISABLED, NOT_REACHABLE
+        FREE, BUSY, DISABLED, NOT_REACHABLE
     }
 
     private String ip;
@@ -26,7 +26,7 @@ public class LoaderAgent {
     public LoaderAgent(String ip, Map<String,Object> agentAttributes) {
         this.ip = ip;
         this.attributes = agentAttributes;
-        this.status = LoaderAgentStatus.ENABLED;
+        this.status = LoaderAgentStatus.FREE;
         this.runningJobs = new ArrayList<String>();
     }
 
@@ -71,13 +71,18 @@ public class LoaderAgent {
         return this;
     }
 
+    public LoaderAgent setFree() {
+        this.status = LoaderAgentStatus.FREE;
+        return this;
+    }
+
     public LoaderAgent setBusy() {
         this.status = LoaderAgentStatus.BUSY;
         return this;
     }
 
     public LoaderAgent setEnabled() {
-        this.status = LoaderAgentStatus.ENABLED;
+        this.status = LoaderAgentStatus.FREE;
         return this;
     }
 
