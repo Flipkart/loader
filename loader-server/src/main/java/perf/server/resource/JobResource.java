@@ -126,7 +126,7 @@ public class JobResource {
     @Path("/{jobId}")
     @GET
     @Timed
-    public Job getJob(@PathParam("jobId") String jobId) throws IOException {
+    public Job getJob(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
         return jobHelper.jobExistsOrException(jobId);
     }
 
@@ -176,7 +176,7 @@ public class JobResource {
     @GET
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
-    public List<JobHelper.GroupStatsMeta> getJobMetricsStatsMeta(@PathParam("jobId") String jobId) throws IOException {
+    public List<JobHelper.GroupStatsMeta> getJobMetricsStatsMeta(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
         jobHelper.jobExistsOrException(jobId);
         return jobHelper.getJobMetricsStatsMeta(jobId);
     }
@@ -197,7 +197,7 @@ public class JobResource {
                                                     @PathParam("metricType") String metricType,
                                                     @PathParam("metricName") String metricName,
                                                     @PathParam("agent") String agent,
-                                                    @QueryParam("last") @DefaultValue("false") BooleanParam last) throws IOException {
+                                                    @QueryParam("last") @DefaultValue("false") BooleanParam last) throws IOException, ExecutionException {
         jobHelper.jobExistsOrException(jobId);
         return jobHelper.getJobMetricStats(jobId, groupName, metricType, metricName, agent, last.get());
     }
@@ -217,7 +217,7 @@ public class JobResource {
     public void jobMonitoringStats(@Context HttpServletRequest request,
                                       @PathParam("jobId") String jobId,
                                       Map<String, List<ResourceCollectionInstance>> resourcesCollectionInstances)
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException, ExecutionException {
         jobHelper.jobExistsOrException(jobId);
 
         Map<String,ResourceCollectionInstance> resourcesLastInstance = jobLastResourceMetricInstanceMap.get(jobId);
@@ -267,7 +267,7 @@ public class JobResource {
     @GET
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
-    public List<JobHelper.MonitoringAgentStats> getJobMonitoringStatsMeta(@PathParam("jobId") String jobId) throws IOException {
+    public List<JobHelper.MonitoringAgentStats> getJobMonitoringStatsMeta(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
         jobHelper.jobExistsOrException(jobId);
         return jobHelper.getJobMonitoringStatsMeta(jobId);
     }
@@ -283,7 +283,7 @@ public class JobResource {
     public InputStream getJobMonitoringResourceStats(@PathParam("jobId") String jobId,
                                                      @PathParam("agent") String agent,
                                                      @PathParam("resourceName") String resourceName,
-                                                    @QueryParam("last") @DefaultValue("false") BooleanParam last) throws IOException {
+                                                    @QueryParam("last") @DefaultValue("false") BooleanParam last) throws IOException, ExecutionException {
         jobHelper.jobExistsOrException(jobId);
         return jobHelper.getJobMonitoringResourceStats(jobId, agent, resourceName, last.get());
     }
@@ -299,7 +299,7 @@ public class JobResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Set<String> getJobMonitoringResourceMeta(@PathParam("jobId") String jobId,
                                                     @PathParam("agent") String agent,
-                                                    @PathParam("resourceName") String resourceName) throws IOException {
+                                                    @PathParam("resourceName") String resourceName) throws IOException, ExecutionException {
         jobHelper.jobExistsOrException(jobId);
         return jobHelper.getJobMonitoringResourceMeta(jobId, agent, resourceName);
     }
@@ -308,7 +308,7 @@ public class JobResource {
     @GET
     @Timed
     @Produces(MediaType.TEXT_HTML)
-    public String getJobLogs(@PathParam("jobId") String jobId) throws IOException {
+    public String getJobLogs(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
         Job job = jobHelper.jobExistsOrException(jobId);
 
         StringBuilder stringBuilder = new StringBuilder();

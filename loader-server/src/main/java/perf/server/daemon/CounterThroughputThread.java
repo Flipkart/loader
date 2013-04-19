@@ -9,8 +9,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import perf.server.config.JobFSConfig;
 
 import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -34,8 +32,8 @@ public class CounterThroughputThread extends Thread {
 
     static {
         objectMapper = ObjectMapperUtil.instance();
-        DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
-        objectMapper.setDateFormat(dateFormat);
+//        DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
+//        objectMapper.setDateFormat(dateFormat);
 
         logger = Logger.getLogger(CounterThroughputThread.class);
         FILE_EXTENSION = "stats";

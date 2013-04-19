@@ -1,5 +1,8 @@
 package perf.server.util;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.open.perf.domain.Load;
 import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.FileHelper;
@@ -28,6 +31,17 @@ import java.util.concurrent.ExecutionException;
  * Helps in doing operations around Job
  */
 public class JobHelper {
+
+    private LoadingCache<String, Job> jobs = CacheBuilder.newBuilder()
+            .maximumSize(1000)
+            .build(
+                    new CacheLoader<String, Job>() {
+                        public Job load(String jobId) throws IOException {
+                            return objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(jobId)), Job.class);
+                        }
+                    });
+
+    private List<String> cachedJobIds;
     private JobFSConfig jobFSConfig;
     private AgentConfig agentConfig;
     private MonitoringAgentConfig monitoringAgentConfig;
@@ -41,6 +55,7 @@ public class JobHelper {
         this.jobFSConfig = jobFSConfig;
         this.agentConfig = agentConfig;
         this.monitoringAgentConfig = monitoringAgentConfig;
+        this.cachedJobIds = new ArrayList<String>();
     }
 
     public static JobHelper build(JobFSConfig jobFSConfig, AgentConfig agentConfig, MonitoringAgentConfig monitoringAgentConfig) {
@@ -274,10 +289,6 @@ public class JobHelper {
             monitoringAgent.deleteOnDemandResourceRequest(jobId);
             monitoringAgent.deletePublishResourceRequest(jobId);
         }
-    }
-
-    public Job getJob(String jobId) throws IOException {
-        return objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(jobId)), Job.class);
     }
 
     /**
@@ -569,11 +580,11 @@ public class JobHelper {
     }
 
 
-    public Job jobExistsOrException(String jobId) throws IOException {
+    public Job jobExistsOrException(String jobId) throws IOException, ExecutionException {
         if(!new File(jobFSConfig.getJobPath(jobId)).exists()) {
             throw new WebApplicationException(ResponseBuilder.resourceNotFound("Job", jobId));
         }
-        return JobHelper.instance().getJob(jobId);
+        return jobs.get(jobId);
     }
 
     /**
@@ -584,5 +595,4 @@ public class JobHelper {
     public void persistJob(Job job) throws IOException {
         objectMapper.writeValue(new FileOutputStream(jobFSConfig.getJobStatusFile(job.getJobId())), job);
     }
-
 }

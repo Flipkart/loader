@@ -7,7 +7,6 @@ import java.util.Map;
  * Represents one instance of stats collected for any resource
  */
 public class ResourceCollectionInstance {
-
     private String resourceName;
     private Map<String,Double> metrics = new HashMap<String,Double>();
     private Long time;
