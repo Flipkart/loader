@@ -15,6 +15,7 @@ import perf.agent.health.JobProcessorHealthCheck;
 import perf.agent.resource.AdminResource;
 import perf.agent.resource.DeployLibResource;
 import perf.agent.resource.JobResource;
+import perf.agent.util.MBeanHelper;
 
 
 public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
@@ -30,7 +31,7 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
         environment.addProvider(com.sun.jersey.multipart.impl.MultiPartReaderServerSide.class);
 
         AgentRegistrationThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
-                configuration.getRegistrationParams());
+                MBeanHelper.getOSParams());
 
         LibCache.initialize(configuration.getLibStorageConfig());
 

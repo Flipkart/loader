@@ -3,12 +3,14 @@ package perf.agent.resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import perf.agent.config.LoaderAgentConfiguration;
+import perf.agent.util.MBeanHelper;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 /**
@@ -22,11 +24,15 @@ import java.util.Map;
 
 public class AdminResource {
     private static Logger logger = LoggerFactory.getLogger(AdminResource.class);
+    private Map<String, Object> registrationParams;
     private LoaderAgentConfiguration loaderAgentConfiguration;
 
-    public AdminResource(LoaderAgentConfiguration loaderAgentConfiguration) {
+    public AdminResource(LoaderAgentConfiguration loaderAgentConfiguration)
+            throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         this.loaderAgentConfiguration = loaderAgentConfiguration;
+        registrationParams = MBeanHelper.getOSParams();
     }
+
     /**
      * Get Agent Registration Information.
      * Mostly called by Loader-Server at its boot time to confirm the availability of agent
@@ -37,7 +43,6 @@ public class AdminResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Map registrationInfo() throws IOException {
-        return loaderAgentConfiguration.getRegistrationParams();
+        return registrationParams;
     }
-
 }
