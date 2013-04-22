@@ -3,7 +3,6 @@ package perf.agent.resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import perf.agent.config.LoaderAgentConfiguration;
-import perf.agent.util.MBeanHelper;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -24,13 +23,11 @@ import java.util.Map;
 
 public class AdminResource {
     private static Logger logger = LoggerFactory.getLogger(AdminResource.class);
-    private Map<String, Object> registrationParams;
     private LoaderAgentConfiguration loaderAgentConfiguration;
 
     public AdminResource(LoaderAgentConfiguration loaderAgentConfiguration)
             throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         this.loaderAgentConfiguration = loaderAgentConfiguration;
-        registrationParams = MBeanHelper.getOSParams();
     }
 
     /**
@@ -43,6 +40,6 @@ public class AdminResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Map registrationInfo() throws IOException {
-        return registrationParams;
+        return loaderAgentConfiguration.getRegistrationParams();
     }
 }
