@@ -5,8 +5,6 @@ serverInfo:
   port: 9999
 
 registrationParams:
-  cpu: 8
-  memory: 8226428
   env: "corp"
 
 libStorageConfig:
