@@ -1,6 +1,7 @@
 package perf.server.cache;
 
 import com.open.perf.jackson.ObjectMapperUtil;
+import com.open.perf.util.FileHelper;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,9 @@ public class AgentsCache {
     }
 
     private static void persistAgentInfo(LoaderAgent agent) throws IOException {
-        objectMapper.writeValue(new File(agentConfig.getAgentInfoFile(agent.getIp())), agent);
+        String agentInfoPath = agentConfig.getAgentInfoFile(agent.getIp());
+        FileHelper.createFilePath(agentInfoPath);
+        objectMapper.writeValue(new File(agentInfoPath), agent);
     }
 
     /**
