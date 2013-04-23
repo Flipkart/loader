@@ -303,16 +303,19 @@ public class JobHelper {
         File runsPath = new File(jobFSConfig.getRunsPath());
         for(File runPath : runsPath.listFiles()) {
             if(runPath.getName().toUpperCase().contains(searchRunName.toUpperCase())) {
-                BufferedReader runJobsFileReader = FileHelper.bufferedReader(jobFSConfig.getRunJobsFile(runPath.getName()));
-                String runJobId;
-                while((runJobId = runJobsFileReader.readLine()) != null) {
-                    if(runJobId.toUpperCase().contains(searchJobId.toUpperCase())) {
-                        Job job = objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(runJobId)), Job.class);
-                        if(searchJobStatus.equals("ANY")) {
-                            jobs.add(job);
-                        }
-                        else if(job.getJobStatus().toString().equalsIgnoreCase(searchJobStatus)) {
-                            jobs.add(job);
+                File runJobsFile = new File(jobFSConfig.getRunJobsFile(runPath.getName()));
+                if(runJobsFile.exists()) {
+                    BufferedReader runJobsFileReader = FileHelper.bufferedReader(runJobsFile.getAbsolutePath());
+                    String runJobId;
+                    while((runJobId = runJobsFileReader.readLine()) != null) {
+                        if(runJobId.toUpperCase().contains(searchJobId.toUpperCase())) {
+                            Job job = objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(runJobId)), Job.class);
+                            if(searchJobStatus.equals("ANY")) {
+                                jobs.add(job);
+                            }
+                            else if(job.getJobStatus().toString().equalsIgnoreCase(searchJobStatus)) {
+                                jobs.add(job);
+                            }
                         }
                     }
                 }
