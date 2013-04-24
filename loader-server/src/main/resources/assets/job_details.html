@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Jobs Details</title>
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="js/getJobDetails.js"></script>
+<script>getJobDetails();</script>
+</head>
+<body>
+<link href="css/nav.css" rel="stylesheet" type="text/css" />
+<div id="header"></div>
+<script>
+	$(function(){
+		$("#header").load('header.html');
+	})
+</script>
+<div id="jobDetails">
+  <table width="60%" border="1" align="center">
+    <tr>
+      <td><label><strong>Job Name</strong></label></td>
+      <td><input id="jobname" name="jobname" type="text" size="60" maxlength="100" readonly="readonly" /></td>
+    </tr>
+    <tr>
+      <td><label><strong>Job Id</strong></label></td>
+      <td><input id="jobid" name="jobid" value="" type="text" size="60" maxlength="100" readonly="readonly" /></td>
+    </tr>
+    <tr>
+       <td><label><strong>Status</strong></label></td>
+       <td><input id="status" name="status" value="stopped" type="text" size="60" maxlength="100" readonly="readonly" /></td>
+    </tr>
+    <tr>
+      <td><label><strong>Agents</strong></label></td>
+      <td><input id="agents" name="agents" value="" type="text" size="60" maxlength="100" readonly="readonly" /></td>
+    </tr>
+    <tr>
+      <td>
+      	<table>
+        <tr>
+        <td><input id="play" name="Play" type="button" value="Play" onClick="play()"/></td>
+		<td><input id="pause" name="Pause" type="button" value="Pause" /></td>
+		<td><input id="stop" name="Stop" type="button" value="Stop" /></td>
+		<td><input id="graphs" name="Graphs" type="button" value="Graphs" onClick="generateGraphs()"/></td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
+<script>
+function generateGraphs(){
+  var jobId = $("#jobid").attr("value")
+	window.location.href="/collapsible_menu.html?&jobid=" + jobId;
+}
+</script>
+</body>
+</html>

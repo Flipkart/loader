@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Create Job</title>
+<script src="js/jquery-1.9.1.js"></script>
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+<link href="css/nav.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+<div id="header">
+</div>
+<script>
+	$(function(){
+		$("#header").load('header.html');
+	})
+</script>
+<table width="80%" border="1" align="center">
+  <tr>
+  	<td align="center"><label><strong>Create Job</strong></label></td>
+  </tr>
+  <tr>
+    <td>
+      <textarea name="job" id="job" cols="150" rows="30"></textarea>
+    </td> 
+  </tr>
+  <tr>
+  	<td>
+    	<input type="submit" name="Submit" id="submit" value="Submit"  onclick="submitJobJson()" />
+        <input type="submit" name="Reset" id="reset" value="Reset" onClick="clearJobJson()" />
+    </td>
+  </tr>
+</table>
+<div id="success" align="center" style="background-color:#999;alignment-adjust:central; display:block">
+</div>
+</body>
+<script>
+	function submitJobJson(){
+		var text=$("#job").val();
+		if ( text == "" )
+		return;
+		var jobPostUrl = "/loader-server/runs"
+		$.ajax({
+			url:jobPostUrl,
+			type:"post",
+			//dataType:"jsonp",
+			contentType:"application/json",
+			data: text,
+			success: function(){
+			console.log("Job Submitted");},
+			error: function(){
+			console.log("Job Submission Failed");},
+			complete: function(){
+				console.log("Job Created, Successfully");
+				$("#success").dialog();
+			}
+		});
+	} 
+	
+	function clearJobJson(){
+		$("#job").val('');
+		
+	}
+</script>
+</html>
