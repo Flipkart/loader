@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>List Jobs</title>
+<script type="text/javascript" src="js/_lib/jquery.js"></script>
+<script type="text/javascript" src="js/jquery.jstree.js"></script>
+<script src="js/returntree.js"></script>
+<script src="js/getJobDetails.js"></script>
+<script src="js/listruns.js"></script>
+<link href="css/nav.css" rel="stylesheet" type="text/css" />
+<link href="css/collapsible.css" rel="stylesheet" type="text/css" />
+<link href="menu_assets/styles.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<div id="header">
+</div>
+<script>
+	$(function(){
+		$("#header").load('header.html');
+	})
+</script>
+<div id="workflowlist">
+<table width="80%" border="1" align="center" id="runs">
+	<tr align="center">
+  		<th width="30%">Runs</th>
+		<th width="70%">Details</th>
+	</tr>
+	<tr align="center">
+  		<td>
+  			<table id="runsList" width="100%" style="border:1px solid black; border-collapse:collapse; background-color:#333">
+  			</table>
+  		</td>
+  		<td>
+  			<table width="100%" border="1" align="center" bordercolor="#000000" style="min-height:300px">
+				<tr style="margin-top:10px">
+					<td width="30%" bordercolor="#000000">
+						<div id="demo">
+						</div>
+					</td>
+					<td>
+						<div id="display" align="center">
+						</div>
+					</td>
+				</tr>
+			</table>
+  		</td>
+	</tr>
+</table>
+</div>
+<script>
+getListedRuns();
+</script>
+<script>
+$('#cssmenu a').click(function(e){
+					e.preventDefault();
+					//alert("u clicked" + e.target.id);
+					console.log(e.target.id);
+					var id=e.target.id;
+					//console.log(id);
+					var workflowUrl = "/loader-server/runs/" + id;
+					console.log(workflowUrl)
+					returnTree(workflowUrl);
+				});
+</script>
+</body>
+</html>
