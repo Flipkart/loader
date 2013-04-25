@@ -74,7 +74,7 @@ public class JobResource {
     @Path("/{jobId}/kill")
     @PUT
     @Timed
-    public String pause(@PathParam("jobId") String jobId) {
+    public String pause(@PathParam("jobId") String jobId) throws IOException, InterruptedException {
         String killStatus = jobProcessorThread.killJob(jobId);
         statsSyncThread.removeJob(jobId);
         return "{'message' : '"+killStatus+"'}";
