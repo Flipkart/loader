@@ -5,12 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import perf.server.cache.AgentsCache;
 import perf.server.domain.Job;
-import perf.server.domain.LoadPart;
 import perf.server.domain.LoaderAgent;
 import perf.server.domain.PerformanceRun;
 import perf.server.util.JobHelper;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -57,34 +57,19 @@ public class JobDispatcherThread extends Thread{
 
             //Check if required number of agents are free
             try {
-                if(agentsAvailable(job.getRunName())) {
+                List<LoaderAgent> freeAgents = AgentsCache.freeAgents();
+                PerformanceRun performanceRun = JobHelper.instance().getPerformanceRun(job.getRunName());
+                if(freeAgents.size() >= performanceRun.agentsNeeded()) {
                     job = jobRequestQueue.remove();
-                    JobHelper.instance().submitJob(job);
+                    JobHelper.instance().submitJob(job, freeAgents);
                 }
             } catch (IOException e) {
-                logger.error("", e);  //To change body of catch statement use File | Settings | File Templates.
+                logger.error("", e);
             }
         }
         logger.info("Job Dispatcher Thread Ended");
     }
 
-    /**
-     * Check if agents are free to trigger the run
-     * @param runName
-     * @return
-     * @throws IOException
-     */
-    private boolean agentsAvailable(String runName) throws IOException {
-        PerformanceRun performanceRun = JobHelper.instance().getPerformanceRun(runName);
-
-        for(LoadPart loadPart : performanceRun.getLoadParts()) {
-            for(String agent : loadPart.getAgents()) {
-                if(!AgentsCache.getAgentInfo(agent).getStatus().equals(LoaderAgent.LoaderAgentStatus.FREE))
-                    return false;
-            }
-        }
-        return true;
-    }
 
     public static JobDispatcherThread initialize() {
         if(thread == null) {
