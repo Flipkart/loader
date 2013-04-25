@@ -10,7 +10,9 @@ import perf.server.domain.LoaderAgent;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AgentsCache {
@@ -70,5 +72,15 @@ public class AgentsCache {
                 }
             }
         }
+    }
+
+    public static List<LoaderAgent> freeAgents() {
+        List<LoaderAgent> freeAgents = new ArrayList<LoaderAgent>();
+        for(LoaderAgent loaderAgent : agentInfoMap.values()) {
+            if(loaderAgent.getStatus().equals(LoaderAgent.LoaderAgentStatus.FREE)) {
+                freeAgents.add(loaderAgent);
+            }
+        }
+        return freeAgents;
     }
 }

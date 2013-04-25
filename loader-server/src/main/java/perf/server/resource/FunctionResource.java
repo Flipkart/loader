@@ -120,7 +120,7 @@ public class FunctionResource {
 
         LoadPart loadPart = new LoadPart().
                 setName("default").
-                setAgents(Arrays.asList(new String[]{"127.0.0.1"})).
+                setAgents(1).
                 setClasses(Arrays.asList(new String[]{function})).
                 setLoad(load);
 
