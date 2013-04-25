@@ -68,8 +68,13 @@ public class JobHelper {
         return myInstance;
     }
 
-    public void submitJob(Job job) {
+    public void submitJob(Job job, List<LoaderAgent> freeAgents) {
         String runFile = jobFSConfig.getRunFile(job.getRunName());
+        List<LoaderAgent> agentsToUse = new ArrayList<LoaderAgent>();
+        for(LoaderAgent freeAgent : freeAgents) {
+            agentsToUse.add(freeAgent);
+        }
+
         try {
             PerformanceRun performanceRun = objectMapper.readValue(new File(runFile) , PerformanceRun.class);
             job.setRunName(performanceRun.getRunName());
@@ -84,10 +89,10 @@ public class JobHelper {
             raiseMetricPublishRequest(job, performanceRun.getMetricCollections());
 
             // Deploy Libraries on Agents
-            deployLibrariesOnAgents(performanceRun.getLoadParts());
+            deployLibrariesOnAgents(performanceRun.getLoadParts(), agentsToUse);
 
             // Submitting Jobs to Loader Agent
-            submitJobToAgents(job, performanceRun.getLoadParts());
+            submitJobToAgents(job, performanceRun.getLoadParts(), agentsToUse);
 
             CounterCompoundThread.getCounterCruncherThread().addJob(job.getJobId());
             CounterThroughputThread.getCounterCruncherThread().addJob(job.getJobId());
@@ -179,59 +184,61 @@ public class JobHelper {
 
     /**
      * Submitting Load Job To Loader Agents
+     *
      * @param job
      * @param loadParts
+     * @param agentsToUse
      * @throws IOException
      * @throws perf.server.exception.JobException
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    private void submitJobToAgents(Job job, List<LoadPart> loadParts)
+    private void submitJobToAgents(Job job, List<LoadPart> loadParts, List<LoaderAgent> agentsToUse)
             throws IOException, JobException, ExecutionException, InterruptedException {
         job.setStartTime(new Date());
         for(LoadPart loadPart : loadParts) {
             // Submitting Job To Agent
-            List<String> agentIps = loadPart.getAgents();
             List<String> classes = loadPart.getClasses();
 
             StringBuilder classListWithNewLine = new StringBuilder();
             for(String clazz : classes)
                 classListWithNewLine.append(clazz+"\n");
 
-            for(String agentIp : agentIps) {
-                submitJobToAgent(agentIp,
+            for(int agentI = 1; agentI<=loadPart.getAgents(); agentI++) {
+                LoaderAgent agent = agentsToUse.remove(0);
+                submitJobToAgent(agent.getIp(),
                         job.getJobId(),
                         loadPart.getLoad(),
                         classListWithNewLine.toString());
-                job.jobRunningInAgent(agentIp);
-                AgentsCache.getAgentInfo(agentIp).addRunningJob(job.getJobId());
-                AgentsCache.getAgentInfo(agentIp).setBusy();
+                job.jobRunningInAgent(agent.getIp());
+                AgentsCache.getAgentInfo(agent.getIp()).addRunningJob(job.getJobId());
+                AgentsCache.getAgentInfo(agent.getIp()).setBusy();
             }
         }
     }
 
     /**
      * Deploy Platform Libs and Class Libs on Loader agents If Required
+     *
      * @param loadParts
+     * @param agentsToUse
      * @throws IOException
      * @throws JobException
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    private void deployLibrariesOnAgents(List<LoadPart> loadParts)
+    private void deployLibrariesOnAgents(List<LoadPart> loadParts, List<LoaderAgent> agentsToUse)
             throws IOException, JobException, ExecutionException, InterruptedException {
         for(LoadPart loadPart : loadParts) {
-            // Submitting Job To Agent
-            List<String> agentIps = loadPart.getAgents();
             List<String> classes = loadPart.getClasses();
 
             StringBuilder classListWithNewLine = new StringBuilder();
             for(String clazz : classes)
                 classListWithNewLine.append(clazz+"\n");
 
-            for(String agentIp : agentIps) {
-                DeploymentHelper.instance().deployPlatformLibsOnAgent(agentIp);
-                DeploymentHelper.instance().deployClassLibsOnAgent(agentIp, classListWithNewLine.toString().trim());
+            for(LoaderAgent agent : agentsToUse) {
+                DeploymentHelper.instance().deployPlatformLibsOnAgent(agent.getIp());
+                DeploymentHelper.instance().deployClassLibsOnAgent(agent.getIp(), classListWithNewLine.toString().trim());
             }
         }
     }

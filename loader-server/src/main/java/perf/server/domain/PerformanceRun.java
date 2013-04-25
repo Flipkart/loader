@@ -52,6 +52,14 @@ public class PerformanceRun {
         return this;
     }
 
+    public int agentsNeeded() {
+        int totalAgentsNeeded = 0;
+        for(LoadPart loadPart : this.getLoadParts()) {
+            totalAgentsNeeded += loadPart.getAgents();
+        }
+        return totalAgentsNeeded;
+    }
+
     public static void main(String[] args) throws IOException {
         ObjectMapper mapper = ObjectMapperUtil.instance();
         PerformanceRun performanceRun = mapper.readValue(new File("/home/nitinka/git/loader2.0/loader-http-operations/sample/sampleGet.json"), PerformanceRun.class);
