@@ -131,4 +131,12 @@ public class JobRunnerThread extends Thread{
     public void setRunning(boolean running) {
         this.running = running;
     }
+
+    public static void main(String[] args) throws IOException, InterruptedException {
+        Process p = Runtime.getRuntime().exec("/home/nitinka/git/loader2.0/sleep.sh");
+        Thread.sleep(10 * 1000);
+        p.destroy();
+        p.waitFor();
+        System.out.println(p.exitValue());
+    }
 }

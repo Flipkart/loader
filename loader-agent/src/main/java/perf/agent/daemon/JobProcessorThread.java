@@ -116,10 +116,12 @@ public class JobProcessorThread extends Thread{
         }
     }
 
-    public String killJob(String jobId) {
+    public String killJob(String jobId) throws IOException, InterruptedException {
         JobRunnerThread jobRunnerThread = jobRunners.get(jobId);
         if(jobRunnerThread != null) {
-            jobRunnerThread.getJobProcess().destroy();
+            //jobRunnerThread.getJobProcess().destroy();
+            Runtime.getRuntime().exec(new String[]{"/bin/sh","-c","kill -9 `ps aux | grep "+jobId+" | grep -v grep | tr -s \" \" \":\" |cut -f 2 -d \":\"`"}).
+                    waitFor();
             return "Job Killed Successfully";
         }
         return "Job Not Running";
