@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class LoadPart {
     private String name;
-    private List<String> agents;
+    private int agents;
     private List<String> classes;
     private Load load;
 
@@ -21,11 +21,11 @@ public class LoadPart {
         return this;
     }
 
-    public List<String> getAgents() {
+    public int getAgents() {
         return agents;
     }
 
-    public LoadPart setAgents(List<String> agents) {
+    public LoadPart setAgents(int agents) {
         this.agents = agents;
         return this;
     }
