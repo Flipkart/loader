@@ -317,7 +317,7 @@ public class JobHelper {
                     while((runJobId = runJobsFileReader.readLine()) != null) {
                         if(runJobId.toUpperCase().contains(searchJobId.toUpperCase())) {
                             Job job = objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(runJobId)), Job.class);
-                            if(searchJobStatus.equals("ANY")) {
+                            if(searchJobStatus.equals("ALL")) {
                                 jobs.add(job);
                             }
                             else if(job.getJobStatus().toString().equalsIgnoreCase(searchJobStatus)) {
