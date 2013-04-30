@@ -31,10 +31,10 @@ public class JobRunnerThread extends Thread{
         logger.info("Running Job :"+jobInfo.getJobId());
         this.running = true;
         try {
-            this.jobInfo.setPort(SocketHelper.getFreePort(10000, 10010));
+            this.jobInfo.setJmxPort(SocketHelper.getFreePort(10000, 10010));
             String jobCmd = jobInfo.getJobCmd().
-                    replace("{port}", String.valueOf(jobInfo.getPort())).
-                    replace("{portId}", jobInfo.getJobId());
+                    replace("{jmxPort}", String.valueOf(jobInfo.getJmxPort())).
+                    replace("{jobId}", jobInfo.getJobId());
 
             FileHelper.createFilePath(jobFSConfig.getJobLogFile(jobInfo.getJobId()));
             logger.info("Running Command \n"+jobCmd);
