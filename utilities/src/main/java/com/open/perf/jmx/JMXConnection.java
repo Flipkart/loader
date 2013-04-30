@@ -4,6 +4,7 @@ import com.sun.management.GarbageCollectorMXBean;
 import com.sun.management.HotSpotDiagnosticMXBean;
 import com.sun.management.VMOption;
 
+import com.sun.management.OperatingSystemMXBean;
 import javax.management.*;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
@@ -22,14 +23,14 @@ import static java.lang.management.ManagementFactory.*;
  * @author NitinK.Agarwal@yahoo.com
  *
  */
-public class JVMInfo
+public class JMXConnection
 {
     private MBeanServerConnection server;
     private String hostName;
     private int port;
     private JMXConnector jmxConnector;
     
-    public JVMInfo(String hostName, int port) throws IOException {
+    public JMXConnection(String hostName, int port) throws IOException {
         this.hostName       =   hostName;
         this.port           =   port;
   

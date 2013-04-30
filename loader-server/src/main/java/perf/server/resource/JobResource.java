@@ -1,5 +1,6 @@
 package perf.server.resource;
 
+import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.FileHelper;
 import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
@@ -145,6 +146,31 @@ public class JobResource {
                                         @QueryParam("jobId") @DefaultValue("") String searchJobId,
                                         @QueryParam("jobStatus") @DefaultValue("RUNNING")String searchJobStatus) throws IOException {
         return jobHelper.searchJobs(searchJobId, searchRunName, searchJobStatus);
+    }
+
+    /**
+     * Agents Publish Job Job Health Status when Load Generation Process goes in stress mode
+     * @param request
+     * @param jobId
+     * @param jobHealthStatus
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Path("/{jobId}/healthStatus")
+    @PUT
+    @Timed
+    synchronized public void jobHealthStats(@Context HttpServletRequest request,
+                                      @PathParam("jobId") String jobId,
+                                      String jobHealthStatus)
+            throws IOException, InterruptedException, ExecutionException {
+        Job job = jobHelper.jobExistsOrException(jobId);
+        job.getAgentsJobStatus().
+                get(request.getRemoteAddr()).
+                setHealthStatus(ObjectMapperUtil.instance().readValue(new ByteArrayInputStream(jobHealthStatus.getBytes()), Map.class));
+
+        jobHelper.persistJobHealthStatusComingFromAgent(jobId,
+                request.getRemoteAddr(),
+                new ByteArrayInputStream(jobHealthStatus.getBytes()));
     }
 
     /**

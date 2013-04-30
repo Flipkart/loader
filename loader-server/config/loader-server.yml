@@ -31,6 +31,7 @@ jobFSConfig:
   jobMetricStatsFile: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/{metricType}/{metricName}/agents/{agentIp}/data.stats"
   jobMonitoringStatsPath: "/var/log/loader-server/jobs/{jobId}/monitoringStats"
   jobResourceMonitoringFile: "/var/log/loader-server/jobs/{jobId}/monitoringStats/agents/{agentIp}/Resources/{resource}.txt"
+  jobHealthStatusFile: "/var/log/loader-server/jobs/{jobId}/monitoringStats/agents/{agentIp}/healthStatus.txt"
 
 http:
   port: 9999

@@ -23,6 +23,7 @@ public class LoaderServerClient {
     private String host;
     private int port;
     private static final String RESOURCE_JOB_OVER = "/loader-server/jobs/{jobId}/over";
+    private static final String RESOURCE_JOB_HEALTH_STATUS = "/loader-server/jobs/{jobId}/healthStatus";
     private static final String RESOURCE_JOB_STATS = "/loader-server/jobs/{jobId}/jobStats?file={file}";
     private static final String RESOURCE_AGENTS = "/loader-server/agents";
 
@@ -139,5 +140,19 @@ public class LoaderServerClient {
 
     public static LoaderServerClient buildClient(ServerInfo serverInfo) {
         return new LoaderServerClient(serverInfo.getHost(), serverInfo.getPort());
+    }
+
+    public void notifyJobHealth(String jobId, String jobHealthStatus) throws IOException, ExecutionException, InterruptedException {
+        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+                preparePut("http://" +
+                        this.getHost() +
+                        ":" +
+                        this.getPort() +
+                        RESOURCE_JOB_HEALTH_STATUS.
+                                replace("{jobId}", jobId)).
+                setBody(jobHealthStatus);
+        b.execute().get();
+        asyncHttpClient.close();
     }
 }

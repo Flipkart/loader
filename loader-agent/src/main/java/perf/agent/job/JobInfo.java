@@ -30,8 +30,9 @@ public class JobInfo {
         return jmxPort;
     }
 
-    public void setJmxPort(int jmxPort) {
+    public JobInfo setJmxPort(int jmxPort) {
         this.jmxPort = jmxPort;
+        return this;
     }
 
     @Override

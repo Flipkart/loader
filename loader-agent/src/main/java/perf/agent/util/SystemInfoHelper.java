@@ -6,7 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MBeanHelper {
+public class SystemInfoHelper {
     public static Map<String, Object> getOSParams() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Map<String, Object> osParams = new LinkedHashMap<String, Object>();
         OperatingSystemMXBean mxBean = ManagementFactory.getOperatingSystemMXBean();
