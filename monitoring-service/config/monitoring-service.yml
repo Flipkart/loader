@@ -4,7 +4,7 @@ onDemandCollectors:
   - klass: "server.monitor.collector.DFCollector"
     name: "df"
     requiredParams: []
-  - klass: "server.monitor.collector.jmx.JMXCollector"
+  - klass: "server.monitor.collector.JMXCollector"
     name: "jmx"
     requiredParams: ["host","port"]
   - klass: "server.monitor.collector.MysqlConnectionCollector"

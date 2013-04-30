@@ -1,7 +1,7 @@
-package server.monitor.collector.jmx;
+package server.monitor.collector;
 
+import com.open.perf.jmx.JVMInfo;
 import com.sun.management.GarbageCollectorMXBean;
-import server.monitor.collector.BaseCollector;
 import server.monitor.domain.ResourceCollectionInstance;
 
 import javax.management.MalformedObjectNameException;
