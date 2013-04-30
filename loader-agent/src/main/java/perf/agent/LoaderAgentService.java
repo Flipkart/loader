@@ -9,6 +9,7 @@ import perf.agent.cache.LibCache;
 import perf.agent.client.LoaderServerClient;
 import perf.agent.config.LoaderAgentConfiguration;
 import perf.agent.daemon.AgentRegistrationThread;
+import perf.agent.daemon.JobHealthCheckThread;
 import perf.agent.daemon.JobProcessorThread;
 import perf.agent.daemon.JobStatsSyncThread;
 import perf.agent.health.JobProcessorHealthCheck;
@@ -31,6 +32,8 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
 
         AgentRegistrationThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
                 configuration.getRegistrationParams());
+        JobHealthCheckThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
+                configuration.getJobProcessorConfig());
 
         LibCache.initialize(configuration.getLibStorageConfig());
 

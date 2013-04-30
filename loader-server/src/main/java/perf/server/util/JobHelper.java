@@ -266,10 +266,10 @@ public class JobHelper {
         if(!job.getJobStatus().equals(Job.JOB_STATUS.COMPLETED) &&
                 !job.getJobStatus().equals(Job.JOB_STATUS.KILLED)) {
 
-            Map<String, Job.JOB_STATUS> agentsJobStatusMap = job.getAgentsJobStatus();
+            Map<String, Job.AgentJobStatus> agentsJobStatusMap = job.getAgentsJobStatus();
             for(String agent : agents) {
-                if(!agentsJobStatusMap.get(agent).equals(Job.JOB_STATUS.KILLED) &&
-                        !agentsJobStatusMap.get(agent).equals(Job.JOB_STATUS.COMPLETED)) {
+                if(!agentsJobStatusMap.get(agent).getJob_status().equals(Job.JOB_STATUS.KILLED) &&
+                        !agentsJobStatusMap.get(agent).getJob_status().equals(Job.JOB_STATUS.COMPLETED)) {
                     new LoaderAgentClient(agent, agentConfig.getAgentPort()).killJob(jobId);
                     job.jobKilledInAgent(agent);
                 }
@@ -368,6 +368,13 @@ public class JobHelper {
         }
 
         FileHelper.remove(tmpPath);
+    }
+
+    public void persistJobHealthStatusComingFromAgent(String jobId, String agentIp, InputStream jobHealthStatusStream) throws IOException {
+        String jobHealthStatusFile = jobFSConfig.getJobHealthStatusFile(jobId, agentIp);
+        FileHelper.createFilePath(jobHealthStatusFile);
+        FileHelper.persistStream(jobHealthStatusStream, jobHealthStatusFile, true);
+        FileHelper.persistStream(jobHealthStatusStream, jobHealthStatusFile + ".last", false);
     }
 
     public static class MetricStatsMeta {

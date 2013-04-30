@@ -1,6 +1,6 @@
 package server.monitor.collector;
 
-import com.open.perf.jmx.JVMInfo;
+import com.open.perf.jmx.JMXConnection;
 import com.sun.management.GarbageCollectorMXBean;
 import server.monitor.domain.ResourceCollectionInstance;
 
@@ -49,33 +49,33 @@ public class JMXCollector extends BaseCollector {
 
     @Override
     public ResourceCollectionInstance collect() throws Exception {
-        JVMInfo jvmInfo = new JVMInfo(this.getParam("host").toString(),
+        JMXConnection JMXConnection = new JMXConnection(this.getParam("host").toString(),
                 (Integer) this.getParam("port"));
         ResourceCollectionInstance collectionInstance = new ResourceCollectionInstance().
                 setResourceName(this.getName());
 
-        collectionInstance.addMetrics(getMemoryMetrics(jvmInfo));
-        collectionInstance.addMetrics(getGCMetrics(jvmInfo));
-        collectionInstance.addMetrics(getThreadsMetric(jvmInfo));
-        collectionInstance.addMetrics(getClassLoadingMetrics(jvmInfo));
-        collectionInstance.addMetrics(getOSMetrics(jvmInfo));
-        jvmInfo.close();
+        collectionInstance.addMetrics(getMemoryMetrics(JMXConnection));
+        collectionInstance.addMetrics(getGCMetrics(JMXConnection));
+        collectionInstance.addMetrics(getThreadsMetric(JMXConnection));
+        collectionInstance.addMetrics(getClassLoadingMetrics(JMXConnection));
+        collectionInstance.addMetrics(getOSMetrics(JMXConnection));
+        JMXConnection.close();
         return collectionInstance.setTime(System.currentTimeMillis());
     }
 
-    private Map<String, Double> getOSMetrics(JVMInfo jvmInfo) throws IOException {
+    private Map<String, Double> getOSMetrics(JMXConnection JMXConnection) throws IOException {
         Map<String, Double> metrics = new HashMap<String, Double>();
-        if(jvmInfo.getImplementationVersion().startsWith("1.6")) {
-            OperatingSystemMXBean   osMXBean        = jvmInfo.getOperatingSystemMXBean();
+        if(JMXConnection.getImplementationVersion().startsWith("1.6")) {
+            OperatingSystemMXBean   osMXBean        = JMXConnection.getOperatingSystemMXBean();
             metrics.put(OS + "." + SYSTEM_AVERAGE_LOAD, osMXBean.getSystemLoadAverage());
         }
 
         return metrics;
     }
 
-    private Map<String, Double> getClassLoadingMetrics(JVMInfo jvmInfo) throws IOException {
+    private Map<String, Double> getClassLoadingMetrics(JMXConnection JMXConnection) throws IOException {
         Map<String, Double> metrics = new HashMap<String, Double>();
-        ClassLoadingMXBean classLoadingMXBean  = jvmInfo.getClassLoadingMXBean();
+        ClassLoadingMXBean classLoadingMXBean  = JMXConnection.getClassLoadingMXBean();
 
         metrics.put(CLASS_LOADER + "." + CLASS_TOTAL_LOADED, (double) classLoadingMXBean.getTotalLoadedClassCount());
         metrics.put(CLASS_LOADER + "." + CLASS_CURRENTLY_LOADED, (double) classLoadingMXBean.getLoadedClassCount());
@@ -84,14 +84,14 @@ public class JMXCollector extends BaseCollector {
         return metrics;
     }
 
-    private Map<String, Double> getThreadsMetric(JVMInfo jvmInfo) throws IOException {
+    private Map<String, Double> getThreadsMetric(JMXConnection JMXConnection) throws IOException {
         Map<String, Double> metrics = new HashMap<String, Double>();
-        ThreadMXBean threadMXBean    = jvmInfo.getThreadMXBean();
+        ThreadMXBean threadMXBean    = JMXConnection.getThreadMXBean();
 
         metrics.put(THREAD + "." + THREADS_TOTAL, (double) threadMXBean.getTotalStartedThreadCount());
         metrics.put(THREAD + "." + THREADS_CURRENT, (double) threadMXBean.getThreadCount());
 
-        if(jvmInfo.getImplementationVersion().startsWith("1.6")) {
+        if(JMXConnection.getImplementationVersion().startsWith("1.6")) {
             int deadLockedThreadsCount      =   0;
             long[]  deadLockedThreads       =   threadMXBean.findDeadlockedThreads();
             if(deadLockedThreads    !=  null)
@@ -103,9 +103,9 @@ public class JMXCollector extends BaseCollector {
         return metrics;
     }
 
-    private Map<String, Double> getGCMetrics(JVMInfo jvmInfo) throws MalformedObjectNameException, IOException {
+    private Map<String, Double> getGCMetrics(JMXConnection JMXConnection) throws MalformedObjectNameException, IOException {
         Map<String, Double> metrics = new HashMap<String, Double>();
-        List<GarbageCollectorMXBean> gcPool	=	jvmInfo.getGCPoolMXBeans();
+        List<GarbageCollectorMXBean> gcPool	=	JMXConnection.getGCPoolMXBeans();
         for(GarbageCollectorMXBean	gc	:	gcPool) {
             metrics.put(GC + "." + gc.getName() + ".count", (double) gc.getCollectionCount());
             metrics.put(GC + "." + gc.getName() + ".time", (double) gc.getCollectionTime());
@@ -113,10 +113,10 @@ public class JMXCollector extends BaseCollector {
         return metrics;
     }
 
-    private Map<String, Double> getMemoryMetrics(JVMInfo jvmInfo) throws IOException, MalformedObjectNameException {
+    private Map<String, Double> getMemoryMetrics(JMXConnection JMXConnection) throws IOException, MalformedObjectNameException {
         Map<String, Double> metrics = new HashMap<String, Double>();
 
-        MemoryMXBean memoryMXBean = jvmInfo.getMemoryMXBean();
+        MemoryMXBean memoryMXBean = JMXConnection.getMemoryMXBean();
         MemoryUsage memoryUsage = memoryMXBean.getHeapMemoryUsage();
 
         metrics.put(MEMORY + "." + HEAP_MEMORY + "." + MAX, (double) memoryUsage.getMax());
@@ -130,7 +130,7 @@ public class JMXCollector extends BaseCollector {
         metrics.put(MEMORY + "." + NON_HEAP_MEMORY + "." + USED, (double) memoryUsage.getUsed());
         metrics.put(MEMORY + "." + NON_HEAP_MEMORY + "." + PERCENTAGE, memoryUsage.getUsed() * 100d / memoryUsage.getMax());
 
-        List<MemoryPoolMXBean> memoryPoolMXBeanList = jvmInfo.getMemoryPoolMXBeans();
+        List<MemoryPoolMXBean> memoryPoolMXBeanList = JMXConnection.getMemoryPoolMXBeans();
         for(MemoryPoolMXBean memoryBean : memoryPoolMXBeanList) {
             memoryUsage  = memoryMXBean.getNonHeapMemoryUsage();
             metrics.put(MEMORY + "." + memoryBean.getName().replace(" ", "_") + "." + MAX, (double) memoryUsage.getMax());

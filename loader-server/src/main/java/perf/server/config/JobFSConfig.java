@@ -21,6 +21,7 @@ public class JobFSConfig {
     private String jobMetricStatsFile;
     private String jobMonitoringStatsPath;
     private String jobResourceMonitoringFile;
+    private String jobHealthStatusFile;
 
     public String getJobResourceMonitoringFile(String jobId, String agentIp, String resource) {
         return jobResourceMonitoringFile.replace("{jobId}", jobId).
@@ -135,6 +136,16 @@ public class JobFSConfig {
 
     public void setJobMetricStatsFile(String jobMetricStatsFile) {
         this.jobMetricStatsFile = jobMetricStatsFile;
+    }
+
+    public String getJobHealthStatusFile(String jobId, String agentIp) {
+        return jobHealthStatusFile.
+                replace("{jobId}", jobId).
+                replace("{agentIp}", agentIp);
+    }
+
+    public void setJobHealthStatusFile(String jobHealthStatusFile) {
+        this.jobHealthStatusFile = jobHealthStatusFile;
     }
 }
 
