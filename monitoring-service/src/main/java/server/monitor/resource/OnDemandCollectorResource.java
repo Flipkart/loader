@@ -74,7 +74,7 @@ public class OnDemandCollectorResource {
                 },
                 {
                     "name":"jmx1",
-                    "klass":"server.monitor.collector.jmx.JMXCollector",
+                    "klass":"server.monitor.collector.JMXCollector",
                     "interval":30000,
                     "params" : {
                          "host" : "localhost",
