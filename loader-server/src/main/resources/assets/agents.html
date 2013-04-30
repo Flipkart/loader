@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script src="js/jquery-1.9.1.js"></script>
+<script src="js/getAgents.js"></script>
+<link rel="stylesheet" type="text/css" href="css/agentList.css">
+<link href="css/nav.css" rel="stylesheet" type="text/css" />
+<style>
+.filter { width:99% }
+</style>
+
+<title>Agents</title>
+</head>
+
+<body>
+<div id="header">
+</div>
+<script>
+	$(function(){
+		$("#header").load('header.html');
+	})
+</script>
+<table width="80%" border="1" align="center" style="table-layout:fixed; min-height:200px;">
+  <tr>
+    <th width="30%" scope="col">Agents</th>
+    <th width="70%" scope="col">Details</th>
+  </tr>
+  <tr>
+    <td>
+    <table width="100%" border="1" style="table-layout:fixed; float:left">
+    <tr>
+    	<td>
+    		<label for="agentFilter"></label>
+    		<input type="text" name="agentFilter" id="agentFilter" class="filter"/>
+        </td>
+    </tr>
+    <tr style="background-color:#333">
+    	<td>
+    		<div id="agentList">
+    		</div>
+    	</td>
+    </tr>
+    </table>
+    </td>
+    <td>
+    	<div id="details">
+        </div>
+    </td>
+  </tr>
+</table>
+<script>
+getAgents();
+</script>
+</body>
+</html>

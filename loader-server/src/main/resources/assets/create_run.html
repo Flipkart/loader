@@ -48,11 +48,12 @@
 			contentType:"application/json",
 			data: text,
 			success: function(){
-			console.log("Job Submitted");},
+			console.log("Run Submitted");},
 			error: function(){
-			console.log("Job Submission Failed");},
+			console.log("Run Submission Failed");},
 			complete: function(){
-				console.log("Job Created, Successfully");
+				console.log("Run Created, Successfully");
+				$("#success").append("<p>Run Created, Successfully!!</p>")
 				$("#success").dialog();
 			}
 		});
