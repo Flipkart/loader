@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Search Jobs</title>
+<script src="js/jquery-1.9.1.js"></script>
+<script src="js/search_jobs.js"></script>
+<link href="css/nav.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+<div id="header">
+</div>
+<script>
+	$(function(){
+		$("#header").load('header.html');
+	})
+</script>
+<table width="60%" border="1" align="center">
+  <tr>
+    <td scope="col"><label style="width:30%">Run Name: </label><input type="text" name="runName" id="runName" style="width:75%"/>
+    </td>
+    <td>
+    	<label>Job Status: </label><select id="jobStatus">
+        <option value="ANY">ANY</option>
+        <option value="COMPLETED">COMPLETED</option>
+        <option value="RUNNING">RUNNING</option>
+        </select>
+    </td>
+  </tr>
+  <tr>
+  	<td><label>Job Id: </label><input type="text" name="jobId" id="jobId" style="width:84%"/>
+    </td>
+    <td><label>Active in Last: </label><input type="text" name="activeIn" /><label>Hr</label>
+    </td>
+  </tr>
+  <tr>
+  	<td colspan="2">
+  		<button id="searchJobs" style="background:#505050; cursor:pointer" onClick="searchJobs()">Search</button>
+    </td>
+  </tr>
+</table>
+<div id="jobsList">
+</div>
+</body>
+</html>
