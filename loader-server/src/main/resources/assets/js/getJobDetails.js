@@ -36,7 +36,7 @@ function getJobDetails(){
 						// 	$("#agents").attr("value",value);
 					}
 				});
-				if ($("#status").attr("value")=="running"){
+				if ($("#status").attr("value")=="RUNNING"){
 					$("#play").attr("disabled","disabled");
 					$("#pause").removeAttr("disabled");
 					$("#stop").removeAttr("disabled");
