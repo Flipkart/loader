@@ -81,6 +81,7 @@ public class JobProcessorThread extends Thread{
                 if(!jobRunnerThread.running()) {
                     jobRunners.remove(jobId);
                     JobStatsSyncThread.getInstance().removeJob(jobId);
+                    JobHealthCheckThread.instance().remove(jobRunnerThread.getJobInfo());
                     this.serverClient.notifyJobIsOver(jobId);
                     // Make a Post Call to let loader-server know that job is over
 
@@ -101,6 +102,7 @@ public class JobProcessorThread extends Thread{
                         break;
                     jobRunners.put(jobInfo.getJobId(), new JobRunnerThread(jobInfo, jobFSConfig));
                     JobStatsSyncThread.getInstance().addJobToSync(jobInfo.getJobId());
+                    JobHealthCheckThread.instance().add(jobInfo);
                 }
             }
             logger.debug("Jobs Still Pending :"+pendingJobs.size());
@@ -110,7 +112,7 @@ public class JobProcessorThread extends Thread{
 
     private void waitForNextIteration() {
         try {
-            Thread.sleep(config.getCheckInterval());
+            Thread.sleep(config.getPendingJobCheckInterval());
         } catch (InterruptedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
