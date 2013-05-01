@@ -1,9 +1,10 @@
-package server.monitor.collector.jmx;
+package com.open.perf.jmx;
 
 import com.sun.management.GarbageCollectorMXBean;
 import com.sun.management.HotSpotDiagnosticMXBean;
 import com.sun.management.VMOption;
 
+import com.sun.management.OperatingSystemMXBean;
 import javax.management.*;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
@@ -22,14 +23,14 @@ import static java.lang.management.ManagementFactory.*;
  * @author NitinK.Agarwal@yahoo.com
  *
  */
-public class JVMInfo
+public class JMXConnection
 {
     private MBeanServerConnection server;
     private String hostName;
     private int port;
-    private JMXConnector   jmxc;
+    private JMXConnector jmxConnector;
     
-    public JVMInfo(String hostName, int port) throws IOException {
+    public JMXConnection(String hostName, int port) throws IOException {
         this.hostName       =   hostName;
         this.port           =   port;
   
@@ -39,24 +40,22 @@ public class JVMInfo
         
         //Connect to a JMX agent of a given URL. 
         JMXServiceURL url = new JMXServiceURL("rmi", "", 0, urlPath);
-        //System.out.println(url.toString());    
-        this.jmxc = JMXConnectorFactory.connect(url);
-        this.server = jmxc.getMBeanServerConnection();
-        
+        this.jmxConnector = JMXConnectorFactory.connect(url);
+        this.server = jmxConnector.getMBeanServerConnection();
     }
     
     public List<MemoryPoolMXBean> getMemoryPoolMXBeans() throws MalformedObjectNameException, NullPointerException, IOException {
-        List<MemoryPoolMXBean> memoryPoolMXBeans    = new ArrayList<MemoryPoolMXBean>();
+        List<MemoryPoolMXBean> memoryPoolMXBeans = new ArrayList<MemoryPoolMXBean>();
         
         // ObjectName Representing the MXBean
-        ObjectName poolName                         = new ObjectName(MEMORY_POOL_MXBEAN_DOMAIN_TYPE+",*");
+        ObjectName poolName = new ObjectName(MEMORY_POOL_MXBEAN_DOMAIN_TYPE+",*");
 
         // Getting set of all the Objects that represents set of MXBeans
-        Set<ObjectName> mbeans                      = this.server.queryNames(poolName, null);
+        Set<ObjectName> mBeans = this.server.queryNames(poolName, null);
 
-        if (mbeans != null) 
+        if (mBeans != null)
         {
-            Iterator<ObjectName> iterator = mbeans.iterator();
+            Iterator<ObjectName> iterator = mBeans.iterator();
             while (iterator.hasNext()) 
             {
                 ObjectName objName = (ObjectName) iterator.next();
@@ -148,44 +147,14 @@ public class JVMInfo
     }
 
     public void close() throws IOException {
-        this.jmxc.close();
+        this.jmxConnector.close();
     }
 
     public MBeanServerConnection getServer() {
         return server;
     }
 
-    public JMXConnector getJmxc() {
-        return jmxc;
-    }
-
-    public static void main(String[] arg) throws IOException, MalformedObjectNameException, NullPointerException, InterruptedException, IntrospectionException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException, MBeanException {
-    	JVMInfo         jvmInfo             = new JVMInfo("perf-digital-cms-db1.nm.flipkart.com",7199);
-        MBeanServerConnection connection = jvmInfo.getMXBeanServerConnection();
-        ObjectName objectName = new ObjectName("org.apache.cassandra.db:type=Caches");
-        MBeanInfo beanInfo  =connection.getMBeanInfo(objectName);
-        String[] attributes = new String[beanInfo.getAttributes().length];
-/*
-        for(beanInfo.l)
-
-
-        AttributeList attributeList = connection.getAttributes(objectName, attributes);
-
-        for(Attribute attribute : attributeList.asList()) {
-            System.out.println(attribute);
-        }
-*/
-        jvmInfo.close();
-/*
-    	while(true) {
-        	List<GarbageCollectorMXBean> gcPool	=	jvmInfo.getGCPoolMXBeans();
-        	for(GarbageCollectorMXBean	gc	:	gcPool) {
-        		System.out.println(gc.getName()+" "+gc.getCollectionCount()+" "+gc.getCollectionTime());
-        	}
-        	System.out.println();
-        	Thread.sleep(1000);
-    	}
-*/
-
+    public JMXConnector getJmxConnector() {
+        return jmxConnector;
     }
 }

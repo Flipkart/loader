@@ -9,7 +9,7 @@ package perf.agent.config;
  */
 
 import com.yammer.dropwizard.config.Configuration;
-import perf.agent.util.MBeanHelper;
+import perf.agent.util.SystemInfo;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
@@ -70,7 +70,7 @@ public class LoaderAgentConfiguration extends Configuration {
     public void setRegistrationParams(Map registrationParams) {
         this.registrationParams = registrationParams;
         try {
-            this.registrationParams.putAll(MBeanHelper.getOSParams());
+            this.registrationParams.putAll(SystemInfo.getOSParams());
         } catch (ClassNotFoundException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (NoSuchMethodException e) {
