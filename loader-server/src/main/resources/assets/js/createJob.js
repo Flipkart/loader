@@ -12,7 +12,8 @@ function createJob(runName){
 			console.log("Job Submission Failed");},
 		complete: function(){
 			console.log("Job Created, Successfully");
-			$("#success").dialog("Job Created!!");
+			$("#success").append("<p>Job Created, Successfully!!</p>");
+			$("#success").dialog();
 		}
 	});
 }
