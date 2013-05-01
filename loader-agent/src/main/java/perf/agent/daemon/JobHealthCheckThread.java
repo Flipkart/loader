@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobProcessorConfig;
 import perf.agent.job.JobInfo;
-import perf.agent.util.SystemInfoHelper;
+import perf.agent.util.SystemInfo;
 
 import java.io.IOException;
 import java.lang.management.MemoryUsage;
@@ -150,7 +150,7 @@ public class JobHealthCheckThread extends Thread {
         public static float MEMORY_USAGE_STRESS_LEVEL;
         static {
             try {
-                noOfCPUs = (Integer)SystemInfoHelper.getOSParams().get("processors");
+                noOfCPUs = SystemInfo.getProcessors();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
