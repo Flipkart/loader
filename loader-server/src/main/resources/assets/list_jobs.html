@@ -5,12 +5,15 @@
 <title>List Jobs</title>
 <script type="text/javascript" src="js/_lib/jquery.js"></script>
 <script type="text/javascript" src="js/jquery.jstree.js"></script>
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 <script src="js/returntree.js"></script>
 <script src="js/getJobDetails.js"></script>
+<script src="js/createJob.js"></script>
 <script src="js/listruns.js"></script>
 <link href="css/nav.css" rel="stylesheet" type="text/css" />
 <link href="css/collapsible.css" rel="stylesheet" type="text/css" />
 <link href="css/styles.css" rel="stylesheet" type="text/css">
+<link href="css/my.css" rel="stylesheet" type="text/css">
 </head>
 
 <body>
@@ -21,48 +24,44 @@
 		$("#header").load('header.html');
 	})
 </script>
-<div id="workflowlist">
-<table width="80%" border="1" align="center" id="runs">
+<div id="workflowlist" style="width:80%; margin:0 auto;">
+<table width="18%" border="1" id="runs" style="float:left;table-layout: fixed;">
 	<tr align="center">
-  		<th width="30%">Runs</th>
-		<th width="70%">Details</th>
+  		<th>Runs</th>
 	</tr>
-	<tr align="center">
+	<tr>
   		<td>
   			<table id="runsList" width="100%" style="border:1px solid black; border-collapse:collapse; background-color:#333">
   			</table>
   		</td>
-  		<td>
-  			<table width="100%" border="1" align="center" bordercolor="#000000" style="min-height:300px">
+	</tr>
+</table>
+<table width="80%" border="1" id="details" style="float:left;table-layout: fixed;">
+	<tr align="center">
+    	<th>Details</th>
+    </tr>
+    <tr>
+    	<td style="word-wrap: break-word">
+  			<table width="100%" border="1" align="center" bordercolor="#000000" style="min-height:300px;table-layout: fixed;">
 				<tr style="margin-top:10px">
 					<td width="30%" bordercolor="#000000">
 						<div id="demo">
 						</div>
 					</td>
-					<td>
+					<td style="word-wrap: break-word">
 						<div id="display" align="center">
 						</div>
 					</td>
 				</tr>
 			</table>
   		</td>
-	</tr>
+    </tr>
 </table>
+</div>
+<div id="success">
 </div>
 <script>
 getListedRuns();
-</script>
-<script>
-$('#cssmenu a').click(function(e){
-					e.preventDefault();
-					//alert("u clicked" + e.target.id);
-					console.log(e.target.id);
-					var id=e.target.id;
-					//console.log(id);
-					var workflowUrl = "/loader-server/runs/" + id;
-					console.log(workflowUrl)
-					returnTree(workflowUrl);
-				});
 </script>
 </body>
 </html>
