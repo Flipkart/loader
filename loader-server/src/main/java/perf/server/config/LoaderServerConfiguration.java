@@ -16,6 +16,7 @@ public class LoaderServerConfiguration extends Configuration {
     private AgentConfig agentConfig;
     private MonitoringAgentConfig monitoringAgentConfig;
     private JobFSConfig jobFSConfig;
+    private String reportConfigFile;
 
     public String getAppName() {
         return appName;
@@ -55,6 +56,15 @@ public class LoaderServerConfiguration extends Configuration {
 
     public void setMonitoringAgentConfig(MonitoringAgentConfig monitoringAgentConfig) {
         this.monitoringAgentConfig = monitoringAgentConfig;
+    }
+
+    public String getReportConfigFile() {
+        return reportConfigFile;
+    }
+
+    public LoaderServerConfiguration setReportConfigFile(String reportConfigFile) {
+        this.reportConfigFile = reportConfigFile;
+        return this;
     }
 }
 

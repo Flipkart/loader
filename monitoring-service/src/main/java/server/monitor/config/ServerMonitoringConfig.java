@@ -9,19 +9,18 @@ package server.monitor.config;
  */
 
 import com.yammer.dropwizard.config.Configuration;
-
 import java.util.List;
 
 public class ServerMonitoringConfig extends Configuration {
-    private String appName;
+    private String boxName;
     private List<OnDemandCollectorConfig> onDemandCollectors;
 
-    public String getAppName() {
-        return appName;
+    public String getBoxName() {
+        return boxName;
     }
 
-    public void setAppName(String appName) {
-        this.appName = appName;
+    public void setBoxName(String boxName) {
+        this.boxName = boxName;
     }
 
     public List<OnDemandCollectorConfig> getOnDemandCollectors() {

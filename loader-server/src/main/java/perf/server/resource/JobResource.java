@@ -144,8 +144,8 @@ public class JobResource {
     @Timed
     public List<Job> getJobs(@QueryParam("runName") @DefaultValue("") String searchRunName,
                                         @QueryParam("jobId") @DefaultValue("") String searchJobId,
-                                        @QueryParam("jobStatus") @DefaultValue("RUNNING")String searchJobStatus) throws IOException {
-        return jobHelper.searchJobs(searchJobId, searchRunName, searchJobStatus);
+                                        @QueryParam("jobStatus") @DefaultValue("RUNNING,QUEUED")String searchJobStatus) throws IOException {
+        return jobHelper.searchJobs(searchJobId, searchRunName, Arrays.asList(searchJobStatus.split(",")));
     }
 
     /**

@@ -302,10 +302,10 @@ public class JobHelper {
      * Search Jobs in File System
      * @param searchJobId
      * @param searchRunName
-     * @param searchJobStatus
+     * @param searchJobStatusList
      * @return
      */
-    public List<Job> searchJobs(String searchJobId, String searchRunName, String searchJobStatus) throws IOException {
+    public List<Job> searchJobs(String searchJobId, String searchRunName, List<String> searchJobStatusList) throws IOException {
         List<Job> jobs = new ArrayList<Job>();
         File runsPath = new File(jobFSConfig.getRunsPath());
         for(File runPath : runsPath.listFiles()) {
@@ -317,10 +317,10 @@ public class JobHelper {
                     while((runJobId = runJobsFileReader.readLine()) != null) {
                         if(runJobId.toUpperCase().contains(searchJobId.toUpperCase())) {
                             Job job = objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(runJobId)), Job.class);
-                            if(searchJobStatus.equals("ALL")) {
+                            if(searchJobStatusList.contains("ALL")) {
                                 jobs.add(job);
                             }
-                            else if(job.getJobStatus().toString().equalsIgnoreCase(searchJobStatus)) {
+                            else if(searchJobStatusList.contains(job.getJobStatus().toString())) {
                                 jobs.add(job);
                             }
                         }

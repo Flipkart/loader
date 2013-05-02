@@ -1,0 +1,60 @@
+{
+    "chartResources":{
+        "sockets":{
+            "resource":"sockets",
+            "charts":[
+                {
+                    "title":"Mem",
+                    "keysToPlot":[
+                        "tcp_mem",
+                        "udp_mem"
+                    ]
+                },
+                {
+                    "title":"Sockets In Use",
+                    "keysToPlot":[
+                        "tcp_inuse",
+                        "udp_inuse"
+                    ]
+                }
+            ]
+        },
+        "diskspace.root":{
+            "resource":"diskspace.root",
+            "charts":[
+                {
+                    "title":"Diskspace",
+                    "keysToPlot":[
+                        "byte_used",
+                        "byte_free"
+                    ]
+                }
+            ]
+        },
+        "memory":{
+            "resource":"memory",
+            "charts":[
+                {
+                    "title":"Physical Memory",
+                    "keysToPlot":[
+                        "MemTotal",
+                        "MemFree",
+			"Cached",
+			"Active",
+			"Buffers",
+			"Dirty"
+                    ]
+                },
+                {
+                    "title":"Swap",
+                    "keysToPlot":[
+                        "SwapTotal",
+                        "SwapFree",
+			"SwapCached"
+                    ]
+                }
+
+            ]
+        }
+    }
+}
