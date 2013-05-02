@@ -1,4 +1,5 @@
-appName: "Server Monitoring"
+#Box name should depict applicationName-instance
+boxName: "myBox"
 
 onDemandCollectors:
   - klass: "server.monitor.collector.DFCollector"

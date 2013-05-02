@@ -33,6 +33,8 @@ jobFSConfig:
   jobResourceMonitoringFile: "/var/log/loader-server/jobs/{jobId}/monitoringStats/agents/{agentIp}/Resources/{resource}.txt"
   jobHealthStatusFile: "/var/log/loader-server/jobs/{jobId}/monitoringStats/agents/{agentIp}/healthStatus.txt"
 
+reportConfigFile: /var/log/loader-server/report/reportConfig.yml
+
 http:
   port: 9999
   adminPort: 9991
