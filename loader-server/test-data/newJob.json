@@ -2,7 +2,7 @@
     "runName":"SampleRun",
     "loadParts":[
         {
-            "agents":["127.0.0.1"],
+            "agents":1,
             "classes":[
                 "com.open.perf.sample.function.DummyFunction"
             ],
