@@ -25,7 +25,7 @@ public class ResponseBuilder {
     }
 
     public static Response resourceAlreadyExists(String resourceType, String resourceName) {
-        return response(Response.Status.NOT_FOUND,
+        return response(Response.Status.CONFLICT,
                 String.format("{\"reason\" : \"%s %s Already Exists\"}", resourceType, resourceName));
     }
 
