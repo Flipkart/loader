@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script type="text/javascript" src="js/_lib/jquery.js"></script>
+<script type="text/javascript" src="js/jquery.jstree.js"></script>
+<script src="js/returnTree2.js"></script>
+<script src="js/runbuilder.js"></script>
+<title>Create Run</title>
+<link href="css/nav.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+<div id="header">
+</div>
+<script>
+	$(function(){
+		$("#header").load('header.html');
+	})
+</script>
+<table width="80%" border="1" align="center">
+  <tr>
+    <td scope="col">
+    <table align="left" border="1px" width="30%" style="float:left; table-layout:fixed; height:400px">
+    <thead>
+    	<tr><th>Run</th></tr>
+    </thead>
+    <tbody>
+    	<tr><td><div id="demo"></div></td></tr>
+    </tbody>
+    <tfoot>
+    <tr><td><button id="addRun" name="add" onclick="createRun()">New</button></td></tr>
+    </tfoot>
+    </table>
+    <table id="displayDetails" align="center" border="1px" width="70%" style="float:left; table-layout:fixed; height:400px">
+    </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
