@@ -56,6 +56,7 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
                 configuration.getJobFSConfig()));
         environment.addResource(new RunResource(configuration.getJobFSConfig()));
         environment.addResource(new FunctionResource(configuration.getLibStorageFSConfig()));
+        environment.addResource(new AdminResource(configuration));
     }
 
 
