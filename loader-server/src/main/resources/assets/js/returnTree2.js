@@ -1,21 +1,3 @@
-function returnTree(workflowurl){ 
-    $(document).ready(function(e) {
-		$.ajax({url: workflowurl,
-			contentType: "application/json", 
-			type:"GET",
-			success: function(workflow) {
-				window.data = workflow;
-				createTree(workflow);
-			},
-			error: function(e){
-				console.log("Error");
-			},
-			complete: function(xhr, status){
-				console.log(status);
-			}
-		});
-	});
-}
 function createTree(data){ 
 	console.log(data);
 	$("#demo").jstree({
@@ -50,6 +32,7 @@ function getLoadParts(data){
 }
 
 function getGroupList(data){
+	if(!data["load"]["groups"]) return;
 	var groupName = new Array();
 	var groups = data["load"]["groups"];
 	for(var i=0;i<groups.length;i++){
