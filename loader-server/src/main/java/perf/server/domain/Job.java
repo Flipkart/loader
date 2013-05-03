@@ -4,6 +4,7 @@ import java.util.*;
 
 public class Job {
 
+
     public static enum JOB_STATUS {
         QUEUED, RUNNING, PAUSED, COMPLETED, KILLED, FAILED_TO_START;
     }
@@ -173,4 +174,15 @@ public class Job {
         this.agentsJobStatus = agentsJobStatus;
         return this;
     }
+
+    public void started() {
+        this.jobStatus = JOB_STATUS.RUNNING;
+        this.startTime = new Date();
+    }
+
+    public void failedToStart() {
+        this.jobStatus = JOB_STATUS.FAILED_TO_START;
+        this.endTime = new Date();
+    }
+
 }

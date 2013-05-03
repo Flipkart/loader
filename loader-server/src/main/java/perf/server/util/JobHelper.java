@@ -102,7 +102,7 @@ public class JobHelper {
         }
         catch (Exception e) {
             log.error("Job Submission Failed",e);
-            job.setJobStatus(Job.JOB_STATUS.FAILED_TO_START);
+            job.failedToStart();
             try {
                 jobCleanUpOnFailure(job);
             } catch (Exception e1) {
@@ -195,7 +195,7 @@ public class JobHelper {
      */
     private void submitJobToAgents(Job job, List<LoadPart> loadParts, List<LoaderAgent> agentsToUse)
             throws IOException, JobException, ExecutionException, InterruptedException {
-        job.setStartTime(new Date());
+        job.started();
         for(LoadPart loadPart : loadParts) {
             // Submitting Job To Agent
             List<String> classes = loadPart.getClasses();
