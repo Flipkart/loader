@@ -7,7 +7,7 @@ import perf.server.cache.AgentsCache;
 import perf.server.domain.Job;
 import perf.server.domain.LoaderAgent;
 import perf.server.domain.PerformanceRun;
-import perf.server.util.JobHelper;
+import perf.server.util.JobStatsHelper;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,10 +58,10 @@ public class JobDispatcherThread extends Thread{
             //Check if required number of agents are free
             try {
                 List<LoaderAgent> freeAgents = AgentsCache.freeAgents();
-                PerformanceRun performanceRun = JobHelper.instance().getPerformanceRun(job.getRunName());
+                PerformanceRun performanceRun = JobStatsHelper.instance().getPerformanceRun(job.getRunName());
                 if(freeAgents.size() >= performanceRun.agentsNeeded()) {
                     job = jobRequestQueue.remove();
-                    JobHelper.instance().submitJob(job, freeAgents);
+                    job.start(freeAgents);
                 }
             } catch (IOException e) {
                 logger.error("", e);
