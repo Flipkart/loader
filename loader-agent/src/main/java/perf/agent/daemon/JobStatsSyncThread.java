@@ -36,7 +36,7 @@ public class JobStatsSyncThread extends Thread{
         return jobStatsSyncThread;
     }
 
-    public static JobStatsSyncThread getInstance() {
+    public static JobStatsSyncThread instance() {
         return jobStatsSyncThread;
     }
 
@@ -47,7 +47,7 @@ public class JobStatsSyncThread extends Thread{
         this.serverClient = serverClient;
     }
 
-    public void addJobToSync(String jobId) {
+    public void addJob(String jobId) {
         synchronized (jobIds) {
             this.jobIds.add(jobId);
         }
@@ -55,8 +55,10 @@ public class JobStatsSyncThread extends Thread{
 
     public void removeJob(String jobId) {
         synchronized (jobIds) {
-            syncJobStatFiles(jobId);
-            this.jobIds.remove(jobId);
+            if(jobIds.contains(jobId)) {
+                syncJobStatFiles(jobId);
+                this.jobIds.remove(jobId);
+            }
         }
     }
 

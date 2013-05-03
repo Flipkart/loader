@@ -8,8 +8,7 @@ import perf.agent.cache.LibCache;
 import perf.agent.config.JobFSConfig;
 import perf.agent.config.JobProcessorConfig;
 import perf.agent.daemon.JobProcessorThread;
-import perf.agent.daemon.JobStatsSyncThread;
-import perf.agent.job.JobInfo;
+import perf.agent.job.Job;
 import perf.agent.util.ResponseBuilder;
 
 import javax.ws.rs.*;
@@ -28,39 +27,38 @@ import java.util.Map;
 @Path("/jobs")
 
 public class JobResource {
-    private JobProcessorThread jobProcessorThread = JobProcessorThread.getInstance();
+    private JobProcessorThread jobProcessorThread = JobProcessorThread.instance();
     private JobProcessorConfig jobProcessorConfig;
-    private JobStatsSyncThread statsSyncThread;
     private final JobFSConfig jobFSconfig;
 
     public JobResource(JobProcessorConfig jobProcessorConfig, JobFSConfig jobFSConfig) {
         this.jobProcessorConfig = jobProcessorConfig;
-        this.statsSyncThread = JobStatsSyncThread.getInstance();
         this.jobFSconfig = jobFSConfig;
     }
 
     @POST
     @Timed
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public String startJob(@FormDataParam("jobId") String jobId,
-            @FormDataParam("jobJson") InputStream jobJson,
-            @FormDataParam("classList") String classListStr) throws IOException {
+    public String queueJob(@FormDataParam("jobId") String jobId,
+                           @FormDataParam("jobJson") InputStream jobJson,
+                           @FormDataParam("classList") String classListStr) throws IOException {
 
         List<String> classList = Arrays.asList(classListStr.split("\n"));
 
         String jobClassPath = LibCache.getInstance().
                 buildJobClassPath(classList);
+
         String jobCMD = this.jobProcessorConfig.getJobCLIFormat().
                 replace("{classpath}", jobClassPath).
                 replace("{jobJson}", ""+ FileHelper.persistStream(jobJson, "/tmp/" + System.currentTimeMillis())).
                 replace("{jobId}", jobId);
 
-        JobInfo jobInfo = new JobInfo().
+        Job job = new Job().
                 setJobCmd(jobCMD).
                 setJobId(jobId);
 
-        jobProcessorThread.addJobRequest(jobInfo);
-        return jobInfo.getJobId();
+        jobProcessorThread.addJobRequest(job);
+        return job.getJobId();
     }
 
     @GET
@@ -74,10 +72,8 @@ public class JobResource {
     @Path("/{jobId}/kill")
     @PUT
     @Timed
-    public String pause(@PathParam("jobId") String jobId) throws IOException, InterruptedException {
-        String killStatus = jobProcessorThread.killJob(jobId);
-        statsSyncThread.removeJob(jobId);
-        return "{'message' : '"+killStatus+"'}";
+    public void kill(@PathParam("jobId") String jobId) throws IOException, InterruptedException {
+        jobProcessorThread.killJob(jobId);
     }
 
     @Produces(MediaType.TEXT_HTML)

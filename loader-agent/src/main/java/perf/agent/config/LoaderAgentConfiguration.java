@@ -22,6 +22,15 @@ public class LoaderAgentConfiguration extends Configuration {
     private JobFSConfig jobFSConfig;
     private JobStatSyncConfig jobStatSyncConfig;
     private Map registrationParams;
+    private static LoaderAgentConfiguration instance;
+
+    public LoaderAgentConfiguration() {
+        instance = this;
+    }
+
+    public static LoaderAgentConfiguration instance() {
+        return instance;
+    }
 
     public String getAppName() {
         return appName;
