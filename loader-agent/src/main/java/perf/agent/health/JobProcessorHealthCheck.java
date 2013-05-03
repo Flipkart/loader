@@ -18,7 +18,7 @@ public class JobProcessorHealthCheck extends HealthCheck {
 
     @Override
     protected Result check() throws Exception {
-        return JobProcessorThread.getInstance().isAlive() ?
+        return JobProcessorThread.instance().isAlive() ?
                 Result.healthy("Job Processor Thread is Alive") :
                 Result.unhealthy("Job Processor Thread is dead");
     }

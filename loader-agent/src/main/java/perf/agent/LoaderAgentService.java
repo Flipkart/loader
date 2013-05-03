@@ -37,13 +37,13 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
 
         LibCache.initialize(configuration.getLibStorageConfig());
 
-        JobProcessorThread.initialize(configuration.getJobProcessorConfig(),
-                LoaderServerClient.buildClient(configuration.getServerInfo()),
-                configuration.getJobFSConfig());
-
         JobStatsSyncThread.initialize(configuration.getJobStatSyncConfig(),
                 configuration.getJobFSConfig(),
                 LoaderServerClient.buildClient(configuration.getServerInfo()));
+
+        JobProcessorThread.initialize(configuration.getJobProcessorConfig(),
+                LoaderServerClient.buildClient(configuration.getServerInfo()),
+                configuration.getJobFSConfig());
 
         environment.addResource(new DeployLibResource(configuration.getLibStorageConfig()));
         environment.addResource(new AdminResource(configuration));

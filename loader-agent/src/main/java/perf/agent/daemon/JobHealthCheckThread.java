@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobProcessorConfig;
-import perf.agent.job.JobInfo;
+import perf.agent.job.Job;
 import perf.agent.util.SystemInfo;
 
 import java.io.IOException;
@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class JobHealthCheckThread extends Thread {
-    private List<JobInfo> jobs;
+    private List<Job> jobs;
     private Map<String, JMXConnection> jobJmxConnectionMap;
     private Map<String, JobHealthStatus> jobHealthStatusMap;
     private final LoaderServerClient serverClient;
@@ -29,7 +29,7 @@ public class JobHealthCheckThread extends Thread {
     private final JobProcessorConfig jobProcessorConfig;
 
     private JobHealthCheckThread(LoaderServerClient serverClient, JobProcessorConfig jobProcessorConfig) {
-        this.jobs = new LinkedList<JobInfo>();
+        this.jobs = new LinkedList<Job>();
         this.jobJmxConnectionMap = new HashMap<String, JMXConnection>();
         this.jobHealthStatusMap = new HashMap<String, JobHealthStatus>();
         this.serverClient = serverClient;
@@ -48,19 +48,19 @@ public class JobHealthCheckThread extends Thread {
 
     public void run() {
         while(true) {
-            for(JobInfo jobInfo : jobs) {
-                JMXConnection jobJMXConnection = jobJmxConnectionMap.get(jobInfo.getJobId());
+            for(Job job : jobs) {
+                JMXConnection jobJMXConnection = jobJmxConnectionMap.get(job.getJobId());
                 if(jobJMXConnection == null) {
                     try {
-                        jobJMXConnection = new JMXConnection("localhost", jobInfo.getJmxPort());
-                        jobJmxConnectionMap.put(jobInfo.getJobId(), jobJMXConnection);
+                        jobJMXConnection = new JMXConnection("localhost", job.getJmxPort());
+                        jobJmxConnectionMap.put(job.getJobId(), jobJMXConnection);
                         JobHealthStatus jobHealthStatus = new JobHealthStatus();
 
                         jobHealthStatus.
                                 setPreviousUpTime(jobJMXConnection.getRuntimeMXBean().getUptime()).
                                 setPreviousProcessCpuTime(jobJMXConnection.getOperatingSystemMXBean().getProcessCpuTime());
 
-                        jobHealthStatusMap.put(jobInfo.getJobId(), jobHealthStatus);
+                        jobHealthStatusMap.put(job.getJobId(), jobHealthStatus);
 
                     } catch (IOException e) {
                         logger.error("", e);
@@ -68,7 +68,7 @@ public class JobHealthCheckThread extends Thread {
                 }
                 else {
 
-                    JobHealthStatus jobHealthStatus = jobHealthStatusMap.get(jobInfo.getJobId());
+                    JobHealthStatus jobHealthStatus = jobHealthStatusMap.get(job.getJobId());
                     boolean jobWasInStress = jobHealthStatus.inStress;
                     jobHealthStatus.setInStress(false);
 
@@ -103,11 +103,11 @@ public class JobHealthCheckThread extends Thread {
 
                         // Publish job health status if required
                         if(jobHealthStatus.inStress) {
-                            serverClient.notifyJobHealth(jobInfo.getJobId(), ObjectMapperUtil.instance().writeValueAsString(jobHealthStatus));
+                            serverClient.notifyJobHealth(job.getJobId(), ObjectMapperUtil.instance().writeValueAsString(jobHealthStatus));
                         }
                         else {
                             if(jobWasInStress) {
-                                serverClient.notifyJobHealth(jobInfo.getJobId(), ObjectMapperUtil.instance().writeValueAsString(jobHealthStatus));
+                                serverClient.notifyJobHealth(job.getJobId(), ObjectMapperUtil.instance().writeValueAsString(jobHealthStatus));
                             }
                         }
 
@@ -132,15 +132,15 @@ public class JobHealthCheckThread extends Thread {
         return myInstance;
     }
 
-    public void add(JobInfo jobInfo) {
+    public void addJob(Job job) {
         synchronized (jobs) {
-            jobs.add(jobInfo);
+            jobs.add(job);
         }
     }
 
-    public void remove(JobInfo jobInfo) {
+    public void removeJob(Job job) {
         synchronized (jobs) {
-            jobs.remove(jobInfo);
+            jobs.remove(job);
         }
     }
 
