@@ -19,7 +19,7 @@ import perf.server.daemon.JobDispatcherThread;
 import perf.server.daemon.TimerComputationThread;
 import perf.server.resource.*;
 import perf.server.util.DeploymentHelper;
-import perf.server.util.JobHelper;
+import perf.server.util.JobStatsHelper;
 
 public class LoaderServerService extends Service<LoaderServerConfiguration> {
 
@@ -44,7 +44,7 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         FilterBuilder filterConfig = environment.addFilter(CrossOriginFilter.class, "/*");
         filterConfig.setInitParam(CrossOriginFilter.PREFLIGHT_MAX_AGE_PARAM, String.valueOf(60*60*24)); // 1 day - jetty-servlet CrossOriginFilter will convert to Int.
 
-        JobHelper.build(configuration.getJobFSConfig(), configuration.getAgentConfig(), configuration.getMonitoringAgentConfig());
+        JobStatsHelper.build(configuration.getJobFSConfig(), configuration.getAgentConfig(), configuration.getMonitoringAgentConfig());
         JobDispatcherThread.initialize();
 
         //filterConfig.setInitParam(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "http://localhost"); // comma separated list of allowed origin domains
