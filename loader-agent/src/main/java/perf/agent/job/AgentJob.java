@@ -3,6 +3,7 @@ package perf.agent.job;
 import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.FileHelper;
 import org.codehaus.jackson.map.ObjectMapper;
+import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobFSConfig;
 import perf.agent.config.LoaderAgentConfiguration;
 import perf.agent.daemon.JobHealthCheckThread;
@@ -11,6 +12,7 @@ import perf.agent.daemon.JobStatsSyncThread;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * nitinka
@@ -100,26 +102,26 @@ public class AgentJob {
         persist();
     }
 
-    public AgentJob kill() throws IOException, InterruptedException {
+    public AgentJob kill() throws IOException, InterruptedException, ExecutionException {
         Runtime.getRuntime().exec(new String[]{"/bin/sh","-c","kill -9 `ps aux | grep "+jobId+" | grep -v grep | tr -s \" \" \":\" |cut -f 2 -d \":\"`"}).
                 waitFor();
         killed();
         return this;
     }
 
-    public void killed() throws IOException {
+    public void killed() throws IOException, ExecutionException, InterruptedException {
         completed(JOB_STATUS.KILLED);
     }
 
-    public void completed() throws IOException {
+    public void completed() throws IOException, ExecutionException, InterruptedException {
         completed(JOB_STATUS.COMPLETED);
     }
 
-    public void errored() throws IOException {
+    public void errored() throws IOException, ExecutionException, InterruptedException {
         completed(JOB_STATUS.ERROR);
     }
 
-    private void completed(JOB_STATUS status) throws IOException {
+    private void completed(JOB_STATUS status) throws IOException, ExecutionException, InterruptedException {
         this.jobStatus = status;
         this.endTime = System.currentTimeMillis();
         JobStatsSyncThread.instance().removeJob(jobId);
@@ -130,6 +132,9 @@ public class AgentJob {
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(jobFSConfig.getRunningJobsFile()), runningJobs);
 
         persist();
+        LoaderServerClient.
+                buildClient(LoaderAgentConfiguration.instance().getServerInfo()).
+                notifyJobIsOver(this.jobId, status.toString());
     }
 
     private void persist() throws IOException {

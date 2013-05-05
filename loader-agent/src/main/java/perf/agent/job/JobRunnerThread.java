@@ -53,10 +53,9 @@ public class JobRunnerThread extends Thread{
             else
                 this.agentJob.errored();
 
-        } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (Exception e) {
+            logger.error("" +
+                    "",e);
         } finally {
             logger.info("Job :"+ agentJob.getJobId() +" Ended");
             this.running = false;

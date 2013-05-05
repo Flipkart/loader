@@ -39,7 +39,7 @@ public class JobProcessorThread extends Thread{
         start();
     }
 
-    public static JobProcessorThread initialize(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient, JobFSConfig jobFSConfig) throws IOException, InterruptedException {
+    public static JobProcessorThread initialize(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient, JobFSConfig jobFSConfig) throws IOException, InterruptedException, ExecutionException {
         if(instance == null)
             instance = new JobProcessorThread(jobProcessorConfig, serverClient, jobFSConfig);
 
@@ -47,7 +47,7 @@ public class JobProcessorThread extends Thread{
         return instance;
     }
 
-    private void cleanIncompleteJobs() throws IOException, InterruptedException {
+    private void cleanIncompleteJobs() throws IOException, InterruptedException, ExecutionException {
         List<String> runningJobs = objectMapper.readValue(new File(jobFSConfig.getRunningJobsFile()), List.class);
         while(runningJobs.size() > 0) {
             String runningJob = runningJobs.remove(0);
@@ -96,11 +96,6 @@ public class JobProcessorThread extends Thread{
 
                 if(!jobRunnerThread.running()) {
                     jobRunners.remove(jobId);
-                    JobStatsSyncThread.instance().removeJob(jobId);
-                    JobHealthCheckThread.instance().removeJob(jobRunnerThread.getAgentJob());
-                    this.serverClient.notifyJobIsOver(jobId);
-                    // Make a Post Call to let loader-server know that job is over
-
                 }
             }
             logger.debug("Jobs Still Running :"+jobRunners.size());
