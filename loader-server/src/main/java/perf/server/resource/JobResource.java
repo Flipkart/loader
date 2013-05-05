@@ -7,11 +7,11 @@ import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.FileHelper;
 import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.server.config.AgentConfig;
 import perf.server.config.JobFSConfig;
-import perf.server.config.MonitoringAgentConfig;
 import perf.server.daemon.JobDispatcherThread;
 import perf.server.domain.Job;
 import perf.server.domain.JobRequest;
@@ -50,7 +50,6 @@ public class JobResource {
                         }
                     });
 
-    private final MonitoringAgentConfig monitoringAgentConfig;
     private AgentConfig agentConfig;
     private JobFSConfig jobFSConfig;
     private static JobStatsHelper jobStatsHelper;
@@ -66,16 +65,34 @@ public class JobResource {
 
         jobLastResourceMetricInstanceMap = new HashMap<String, Map<String, ResourceCollectionInstance>>();
         jobStatsHelper = JobStatsHelper.instance();
-        log = Logger.getLogger(JobResource.class);
+        log = LoggerFactory.getLogger(JobResource.class);
     }
 
     public JobResource(AgentConfig agentConfig,
-                       MonitoringAgentConfig monitoringAgentConfig,
                        JobFSConfig jobFSConfig) {
         this.agentConfig = agentConfig;
-        this.monitoringAgentConfig = monitoringAgentConfig;
         this.jobFSConfig = jobFSConfig;
+
+        try {
+            cleanRunningJobsBeforeRestart();
+        } catch (IOException e) {
+            log.error("",e);
+        }
     }
+
+    private void cleanRunningJobsBeforeRestart() throws IOException {
+        List<String> runningJobs = objectMapper.readValue(new File(jobFSConfig.getRunningJobsFile()), List.class);
+        while(runningJobs.size() > 0) {
+            try {
+                log.info("Clearing Job '"+runningJobs.get(0)+"' with RUNNING status at startup");
+                killJob(runningJobs.remove(0));
+            } catch (Exception e) {
+                log.error("",e);
+            }
+        }
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(jobFSConfig.getRunningJobsFile()), runningJobs);
+    }
+                                             //To change body of created methods use File | Settings | File Templates.
     /**
      Following call simulates html form post call, where somebody uploads a file to server
      curl -X POST -d @file-containing-runName http://localhost:9999/loader-server/jobs --header "Content-Type:application/json"

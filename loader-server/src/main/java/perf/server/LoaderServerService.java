@@ -47,13 +47,10 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         JobStatsHelper.build(configuration.getJobFSConfig(), configuration.getAgentConfig(), configuration.getMonitoringAgentConfig());
         JobDispatcherThread.initialize();
 
-        //filterConfig.setInitParam(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "http://localhost"); // comma separated list of allowed origin domains
-        // Adding Resource End Points
+        environment.addResource(new JobResource(configuration.getAgentConfig(),
+                configuration.getJobFSConfig()));
         environment.addResource(new DeployLibResource(configuration.getLibStorageFSConfig()));
         environment.addResource(new AgentResource(configuration.getAgentConfig()));
-        environment.addResource(new JobResource(configuration.getAgentConfig(),
-                configuration.getMonitoringAgentConfig(),
-                configuration.getJobFSConfig()));
         environment.addResource(new RunResource(configuration.getJobFSConfig()));
         environment.addResource(new FunctionResource(configuration.getLibStorageFSConfig()));
         environment.addResource(new AdminResource(configuration));
