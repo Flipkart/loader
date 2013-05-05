@@ -3,6 +3,7 @@ package perf.agent.job;
 import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.FileHelper;
 import org.codehaus.jackson.map.ObjectMapper;
+import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobFSConfig;
 import perf.agent.config.LoaderAgentConfiguration;
 import perf.agent.daemon.JobHealthCheckThread;
@@ -11,13 +12,14 @@ import perf.agent.daemon.JobStatsSyncThread;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * nitinka
  * Information about the job that is being executed.
  */
 
-public class Job {
+public class AgentJob {
     public static enum JOB_STATUS {
         QUEUED, RUNNING, COMPLETED, KILLED, ERROR;
     }
@@ -32,7 +34,7 @@ public class Job {
         return jobId;
     }
 
-    public Job setJobId(String jobId) {
+    public AgentJob setJobId(String jobId) {
         this.jobId = jobId;
         return this;
     }
@@ -41,7 +43,7 @@ public class Job {
         return jobCmd;
     }
 
-    public Job setJobCmd(String jobCmd) {
+    public AgentJob setJobCmd(String jobCmd) {
         this.jobCmd = jobCmd;
         return this;
     }
@@ -50,7 +52,7 @@ public class Job {
         return jmxPort;
     }
 
-    public Job setJmxPort(int jmxPort) {
+    public AgentJob setJmxPort(int jmxPort) {
         this.jmxPort = jmxPort;
         return this;
     }
@@ -59,7 +61,7 @@ public class Job {
         return jobStatus;
     }
 
-    public Job setJobStatus(JOB_STATUS jobStatus) {
+    public AgentJob setJobStatus(JOB_STATUS jobStatus) {
         this.jobStatus = jobStatus;
         return this;
     }
@@ -68,7 +70,7 @@ public class Job {
         return startTime;
     }
 
-    public Job setStartTime(long startTime) {
+    public AgentJob setStartTime(long startTime) {
         this.startTime = startTime;
         return this;
     }
@@ -77,7 +79,7 @@ public class Job {
         return endTime;
     }
 
-    public Job setEndTime(long endTime) {
+    public AgentJob setEndTime(long endTime) {
         this.endTime = endTime;
         return this;
     }
@@ -100,25 +102,26 @@ public class Job {
         persist();
     }
 
-    public void kill() throws IOException, InterruptedException {
+    public AgentJob kill() throws IOException, InterruptedException, ExecutionException {
         Runtime.getRuntime().exec(new String[]{"/bin/sh","-c","kill -9 `ps aux | grep "+jobId+" | grep -v grep | tr -s \" \" \":\" |cut -f 2 -d \":\"`"}).
                 waitFor();
         killed();
+        return this;
     }
 
-    public void killed() throws IOException {
+    public void killed() throws IOException, ExecutionException, InterruptedException {
         completed(JOB_STATUS.KILLED);
     }
 
-    public void completed() throws IOException {
+    public void completed() throws IOException, ExecutionException, InterruptedException {
         completed(JOB_STATUS.COMPLETED);
     }
 
-    public void errored() throws IOException {
+    public void errored() throws IOException, ExecutionException, InterruptedException {
         completed(JOB_STATUS.ERROR);
     }
 
-    private void completed(JOB_STATUS status) throws IOException {
+    private void completed(JOB_STATUS status) throws IOException, ExecutionException, InterruptedException {
         this.jobStatus = status;
         this.endTime = System.currentTimeMillis();
         JobStatsSyncThread.instance().removeJob(jobId);
@@ -129,6 +132,9 @@ public class Job {
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(jobFSConfig.getRunningJobsFile()), runningJobs);
 
         persist();
+        LoaderServerClient.
+                buildClient(LoaderAgentConfiguration.instance().getServerInfo()).
+                notifyJobIsOver(this.jobId, status.toString());
     }
 
     private void persist() throws IOException {
@@ -142,13 +148,13 @@ public class Job {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Job)) return false;
+        if (!(o instanceof AgentJob)) return false;
 
-        Job job = (Job) o;
+        AgentJob agentJob = (AgentJob) o;
 
-        if (jmxPort != job.jmxPort) return false;
-        if (jobCmd != null ? !jobCmd.equals(job.jobCmd) : job.jobCmd != null) return false;
-        if (jobId != null ? !jobId.equals(job.jobId) : job.jobId != null) return false;
+        if (jmxPort != agentJob.jmxPort) return false;
+        if (jobCmd != null ? !jobCmd.equals(agentJob.jobCmd) : agentJob.jobCmd != null) return false;
+        if (jobId != null ? !jobId.equals(agentJob.jobId) : agentJob.jobId != null) return false;
 
         return true;
     }

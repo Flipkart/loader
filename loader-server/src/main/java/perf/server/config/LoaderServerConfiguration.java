@@ -17,6 +17,15 @@ public class LoaderServerConfiguration extends Configuration {
     private MonitoringAgentConfig monitoringAgentConfig;
     private JobFSConfig jobFSConfig;
     private String reportConfigFile;
+    private static LoaderServerConfiguration instance;
+
+    public LoaderServerConfiguration() {
+        instance = this;
+    }
+
+    public static LoaderServerConfiguration instance() {
+        return instance;
+    }
 
     public String getAppName() {
         return appName;

@@ -22,7 +22,7 @@ import java.util.concurrent.Future;
 public class LoaderServerClient {
     private String host;
     private int port;
-    private static final String RESOURCE_JOB_OVER = "/loader-server/jobs/{jobId}/over";
+    private static final String RESOURCE_JOB_OVER = "/loader-server/jobs/{jobId}/over?jobStatus={jobStatus}";
     private static final String RESOURCE_JOB_HEALTH_STATUS = "/loader-server/jobs/{jobId}/healthStatus";
     private static final String RESOURCE_JOB_STATS = "/loader-server/jobs/{jobId}/jobStats?file={file}";
     private static final String RESOURCE_AGENTS = "/loader-server/agents";
@@ -95,13 +95,14 @@ public class LoaderServerClient {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public void notifyJobIsOver(String jobId) throws IOException, ExecutionException, InterruptedException {
+    public void notifyJobIsOver(String jobId, String jobStatus) throws IOException, ExecutionException, InterruptedException {
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 preparePut("http://" + this.getHost() + ":" +
                         this.getPort() +
                         RESOURCE_JOB_OVER.
-                                replace("{jobId}", jobId)).
+                                replace("{jobId}", jobId).
+                                replace("{jobStatus}", jobStatus)).
                 setHeader("Content-Type", MediaType.APPLICATION_JSON);
 
         Future<Response> r = b.execute();
