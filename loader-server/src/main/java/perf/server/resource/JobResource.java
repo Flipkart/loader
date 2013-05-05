@@ -373,9 +373,15 @@ public class JobResource {
     @PUT
     @Timed
     public void jobOver(@Context HttpServletRequest request,
-                        @PathParam("jobId") String jobId) throws InterruptedException, ExecutionException, IOException {
+                        @PathParam("jobId") String jobId, @QueryParam("jobStatus") @DefaultValue("COMPLETED") String jobStatus) throws InterruptedException, ExecutionException, IOException {
         Job job = jobExistsOrException(jobId);
-        job.jobCompletedInAgent(request.getRemoteAddr());
+        if(jobStatus.equals("COMPLETED"))
+            job.jobCompletedInAgent(request.getRemoteAddr());
+        else if(jobStatus.equals("KILLED"))
+            job.jobKilledInAgent(request.getRemoteAddr());
+        else if(jobStatus.equals("ERROR"))
+                    job.jobErrorInAgent(request.getRemoteAddr());
+
     }
 
 

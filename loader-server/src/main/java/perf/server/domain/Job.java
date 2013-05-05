@@ -28,7 +28,7 @@ public class Job {
     private static Logger log = LoggerFactory.getLogger(Job.class);
 
     public static enum JOB_STATUS {
-        QUEUED, RUNNING, PAUSED, COMPLETED, KILLED, FAILED_TO_START;
+        QUEUED, RUNNING, PAUSED, COMPLETED, KILLED, FAILED_TO_START, ERROR;
     }
 
     private String jobId;
@@ -168,31 +168,32 @@ public class Job {
 
     public Job jobCompletedInAgent(String agentIp) throws IOException, ExecutionException, InterruptedException {
         JOB_STATUS jobStatusInAgent = this.agentsJobStatus.get(agentIp).getJob_status();
-        if(jobStatusInAgent != JOB_STATUS.KILLED) {
+        if(jobStatusInAgent != JOB_STATUS.KILLED && jobStatusInAgent != JOB_STATUS.ERROR) {
             this.agentsJobStatus.get(agentIp).setJob_status(JOB_STATUS.COMPLETED);
         }
 
-        if(!this.agentsJobStatus.containsValue(JOB_STATUS.RUNNING) &&
-                !this.agentsJobStatus.containsValue(JOB_STATUS.PAUSED)) {
-            this.jobStatus = JOB_STATUS.COMPLETED;
-        }
-
-        AgentsCache.getAgentInfo(agentIp).setFree();
-        AgentsCache.getAgentInfo(agentIp).getRunningJobs().remove(jobId);
-
-        if(isCompleted()) {
-            this.ended();
-        }
-        this.persist();
-        return this;
+        return jobOverInAgent(agentIp);
     }
 
     public Job jobKilledInAgent(String agentIp) throws IOException, ExecutionException, InterruptedException {
         JOB_STATUS jobStatusInAgent = this.agentsJobStatus.get(agentIp).getJob_status();
-        if(jobStatusInAgent != JOB_STATUS.COMPLETED) {
+        if(jobStatusInAgent != JOB_STATUS.COMPLETED && jobStatusInAgent != JOB_STATUS.ERROR) {
             this.agentsJobStatus.get(agentIp).setJob_status(JOB_STATUS.KILLED);
         }
 
+        return jobOverInAgent(agentIp);
+    }
+
+    public Job jobErrorInAgent(String agentIp) throws InterruptedException, ExecutionException, IOException {
+        JOB_STATUS jobStatusInAgent = this.agentsJobStatus.get(agentIp).getJob_status();
+        if(jobStatusInAgent != JOB_STATUS.KILLED && jobStatusInAgent != JOB_STATUS.COMPLETED) {
+            this.agentsJobStatus.get(agentIp).setJob_status(JOB_STATUS.ERROR);
+        }
+
+        return jobOverInAgent(agentIp);
+    }
+
+    private Job jobOverInAgent(String agentIp) throws IOException, ExecutionException, InterruptedException {
         if(!this.agentsJobStatus.containsValue(JOB_STATUS.RUNNING) &&
                 !this.agentsJobStatus.containsValue(JOB_STATUS.PAUSED)) {
             this.jobStatus = JOB_STATUS.COMPLETED;
@@ -208,6 +209,7 @@ public class Job {
         this.persist();
         return this;
     }
+
 
     /**
      * Mark that job has started

@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Receive Requests about jobs
@@ -82,7 +83,7 @@ public class JobResource {
     @Path("/{jobId}/kill")
     @PUT
     @Timed
-    public AgentJob kill(@PathParam("jobId") String jobId) throws IOException, InterruptedException {
+    public AgentJob kill(@PathParam("jobId") String jobId) throws IOException, InterruptedException, ExecutionException {
         AgentJob agentJob = jobExistsOrException(jobId);
         return agentJob.kill();
     }
