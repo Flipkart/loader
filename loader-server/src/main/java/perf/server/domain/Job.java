@@ -215,6 +215,11 @@ public class Job {
      */
     public void started() throws IOException {
         this.jobStatus = JOB_STATUS.RUNNING;
+
+        List<String> runningJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), List.class);
+        runningJobs.add(jobId);
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), runningJobs);
+
         this.startTime = new Date();
         this.persist();
     }
@@ -229,6 +234,10 @@ public class Job {
         CounterCompoundThread.getCounterCruncherThread().removeJob(jobId);
         CounterThroughputThread.getCounterCruncherThread().removeJob(jobId);
         TimerComputationThread.getComputationThread().removeJob(jobId);
+
+        List<String> runningJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), List.class);
+        runningJobs.remove(jobId);
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), runningJobs);
 
         this.persist();
     }
@@ -407,8 +416,7 @@ public class Job {
      * @throws JobException
      * @throws IOException
      */
-    public void killJobInAgents(Collection<String> agents)
-            throws InterruptedException, ExecutionException, JobException, IOException {
+    public void killJobInAgents(Collection<String> agents) throws InterruptedException, ExecutionException, IOException {
         if(!this.jobStatus.equals(Job.JOB_STATUS.COMPLETED) &&
                 !this.jobStatus.equals(Job.JOB_STATUS.KILLED)) {
 
@@ -416,8 +424,14 @@ public class Job {
             for(String agent : agents) {
                 if(!agentsJobStatusMap.get(agent).getJob_status().equals(Job.JOB_STATUS.KILLED) &&
                         !agentsJobStatusMap.get(agent).getJob_status().equals(Job.JOB_STATUS.COMPLETED)) {
-                    new LoaderAgentClient(agent, configuration.getAgentConfig().getAgentPort()).killJob(this.jobId);
-                    this.jobKilledInAgent(agent);
+                    log.info("Killing Job '"+jobId+"' in agent '"+agent+"'");
+                    try {
+                        new LoaderAgentClient(agent, configuration.getAgentConfig().getAgentPort()).killJob(this.jobId);
+                    } catch (Exception e) {
+                        log.error("", e);
+                    } finally {
+                        this.jobKilledInAgent(agent);
+                    }
                 }
             }
         }
