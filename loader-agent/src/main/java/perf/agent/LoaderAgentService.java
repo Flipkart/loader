@@ -30,8 +30,6 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
     public void run(final LoaderAgentConfiguration configuration, Environment environment) throws Exception {
         environment.addProvider(com.sun.jersey.multipart.impl.MultiPartReaderServerSide.class);
 
-        AgentRegistrationThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
-                configuration.getRegistrationParams());
         JobHealthCheckThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
                 configuration.getJobProcessorConfig());
 
@@ -50,6 +48,9 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
         environment.addResource(new JobResource(configuration.getJobProcessorConfig(),
                 configuration.getJobFSConfig()));
         environment.addHealthCheck(new JobProcessorHealthCheck("JobProcessorThread"));
+
+        AgentRegistrationThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
+                configuration.getRegistrationParams());
     }
 
 

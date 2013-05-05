@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobProcessorConfig;
-import perf.agent.job.Job;
+import perf.agent.job.AgentJob;
 import perf.agent.util.SystemInfo;
 
 import java.io.IOException;
@@ -20,16 +20,16 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class JobHealthCheckThread extends Thread {
-    private List<Job> jobs;
+    private List<AgentJob> agentJobs;
     private Map<String, JMXConnection> jobJmxConnectionMap;
     private Map<String, JobHealthStatus> jobHealthStatusMap;
     private final LoaderServerClient serverClient;
-    private static JobHealthCheckThread myInstance;
+    private static JobHealthCheckThread instance;
     private static Logger logger = LoggerFactory.getLogger(JobHealthCheckThread.class);
     private final JobProcessorConfig jobProcessorConfig;
 
     private JobHealthCheckThread(LoaderServerClient serverClient, JobProcessorConfig jobProcessorConfig) {
-        this.jobs = new LinkedList<Job>();
+        this.agentJobs = new LinkedList<AgentJob>();
         this.jobJmxConnectionMap = new HashMap<String, JMXConnection>();
         this.jobHealthStatusMap = new HashMap<String, JobHealthStatus>();
         this.serverClient = serverClient;
@@ -39,28 +39,28 @@ public class JobHealthCheckThread extends Thread {
     }
 
     public static JobHealthCheckThread initialize(LoaderServerClient serverClient, JobProcessorConfig jobProcessorConfig) {
-        if(myInstance == null) {
-            myInstance = new JobHealthCheckThread(serverClient, jobProcessorConfig);
-            myInstance.start();
+        if(instance == null) {
+            instance = new JobHealthCheckThread(serverClient, jobProcessorConfig);
+            instance.start();
         }
-        return myInstance;
+        return instance;
     }
 
     public void run() {
         while(true) {
-            for(Job job : jobs) {
-                JMXConnection jobJMXConnection = jobJmxConnectionMap.get(job.getJobId());
+            for(AgentJob agentJob : agentJobs) {
+                JMXConnection jobJMXConnection = jobJmxConnectionMap.get(agentJob.getJobId());
                 if(jobJMXConnection == null) {
                     try {
-                        jobJMXConnection = new JMXConnection("localhost", job.getJmxPort());
-                        jobJmxConnectionMap.put(job.getJobId(), jobJMXConnection);
+                        jobJMXConnection = new JMXConnection("localhost", agentJob.getJmxPort());
+                        jobJmxConnectionMap.put(agentJob.getJobId(), jobJMXConnection);
                         JobHealthStatus jobHealthStatus = new JobHealthStatus();
 
                         jobHealthStatus.
                                 setPreviousUpTime(jobJMXConnection.getRuntimeMXBean().getUptime()).
                                 setPreviousProcessCpuTime(jobJMXConnection.getOperatingSystemMXBean().getProcessCpuTime());
 
-                        jobHealthStatusMap.put(job.getJobId(), jobHealthStatus);
+                        jobHealthStatusMap.put(agentJob.getJobId(), jobHealthStatus);
 
                     } catch (IOException e) {
                         logger.error("", e);
@@ -68,7 +68,7 @@ public class JobHealthCheckThread extends Thread {
                 }
                 else {
 
-                    JobHealthStatus jobHealthStatus = jobHealthStatusMap.get(job.getJobId());
+                    JobHealthStatus jobHealthStatus = jobHealthStatusMap.get(agentJob.getJobId());
                     boolean jobWasInStress = jobHealthStatus.inStress;
                     jobHealthStatus.setInStress(false);
 
@@ -103,11 +103,11 @@ public class JobHealthCheckThread extends Thread {
 
                         // Publish job health status if required
                         if(jobHealthStatus.inStress) {
-                            serverClient.notifyJobHealth(job.getJobId(), ObjectMapperUtil.instance().writeValueAsString(jobHealthStatus));
+                            serverClient.notifyJobHealth(agentJob.getJobId(), ObjectMapperUtil.instance().writeValueAsString(jobHealthStatus));
                         }
                         else {
                             if(jobWasInStress) {
-                                serverClient.notifyJobHealth(job.getJobId(), ObjectMapperUtil.instance().writeValueAsString(jobHealthStatus));
+                                serverClient.notifyJobHealth(agentJob.getJobId(), ObjectMapperUtil.instance().writeValueAsString(jobHealthStatus));
                             }
                         }
 
@@ -129,18 +129,18 @@ public class JobHealthCheckThread extends Thread {
     }
 
     public static JobHealthCheckThread instance() {
-        return myInstance;
+        return instance;
     }
 
-    public void addJob(Job job) {
-        synchronized (jobs) {
-            jobs.add(job);
+    public void addJob(AgentJob agentJob) {
+        synchronized (agentJobs) {
+            agentJobs.add(agentJob);
         }
     }
 
-    public void removeJob(Job job) {
-        synchronized (jobs) {
-            jobs.remove(job);
+    public void removeJob(AgentJob agentJob) {
+        synchronized (agentJobs) {
+            agentJobs.remove(agentJob);
         }
     }
 

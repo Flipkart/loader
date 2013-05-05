@@ -1,5 +1,6 @@
 package perf.agent.resource;
 
+import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.FileHelper;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.dropwizard.jersey.params.IntParam;
@@ -8,7 +9,7 @@ import perf.agent.cache.LibCache;
 import perf.agent.config.JobFSConfig;
 import perf.agent.config.JobProcessorConfig;
 import perf.agent.daemon.JobProcessorThread;
-import perf.agent.job.Job;
+import perf.agent.job.AgentJob;
 import perf.agent.util.ResponseBuilder;
 
 import javax.ws.rs.*;
@@ -20,6 +21,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Receive Requests about jobs
@@ -53,12 +55,20 @@ public class JobResource {
                 replace("{jobJson}", ""+ FileHelper.persistStream(jobJson, "/tmp/" + System.currentTimeMillis())).
                 replace("{jobId}", jobId);
 
-        Job job = new Job().
+        AgentJob agentJob = new AgentJob().
                 setJobCmd(jobCMD).
                 setJobId(jobId);
 
-        jobProcessorThread.addJobRequest(job);
-        return job.getJobId();
+        jobProcessorThread.addJobRequest(agentJob);
+        return agentJob.getJobId();
+    }
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{jobId}")
+    @GET
+    @Timed
+    public AgentJob getJob(@PathParam("jobId") String jobId) throws IOException, InterruptedException {
+        return jobExistsOrException(jobId);
     }
 
     @GET
@@ -69,11 +79,13 @@ public class JobResource {
                 getJobs(jobStatus);
     }
 
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/{jobId}/kill")
     @PUT
     @Timed
-    public void kill(@PathParam("jobId") String jobId) throws IOException, InterruptedException {
-        jobProcessorThread.killJob(jobId);
+    public AgentJob kill(@PathParam("jobId") String jobId) throws IOException, InterruptedException, ExecutionException {
+        AgentJob agentJob = jobExistsOrException(jobId);
+        return agentJob.kill();
     }
 
     @Produces(MediaType.TEXT_HTML)
@@ -84,46 +96,47 @@ public class JobResource {
                       @QueryParam("lines") @DefaultValue("100") IntParam lines,
                       @QueryParam("grep") @DefaultValue("") String grepExp)
             throws IOException, InterruptedException {
-        if(jobExists(jobId)) {
-            String jobLogFile = jobFSconfig.getJobLogFile(jobId);
-            if(new File(jobLogFile).exists()) {
+        jobExistsOrException(jobId);
+        String jobLogFile = jobFSconfig.getJobLogFile(jobId);
+        if(new File(jobLogFile).exists()) {
 
-                // Build Command
-                StringBuilder cmdBuilder = new StringBuilder();
-                if(lines.get().intValue() > 0) {
-                    cmdBuilder.append("tail -"+lines.get().intValue() + " " + jobLogFile);
+            // Build Command
+            StringBuilder cmdBuilder = new StringBuilder();
+            if(lines.get().intValue() > 0) {
+                cmdBuilder.append("tail -"+lines.get().intValue() + " " + jobLogFile);
+            }
+
+            if(!grepExp.trim().equals("")) {
+                if(cmdBuilder.toString().equals("")) {
+                    cmdBuilder.append(" grep "+grepExp + " " + jobLogFile);
                 }
-
-                if(!grepExp.trim().equals("")) {
-                    if(cmdBuilder.toString().equals("")) {
-                        cmdBuilder.append(" grep "+grepExp + " " + jobLogFile);
-                    }
-                    else {
-                        cmdBuilder.append(" | grep "+grepExp);
-                    }
-                }
-
-                // Execute Command
-                if(!cmdBuilder.equals("")) {
-                    cmdBuilder.append(" | sed 's/$/<br>/'");
-                    String[] cmd = {
-                            "/bin/sh",
-                            "-c",
-                            cmdBuilder.toString()
-                    };
-
-                    Process process = Runtime.getRuntime().exec(cmd);
-                    process.waitFor();
-                    return process.getInputStream();
+                else {
+                    cmdBuilder.append(" | grep "+grepExp);
                 }
             }
+
+            // Execute Command
+            if(!cmdBuilder.equals("")) {
+                cmdBuilder.append(" | sed 's/$/<br>/'");
+                String[] cmd = {
+                        "/bin/sh",
+                        "-c",
+                        cmdBuilder.toString()
+                };
+
+                Process process = Runtime.getRuntime().exec(cmd);
+                process.waitFor();
+                return process.getInputStream();
+            }
         }
-        else
-            throw new WebApplicationException(ResponseBuilder.jobNotFound(jobId));
         return new ByteArrayInputStream("".getBytes());
     }
 
-    private boolean jobExists(String jobId) {
-        return new File(jobFSconfig.getJobPath(jobId)).exists();
+    private AgentJob jobExistsOrException(String jobId) throws IOException {
+        File jobFile = new File(jobFSconfig.getJobFile(jobId));
+        if(!jobFile.exists())
+            throw new WebApplicationException(ResponseBuilder.jobNotFound(jobId));
+        return ObjectMapperUtil.instance().readValue(jobFile, AgentJob.class);
+
     }
 }
