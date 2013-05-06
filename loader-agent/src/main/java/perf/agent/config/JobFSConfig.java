@@ -1,7 +1,7 @@
 package perf.agent.config;
 
 public class JobFSConfig {
-    private String jobBasePath, jobPath, jobLogFile;
+    private String jobBasePath, jobPath, jobLogFile, jobFile, runningJobsFile;
 
     public String getJobBasePath() {
         return jobBasePath;
@@ -26,5 +26,21 @@ public class JobFSConfig {
 
     public void setJobLogFile(String jobLogFile) {
         this.jobLogFile = jobLogFile;
+    }
+
+    public String getJobFile(String jobId) {
+        return jobFile.replace("{jobId}", jobId);
+    }
+
+    public void setJobFile(String jobFile) {
+        this.jobFile = jobFile;
+    }
+
+    public String getRunningJobsFile() {
+        return runningJobsFile;
+    }
+
+    public void setRunningJobsFile(String runningJobsFile) {
+        this.runningJobsFile = runningJobsFile;
     }
 }

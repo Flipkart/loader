@@ -68,7 +68,7 @@ public class CollectorResource {
 
         for(String metricLine : metricLines) {
             if(!metricLine.trim().equals("")) {
-                long time = Long.parseLong(metricLine.split(" ")[2]);
+                long time = Long.parseLong(metricLine.split(" ")[2]) * 1000; // As Diamond Return time in second.
 
                 //log.info("debug :"+metricLine);
                 String[] lineTokens = metricLine.split(" ");

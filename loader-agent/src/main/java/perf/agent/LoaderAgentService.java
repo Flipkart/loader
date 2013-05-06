@@ -30,26 +30,27 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
     public void run(final LoaderAgentConfiguration configuration, Environment environment) throws Exception {
         environment.addProvider(com.sun.jersey.multipart.impl.MultiPartReaderServerSide.class);
 
-        AgentRegistrationThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
-                configuration.getRegistrationParams());
         JobHealthCheckThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
                 configuration.getJobProcessorConfig());
 
         LibCache.initialize(configuration.getLibStorageConfig());
 
-        JobProcessorThread.initialize(configuration.getJobProcessorConfig(),
-                LoaderServerClient.buildClient(configuration.getServerInfo()),
-                configuration.getJobFSConfig());
-
         JobStatsSyncThread.initialize(configuration.getJobStatSyncConfig(),
                 configuration.getJobFSConfig(),
                 LoaderServerClient.buildClient(configuration.getServerInfo()));
+
+        JobProcessorThread.initialize(configuration.getJobProcessorConfig(),
+                LoaderServerClient.buildClient(configuration.getServerInfo()),
+                configuration.getJobFSConfig());
 
         environment.addResource(new DeployLibResource(configuration.getLibStorageConfig()));
         environment.addResource(new AdminResource(configuration));
         environment.addResource(new JobResource(configuration.getJobProcessorConfig(),
                 configuration.getJobFSConfig()));
         environment.addHealthCheck(new JobProcessorHealthCheck("JobProcessorThread"));
+
+        AgentRegistrationThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
+                configuration.getRegistrationParams());
     }
 
 
