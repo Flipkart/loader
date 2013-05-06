@@ -7,6 +7,7 @@ package perf.server;
 
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
+import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.FilterBuilder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
@@ -23,9 +24,13 @@ import perf.server.util.JobStatsHelper;
 
 public class LoaderServerService extends Service<LoaderServerConfiguration> {
 
+	public LoaderServerService() {
+	}
+	
     @Override
     public void initialize(Bootstrap<LoaderServerConfiguration> bootstrap) {
         bootstrap.setName("loader-server");
+				bootstrap.addBundle(new AssetsBundle("/assets","/","/index.html"));
     }
 
     @Override
