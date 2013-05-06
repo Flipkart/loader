@@ -1,13 +1,16 @@
 package perf.agent.daemon;
 
+import com.open.perf.jackson.ObjectMapperUtil;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobFSConfig;
 import perf.agent.config.JobProcessorConfig;
-import perf.agent.job.JobInfo;
+import perf.agent.job.AgentJob;
 import perf.agent.job.JobRunnerThread;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -19,30 +22,43 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class JobProcessorThread extends Thread{
 
     private Map<String, JobRunnerThread> jobRunners;
-    private Queue<JobInfo> pendingJobs;
+    private Queue<AgentJob> pendingAgentJobs;
     private static Logger logger = LoggerFactory.getLogger(JobProcessorThread.class);
     private JobProcessorConfig config;
-    private static JobProcessorThread jobProcessorThread;
+    private static JobProcessorThread instance;
     private final LoaderServerClient serverClient;
     private final JobFSConfig jobFSConfig;
+    private static final ObjectMapper objectMapper = ObjectMapperUtil.instance();
 
     private JobProcessorThread(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient, JobFSConfig jobFSConfig) {
         this.config = jobProcessorConfig;
         this.jobRunners = new HashMap<String, JobRunnerThread>();
-        this.pendingJobs = new LinkedBlockingDeque<JobInfo>();
+        this.pendingAgentJobs = new LinkedBlockingDeque<AgentJob>();
         this.serverClient = serverClient;
         this.jobFSConfig = jobFSConfig;
         start();
     }
 
-    public static JobProcessorThread initialize(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient, JobFSConfig jobFSConfig) {
-        if(jobProcessorThread == null)
-            jobProcessorThread = new JobProcessorThread(jobProcessorConfig, serverClient, jobFSConfig);
-        return jobProcessorThread;
+    public static JobProcessorThread initialize(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient, JobFSConfig jobFSConfig) throws IOException, InterruptedException, ExecutionException {
+        if(instance == null)
+            instance = new JobProcessorThread(jobProcessorConfig, serverClient, jobFSConfig);
+
+        instance.cleanIncompleteJobs();
+        return instance;
     }
 
-    public static JobProcessorThread getInstance() {
-        return jobProcessorThread;
+    private void cleanIncompleteJobs() throws IOException, InterruptedException, ExecutionException {
+        List<String> runningJobs = objectMapper.readValue(new File(jobFSConfig.getRunningJobsFile()), List.class);
+        while(runningJobs.size() > 0) {
+            String runningJob = runningJobs.remove(0);
+            AgentJob agentJob = objectMapper.readValue(new File(jobFSConfig.getJobFile(runningJob)), AgentJob.class);
+            agentJob.kill();
+        }
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(jobFSConfig.getRunningJobsFile()), runningJobs);
+    }
+
+    public static JobProcessorThread instance() {
+        return instance;
     }
 
     /**
@@ -80,11 +96,6 @@ public class JobProcessorThread extends Thread{
 
                 if(!jobRunnerThread.running()) {
                     jobRunners.remove(jobId);
-                    JobStatsSyncThread.getInstance().removeJob(jobId);
-                    JobHealthCheckThread.instance().remove(jobRunnerThread.getJobInfo());
-                    this.serverClient.notifyJobIsOver(jobId);
-                    // Make a Post Call to let loader-server know that job is over
-
                 }
             }
             logger.debug("Jobs Still Running :"+jobRunners.size());
@@ -95,17 +106,15 @@ public class JobProcessorThread extends Thread{
         if(jobRunners.size() < config.getMaxJobs()) {
             int howMany = config.getMaxJobs() - jobRunners.size();
 
-            synchronized (pendingJobs) {
+            synchronized (pendingAgentJobs) {
                 for(int i=1; i <= howMany; i++) {
-                    JobInfo jobInfo = pendingJobs.poll();
-                    if(jobInfo == null)
+                    AgentJob agentJob = pendingAgentJobs.poll();
+                    if(agentJob == null)
                         break;
-                    jobRunners.put(jobInfo.getJobId(), new JobRunnerThread(jobInfo, jobFSConfig));
-                    JobStatsSyncThread.getInstance().addJobToSync(jobInfo.getJobId());
-                    JobHealthCheckThread.instance().add(jobInfo);
+                    jobRunners.put(agentJob.getJobId(), new JobRunnerThread(agentJob, jobFSConfig));
                 }
             }
-            logger.debug("Jobs Still Pending :"+pendingJobs.size());
+            logger.debug("Jobs Still Pending :"+ pendingAgentJobs.size());
 
         }
     }
@@ -118,20 +127,10 @@ public class JobProcessorThread extends Thread{
         }
     }
 
-    public String killJob(String jobId) throws IOException, InterruptedException {
-        JobRunnerThread jobRunnerThread = jobRunners.get(jobId);
-        if(jobRunnerThread != null) {
-            //jobRunnerThread.getJobProcess().destroy();
-            Runtime.getRuntime().exec(new String[]{"/bin/sh","-c","kill -9 `ps aux | grep "+jobId+" | grep -v grep | tr -s \" \" \":\" |cut -f 2 -d \":\"`"}).
-                    waitFor();
-            return "Job Killed Successfully";
-        }
-        return "Job Not Running";
-    }
-
-    public void addJobRequest(JobInfo jobInfo) {
-        synchronized (pendingJobs) {
-            pendingJobs.add(jobInfo);
+    public void addJobRequest(AgentJob agentJob) throws IOException {
+        synchronized (pendingAgentJobs) {
+            pendingAgentJobs.add(agentJob);
+            agentJob.queued();
         }
     }
 
@@ -148,21 +147,21 @@ public class JobProcessorThread extends Thread{
         return jobs;
     }
 
-    private Set<JobInfo> pendingJobs() {
-        synchronized (pendingJobs) {
-            Set<JobInfo> pendingJobSet = new HashSet<JobInfo>();
-            for(Object pendingJob : pendingJobs)
-                pendingJobSet.add((JobInfo) pendingJob);
-            return pendingJobSet;
+    private Set<AgentJob> pendingJobs() {
+        synchronized (pendingAgentJobs) {
+            Set<AgentJob> pendingAgentJobSet = new HashSet<AgentJob>();
+            for(Object pendingJob : pendingAgentJobs)
+                pendingAgentJobSet.add((AgentJob) pendingJob);
+            return pendingAgentJobSet;
         }
     }
 
-    private Set<JobInfo> runningJobs() {
+    private Set<AgentJob> runningJobs() {
         synchronized (jobRunners) {
-            Set<JobInfo> runningJobSet = new HashSet<JobInfo>();
+            Set<AgentJob> runningAgentJobSet = new HashSet<AgentJob>();
             for(JobRunnerThread jobRunnerThread : jobRunners.values())
-                    runningJobSet.add(jobRunnerThread.getJobInfo());
-            return runningJobSet;
+                    runningAgentJobSet.add(jobRunnerThread.getAgentJob());
+            return runningAgentJobSet;
         }
     }
 

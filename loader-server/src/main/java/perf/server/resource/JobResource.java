@@ -1,31 +1,33 @@
 package perf.server.resource;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.FileHelper;
 import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
-import perf.server.cache.AgentsCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.server.config.AgentConfig;
 import perf.server.config.JobFSConfig;
-import perf.server.config.MonitoringAgentConfig;
-import perf.server.daemon.CounterCompoundThread;
-import perf.server.daemon.CounterThroughputThread;
 import perf.server.daemon.JobDispatcherThread;
-import perf.server.daemon.TimerComputationThread;
 import perf.server.domain.Job;
 import perf.server.domain.JobRequest;
 import perf.server.domain.ResourceCollectionInstance;
 import perf.server.exception.JobException;
-import perf.server.util.JobHelper;
+import perf.server.util.JobStatsHelper;
 import perf.server.util.ResponseBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -39,10 +41,18 @@ import static org.codehaus.jackson.JsonParser.Feature;
 @Path("/jobs")
 public class JobResource {
 
-    private final MonitoringAgentConfig monitoringAgentConfig;
+    private LoadingCache<String, Job> jobs = CacheBuilder.newBuilder()
+            .maximumSize(1000)
+            .build(
+                    new CacheLoader<String, Job>() {
+                        public Job load(String jobId) throws IOException {
+                            return objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(jobId)), Job.class);
+                        }
+                    });
+
     private AgentConfig agentConfig;
     private JobFSConfig jobFSConfig;
-    private static JobHelper jobHelper;
+    private static JobStatsHelper jobStatsHelper;
     private static ObjectMapper objectMapper;
     private static Map<String,Map<String,ResourceCollectionInstance>> jobLastResourceMetricInstanceMap;
     private static Logger log;
@@ -54,17 +64,35 @@ public class JobResource {
         objectMapper.configure(Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
 
         jobLastResourceMetricInstanceMap = new HashMap<String, Map<String, ResourceCollectionInstance>>();
-        jobHelper = JobHelper.instance();
-        log = Logger.getLogger(JobResource.class);
+        jobStatsHelper = JobStatsHelper.instance();
+        log = LoggerFactory.getLogger(JobResource.class);
     }
 
     public JobResource(AgentConfig agentConfig,
-                       MonitoringAgentConfig monitoringAgentConfig,
                        JobFSConfig jobFSConfig) {
         this.agentConfig = agentConfig;
-        this.monitoringAgentConfig = monitoringAgentConfig;
         this.jobFSConfig = jobFSConfig;
+
+        try {
+            cleanRunningJobsBeforeRestart();
+        } catch (IOException e) {
+            log.error("",e);
+        }
     }
+
+    private void cleanRunningJobsBeforeRestart() throws IOException {
+        List<String> runningJobs = objectMapper.readValue(new File(jobFSConfig.getRunningJobsFile()), List.class);
+        while(runningJobs.size() > 0) {
+            try {
+                log.info("Clearing Job '"+runningJobs.get(0)+"' with RUNNING status at startup");
+                killJob(runningJobs.remove(0));
+            } catch (Exception e) {
+                log.error("",e);
+            }
+        }
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(jobFSConfig.getRunningJobsFile()), runningJobs);
+    }
+                                             //To change body of created methods use File | Settings | File Templates.
     /**
      Following call simulates html form post call, where somebody uploads a file to server
      curl -X POST -d @file-containing-runName http://localhost:9999/loader-server/jobs --header "Content-Type:application/json"
@@ -83,17 +111,6 @@ public class JobResource {
         return raiseJobRequest(jobRequest);
     }
 
-    private Job raiseJobRequest(JobRequest jobRequest) {
-        runExistsOrException(jobRequest.getRunName());
-        Job job = new Job().
-                setJobId(UUID.randomUUID().toString()).
-                setRunName(jobRequest.getRunName());
-
-        JobDispatcherThread.instance().addJobRequest(job);
-        return job;
-    }
-
-
     /**
      * Submit the same job again if existing job has finished.
      * @param oldJobId
@@ -110,8 +127,8 @@ public class JobResource {
     public Job rerunJob(@PathParam("jobId") String oldJobId)
             throws IOException, ExecutionException, InterruptedException, JobException {
 
-        Job oldJob = jobHelper.jobExistsOrException(oldJobId);
-        if(!oldJob.completed())
+        Job oldJob = jobExistsOrException(oldJobId);
+        if(!oldJob.isCompleted())
             throw new WebApplicationException(ResponseBuilder.jobNotOver(oldJobId));
 
         return raiseJobRequest(new JobRequest().setRunName(oldJob.getRunName()));
@@ -128,7 +145,7 @@ public class JobResource {
     @GET
     @Timed
     public Job getJob(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
-        return jobHelper.jobExistsOrException(jobId);
+        return jobExistsOrException(jobId);
     }
 
     /**
@@ -145,7 +162,7 @@ public class JobResource {
     public List<Job> getJobs(@QueryParam("runName") @DefaultValue("") String searchRunName,
                                         @QueryParam("jobId") @DefaultValue("") String searchJobId,
                                         @QueryParam("jobStatus") @DefaultValue("RUNNING,QUEUED")String searchJobStatus) throws IOException {
-        return jobHelper.searchJobs(searchJobId, searchRunName, Arrays.asList(searchJobStatus.split(",")));
+        return Job.searchJobs(searchJobId, searchRunName, Arrays.asList(searchJobStatus.split(",")));
     }
 
     /**
@@ -163,12 +180,12 @@ public class JobResource {
                                       @PathParam("jobId") String jobId,
                                       String jobHealthStatus)
             throws IOException, InterruptedException, ExecutionException {
-        Job job = jobHelper.jobExistsOrException(jobId);
+        Job job = jobExistsOrException(jobId);
         job.getAgentsJobStatus().
                 get(request.getRemoteAddr()).
                 setHealthStatus(ObjectMapperUtil.instance().readValue(new ByteArrayInputStream(jobHealthStatus.getBytes()), Map.class));
 
-        jobHelper.persistJobHealthStatusComingFromAgent(jobId,
+        jobStatsHelper.persistJobHealthStatusComingFromAgent(jobId,
                 request.getRemoteAddr(),
                 new ByteArrayInputStream(jobHealthStatus.getBytes()));
     }
@@ -190,7 +207,7 @@ public class JobResource {
                                       @QueryParam("file") String relatedFilePath,
                                       InputStream jobStatsStream)
             throws IOException, InterruptedException {
-        jobHelper.persistJobStatsComingFromAgent(jobId, request.getRemoteAddr(), relatedFilePath, jobStatsStream);
+        jobStatsHelper.persistJobStatsComingFromAgent(jobId, request.getRemoteAddr(), relatedFilePath, jobStatsStream);
     }
 
     /**
@@ -202,9 +219,9 @@ public class JobResource {
     @GET
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
-    public List<JobHelper.GroupStatsMeta> getJobMetricsStatsMeta(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
-        jobHelper.jobExistsOrException(jobId);
-        return jobHelper.getJobMetricsStatsMeta(jobId);
+    public List<JobStatsHelper.GroupStatsMeta> getJobMetricsStatsMeta(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
+        jobExistsOrException(jobId);
+        return jobStatsHelper.getJobMetricsStatsMeta(jobId);
     }
 
     /**
@@ -224,8 +241,8 @@ public class JobResource {
                                                     @PathParam("metricName") String metricName,
                                                     @PathParam("agent") String agent,
                                                     @QueryParam("last") @DefaultValue("false") BooleanParam last) throws IOException, ExecutionException {
-        jobHelper.jobExistsOrException(jobId);
-        return jobHelper.getJobMetricStats(jobId, groupName, metricType, metricName, agent, last.get());
+        jobExistsOrException(jobId);
+        return jobStatsHelper.getJobMetricStats(jobId, groupName, metricType, metricName, agent, last.get());
     }
 
     /**
@@ -244,7 +261,7 @@ public class JobResource {
                                       @PathParam("jobId") String jobId,
                                       Map<String, List<ResourceCollectionInstance>> resourcesCollectionInstances)
             throws IOException, InterruptedException, ExecutionException {
-        jobHelper.jobExistsOrException(jobId);
+        jobExistsOrException(jobId);
 
         Map<String,ResourceCollectionInstance> resourcesLastInstance = jobLastResourceMetricInstanceMap.get(jobId);
 
@@ -293,9 +310,9 @@ public class JobResource {
     @GET
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
-    public List<JobHelper.MonitoringAgentStats> getJobMonitoringStatsMeta(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
-        jobHelper.jobExistsOrException(jobId);
-        return jobHelper.getJobMonitoringStatsMeta(jobId);
+    public List<JobStatsHelper.MonitoringAgentStats> getJobMonitoringStatsMeta(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
+        jobExistsOrException(jobId);
+        return jobStatsHelper.getJobMonitoringStatsMeta(jobId);
     }
 
     /**
@@ -310,8 +327,8 @@ public class JobResource {
                                                      @PathParam("agent") String agent,
                                                      @PathParam("resourceName") String resourceName,
                                                     @QueryParam("last") @DefaultValue("false") BooleanParam last) throws IOException, ExecutionException {
-        jobHelper.jobExistsOrException(jobId);
-        return jobHelper.getJobMonitoringResourceStats(jobId, agent, resourceName, last.get());
+        jobExistsOrException(jobId);
+        return jobStatsHelper.getJobMonitoringResourceStats(jobId, agent, resourceName, last.get());
     }
 
     /**
@@ -326,8 +343,8 @@ public class JobResource {
     public Set<String> getJobMonitoringResourceMeta(@PathParam("jobId") String jobId,
                                                     @PathParam("agent") String agent,
                                                     @PathParam("resourceName") String resourceName) throws IOException, ExecutionException {
-        jobHelper.jobExistsOrException(jobId);
-        return jobHelper.getJobMonitoringResourceMeta(jobId, agent, resourceName);
+        jobExistsOrException(jobId);
+        return jobStatsHelper.getJobMonitoringResourceMeta(jobId, agent, resourceName);
     }
 
     @Path("/{jobId}/logs")
@@ -335,7 +352,7 @@ public class JobResource {
     @Timed
     @Produces(MediaType.TEXT_HTML)
     public String getJobLogs(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
-        Job job = jobHelper.jobExistsOrException(jobId);
+        Job job = jobExistsOrException(jobId);
 
         StringBuilder stringBuilder = new StringBuilder();
         for(String agentIp : job.getAgentsJobStatus().keySet()) {
@@ -356,22 +373,15 @@ public class JobResource {
     @PUT
     @Timed
     public void jobOver(@Context HttpServletRequest request,
-                        @PathParam("jobId") String jobId) throws InterruptedException, ExecutionException, IOException {
-        Job job = jobHelper.jobExistsOrException(jobId);
-        String agentIp = request.getRemoteAddr();
-        AgentsCache.getAgentInfo(agentIp).setFree();
-        AgentsCache.getAgentInfo(agentIp).getRunningJobs().remove(jobId);
+                        @PathParam("jobId") String jobId, @QueryParam("jobStatus") @DefaultValue("COMPLETED") String jobStatus) throws InterruptedException, ExecutionException, IOException {
+        Job job = jobExistsOrException(jobId);
+        if(jobStatus.equals("COMPLETED"))
+            job.jobCompletedInAgent(request.getRemoteAddr());
+        else if(jobStatus.equals("KILLED"))
+            job.jobKilledInAgent(request.getRemoteAddr());
+        else if(jobStatus.equals("ERROR"))
+                    job.jobErrorInAgent(request.getRemoteAddr());
 
-        job.jobCompletedInAgent(agentIp);
-
-        if(job.completed()) {
-            jobHelper.stopMonitoring(job);
-            CounterCompoundThread.getCounterCruncherThread().removeJob(jobId);
-            CounterThroughputThread.getCounterCruncherThread().removeJob(jobId);
-            TimerComputationThread.getComputationThread().removeJob(jobId);
-            job.setEndTime(new Date());
-        }
-        jobHelper.persistJob(job);
     }
 
 
@@ -386,11 +396,8 @@ public class JobResource {
     @PUT
     @Timed
     public void killJob(@PathParam("jobId") String jobId) throws InterruptedException, ExecutionException, IOException, JobException {
-        Job job = jobHelper.jobExistsOrException(jobId);
-        jobHelper.killJobInAgents(job, job.getAgentsJobStatus().keySet());
-        jobHelper.stopMonitoring(job);
-        job.setEndTime(new Date());
-        jobHelper.persistJob(job);
+        Job job = jobExistsOrException(jobId);
+        job.killJobInAgents(job.getAgentsJobStatus().keySet());
     }
 
     /**
@@ -405,10 +412,18 @@ public class JobResource {
     @PUT
     @Timed
     public void killJob(@PathParam("jobId") String jobId, @PathParam("agentIps") String agentIps) throws InterruptedException, ExecutionException, IOException, JobException {
-        Job job = jobHelper.jobExistsOrException(jobId);
-        jobHelper.killJobInAgents(job, Arrays.asList(agentIps.split(",")));
-        if(job.completed())
-            jobHelper.stopMonitoring(job);
+        Job job = jobExistsOrException(jobId);
+        job.killJobInAgents(Arrays.asList(agentIps.split(",")));
+    }
+
+    private Job raiseJobRequest(JobRequest jobRequest) {
+        runExistsOrException(jobRequest.getRunName());
+        Job job = new Job().
+                setJobId(UUID.randomUUID().toString()).
+                setRunName(jobRequest.getRunName());
+
+        JobDispatcherThread.instance().addJobRequest(job);
+        return job;
     }
 
     private void runExistsOrException(String runName) {
@@ -416,4 +431,12 @@ public class JobResource {
             throw new WebApplicationException(ResponseBuilder.runNameDoesNotExist(runName));
         }
     }
+
+    private Job jobExistsOrException(String jobId) throws IOException, ExecutionException {
+        if(!new File(jobFSConfig.getJobPath(jobId)).exists()) {
+            throw new WebApplicationException(ResponseBuilder.resourceNotFound("Job", jobId));
+        }
+        return jobs.get(jobId);
+    }
+
 }

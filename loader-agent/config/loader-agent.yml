@@ -23,7 +23,9 @@ jobProcessorConfig:
 jobFSConfig:
   jobBasePath: "/var/log/loader-agent/jobs"
   jobPath: "/var/log/loader-agent/jobs/{jobId}"
+  jobFile: "/var/log/loader-agent/jobs/{jobId}/job.json"
   jobLogFile: "/var/log/loader-agent/jobs/{jobId}/log"
+  runningJobsFile: "/var/log/loader-agent/jobs/runningJobs"
 
 jobStatSyncConfig:
   syncInterval: 10000

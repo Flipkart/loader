@@ -14,44 +14,50 @@ import java.io.InputStreamReader;
  * Runs a Performance Job and Monitor it till it gets over
  */
 public class JobRunnerThread extends Thread{
-    private JobInfo jobInfo;
+    private AgentJob agentJob;
     private Process jobProcess;
     private boolean running = false;
 
     private static Logger logger = LoggerFactory.getLogger(JobRunnerThread.class);
     private final JobFSConfig jobFSConfig;
 
-    public JobRunnerThread(JobInfo jobInfo, JobFSConfig jobFSConfig) {
-        this.jobInfo = jobInfo;
+    public JobRunnerThread(AgentJob agentJob, JobFSConfig jobFSConfig) {
+        this.agentJob = agentJob;
         this.jobFSConfig = jobFSConfig;
         start();
     }
 
     public void run() {
-        logger.info("Running Job :"+jobInfo.getJobId());
+        logger.info("Running Job :"+ agentJob.getJobId());
         this.running = true;
         try {
-            this.jobInfo.setJmxPort(SocketHelper.getFreePort(10000, 10010));
-            String jobCmd = jobInfo.getJobCmd().
-                    replace("{jmxPort}", String.valueOf(jobInfo.getJmxPort())).
-                    replace("{jobId}", jobInfo.getJobId());
+            this.agentJob.setJmxPort(SocketHelper.getFreePort(10000, 10010));
+            agentJob.setJobCmd(
+                    agentJob.getJobCmd().
+                            replace("{jmxPort}", String.valueOf(agentJob.getJmxPort())).
+                            replace("{jobId}", agentJob.getJobId()));
 
-            FileHelper.createFilePath(jobFSConfig.getJobLogFile(jobInfo.getJobId()));
-            logger.info("Running Command \n"+jobCmd);
+            FileHelper.createFilePath(jobFSConfig.getJobLogFile(agentJob.getJobId()));
+            logger.info("Running Command \n"+ agentJob.getJobCmd());
             jobProcess = Runtime.getRuntime().exec(new String[]{
                     "/bin/sh",
                     "-c",
-                    jobCmd});
+                    agentJob.getJobCmd()});
+
+            this.agentJob.started();
             new JobStdOutThread();
             new JobStdErrThread();
             jobProcess.waitFor();
+            if(jobProcess.exitValue() == 0)
+                this.agentJob.completed();
+            else
+                this.agentJob.errored();
 
-        } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (Exception e) {
+            logger.error("" +
+                    "",e);
         } finally {
-            logger.info("Job :"+jobInfo.getJobId() +" Ended");
+            logger.info("Job :"+ agentJob.getJobId() +" Ended");
             this.running = false;
         }
     }
@@ -108,12 +114,12 @@ public class JobRunnerThread extends Thread{
         }
     }
 
-    public JobInfo getJobInfo() {
-        return jobInfo;
+    public AgentJob getAgentJob() {
+        return agentJob;
     }
 
-    public void setJobInfo(JobInfo jobInfo) {
-        this.jobInfo = jobInfo;
+    public void setAgentJob(AgentJob agentJob) {
+        this.agentJob = agentJob;
     }
 
     public Process getJobProcess() {

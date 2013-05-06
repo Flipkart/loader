@@ -32,6 +32,8 @@ jobFSConfig:
   jobMonitoringStatsPath: "/var/log/loader-server/jobs/{jobId}/monitoringStats"
   jobResourceMonitoringFile: "/var/log/loader-server/jobs/{jobId}/monitoringStats/agents/{agentIp}/Resources/{resource}.txt"
   jobHealthStatusFile: "/var/log/loader-server/jobs/{jobId}/monitoringStats/agents/{agentIp}/healthStatus.txt"
+  runningJobsFile: "/var/log/loader-server/jobs/runningJobs"
+  queuedJobsFile: "/var/log/loader-server/jobs/queuedJobs"
 
 reportConfigFile: /var/log/loader-server/report/reportConfig.yml
 
