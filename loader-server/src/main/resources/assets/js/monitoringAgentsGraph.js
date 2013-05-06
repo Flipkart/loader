@@ -113,8 +113,8 @@ function addGraphHolders(){
 		var resources = agentResource["resources"];
 		var h3Id = ("monitor_" + agentName).replace(/\./g,"_");
 		var insertHtml = "<h3 id=\"" + h3Id + "\" class=\"collapsible\">" + agentName + "</h3>" ;
-		insertHtml = insertHtml + "<div id=\"" + h3Id + "Container\" class=\"container\">";
-		insertHtml = insertHtml + "<div class=\"content\">";
+		insertHtml = insertHtml + "<div id=\"" + h3Id + "Container\" class=\"container\" style=\"position:relative\">";
+		insertHtml = insertHtml + "<div class=\"content\" style=\"position:relative\">";
 		insertHtml = insertHtml + "<table width=\"100%\"><thead><tr><td colspan=\"2\">Agent:  " + agentName + "</td></tr></thead><tbody>";
 		$.each(resources, function(resIndex, resource){
 			insertHtml = insertHtml + "<tr><td colspan=\"2\">Resource:  " + resource + "</td></tr>";
@@ -123,11 +123,13 @@ function addGraphHolders(){
 			for(var k=0; k<totalGraphs;){
 				var divId = "agent_" + agentName + "_" + resource + "_chart" + k;
 				divId = divId.replace(/\./g,"_");
-				insertHtml = insertHtml + "<tr><td width=\"50%\"><div id=\"" + divId + "\" class=\"chart\"><svg></svg></div></td>";
+				var style="width:50%;float:left;";
+				if (k==0) style = "width:50%;float:left;position:relative"
+				insertHtml = insertHtml + "<tr><td><div id=\"" + divId + "\" class=\"chart\" style=\"" + style + "\"><svg style=\"height: 350px;min-height:350px\"></svg></div>";
 				k++;
 				divId = "agent_" + agentName + "_" + resource + "_chart" + k;
 				divId = divId.replace(/\./g,"_");
-				insertHtml = insertHtml + "<td width=\"50%\"><div id=\"" + divId + "\" class=\"chart\"><svg></svg></div></td></tr>";
+				insertHtml = insertHtml + "<div id=\"" + divId + "\" class=\"chart\" style=\"" + style + "\"><svg style=\"height: 350px;min-height:350px\"></svg></div></td></tr>";
 				k++;
 			}
 		});
