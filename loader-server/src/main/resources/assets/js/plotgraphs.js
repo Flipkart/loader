@@ -1,27 +1,27 @@
 
 function returnTimerGraphs(url, grpIndex, timerIndex){
 	var chart1, chart2;
-	formatTime = d3.time.format("%M:%S"),
-	formatMinutes = function(d) { return formatTime(new Date(2013, 0, 1, 0, d)); };
+	formatTime = d3.time.format("%H:%M"),
+ 	formatMinutes = function(d) { return formatTime(new Date(d)); };
 	nv.addGraph(function() {
   		chart1 = nv.models.lineChart();
   		chart2 = nv.models.lineChart();
-  		chart1.x(function(d,i) { return i })
+  		//chart1.x(function(d,i) { return i })
 
 		chart1.xAxis
-  			.ticks(d3.time.seconds, 10)
-  			.tickFormat(formatMinutes);
+  			//.ticks(d3.time.minutes, 5)
+  			.tickFormat(function(d) { return d3.time.format('%H:%M')(new Date(d)); });
 
   		chart1.yAxis
       		.axisLabel('Time (ms)')
       		.tickFormat(d3.format(',.2f'));
 
-      	chart2.x(function(d,i) { return i })
+      	//chart2.x(function(d,i) { return i })
 
 
   		chart2.xAxis
-		  	.ticks(d3.time.seconds, 10)
-  			.tickFormat(formatMinutes);
+		  	//.ticks(d3.time.minutes, 5)
+  			.tickFormat(function(d) { return d3.time.format('%H:%M')(new Date(d)); });
 
   		chart2.yAxis
       		.axisLabel('Time (ms)')
@@ -56,6 +56,7 @@ function plotGraphs(url, grpIndex, timerIndex){
 	chart1Name = "#chart" + grpIndex + timerIndex + "1";
 	chart2Name = "#chart" + grpIndex + timerIndex + "2";
 	// console.log("Lets see chart1Name:" + chart1Name);
+	console.log("chart I am plotting", window.stats[grpIndex][timerIndex]["metrices"]["chart1"]);
 	d3.select(chart1Name + " svg")
       //.datum([]) //for testing noData
       	.datum(window.stats[grpIndex][timerIndex]["metrices"]["chart1"])
@@ -88,7 +89,7 @@ function metrics(initialize, url, grpIndex, timerIndex) {
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"],key: "75Th%",color: "#0B610B"	},
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"],key: "90Th%",color: "#0B0B61"},
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"],key: "95Th%",color: "#FE9A2E"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"],key: "98Th%",color: "0E0D0D"}
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"],key: "98Th%",color: "#0E0D0D"}
 	  					],
 			   "chart2":[
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"],key: "Dump Throughput",color: "#2ca02c"},
@@ -97,6 +98,7 @@ function metrics(initialize, url, grpIndex, timerIndex) {
 			 };
 }
 function initializeMetrics(httpUrl, grpIndex, timerIndex){
+	var parse =d3.time.format("%H:%S").parse
 	$.ajax({
 		  	url: httpUrl,
 		  	type: "GET",
@@ -108,16 +110,16 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 			  for( var i=0; i<lines.length-1; i++){
 			  	var dataJson = $.parseJSON(lines[i]);
 				time = new Date(dataJson["time"]);
-				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x:time.getTime(),y: dataJson["dumpMean"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x:time.getTime(),y: dataJson["dumpThroughput"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].push({x:time.getTime(), y: dataJson["overallMean"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].push({x:time.getTime(), y: dataJson["overAllThroughput"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].push({x:time.getTime(), y: dataJson["fiftieth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].push({x:time.getTime(), y: dataJson["seventyFifth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].push({x:time.getTime(), y: dataJson["ninetieth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].push({x:time.getTime(), y: dataJson["ninetyFifth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].push({x:time.getTime(), y: dataJson["ninetyEight"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x:time.getTime(), y: dataJson["ninetyNinth"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x: new Date(dataJson["time"]),y: dataJson["dumpMean"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x: new Date(dataJson["time"]),y: dataJson["dumpThroughput"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].push({x: new Date(dataJson["time"]), y: dataJson["overallMean"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].push({x: new Date(dataJson["time"]), y: dataJson["overAllThroughput"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].push({x: new Date(dataJson["time"]), y: dataJson["fiftieth"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["seventyFifth"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetieth"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyFifth"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyEight"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyNinth"]});
 			  }
 		  },
 		  error: function(data){
@@ -141,16 +143,16 @@ function populateMetrics(httpUrl, grpIndex, timerIndex){
 				time = new Date(dataJson["time"]);
 				console.log(dataJson)
 				console.log("populateMetrics" , window.stats[grpIndex][timerIndex]["statsqueues"]);
-				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x:time.getTime(),y: dataJson["dumpMean"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x:time.getTime(),y: dataJson["dumpThroughput"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].push({x:time.getTime(), y: dataJson["overallMean"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].push({x:time.getTime(), y: dataJson["overAllThroughput"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].push({x:time.getTime(), y: dataJson["fiftieth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].push({x:time.getTime(), y: dataJson["seventyFifth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].push({x:time.getTime(), y: dataJson["ninetieth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].push({x:time.getTime(), y: dataJson["ninetyFifth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].push({x:time.getTime(), y: dataJson["ninetyEight"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x:time.getTime(), y: dataJson["ninetyNinth"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x:time,y: dataJson["dumpMean"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x:time,y: dataJson["dumpThroughput"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].push({x:time, y: dataJson["overallMean"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].push({x:time, y: dataJson["overAllThroughput"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].push({x:time, y: dataJson["fiftieth"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].push({x:time, y: dataJson["seventyFifth"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].push({x:time, y: dataJson["ninetieth"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].push({x:time, y: dataJson["ninetyFifth"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].push({x:time, y: dataJson["ninetyEight"]});
+				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x:time, y: dataJson["ninetyNinth"]});
 		    },
 		  error: function(data){
 			  console.log("NO Data Found");
