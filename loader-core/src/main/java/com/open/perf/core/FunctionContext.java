@@ -66,7 +66,7 @@ public class FunctionContext {
 
     public Integer getParameterAsInteger(String parameterName, Integer defaultValue) {
         Object value = getParameter(parameterName);
-        return value == null ? defaultValue : Integer.parseInt(getParameter(parameterName).toString());
+        return value == null ? defaultValue : Integer.parseInt(value.toString());
     }
 
     public Long getParameterAsLong(String parameterName) {
@@ -75,7 +75,7 @@ public class FunctionContext {
 
     public Long getParameterAsLong(String parameterName, Long defaultValue) {
         Object value = getParameter(parameterName);
-        return value == null ? defaultValue : Long.parseLong(getParameter(parameterName).toString());
+        return value == null ? defaultValue : Long.parseLong(value.toString());
     }
 
     public Float getParameterAsFloat(String parameterName) {
@@ -84,7 +84,7 @@ public class FunctionContext {
 
     public Float getParameterAsFloat(String parameterName, Float defaultValue) {
         Object value = getParameter(parameterName);
-        return value == null ? defaultValue : Float.parseFloat(getParameter(parameterName).toString());
+        return value == null ? defaultValue : Float.parseFloat(value.toString());
     }
 
     public Double getParameterAsDouble(String parameterName) {
@@ -93,7 +93,7 @@ public class FunctionContext {
 
     public Double getParameterAsDouble(String parameterName, Double defaultValue) {
         Object value = getParameter(parameterName);
-        return value == null ? defaultValue : Double.parseDouble(getParameter(parameterName).toString());
+        return value == null ? defaultValue : Double.parseDouble(value.toString());
     }
 
     public Boolean getParameterAsBoolean(String parameterName) {
@@ -107,12 +107,12 @@ public class FunctionContext {
 
     public File getParameterAsFile(String parameterName) {
         Object value = getParameter(parameterName);
-        return value == null ? null : new File(getParameter(parameterName).toString());
+        return value == null ? null : new File(value.toString());
     }
 
     public InputStream getParameterAsInputStream(String parameterName) throws FileNotFoundException {
         Object value = getParameter(parameterName);
-        return value == null ? null : new FileInputStream(getParameter(parameterName).toString());
+        return value == null ? null : new FileInputStream(value.toString());
     }
 
     public Map getParameterAsMap(String parameterName) throws IOException {
