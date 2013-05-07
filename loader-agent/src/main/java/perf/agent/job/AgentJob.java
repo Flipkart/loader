@@ -3,6 +3,8 @@ package perf.agent.job;
 import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.FileHelper;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.agent.client.LoaderServerClient;
 import perf.agent.config.JobFSConfig;
 import perf.agent.config.LoaderAgentConfiguration;
@@ -23,6 +25,7 @@ public class AgentJob {
     public static enum JOB_STATUS {
         QUEUED, RUNNING, COMPLETED, KILLED, ERROR;
     }
+    private static Logger log = LoggerFactory.getLogger(AgentJob.class);
     private static final JobFSConfig jobFSConfig = LoaderAgentConfiguration.instance().getJobFSConfig();
     private static final ObjectMapper objectMapper = ObjectMapperUtil.instance();
     private String jobId, jobCmd;
@@ -103,7 +106,9 @@ public class AgentJob {
     }
 
     public AgentJob kill() throws IOException, InterruptedException, ExecutionException {
-        Runtime.getRuntime().exec(new String[]{"/bin/sh","-c","kill -9 `ps aux | grep "+jobId+" | grep -v grep | tr -s \" \" \":\" |cut -f 2 -d \":\"`"}).
+        String killCmd = "kill -9 `ps aux | grep "+jobId+" | grep -v grep | tr -s \" \" \":\" |cut -f 2 -d \":\"`";
+        log.info("Killing Job with Job Id :"+jobId);
+        Runtime.getRuntime().exec(new String[]{"/bin/sh","-c",killCmd}).
                 waitFor();
         killed();
         return this;
