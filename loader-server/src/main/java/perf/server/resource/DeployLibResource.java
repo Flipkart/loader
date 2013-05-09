@@ -108,8 +108,7 @@ public class DeployLibResource {
         return discoveredUserFunctions;
     }
 
-    /**
-     * Persist user class and jar mapping
+    /**     * Persist user class and jar mapping
      * Persist Class information which could be later presented vie http get end point or UI
      * @param libFileName
      * @param discoveredUserFunctions
@@ -238,36 +237,20 @@ public class DeployLibResource {
             Collection<String> performanceFunctions = subTypesScanner.get("com.open.perf.function.PerformanceFunction");
             for(String performanceFunction : performanceFunctions) {
                 if(!discoveredUserFunctions.containsKey(performanceFunction)) {
-                    Map<String,Object> classProperties = new HashMap<String, Object>();
                     FunctionInfo functionInfo = new FunctionInfo().
                             setFunction(performanceFunction);
                     // Discover Usage description for the UDF
                     Object object = ClassHelper.getClassInstance(performanceFunction, new Class[]{}, new Object[]{}, customClassLoader);
                     Method method = ClassHelper.getMethod(performanceFunction , "description", new Class[]{}, customClassLoader);
                     functionInfo.setDescription((List<String>) method.invoke(object, new Object[]{}));
-/*
-                    List<String> functionDescriptionLines = ;
-                    classProperties.put("description", functionDescriptionLines);
-*/
 
                     // Discover Input parameters for the UDF
                     method = ClassHelper.getMethod(performanceFunction , "inputParameters", new Class[]{}, customClassLoader);
                     functionInfo.setInputParameters((LinkedHashMap<String, FunctionParameter>) method.invoke(object, new Object[]{}));
 
-/*
-                    method = ClassHelper.getMethod(performanceFunction , "inputParameters", new Class[]{}, customClassLoader);
-                    LinkedHashMap<String, FunctionParameter> functionInputParameters = (LinkedHashMap<String, FunctionParameter>) method.invoke(object, new Object[]{});
-                    classProperties.put("inputParameters", functionInputParameters);
-*/
-
                     // Discover Output parameters for the UDF
                     method = ClassHelper.getMethod(performanceFunction , "outputParameters", new Class[]{}, customClassLoader);
                     functionInfo.setOutputParameters((LinkedHashMap<String, FunctionParameter>) method.invoke(object, new Object[]{}));
-
-/*
-                    LinkedHashMap<String, Object> functionOutputParameters = (LinkedHashMap<String, Object>) method.invoke(object, new Object[]{});
-                    classProperties.put("outputParameters", functionOutputParameters);
-*/
 
                     discoveredUserFunctions.put(performanceFunction, functionInfo);
                 }
