@@ -49,7 +49,7 @@ nv.models.lineChart = function() {
     console.log("e",e);
     console.log("offset", offsetElement)
 
-    New addition to calculate position if SVG is scaled with viewBox, may move TODO: consider implementing everywhere else
+    //New addition to calculate position if SVG is scaled with viewBox, may move TODO: consider implementing everywhere else
     if (offsetElement) {
       var svg = d3.select(offsetElement).select('svg');
       var viewBox = svg.attr('viewBox');
