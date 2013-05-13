@@ -58,7 +58,6 @@ public class DeployLibResource {
         }
     }
 
-
     static class CustomClassLoader extends URLClassLoader {
         public CustomClassLoader(URL[] urls) {
             super(urls);
