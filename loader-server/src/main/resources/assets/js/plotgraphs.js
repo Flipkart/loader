@@ -108,7 +108,7 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 			  var lines = data.split('\n');
 			  //var firstLine = $.parseJSON(lines[0]);
 			  for( var i=0; i<lines.length-1; i++){
-			  	if (lines[i].trim().isEmpty()) continue;
+			  	if (lines[i]=="") continue;
 			  	var dataJson = $.parseJSON(lines[i]);
 				time = new Date(dataJson["time"]);
 				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x: new Date(dataJson["time"]),y: dataJson["dumpMean"]});
