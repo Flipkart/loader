@@ -79,10 +79,17 @@ public class JobRunnerThread extends Thread{
                     while((line = br.readLine()) != null) {
                         logger.info(line);
                     }
-                    br.close();
-                    Thread.sleep(1000);
                 } catch (IOException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                } finally {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    }
+                }
+                try {
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 }
@@ -103,10 +110,17 @@ public class JobRunnerThread extends Thread{
                     while((line = br.readLine()) != null) {
                         logger.error(line);
                     }
-                    br.close();
-                    Thread.sleep(1000);
                 } catch (IOException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                } finally {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    }
+                }
+                try {
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 }

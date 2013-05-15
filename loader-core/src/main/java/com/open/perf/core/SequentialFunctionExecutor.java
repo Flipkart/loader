@@ -46,6 +46,7 @@ public class SequentialFunctionExecutor extends Thread {
     private int forcedDurationPerIterationNS;
     private int accumulatedSleepIntervalNS; // When This accumulated Sleep Interval Goes above 1 ms then sleep for near by ms value
     private long totalSleepTimeMS = 0;
+    private int threadStartDelay;
 
     public SequentialFunctionExecutor(String threadExecutorName,
                                       List<GroupFunction> groupFunctions,
@@ -78,7 +79,15 @@ public class SequentialFunctionExecutor extends Thread {
         this.threadResources = new HashMap<String, Object>();
 
         this.fExecutors = buildFunctionExecutors();
-        this.setDaemon(true);
+    }
+
+    public int getThreadStartDelay() {
+        return threadStartDelay;
+    }
+
+    public SequentialFunctionExecutor setThreadStartDelay(int threadStartDelay) {
+        this.threadStartDelay = threadStartDelay;
+        return this;
     }
 
     /**
@@ -113,6 +122,7 @@ public class SequentialFunctionExecutor extends Thread {
     }
 
     public void run () {
+        threadStartDelay();
         logger.info("Sequential Function Executor "+this.getName()+" started");
         Counter repeatCounter = new Counter("",this.getName());
         initializeUserFunctions();
@@ -204,6 +214,14 @@ public class SequentialFunctionExecutor extends Thread {
             logger.info("Sequential Function Executor '" + this.getName() + "' Prematurely(" + (this.durationMS - (this.endTime - this.groupStartTimeMS)) + " ms) Over");
         }
         logger.info("Sequential Function Executor '" + this.getName() + "' Over. Repeats Done :"+repeatCounter.count()+". Total Sleep Time: "+this.totalSleepTimeMS+"ms");
+    }
+
+    private void threadStartDelay() {
+        try {
+            Clock.sleep(this.threadStartDelay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
     }
 
 
