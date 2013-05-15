@@ -149,7 +149,7 @@ public class JobStatsHelper {
             GroupStatsMeta groupStatsMeta = new GroupStatsMeta();
             groupStatsMeta.setGroupName(groupPath.getName());
 
-
+            boolean groupHasStats = false;
             for(File metricTypeFolder : groupPath.getAbsoluteFile().listFiles()) {
                 List<MetricStatsMeta> metrics = new ArrayList<MetricStatsMeta>();
                 for(File metricPath : metricTypeFolder.listFiles()) {
@@ -168,8 +168,10 @@ public class JobStatsHelper {
                                 groupPath.getName(),
                                 metricTypeFolder.getName(),
                                 metricPath.getName(),
-                                agent)).exists())
+                                agent)).exists()) {
                             agentsHavingData.add(agent);
+                            groupHasStats = true;
+                        }
                     }
 
                     metricStatsMeta.setAgents(agentsHavingData);
@@ -181,7 +183,8 @@ public class JobStatsHelper {
                 if(metricTypeFolder.getName().equals("counters"))
                     groupStatsMeta.setCounters(metrics);
             }
-            groups.add(groupStatsMeta);
+            if(groupHasStats)
+                groups.add(groupStatsMeta);
         }
         return groups;
 

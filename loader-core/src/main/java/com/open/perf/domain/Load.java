@@ -65,8 +65,10 @@ public class Load {
         for(Group group : this.groups) {
             if(group.needsWarmUp()) {
                 Group warmUpGroup = group.createWarmUpGroup();
-
                 group.getDependOnGroups().add(0,warmUpGroup.getName());
+                if(warmUpGroup.getGroupStartDelay() > 0)
+                    group.setGroupStartDelay(0);
+
                 warmUpGroups.add(warmUpGroup);
            }
         }
