@@ -38,9 +38,6 @@ public class TimerComputationThread extends Thread {
 
     static {
         objectMapper = ObjectMapperUtil.instance();
-//        DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
-//        objectMapper.setDateFormat(dateFormat);
-
         logger = Logger.getLogger(TimerComputationThread.class);
         FILE_EXTENSION = "stats";
     }

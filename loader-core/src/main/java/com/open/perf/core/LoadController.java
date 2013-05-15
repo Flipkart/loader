@@ -3,8 +3,7 @@ package com.open.perf.core;
 import com.open.perf.domain.Group;
 import com.open.perf.domain.Load;
 import com.open.perf.util.Clock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -23,7 +22,7 @@ public class LoadController extends Thread{
     // Map of Group Name and Group Bean (Which contains user information)
     private Map<String,Group> groupMap;
 
-    private static Logger logger = LoggerFactory.getLogger(LoadController.class);
+    private static Logger logger = Logger.getLogger(LoadController.class);
 
     private final String jobId;
 
@@ -160,7 +159,7 @@ public class LoadController extends Thread{
             if(groupsCanNotStartThisTime == 0 )
                 break;
 
-            logger.info(jobId+" Groups Can not be started :"+groupsCanNotStartThisTime);
+            logger.debug(jobId + " Groups Can not be started :" + groupsCanNotStartThisTime);
             try {
                 Clock.sleep(250);
             } catch (InterruptedException e) {
@@ -183,13 +182,18 @@ public class LoadController extends Thread{
     }
 
     private boolean haveLiveGroups(Collection<GroupController> groupControllers) {
+        boolean stillHaveAliveGroups = false;
+        List<GroupController> deadGroups = new ArrayList<GroupController>();
         for(GroupController grouper : groupControllers) {
             if(grouper.isAlive())
-                return true;
+                stillHaveAliveGroups = true;
             else {
+                deadGroups.add(grouper);
+                logger.info("************Group Controller "+grouper.getGroupName()+" Ended**************");
                 grouper.stopStatsCollection();
             }
         }
-        return false;
+        groupControllers.removeAll(deadGroups);
+        return stillHaveAliveGroups;
     }
 }

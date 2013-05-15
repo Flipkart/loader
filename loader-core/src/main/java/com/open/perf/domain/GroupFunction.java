@@ -49,13 +49,13 @@ public class GroupFunction implements Cloneable {
         return this.functionalityName;
     }
 
-    public GroupFunction dumpData() {
-        this.dumpData = true;
-        return this;
+    public boolean isDumpData() {
+        return dumpData;
     }
 
-    public boolean isDumpData() {
-        return this.dumpData;
+    public GroupFunction setDumpData(boolean dumpData) {
+        this.dumpData = dumpData;
+        return this;
     }
 
     public GroupFunction addParam(String param, Object value) {

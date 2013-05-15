@@ -18,7 +18,7 @@ abstract public class PerformanceFunction {
      * @throws Exception
      */
     public void init(FunctionContext context) throws Exception{
-        logger.info("In Default PerformanceFunction Init");
+        logger.debug("In Default PerformanceFunction Init");
     }
 
     /**
@@ -35,7 +35,7 @@ abstract public class PerformanceFunction {
      * @throws Exception
      */
     public void end(FunctionContext context) throws Exception{
-        logger.info("In Default PerformanceFunction end");
+        logger.debug("In Default PerformanceFunction end");
     }
 
     /**
