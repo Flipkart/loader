@@ -15,11 +15,25 @@
     </properties>
 
     <dependencies>
+        <!--dependency>
+            <groupId>com.sun</groupId>
+            <artifactId>tools</artifactId>
+            <version>1.6.0.26</version>
+            <scope>system</scope>
+            <systemPath>/usr/lib/jvm/java-6-sun-1.6.0.26/lib/tools.jar</systemPath>
+        </dependency-->
 	<dependency>
-    	    <groupId>com.open.perf</groupId>
+            <groupId>com.sun</groupId>
+            <artifactId>tools</artifactId>
+            <version>1.5</version>
+            <scope>system</scope>
+            <systemPath>${java.home}/../lib/tools.jar</systemPath>
+          </dependency>
+        <dependency>
+            <groupId>com.open.perf</groupId>
             <artifactId>utilities</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-	</dependency>
+        </dependency>
         <dependency>
             <groupId>com.yammer.dropwizard</groupId>
             <artifactId>dropwizard-core</artifactId>

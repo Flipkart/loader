@@ -7,7 +7,9 @@ import server.monitor.domain.ResourceCollectionInstance;
 import javax.management.MalformedObjectNameException;
 import java.io.IOException;
 import java.lang.management.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -49,17 +51,25 @@ public class JMXCollector extends BaseCollector {
 
     @Override
     public ResourceCollectionInstance collect() throws Exception {
-        JMXConnection JMXConnection = new JMXConnection(this.getParam("host").toString(),
-                (Integer) this.getParam("port"));
+        JMXConnection jmxConnection = null;
+
+        if(this.getParam("host") != null && this.getParam("port") != null) {
+            jmxConnection = new JMXConnection(this.getParam("host").toString(),
+                    (Integer) this.getParam("port"));
+        }
+        else if(this.getParam("jmxConnectorAddress") != null) {
+            jmxConnection = new JMXConnection(this.getParam("jmxConnectorAddress").toString());
+        }
+
         ResourceCollectionInstance collectionInstance = new ResourceCollectionInstance().
                 setResourceName(this.getName());
 
-        collectionInstance.addMetrics(getMemoryMetrics(JMXConnection));
-        collectionInstance.addMetrics(getGCMetrics(JMXConnection));
-        collectionInstance.addMetrics(getThreadsMetric(JMXConnection));
-        collectionInstance.addMetrics(getClassLoadingMetrics(JMXConnection));
-        collectionInstance.addMetrics(getOSMetrics(JMXConnection));
-        JMXConnection.close();
+        collectionInstance.addMetrics(getMemoryMetrics(jmxConnection));
+        collectionInstance.addMetrics(getGCMetrics(jmxConnection));
+        collectionInstance.addMetrics(getThreadsMetric(jmxConnection));
+        collectionInstance.addMetrics(getClassLoadingMetrics(jmxConnection));
+        collectionInstance.addMetrics(getOSMetrics(jmxConnection));
+        jmxConnection.close();
         return collectionInstance.setTime(System.currentTimeMillis());
     }
 
