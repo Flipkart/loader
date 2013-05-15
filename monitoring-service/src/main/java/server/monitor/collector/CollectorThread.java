@@ -82,6 +82,7 @@ public class CollectorThread extends Thread{
     public void stopCollector(BaseCollector collector) {
         synchronized (this.collectors){
             this.collectors.remove(collector.getName());
+            ResourceCache.removeResource(collector.getName());
         };
     }
 }

@@ -9,6 +9,7 @@ import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 import server.monitor.collector.CollectorThread;
+import server.monitor.collector.jmx.MonitorLocalJavaProcesses;
 import server.monitor.config.ServerMonitoringConfig;
 import server.monitor.publisher.MetricPublisherThread;
 import server.monitor.resource.CollectorResource;
@@ -29,6 +30,7 @@ public class MonitoringService extends Service<ServerMonitoringConfig> {
     public void run(ServerMonitoringConfig configuration, Environment environment) throws Exception {
         CollectorThread collectorThread = startCollectorThread(1000);
         MetricPublisherThread metricPublisherThread = startStartThread(1000);
+        new MonitorLocalJavaProcesses(60000, collectorThread).start();
         environment.addResource(new CollectorResource());
         environment.addResource(new PublishRequestResource(metricPublisherThread));
         environment.addResource(new OnDemandCollectorResource(configuration.getOnDemandCollectors(),

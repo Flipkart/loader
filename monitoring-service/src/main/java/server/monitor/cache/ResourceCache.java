@@ -59,4 +59,7 @@ public class ResourceCache {
         return resourceStatsCache.keySet();
     }
 
+    synchronized public static void removeResource(String resource) {
+        resourceStatsCache.remove(resource);
+    }
 }

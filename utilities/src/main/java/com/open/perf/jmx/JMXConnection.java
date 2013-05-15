@@ -26,14 +26,17 @@ import static java.lang.management.ManagementFactory.*;
 public class JMXConnection
 {
     private MBeanServerConnection server;
-    private String hostName;
-    private int port;
     private JMXConnector jmxConnector;
-    
+
+    public JMXConnection(String connectorAddress) throws IOException {
+        JMXServiceURL url = new JMXServiceURL(connectorAddress);
+        this.jmxConnector = JMXConnectorFactory.connect(url);
+
+        this.jmxConnector = jmxConnector;
+        this.server = jmxConnector.getMBeanServerConnection();
+    }
+
     public JMXConnection(String hostName, int port) throws IOException {
-        this.hostName       =   hostName;
-        this.port           =   port;
-  
         // Create an RMI connector client and connect it to
         // the RMI connector server
         String urlPath = "/jndi/rmi://" + hostName + ":" + port + "/jmxrmi";
@@ -43,7 +46,7 @@ public class JMXConnection
         this.jmxConnector = JMXConnectorFactory.connect(url);
         this.server = jmxConnector.getMBeanServerConnection();
     }
-    
+
     public List<MemoryPoolMXBean> getMemoryPoolMXBeans() throws MalformedObjectNameException, NullPointerException, IOException {
         List<MemoryPoolMXBean> memoryPoolMXBeans = new ArrayList<MemoryPoolMXBean>();
         
@@ -114,14 +117,6 @@ public class JMXConnection
         return ManagementFactory.newPlatformMXBeanProxy(server,ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME,OperatingSystemMXBean.class);
     }
     
-    public String getHostName() {
-        return this.hostName;
-    }
-    
-    public int getPort() {
-        return this.port;
-    }
-
     public MBeanServerConnection getMXBeanServerConnection() {
         return this.server;
     }
