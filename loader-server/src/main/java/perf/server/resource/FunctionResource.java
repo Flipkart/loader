@@ -103,7 +103,7 @@ public class FunctionResource {
         FunctionInfo functionInfo = objectMapper.readValue(userFunctionsInfoFile, FunctionInfo.class);
 
         GroupFunction groupFunction = new GroupFunction().
-                dumpData().
+                setDumpData(true).
                 setFunctionalityName(functionClassName + "_with_" + function).setFunctionClass(function);
         Map<String, FunctionParameter> functionInputParameters = functionInfo.getInputParameters();
         for(String inputParameterName : functionInputParameters.keySet()) {

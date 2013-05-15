@@ -101,9 +101,8 @@ public class GroupController {
      */
     public void start() throws InterruptedException, FileNotFoundException {
         logger.info("************Group Controller "+this.groupName+" Started**************");
-        groupStartDelay();
 
-        this.startTimeMS = Clock.milliTick();
+        this.startTimeMS = Clock.milliTick() + this.group.getGroupStartDelay();
         this.groupStatsQueue = new GroupStatsQueue();
 
         this.started = true;
@@ -117,10 +116,10 @@ public class GroupController {
         }
 
         for(int threadNo=0; threadNo<group.getThreads(); threadNo++) {
-            SequentialFunctionExecutor sfe = buildSequentialFunctionExecutor(threadNo);
+            SequentialFunctionExecutor sfe = buildSequentialFunctionExecutor(threadNo).
+                    setThreadStartDelay(this.group.getThreadStartDelay() + this.group.getGroupStartDelay());
 
             this.sequentialFEs.add(sfe);
-            threadStartDelay();
             sfe.start();
             if(group.getThreadResources().size() > threadNo) {
                 sfe.setThreadResources(group.getThreadResources().get(threadNo));
@@ -145,17 +144,6 @@ public class GroupController {
      */
     private void groupStartDelay() throws InterruptedException {
         Thread.sleep(group.getGroupStartDelay());
-    }
-
-    /**
-     * induce delay before starting a thread
-     */
-    private void threadStartDelay() {
-        try {
-            Clock.sleep(group.getThreadStartDelay());
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
     }
 
     /**
@@ -218,10 +206,10 @@ public class GroupController {
                 logger.debug("Group "+this.groupName + " :" + increasedThreads+" threads have to be increased");
                 for(int i=0; i<increasedThreads; i++) {
                     int threadNo = this.sequentialFEs.size() + 1;
-                    SequentialFunctionExecutor sfe = buildSequentialFunctionExecutor(threadNo);
+                    SequentialFunctionExecutor sfe = buildSequentialFunctionExecutor(threadNo).
+                                        setThreadStartDelay(this.group.getThreadStartDelay());
 
                     this.sequentialFEs.add(sfe);
-                    threadStartDelay();
                     sfe.start();
                     if(group.getThreadResources().size() > threadNo) {
                         sfe.setThreadResources(group.getThreadResources().get(threadNo));
@@ -233,7 +221,6 @@ public class GroupController {
             for(SequentialFunctionExecutor sfe : this.sequentialFEs) {
                 sfe.setThroughput(this.group.getThroughput() / group.getThreads());
             }
-
         }
 
         logger.info("Total Threads running "+this.sequentialFEs.size()+"(In List) "+this.group.getThreads()+"(ThreadCount)");
@@ -279,7 +266,6 @@ public class GroupController {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             throw new RuntimeException(e);
         }
-        logger.info("************Group Controller "+this.groupName+" Ended**************");
     }
 
     public long getRunTimeMS() {
