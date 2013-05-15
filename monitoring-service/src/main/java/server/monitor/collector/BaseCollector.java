@@ -21,7 +21,7 @@ public abstract class BaseCollector{
     protected static Logger log = Logger.getLogger(BaseCollector.class);
 
     static {
-        populateClistntOS();
+        populateClientOS();
         populateSystemProperties();
     }
 
@@ -35,7 +35,7 @@ public abstract class BaseCollector{
         return name;
     }
 
-    private static void populateClistntOS() {
+    private static void populateClientOS() {
         final String osName = System.getProperty("os.name");
         if ((osName == null) || (osName.length() == 0))
         {
@@ -91,7 +91,7 @@ public abstract class BaseCollector{
 
     /**
      * Monitoring service would call this to check if this is supported or not.
-     * Collector needs to writed there own logic to validate that they can be executed or not.
+     * Collector needs to write there own logic to validate that they can be executed or not.
      * @return
      */
     final public ResourceCollectionInstance collect0() throws Exception {
