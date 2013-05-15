@@ -181,7 +181,7 @@ public class Group {
     }
 
     public Group createWarmUpGroup() throws CloneNotSupportedException {
-        Group warmUpGroup = new Group("Warm Up "+this.getName());
+        Group warmUpGroup = new Group("WarmUp"+this.getName());
         warmUpGroup.setGroupStartDelay(this.groupStartDelay).
                 setThreadStartDelay(this.threadStartDelay).
                 setRepeats(this.warmUpRepeats).
