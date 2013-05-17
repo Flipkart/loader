@@ -68,7 +68,7 @@ function plotGraphs(url, grpIndex, timerIndex){
 		.transition().duration(500)
 		.call(chart2);
 
-	cleanQueues();
+	cleanQueues(grpIndex, timerIndex);
 		//console.log(dumpMean;
 	// var metrices = metrics(false, url, grpIndex, timerIndex);
  //    window.stats[grpIndex][timerIndex]["metrices"]= metrices;
@@ -112,7 +112,9 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 			  for( var i=0; i<lines.length-1; i++){
 			  	if (lines[i]=="") continue;
 			  	try {
-			  		var dataJson = $.parseJSON(lines[i]);
+			  		console.log("line", lines[i]);
+			  		//var dataJson = $.parseJSON(lines[i]);
+			  		var dataJson = lines[i];
 					time = new Date(dataJson["time"]);
 					window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x: new Date(dataJson["time"]),y: dataJson["dumpMean"]});
 					window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x: new Date(dataJson["time"]),y: dataJson["dumpThroughput"]});
@@ -138,7 +140,8 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 	  	});
 }
 
-function cleanQueues(){
+function cleanQueues(grpIndex, timerIndex){
+	console.log("Cleaning the queues now!!");
 	window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length = 0;
 	window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length=0;
 	window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].length=0;
