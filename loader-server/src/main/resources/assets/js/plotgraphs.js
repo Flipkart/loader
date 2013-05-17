@@ -113,8 +113,8 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 			  	if (lines[i]=="") continue;
 			  	try {
 			  		console.log("line", lines[i]);
-			  		//var dataJson = $.parseJSON(lines[i]);
-			  		var dataJson = lines[i];
+			  		var dataJson = $.parseJSON(lines[i]);
+			  		//var dataJson = lines[i];
 					time = new Date(dataJson["time"]);
 					window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x: new Date(dataJson["time"]),y: dataJson["dumpMean"]});
 					window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x: new Date(dataJson["time"]),y: dataJson["dumpThroughput"]});
