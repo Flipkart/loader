@@ -109,18 +109,22 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 			  //var firstLine = $.parseJSON(lines[0]);
 			  for( var i=0; i<lines.length-1; i++){
 			  	if (lines[i]=="") continue;
-			  	var dataJson = $.parseJSON(lines[i]);
-				time = new Date(dataJson["time"]);
-				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x: new Date(dataJson["time"]),y: dataJson["dumpMean"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x: new Date(dataJson["time"]),y: dataJson["dumpThroughput"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].push({x: new Date(dataJson["time"]), y: dataJson["overallMean"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].push({x: new Date(dataJson["time"]), y: dataJson["overAllThroughput"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].push({x: new Date(dataJson["time"]), y: dataJson["fiftieth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["seventyFifth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetieth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyFifth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyEight"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyNinth"]});
+			  	try {
+			  		var dataJson = $.parseJSON(lines[i]);
+					time = new Date(dataJson["time"]);
+					window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x: new Date(dataJson["time"]),y: dataJson["dumpMean"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x: new Date(dataJson["time"]),y: dataJson["dumpThroughput"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].push({x: new Date(dataJson["time"]), y: dataJson["overallMean"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].push({x: new Date(dataJson["time"]), y: dataJson["overAllThroughput"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].push({x: new Date(dataJson["time"]), y: dataJson["fiftieth"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["seventyFifth"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetieth"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyFifth"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyEight"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyNinth"]});
+				} catch (err){
+					console.log("Err in parsing:",lines[i] );
+				}
 			  }
 		  },
 		  error: function(data){
@@ -142,8 +146,8 @@ function populateMetrics(httpUrl, grpIndex, timerIndex){
 		  	success: function(data){
 			  	var dataJson = $.parseJSON(data);
 				time = new Date(dataJson["time"]);
-				console.log(dataJson)
-				console.log("populateMetrics" , window.stats[grpIndex][timerIndex]["statsqueues"]);
+				//console.log(dataJson)
+				//console.log("populateMetrics" , window.stats[grpIndex][timerIndex]["statsqueues"]);
 				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x:time,y: dataJson["dumpMean"]});
 				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x:time,y: dataJson["dumpThroughput"]});
 				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].push({x:time, y: dataJson["overallMean"]});
