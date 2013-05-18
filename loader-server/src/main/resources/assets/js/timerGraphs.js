@@ -28,7 +28,10 @@ function plotTimerGraphs(){
 							console.log("timer:" + timerName);
 							var chartId = "chart" + i +j;
 							console.log("chartId:" + chartId);
-							insertHtml = insertHtml + "<div class=\"content\" style:\"position:relative\"><table width=\"100%\">" + "<tr><td colspan=\"2\">" + timerName + "</td></tr><tr><td><div id=\"" + chartId + "1\" style=\"width:50%;float:left;position:relative\"><svg style=\"height: 350px;min-height:350px\"></svg></div><div id=\"" + chartId + "2\" style=\"width:50%;float:left;\"><svg style=\"height: 350px; min-height:350px;\"></svg></div></td></tr></table></div>";
+							insertHtml = insertHtml + "<div class=\"content\" style:\"position:relative\"><table width=\"100%\">" + 
+							"<tr><td colspan=\"2\">" + timerName + 
+							"</td></tr><tr><td><div id=\"" + chartId + "1\" style=\"width:50%;float:left;position:relative\"><svg style=\"height: 350px;min-height:350px\"></svg><div id=\"slider-"+ i + "-" + j +"-0\" class=\"slider\" style=\"width:90%;margin:0 auto;\"></div>" + 
+							"</div><div id=\"" + chartId + "2\" style=\"width:50%;float:left;\"><svg style=\"height: 350px; min-height:350px;\"></svg><div id=\"slider-"+ i + "-" + j +"-1\" class=\"slider\" style=\"width:90%;margin:0 auto;\"></div></div></td></tr></table></div>";
 							//insertHtml = insertHtml + "<div class=\"content\"><p>" + timerName + "</p>";
 
 						}
@@ -45,16 +48,6 @@ function plotTimerGraphs(){
 			complete: function(comp){
 				console.log($('.container'));
 				$('.container').slideUp();
-				console.log("timersToPlot:" +  window.timerUrls);
-				// window.stats = new Array();
-				// var cnt = 0;
-				// for (var k=0; k<window.groupCount; k++){
-				// 	window.stats[k] = new Array();
-				// 	for(var p=0;p<window.timerLengths[k];p++){
-				// 		returnTimerGraphs(window.timerUrls[cnt++], k,p);
-				// 	}
-				// 	window.stats[k].length=0;
-				// }
 				console.log("complete done");
 			}
 		});
