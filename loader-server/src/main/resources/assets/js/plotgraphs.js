@@ -112,7 +112,7 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 			  for( var i=0; i<lines.length-1; i++){
 			  	if (lines[i]=="") continue;
 			  	try {
-			  		console.log("line", lines[i]);
+			  		//console.log("line", lines[i]);
 			  		var dataJson = $.parseJSON(lines[i]);
 			  		//var dataJson = lines[i];
 					time = new Date(dataJson["time"]);
