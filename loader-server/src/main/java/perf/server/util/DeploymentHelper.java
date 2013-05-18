@@ -86,11 +86,16 @@ public class DeploymentHelper {
         if(deployPlatformLib) {
             log.info("Deploying Platform Lib on Agent "+agentIP);
             Properties prop = new Properties();
-            new LoaderAgentClient(agentIP,
-                    agentConfig.getAgentPort()).deployPlatformLibs();
-            prop.put("deploymentTime", String.valueOf(System.currentTimeMillis()));
-            FileHelper.createFilePath(platformFile.getAbsolutePath());
-            prop.store(new FileOutputStream(platformFile), "Platform Lib Information");
+            if(new LoaderAgentClient(agentIP,
+                    agentConfig.getAgentPort()).deployPlatformLibs()) {
+                prop.put("deploymentTime", String.valueOf(System.currentTimeMillis()));
+                FileHelper.createFilePath(platformFile.getAbsolutePath());
+                prop.store(new FileOutputStream(platformFile), "Platform Lib Information");
+            }
+            else {
+                log.error("Platform Lib Deployment Failed on Agent "+agentIP);
+                throw new IOException("Platform Lib Deployment Failed on Agent "+agentIP);
+            }
         }
     }
 
@@ -119,20 +124,30 @@ public class DeploymentHelper {
                 }
 
                 if(deployLib || force) {
-                    new LoaderAgentClient(agentIP,agentConfig.getAgentPort()).
+                    if(new LoaderAgentClient(agentIP,agentConfig.getAgentPort()).
                             deployClassLibs(lib,
-                                    libClassListMap.get(lib));
-                    prop.put(lib, String.valueOf(System.currentTimeMillis()));
+                                    libClassListMap.get(lib))) {
+                        prop.put(lib, String.valueOf(System.currentTimeMillis()));
+                    }
+                    else {
+                        log.error("Class Lib Deployment Failed on Agent "+agentIP);
+                        throw new IOException("Class Lib Deployment Failed on Agent "+agentIP);
+                    }
                 }
             }
         }
         else {
             FileHelper.createFilePath(classLibDeploymentFile.getAbsolutePath());
             for(String lib : libClassListMap.keySet()) {
-                new LoaderAgentClient(agentIP,agentConfig.getAgentPort()).
+                if(new LoaderAgentClient(agentIP,agentConfig.getAgentPort()).
                         deployClassLibs(lib,
-                                libClassListMap.get(lib));
-                prop.put(lib, String.valueOf(System.currentTimeMillis()));
+                                libClassListMap.get(lib))) {
+                    prop.put(lib, String.valueOf(System.currentTimeMillis()));
+                }
+                else {
+                    log.error("Class Lib Deployment Failed on Agent "+agentIP);
+                    throw new IOException("Class Lib Deployment Failed on Agent "+agentIP);
+                }
             }
         }
         prop.store(new FileOutputStream(classLibDeploymentFile), "ClassLib Deployment times");
