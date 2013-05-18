@@ -76,7 +76,7 @@ public class LoaderAgentClient {
         return objectMapper.readValue(response.getResponseBodyAsStream(), Map.class);
     }
 
-    public LoaderAgentClient deployPlatformLibs() throws IOException, ExecutionException, InterruptedException {
+    public boolean deployPlatformLibs() throws IOException, ExecutionException, InterruptedException {
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 preparePost("http://" + this.getHost() + ":" + this.getPort() + RESOURCE_PLATFORM_LIB).
@@ -87,11 +87,12 @@ public class LoaderAgentClient {
         if(!r.isDone())
             r.get();
 
+        boolean successfulDeployment = r.get().getStatusCode() == 200;
         asyncHttpClient.close();
-        return this;
+        return successfulDeployment;
     }
 
-    public LoaderAgentClient deployClassLibs(String libPath, String classList) throws IOException, ExecutionException, InterruptedException {
+    public boolean deployClassLibs(String libPath, String classList) throws IOException, ExecutionException, InterruptedException {
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
 
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
@@ -102,8 +103,9 @@ public class LoaderAgentClient {
 
         Future<Response> r = b.execute();
         r.get();
+        boolean successfulDeployment = r.get().getStatusCode() == 200;
         asyncHttpClient.close();
-        return this;
+        return successfulDeployment;
     }
 
     public void submitJob(String jobId, Load load, String classListStr)
