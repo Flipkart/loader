@@ -79,8 +79,12 @@ function getGraphsData(jobId){
 						if (resourceDataLine!==""){ 
 							$.each(attributesToPlot, function(metricIndex, attr){
 								if(!window["monitoringStats"][agentName][resource][attr]) window["monitoringStats"][agentName][resource][attr]=new Array();
-								var resourceDataJson = $.parseJSON(resourceDataLine);
-								window["monitoringStats"][agentName][resource][attr].push({x: new Date(resourceDataJson[0]["time"]), y: resourceDataJson[0]["metrics"][attr]});
+								try {
+									var resourceDataJson = $.parseJSON(resourceDataLine);
+									window["monitoringStats"][agentName][resource][attr].push({x: new Date(resourceDataJson[0]["time"]), y: resourceDataJson[0]["metrics"][attr]});
+								} catch (err){
+									console.log("Err in parsing", resourceDataLine);
+								} 
 							});
 						}
 					});

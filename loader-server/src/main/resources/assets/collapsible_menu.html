@@ -42,8 +42,29 @@ svg {
 <script type="text/javascript">
     $(document).ready(function(){
     	var jobId = getQueryParams("jobid");
-		plotGraphs(jobId);
+		//plotGraphs(jobId);
 		plotTimerGraphs();
+    window.isPlotted = new Array();
+    $('.collapsible').click(function(){
+          var id = $(this).attr("id");
+          console.log(id);
+          $("#"+id+"Container").slideToggle();
+          var grpInd = id.substring(7);
+          if(window.isPlotted[grpInd]== 1){
+            console.log("graphs already plotted!!") 
+          } else {
+            var cnt = 0;
+            for (var m=0;m<grpInd;m++) cnt+=window.timerLengths[m];
+            window.stats[grpInd] = new Array();
+            for(var p=0;p<window.timerLengths[grpInd];p++){
+              returnTimerGraphs(window.timerUrls[cnt], grpInd,p);
+              console.log("plotting: ", window.timerUrls[cnt]);
+              cnt++;
+            }
+            window.isPlotted[grpInd]=1;
+            //window.stats[grpInd].length=0;
+          }
+        });
     })
 </script>
 <title>Job Graphs</title>

@@ -67,9 +67,11 @@ function plotGraphs(url, grpIndex, timerIndex){
   		.datum(window.stats[grpIndex][timerIndex]["metrices"]["chart2"])
 		.transition().duration(500)
 		.call(chart2);
+
+	cleanQueues(grpIndex, timerIndex);
 		//console.log(dumpMean;
-	var metrices = metrics(false, url, grpIndex, timerIndex);
-    window.stats[grpIndex][timerIndex]["metrices"]= metrices;
+	// var metrices = metrics(false, url, grpIndex, timerIndex);
+ //    window.stats[grpIndex][timerIndex]["metrices"]= metrices;
 	//setInterval(function(){plotGraphs(url, grpIndex, timerIndex);}, 10000);
 }
 
@@ -109,18 +111,24 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 			  //var firstLine = $.parseJSON(lines[0]);
 			  for( var i=0; i<lines.length-1; i++){
 			  	if (lines[i]=="") continue;
-			  	var dataJson = $.parseJSON(lines[i]);
-				time = new Date(dataJson["time"]);
-				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x: new Date(dataJson["time"]),y: dataJson["dumpMean"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x: new Date(dataJson["time"]),y: dataJson["dumpThroughput"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].push({x: new Date(dataJson["time"]), y: dataJson["overallMean"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].push({x: new Date(dataJson["time"]), y: dataJson["overAllThroughput"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].push({x: new Date(dataJson["time"]), y: dataJson["fiftieth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["seventyFifth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetieth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyFifth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyEight"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyNinth"]});
+			  	try {
+			  		console.log("line", lines[i]);
+			  		var dataJson = $.parseJSON(lines[i]);
+			  		//var dataJson = lines[i];
+					time = new Date(dataJson["time"]);
+					window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x: new Date(dataJson["time"]),y: dataJson["dumpMean"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x: new Date(dataJson["time"]),y: dataJson["dumpThroughput"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].push({x: new Date(dataJson["time"]), y: dataJson["overallMean"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].push({x: new Date(dataJson["time"]), y: dataJson["overAllThroughput"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].push({x: new Date(dataJson["time"]), y: dataJson["fiftieth"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["seventyFifth"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetieth"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyFifth"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyEight"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyNinth"]});
+				} catch (err){
+					console.log("Err in parsing:",lines[i] );
+				}
 			  }
 		  },
 		  error: function(data){
@@ -132,37 +140,18 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 	  	});
 }
 
-function populateMetrics(httpUrl, grpIndex, timerIndex){
-	$.ajax({
-		  	//url:httpUrl+"?last=true",
-		  	url:"http://localhost:4444/timers/test/data",
-		  	type: "GET",
-		  	contentType:"text/plain",
-		  	async:false,
-		  	success: function(data){
-			  	var dataJson = $.parseJSON(data);
-				time = new Date(dataJson["time"]);
-				console.log(dataJson)
-				console.log("populateMetrics" , window.stats[grpIndex][timerIndex]["statsqueues"]);
-				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].push({x:time,y: dataJson["dumpMean"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].push({x:time,y: dataJson["dumpThroughput"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].push({x:time, y: dataJson["overallMean"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].push({x:time, y: dataJson["overAllThroughput"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].push({x:time, y: dataJson["fiftieth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].push({x:time, y: dataJson["seventyFifth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].push({x:time, y: dataJson["ninetieth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].push({x:time, y: dataJson["ninetyFifth"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].push({x:time, y: dataJson["ninetyEight"]});
-				window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x:time, y: dataJson["ninetyNinth"]});
-		    },
-		  error: function(data){
-			  console.log("NO Data Found");
-		  },
-		  complete: function(){
-		  	  setInterval(function(){populateMetrics(httpUrl, grpIndex, timerIndex);}, 5000);
-			  console.log("Populating queues every 5 secs.");
-		  }
-	  	});
+function cleanQueues(grpIndex, timerIndex){
+	console.log("Cleaning the queues now!!");
+	window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length = 0;
+	window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length=0;
+	window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].length=0;
+	window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].length=0;
+	window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].length=0;
+	window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].length=0;
+	window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].length=0;
+	window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].length=0;
+	window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].length=0;
+	window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].length=0;
 }
 }
 
