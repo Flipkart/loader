@@ -1,5 +1,5 @@
 
-function returnTimerGraphs(url, grpIndex, timerIndex){
+function returnTimerGraphs(url, grpIndex, timerIndex, chart1StartIndex, chart2StartIndex){
 	var chart1, chart2;
 	formatTime = d3.time.format("%H:%M"),
  	formatMinutes = function(d) { return formatTime(new Date(d)); };
@@ -26,7 +26,12 @@ function returnTimerGraphs(url, grpIndex, timerIndex){
   		chart2.yAxis
       		.axisLabel('Time (ms)')
       		.tickFormat(d3.format(',.2f'));
-      	var statsQueues = {
+      	var metrices = {}
+      	if (typeof window.stats[grpIndex][timerIndex] != 'undefined' || window.stats[grpIndex][timerIndex] != null){
+      		metrices = metrics(false, url, grpIndex, timerIndex, chart1StartIndex, chart2StartIndex);
+      		window.stats[grpIndex][timerIndex]["metrices"]= metrices;
+      	} else {
+      		var statsQueues = {
       						"dumpMean": new Array(), 
       						"dumpThroughPut": new Array(),
       						"overAllMean": new Array(),
@@ -38,44 +43,35 @@ function returnTimerGraphs(url, grpIndex, timerIndex){
       						"nintyEighth": new Array(),
       						"nintyNinth": new Array()
       					};
-        window.stats[grpIndex][timerIndex]={"statsqueues": statsQueues};
-        var metrices = metrics(true, url, grpIndex, timerIndex);
-        window.stats[grpIndex][timerIndex]["metrices"]= metrices;
-        plotGraphs(url, grpIndex, timerIndex);
-
+        	window.stats[grpIndex][timerIndex]={"statsqueues": statsQueues};
+        	metrices = metrics(true, url, grpIndex, timerIndex, 0, 0);
+        	window.stats[grpIndex][timerIndex]["metrices"]= metrices;
+        }
+        plotGraphs(grpIndex, timerIndex);
         nv.utils.windowResize(chart1.update);
   		nv.utils.windowResize(chart2.update);
   		chart1.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
   		chart2.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
-
   		return chart1
+    });
 
-});
-
-function plotGraphs(url, grpIndex, timerIndex){
+function plotGraphs(grpIndex, timerIndex){
 	chart1Name = "#chart" + grpIndex + timerIndex + "1";
 	chart2Name = "#chart" + grpIndex + timerIndex + "2";
 	// console.log("Lets see chart1Name:" + chart1Name);
-	console.log("chart I am plotting", window.stats[grpIndex][timerIndex]["metrices"]["chart1"]);
+	//console.log("chart I am plotting", window.stats[grpIndex][timerIndex]["metrices"]["chart1"]);
 	d3.select(chart1Name + " svg")
-      //.datum([]) //for testing noData
       	.datum(window.stats[grpIndex][timerIndex]["metrices"]["chart1"])
     	.transition().duration(500)
       	.call(chart1);
-
-  	d3.select(chart2Name + " svg")
+    d3.select(chart2Name + " svg")
   		.datum(window.stats[grpIndex][timerIndex]["metrices"]["chart2"])
 		.transition().duration(500)
 		.call(chart2);
-
-	cleanQueues(grpIndex, timerIndex);
-		//console.log(dumpMean;
-	// var metrices = metrics(false, url, grpIndex, timerIndex);
- //    window.stats[grpIndex][timerIndex]["metrices"]= metrices;
-	//setInterval(function(){plotGraphs(url, grpIndex, timerIndex);}, 10000);
 }
 
-function metrics(initialize, url, grpIndex, timerIndex) {
+
+function metrics(initialize, url, grpIndex, timerIndex, c1Index, c2Index) {
  	 //var dumpMean, dumpThroughPut, overAllMean, overAllThroughPut, fiftieth, seventyFifth,
 	  //ninetieth, nintyFifth, nintyEighth, nintyNinth;
 
@@ -85,17 +81,17 @@ function metrics(initialize, url, grpIndex, timerIndex) {
 	  	//populateMetrics(url, grpIndex, timerIndex);
 	  }	
 	  return { "chart1":[
-    					{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"],key: "Dump Mean",color: "#ff7f0e"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"],key: "Over All Mean",color: "#a02c2c",},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"],key: "50Th%",color: "#B40404"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"],key: "75Th%",color: "#0B610B"	},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"],key: "90Th%",color: "#0B0B61"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"],key: "95Th%",color: "#FE9A2E"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"],key: "98Th%",color: "#0E0D0D"}
+    					{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].slice(c1Index, c1Index+300),key: "Dump Mean",color: "#ff7f0e"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].slice(c1Index, c1Index+300),key: "Over All Mean",color: "#a02c2c",},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].slice(c1Index, c1Index+300),key: "50Th%",color: "#B40404"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].slice(c1Index, c1Index+300),key: "75Th%",color: "#0B610B"	},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].slice(c1Index, c1Index+300),key: "90Th%",color: "#0B0B61"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].slice(c1Index, c1Index+300),key: "95Th%",color: "#FE9A2E"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].slice(c1Index, c1Index+300),key: "98Th%",color: "#0E0D0D"}
 	  					],
 			   "chart2":[
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"],key: "Dump Throughput",color: "#2ca02c"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"],key: "Over All ThroughPut",color: "#DF01D7",}
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].slice(c2Index, c2Index+300),key: "Dump Throughput",color: "#2ca02c"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].slice(c2Index, c2Index+300),key: "Over All ThroughPut",color: "#DF01D7",}
 						]
 			 };
 }
@@ -109,6 +105,7 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 		  	success: function(data){
 			  var lines = data.split('\n');
 			  //var firstLine = $.parseJSON(lines[0]);
+			  window.sliderLength=lines.length-400>0?lines.length-300:0;
 			  for( var i=0; i<lines.length-1; i++){
 			  	if (lines[i]=="") continue;
 			  	try {
@@ -138,20 +135,6 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 			  console.log("Initial Data fetch Complete");
 		  }
 	  	});
-}
-
-function cleanQueues(grpIndex, timerIndex){
-	console.log("Cleaning the queues now!!");
-	window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length = 0;
-	window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length=0;
-	window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].length=0;
-	window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].length=0;
-	window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].length=0;
-	window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].length=0;
-	window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].length=0;
-	window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].length=0;
-	window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].length=0;
-	window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].length=0;
 }
 }
 

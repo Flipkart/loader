@@ -46,9 +46,6 @@ nv.models.lineChart = function() {
 
   var showTooltip = function(e, offsetElement) {
 
-    console.log("e",e);
-    console.log("offset", offsetElement)
-
     //New addition to calculate position if SVG is scaled with viewBox, may move TODO: consider implementing everywhere else
     if (offsetElement) {
       var svg = d3.select(offsetElement).select('svg');
@@ -275,7 +272,6 @@ nv.models.lineChart = function() {
 
   lines.dispatch.on('elementMouseover.tooltip', function(e) {
     e.pos = [e.pos[0] +  margin.left, e.pos[1] + margin.top];
-    console.log("lines.dispatch.on", e);
     dispatch.tooltipShow(e);
   });
 
