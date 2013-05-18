@@ -15,23 +15,25 @@ function plotTimerGraphs(){
 				window.timerUrls = new Array();
 				for( var i=0; i<groups.length; i++){
 					var groupJson = groups[i];
-					var insertHtml = "<h3 class=\"collapsible\" id=\"section" + i + "\">" + groupJson["groupName"] +  
-					"<span></span></h3>" + 
-					"<div id=\"section" + i + "Container\" class=\"container\" style:\"position:relative\">";
+					var insertHtml = "";
 					var timers = groupJson["timers"];
-					window.timerLengths[i] = timers.length;
-					for( var j=0; j<timers.length; j++){
-						var timerName = timers[j]["name"];
-						window.timerUrls.push("/loader-server/jobs/" + jobId + "/jobStats/groups/" + groupJson["groupName"] + "/timers/" + timerName + "/agents/combined") ;
-						console.log("timer:" + timerName);
-						var chartId = "chart" + i +j;
-						console.log("chartId:" + chartId);
-						insertHtml = insertHtml + "<div class=\"content\" style:\"position:relative\"><table width=\"100%\">" + "<tr><td colspan=\"2\">" + timerName + "</td></tr><tr><td><div id=\"" + chartId + "1\" style=\"width:50%;float:left;position:relative\"><svg style=\"height: 350px;min-height:350px\"></svg></div><div id=\"" + chartId + "2\" style=\"width:50%;float:left;\"><svg style=\"height: 350px; min-height:350px;\"></svg></div></td></tr></table></div>";
-						//insertHtml = insertHtml + "<div class=\"content\"><p>" + timerName + "</p>";
+					if( typeof(timers) != 'undefined' && timers != null){
+						insertHtml = "<h3 class=\"collapsible\" id=\"section" + i + "\">" + groupJson["groupName"] +  
+							"<span></span></h3>" + 
+							"<div id=\"section" + i + "Container\" class=\"container\" style:\"position:relative\">";
+						window.timerLengths[i] = timers.length;
+						for( var j=0; j<timers.length; j++){
+							var timerName = timers[j]["name"];
+							window.timerUrls.push("/loader-server/jobs/" + jobId + "/jobStats/groups/" + groupJson["groupName"] + "/timers/" + timerName + "/agents/combined") ;
+							console.log("timer:" + timerName);
+							var chartId = "chart" + i +j;
+							console.log("chartId:" + chartId);
+							insertHtml = insertHtml + "<div class=\"content\" style:\"position:relative\"><table width=\"100%\">" + "<tr><td colspan=\"2\">" + timerName + "</td></tr><tr><td><div id=\"" + chartId + "1\" style=\"width:50%;float:left;position:relative\"><svg style=\"height: 350px;min-height:350px\"></svg></div><div id=\"" + chartId + "2\" style=\"width:50%;float:left;\"><svg style=\"height: 350px; min-height:350px;\"></svg></div></td></tr></table></div>";
+							//insertHtml = insertHtml + "<div class=\"content\"><p>" + timerName + "</p>";
 
+						}
+						insertHtml = insertHtml + "</div>";
 					}
-					insertHtml = insertHtml + "</div>";
-					
 					$("#collapsibleMenu")
 					.append(insertHtml);
 				}
