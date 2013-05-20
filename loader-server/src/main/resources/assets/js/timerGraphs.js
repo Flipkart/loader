@@ -36,6 +36,8 @@ function plotTimerGraphs(){
 
 						}
 						insertHtml = insertHtml + "</div>";
+					} else {
+						window.timerLengths[i] = 0;
 					}
 					$("#collapsibleMenu")
 					.append(insertHtml);
