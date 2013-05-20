@@ -79,19 +79,21 @@ function metrics(initialize, url, grpIndex, timerIndex, c1Index, c2Index) {
 	  if(initialize) {
 	  	initializeMetrics(url, grpIndex, timerIndex);
 	  	//populateMetrics(url, grpIndex, timerIndex);
-	  }	
+	  }
+	  var last1Index = c1Index+300< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length?c1Index+300:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length;
+	  var last2index = c2Index+300< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length?c2Index+300:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length;
 	  return { "chart1":[
-    					{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].slice(c1Index, c1Index+300),key: "Dump Mean",color: "#ff7f0e"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].slice(c1Index, c1Index+300),key: "Over All Mean",color: "#a02c2c",},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].slice(c1Index, c1Index+300),key: "50Th%",color: "#B40404"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].slice(c1Index, c1Index+300),key: "75Th%",color: "#0B610B"	},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].slice(c1Index, c1Index+300),key: "90Th%",color: "#0B0B61"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].slice(c1Index, c1Index+300),key: "95Th%",color: "#FE9A2E"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].slice(c1Index, c1Index+300),key: "98Th%",color: "#0E0D0D"}
+    					{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].slice(c1Index, last1Index),key: "Dump Mean",color: "#ff7f0e"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].slice(c1Index, last1Index),key: "Over All Mean",color: "#a02c2c",},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].slice(c1Index, last1Index),key: "50Th%",color: "#B40404"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].slice(c1Index, last1Index),key: "75Th%",color: "#0B610B"	},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].slice(c1Index, last1Index),key: "90Th%",color: "#0B0B61"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].slice(c1Index, last1Index),key: "95Th%",color: "#FE9A2E"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].slice(c1Index, last1Index),key: "98Th%",color: "#0E0D0D"}
 	  					],
 			   "chart2":[
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].slice(c2Index, c2Index+300),key: "Dump Throughput",color: "#2ca02c"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].slice(c2Index, c2Index+300),key: "Over All ThroughPut",color: "#DF01D7",}
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].slice(c2Index, last2index),key: "Dump Throughput",color: "#2ca02c"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].slice(c2Index, last2index),key: "Over All ThroughPut",color: "#DF01D7",}
 						]
 			 };
 }
