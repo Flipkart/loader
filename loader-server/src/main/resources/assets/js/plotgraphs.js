@@ -79,8 +79,9 @@ function metrics(initialize, url, grpIndex, timerIndex, c1Index, c2Index) {
 	  if(initialize) {
 	  	initializeMetrics(url, grpIndex, timerIndex);
 	  	//populateMetrics(url, grpIndex, timerIndex);
-	  }	
-	  return { "chart1":[
+	  }
+	  var last1Index = c1Index+300< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length?c1Index+300:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length;
+	  var last2index = c2Index+300< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length?c2Index+300:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"];
     					{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].slice(c1Index, c1Index+300),key: "Dump Mean",color: "#ff7f0e"},
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].slice(c1Index, c1Index+300),key: "Over All Mean",color: "#a02c2c",},
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["fiftieth"].slice(c1Index, c1Index+300),key: "50Th%",color: "#B40404"},
