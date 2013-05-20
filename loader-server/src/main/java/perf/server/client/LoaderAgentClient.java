@@ -103,7 +103,7 @@ public class LoaderAgentClient {
 
         Future<Response> r = b.execute();
         r.get();
-        boolean successfulDeployment = r.get().getStatusCode() == 200;
+        boolean successfulDeployment = r.get().getStatusCode() == 204;
         asyncHttpClient.close();
         return successfulDeployment;
     }
