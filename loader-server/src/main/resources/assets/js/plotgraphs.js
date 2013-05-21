@@ -80,8 +80,9 @@ function metrics(initialize, url, grpIndex, timerIndex, c1Index, c2Index) {
 	  	initializeMetrics(url, grpIndex, timerIndex);
 	  	//populateMetrics(url, grpIndex, timerIndex);
 	  }
-	  var last1Index = c1Index+300< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length?c1Index+300:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length;
-	  var last2index = c2Index+300< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length?c2Index+300:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length;
+	  var last1Index = c1Index+300< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length?c1Index+300:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length-5;
+	  var last2Index = c2Index+300< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length?c2Index+300:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length-5;
+	  console.log("last1Index", last1Index, "last2Index", last2Index);
 	  return { "chart1":[
     					{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].slice(c1Index, last1Index),key: "Dump Mean",color: "#ff7f0e"},
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllMean"].slice(c1Index, last1Index),key: "Over All Mean",color: "#a02c2c",},
@@ -92,8 +93,8 @@ function metrics(initialize, url, grpIndex, timerIndex, c1Index, c2Index) {
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].slice(c1Index, last1Index),key: "98Th%",color: "#0E0D0D"}
 	  					],
 			   "chart2":[
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].slice(c2Index, last2index),key: "Dump Throughput",color: "#2ca02c"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].slice(c2Index, last2index),key: "Over All ThroughPut",color: "#DF01D7",}
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].slice(c2Index, last2Index),key: "Dump Throughput",color: "#2ca02c"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["overAllThroughPut"].slice(c2Index, last2Index),key: "Over All ThroughPut",color: "#DF01D7",}
 						]
 			 };
 }
@@ -107,7 +108,7 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 		  	success: function(data){
 			  var lines = data.split('\n');
 			  //var firstLine = $.parseJSON(lines[0]);
-			  window.sliderLength=lines.length-400>0?lines.length-300:0;
+			  window.sliderLength=lines.length-300>0?lines.length-300:0;
 			  for( var i=0; i<lines.length-1; i++){
 			  	if (lines[i]=="") continue;
 			  	try {

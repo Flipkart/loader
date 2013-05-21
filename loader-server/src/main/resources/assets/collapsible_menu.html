@@ -59,7 +59,7 @@ svg {
             for (var m=0;m<grpInd;m++) cnt+=window.timerLengths[m];
             window.stats[grpInd] = new Array();
             for(var p=0;p<window.timerLengths[grpInd];p++){
-              returnTimerGraphs(window.timerUrls[cnt], grpInd,p, 2,0);
+              returnTimerGraphs(window.timerUrls[cnt], grpInd,p, 0,0);
               console.log("plotting: ", window.timerUrls[cnt]);
               cnt++;
             }
@@ -67,24 +67,26 @@ svg {
             console.log("window is:", window);
           }
           //var lengthOfSlider=new Number(window.sliderLength);
-          $( ".slider" ).slider({
-            min: 0,
-            max: 100,
-            stop: function(event, ui){
-              console.log("value ",ui, window.sliderLength);
-              var sliderId = $(this).attr("id");
-              console.log("sliderId:", sliderId);
-              var indices = sliderId.split("-");
-              var chart1StartIndex = $("#slider-" + indices[1] + "-" + indices[2] + "-0").slider("option", "value");
-              var chart2StartIndex = $("#slider-" + indices[1] + "-" + indices[2] + "-1").slider("option", "value");
-              console.log("chart1StartIndex:",chart1StartIndex);
-              console.log("chart2StartIndex:",chart2StartIndex);
+          if (window.sliderLength >0){
+            $( ".slider" ).slider({
+              min: 0,
+              max: 100,
+              stop: function(event, ui){
+                console.log("value ",ui, window.sliderLength);
+                var sliderId = $(this).attr("id");
+                console.log("sliderId:", sliderId);
+                var indices = sliderId.split("-");
+                var chart1StartIndex = $("#slider-" + indices[1] + "-" + indices[2] + "-0").slider("option", "value");
+                var chart2StartIndex = $("#slider-" + indices[1] + "-" + indices[2] + "-1").slider("option", "value");
+                console.log("chart1StartIndex:",chart1StartIndex);
+                console.log("chart2StartIndex:",chart2StartIndex);
 
-              returnTimerGraphs("", indices[1],indices[2], (chart1StartIndex*window.sliderLength)/100,(chart2StartIndex*window.sliderLength)/100);
+                returnTimerGraphs("", indices[1],indices[2], (chart1StartIndex*window.sliderLength)/100,(chart2StartIndex*window.sliderLength)/100);
               //replot(ui.value);
-            }
-          });
-          //$( ".slider" ).slider("option", "max", );
+              }
+            });
+          }
+          
         });
     });
 </script>
