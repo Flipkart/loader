@@ -107,6 +107,7 @@ function getResourceType(resource){
 	if(resource.indexOf("memory") !== -1) return "memory";
 	if(resource.indexOf("sockets") !== -1) return "sockets";
 	if(resource.indexOf("diskspace") !== -1) return "diskspace.root";
+	if(resource.indexOf("mysql") !== -1) return "mysql";
 
 }
 
