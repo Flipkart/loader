@@ -26,7 +26,7 @@ function getAgents(){
 							imgSrc="images/disabled.png";
 			
 					}
-					insertHtml = insertHtml + "<td><input type=\"checkbox\" id=\"" + v["ip"] + "\" name=\"" + v["ip"] + "\" /><label for=\"\">" + v["ip"] + "</label></td>";
+					insertHtml = insertHtml + "<tr><td><input type=\"checkbox\" id=\"" + v["ip"] + "\" name=\"" + v["ip"] + "\" /><label for=\"\">" + v["ip"] + "</label></td>";
 					insertHtml = insertHtml + "<td>" + v["attributes"]["env"] + "</td>";
 					insertHtml = insertHtml + "<td><b><u>OS:</u></b>" + v["attributes"]["linux"] + "<br><b><u>Architecture:</u></b>" + v["attributes"]["architecture"] + "<br>";
 					insertHtml = insertHtml + "<b><u>Memory:</u></b>" + v["attributes"]["memory"] + "<br><b><u>Processors:</u></b>" + v["attributes"]["processors"] + "</td>";
