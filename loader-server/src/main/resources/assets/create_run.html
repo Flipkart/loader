@@ -53,11 +53,13 @@
 			console.log("Run Submission Failed");},
 			complete: function(xhr, status){
 				if (xhr.status==201){
-					console.log("Run Created, Successfully");
+					//console.log("Run Created, Successfully");
+					$("#success").empty();
 					$("#success").append("<p>Run Created, Successfully!!</p>")
 					$("#success").dialog();
 				} else {
-					console.log("Run Creation, Failed!!");
+					//console.log("Run Creation, Failed!!");
+					$("#success").empty();
 					$("#success").append("<p>Run Creation, Failed!!</p>")
 					$("#success").dialog();
 				}

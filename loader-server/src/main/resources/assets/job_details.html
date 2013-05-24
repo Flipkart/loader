@@ -66,6 +66,7 @@ function killJob(){
       complete: function(xhr, status){
         if(xhr.status==204) {
           //console.log("job Killed!!");
+          $("#success").empty();
           $("#success").append("<p>Job Killed, Successfully!!</p>")
           $("#success").dialog(
             height: 100,
@@ -75,6 +76,7 @@ function killJob(){
             });
         } else {
           //console.log("Run Creation, Failed!!");
+          $("#success").empty();
           $("#success").append("<p>Failed to kill, job!!</p>")
           $("#success").dialog({
             height: 100,
