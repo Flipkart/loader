@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Create Job</title>
 <script src="js/jquery-1.9.1.js"></script>
-<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+<script src="js/jquery-ui.js"></script>
 <link href="css/nav.css" rel="stylesheet" type="text/css" />
 </head>
 
@@ -32,7 +32,7 @@
     </td>
   </tr>
 </table>
-<div id="success" align="center" style="background-color:#999;alignment-adjust:central; display:block">
+<div id="success" align="center" style="background-color:#999;alignment-adjust:central; display:block;width=100px;height=100px">
 </div>
 </body>
 <script>
@@ -51,10 +51,16 @@
 			console.log("Run Submitted");},
 			error: function(){
 			console.log("Run Submission Failed");},
-			complete: function(){
-				console.log("Run Created, Successfully");
-				$("#success").append("<p>Run Created, Successfully!!</p>")
-				$("#success").dialog();
+			complete: function(xhr, status){
+				if (xhr.status==201){
+					console.log("Run Created, Successfully");
+					$("#success").append("<p>Run Created, Successfully!!</p>")
+					$("#success").dialog();
+				} else {
+					console.log("Run Creation, Failed!!");
+					$("#success").append("<p>Run Creation, Failed!!</p>")
+					$("#success").dialog();
+				}
 			}
 		});
 	} 

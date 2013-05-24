@@ -3,7 +3,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Jobs Details</title>
-<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="js/jquery-1.9.1.js"></script>
+<script src="js/jquery-ui.js"></script>
 <script src="js/getJobDetails.js"></script>
 <script>getJobDetails();</script>
 </head>
@@ -39,7 +40,7 @@
         <tr>
         <td><input id="play" name="Play" type="button" value="Play" onClick="play()"/></td>
 		<td><input id="pause" name="Pause" type="button" value="Pause" /></td>
-		<td><input id="stop" name="Stop" type="button" value="Stop" /></td>
+		<td><input id="stop" name="Stop" type="button" value="Stop" onClick="killJob()"/></td>
 		<td><input id="graphs" name="Graphs" type="button" value="Graphs" onClick="generateGraphs()"/></td>
         </tr>
         </table>
@@ -47,10 +48,44 @@
     </tr>
   </table>
 </div>
+<div id="success" align="center" style="background-color:#999;alignment-adjust:central; display:block;width=100px;height=100px">
+</div>
 <script>
 function generateGraphs(){
   var jobId = $("#jobid").attr("value")
 	window.location.href="/collapsible_menu.html?&jobid=" + jobId;
+}
+
+function killJob(){
+  var jobId = $("#jobid").attr("value")
+  $.ajax({
+    url: "loader-server/jobs/" + jobId + "/kill",
+      contentType: "application/json", 
+      dataType:"json",
+      type:"PUT",
+      complete: function(xhr, status){
+        if(xhr.status==204) {
+          //console.log("job Killed!!");
+          $("#success").append("<p>Job Killed, Successfully!!</p>")
+          $("#success").dialog(
+            height: 100,
+            width: 100,
+            close: function(){
+              location.reload(); 
+            });
+        } else {
+          //console.log("Run Creation, Failed!!");
+          $("#success").append("<p>Failed to kill, job!!</p>")
+          $("#success").dialog({
+            height: 100,
+            width: 100,
+            close: function(event, ui){
+              location.reload();
+            }
+          });
+        }
+      }
+  })
 }
 </script>
 </body>
