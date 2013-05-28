@@ -1,0 +1,116 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Upload Jar</title>
+<script src="js/jquery-1.9.1.js"></script>
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<link rel="stylesheet" href="css/style2.css">
+<link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+<link rel="stylesheet" href="css/jquery.fileupload-ui.css">
+<link href="css/nav.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="header" class=""></div>
+<script>
+    $(function(){
+        $("#header").load('header.html');
+    })
+</script>
+<div class="container" style="width:80%;margin:0 auto">
+    <span class="btn btn-success fileinput-button">
+        <i class="icon-plus icon-white"></i>
+        <span>Add Jar...</span>
+        <!-- The file input field used as target for the file upload widget -->
+        <input id="fileupload" type="file" name="lib">
+    </span>
+    <br>
+    <br>
+    <div id="progress" class="progress progress-success progress-striped">
+        <div id="progressBar" class="bar"></div>
+    </div>
+    <div id="files"></div>
+    <div id="classesAdded"></div>
+    <br>
+</div>
+<script src="js/jquery.ui.widget.js"></script>
+<script src="js/jquery.iframe-transport.js"></script>
+<script src="js/jquery.fileupload.js"></script>
+<!-- The File Upload processing plugin -->
+<script src="js/jquery.fileupload-process.js"></script>
+<script>
+/*jslint unparam: true */
+/*global window, $ */
+$(function () {
+    //'use strict';
+    // Change this to the location of your server-side upload handler:
+    var url = "/loader-server/libs/classLibs",
+        uploadButton = $('<button/>')
+            .addClass('btn')
+            .text('Upload')
+            .on('click', function () {
+                var $this = $(this),
+                    data = $this.data();
+                data.submit().always(function () {
+                    $this.remove();
+                });
+            });
+    $('#fileupload').fileupload({
+        url: url,
+        dataType: 'json',
+        autoUpload: false,
+        acceptFileTypes: /(\.|\/)(jar)$/i,
+    }).on('fileuploadadd', function (e, data) {
+        console.log("data is", data);
+        data.context = $('<div/>').appendTo('#files');
+        $.each(data.files, function (index, file) {
+            var node = $('<p/>')
+                    .append($('<span/>').text(file.name));
+            if (!index) {
+                node
+                    .append('<br>')
+                    .append(uploadButton.clone(true).data(data));
+            }
+            node.appendTo(data.context);
+        });
+    }).on('fileuploadprogressall', function (e, data) {
+        var progress = parseInt(data.loaded / data.total * 100, 10);
+        $('#progress .bar').css(
+            'width',
+            progress + '%'
+        );
+    }).on('fileuploaddone', function (e, data) {
+
+        console.log("data in uploaddone", data);
+        var insertHtml = "<table align=\"center\" style=\"width:70%;text-align:left\"><tr><td><h3>" + "Successfully Added following UDFs." + "</h3></td></tr>";
+        $.each(data["result"], function(key, value){
+            insertHtml = insertHtml + "<tr><td>" + key + "</td></tr>";
+        });
+        insertHtml = insertHtml + "</table>";
+        $("#files").empty();
+        $('#progress .bar').css(
+            'width',
+            0 + '%'
+        );
+        $("#classesAdded").empty();
+        $("#classesAdded").append(insertHtml);
+        // $.each(data.result.files, function (index, file) {
+        //     var link = $('<a>')
+        //         .attr('target', '_blank')
+        //         .prop('href', file.url);
+        //     $(data.context.children()[index])
+        //         .wrap(link);
+        // });
+    }).on('fileuploadfail', function (e, data) {
+        console.log("data in fileuploadfail", data);
+        // $.each(data.result.files, function (index, file) {
+        //     var error = $('<span/>').text(file.error);
+        //     $(data.context.children()[index])
+        //         .append('<br>')
+        //         .append(error);
+        // });
+    });
+});
+</script>
+</body> 
+</html>
