@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <title>jQuery File Upload Example</title>
+<script src="js/jquery-1.9.1.js"></script>
+<script src="js/jquery.ui.widget.js"></script>
+<script src="js/jquery.iframe-transport.js"></script>
+<script src="js/jquery.fileupload.js"></script>
 <link href="css/nav.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -15,10 +19,6 @@
 <div id="upload" style="width:60%;margin:0 auto">
 <input id="fileupload" type="file" name="lib" data-url="loader-server/libs/classLibs">
 </div>
-<script src="js/jquery-1.9.1.js"></script>
-<script src="js/jquery.ui.widget.js"></script>
-<script src="js/jquery.iframe-transport.js"></script>
-<script src="js/jquery.fileupload.js"></script>
 <script>
 $(function () {
     $('#fileupload').fileupload({
