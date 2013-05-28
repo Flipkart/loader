@@ -68,12 +68,13 @@ function killJob(){
           //console.log("job Killed!!");
           $("#success").empty();
           $("#success").append("<p>Job Killed, Successfully!!</p>")
-          $("#success").dialog(
+          $("#success").dialog({
             height: 100,
             width: 100,
             close: function(){
-              location.reload(); 
-            });
+              location.reload();
+            } 
+          });
         } else {
           //console.log("Run Creation, Failed!!");
           $("#success").empty();
