@@ -56,6 +56,7 @@ function returnTimerGraphs(url, grpIndex, timerIndex, chart1StartIndex, chart2St
     });
 
 function plotGraphs(grpIndex, timerIndex){
+	getCounters(window["counterUrls"][grpIndex][timerIndex], grpIndex, timerIndex);
 	chart1Name = "#chart" + grpIndex + timerIndex + "1";
 	chart2Name = "#chart" + grpIndex + timerIndex + "2";
 	// console.log("Lets see chart1Name:" + chart1Name);
@@ -138,6 +139,29 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 			  console.log("Initial Data fetch Complete");
 		  }
 	  	});
+}
+
+function getCounters(counterUrls, grpIndex, timerIndex){
+	$.each(counterUrls, function(key, value){
+		var cnt=0;
+		$.ajax({
+			url: value,
+			type: "GET",
+			contentType: "text/plain",
+			async:false,
+			success: function(data){
+				var counterJson = $.parseJSON(data);
+				cnt=counterJson["count"];
+			},
+			error: function(data){
+
+			},
+			complete: function(xhr,status){
+				console.log("Selecting :", "#" + key + grpIndex + timerIndex);
+				$("#" + key + grpIndex + timerIndex).append("<strong>" + key + "</strong>" + ":&nbsp;&nbsp" + cnt);
+			}
+		});
+	});
 }
 }
 
