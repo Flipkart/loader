@@ -88,7 +88,7 @@ public class JobResource {
         return agentJob.kill();
     }
 
-    @Produces(MediaType.TEXT_HTML)
+    @Produces(MediaType.TEXT_PLAIN)
     @Path("/{jobId}/log")
     @GET
     @Timed

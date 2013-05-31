@@ -31,7 +31,10 @@
     <td width="50%"><label>Line Numbers</label><input name="linenumbers" type="text" id="linenumbers"/></td>
   </tr>
   <tr>
-    <td colspan="2"><input name="logs" type="button" id="logs" value="Logs" onClick="getLogs()"/></td>
+  	<td><label for="agents"></label>
+  	  <select name="agents" id="agents">
+      </select></td>
+    <td><input name="logs" type="button" id="logs" value="Logs" onClick="getLogs()"/></td>
   </tr>
 </table>
 </div>
@@ -40,18 +43,29 @@ function getLogs(){
   var jobId = getQueryParams("jobid");
   var lines = $("#linenumbers").val();
   var textToGrep = $("#grepText").val();
+  var agent = $("#agents").val();
+  if (agent=="127.0.0.1") agent=window.location.hostname;
   if (!!lines || typeof lines == 'undefined') lines=1000;
   if (!!textToGrep || typeof textToGrep == 'undefined') textToGrep = "";
   $.ajax({
-    url: "/loader-server/jobs/" + jobId + "/log?&lines=" + lines + "&grep=" + textToGrep,
+    url: "http://" + agent +":8888/loader-agent/jobs/" + jobId + "/log?&lines=" + lines + "&grep=" + textToGrep,
         type: "GET",
         contentType:"text/plain",
+        //dataType:"jsonp",
         success: function(data){
           $("#logs").attr("value",data);
         }
   });
 }
-$(document).ready(getLogs());
+$(document).ready(function(){
+	var agents = getQueryParams("agents").split(",");
+	var insertHtml = "";
+	$.each(agents, function(index, agent){
+		insertHtml = insertHtml + "<option value=\""+ agent + "\">" + agent + "</option>";
+	});
+	$("#agents").append(insertHtml);
+	getLogs()
+});
 </script>
 </body>
 </html>

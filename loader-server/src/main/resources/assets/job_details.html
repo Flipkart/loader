@@ -58,8 +58,15 @@ function generateGraphs(){
 }
 
 function generateLogs(){
+  console.log(window);
   var jobId = $("#jobid").attr("value")
-  window.location.href="/jobLogs.html?&jobid=" + jobId;
+  var agentsList = window["jobAgents"];
+  var agents = "";
+  $.each(agentsList, function(key, value){
+    if (agents == "")agents = key;
+    else agents = agents + "," + key;
+  })
+  window.location.href="/jobLogs.html?&jobid=" + jobId + "&agents=" + agents;
 }
 
 function killJob(){
