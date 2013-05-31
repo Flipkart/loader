@@ -20,12 +20,11 @@
   <tr>
     <td colspan="2" width="100%" scope="col">
       <label for="logs"></label>
-      <textarea name="logs" id="logs" style="width:98%" rows="50"></textarea>
+      <textarea name="logsArea" id="logsArea" style="width:98%" rows="50"></textarea>
      </td>
   </tr>
   <tr>
     <td width="50%"><label>Grep Text:</label>
-      <label for="grepText"></label>
       <input type="text" name="grepText" id="grepText"/>
     </td>
     <td width="50%"><label>Line Numbers</label><input name="linenumbers" type="text" id="linenumbers"/></td>
@@ -53,7 +52,7 @@ function getLogs(){
         contentType:"text/plain",
         //dataType:"jsonp",
         success: function(data){
-          $("#logs").attr("value",data);
+          $("#logsArea").val(data);
         }
   });
 }
