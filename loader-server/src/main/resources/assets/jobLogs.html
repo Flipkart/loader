@@ -27,7 +27,7 @@
     <td width="50%"><label>Grep Text:</label>
       <input type="text" name="grepText" id="grepText"/>
     </td>
-    <td width="50%"><label>Line Numbers</label><input name="linenumbers" type="text" id="linenumbers"/></td>
+    <td width="50%"><label>Line Numbers:</label><input name="linenumbers" type="text" id="linenumbers"/></td>
   </tr>
   <tr>
   	<td><label for="agents"></label>
@@ -42,10 +42,12 @@ function getLogs(){
   var jobId = getQueryParams("jobid");
   var lines = $("#linenumbers").val();
   var textToGrep = $("#grepText").val();
+  console.log("lines", lines);
+  console.log("textToGrep", textToGrep);
   var agent = $("#agents").val();
   if (agent=="127.0.0.1") agent=window.location.hostname;
-  if (!!lines || typeof lines == 'undefined') lines=1000;
-  if (!!textToGrep || typeof textToGrep == 'undefined') textToGrep = "";
+  if (typeof lines == 'undefined') lines=1000;
+  if (typeof textToGrep == 'undefined') textToGrep = "";
   $.ajax({
     url: "http://" + agent +":8888/loader-agent/jobs/" + jobId + "/log?&lines=" + lines + "&grep=" + textToGrep,
         type: "GET",
