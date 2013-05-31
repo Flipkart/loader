@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>job Logs</title>
+<link href="css/nav.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+<script src="js/getJobDetails.js"></script>
+</head>
+
+<body>
+<div id="header"></div>
+<script>
+  $(function(){
+    $("#header").load('header.html');
+  })
+</script>
+<div id="logContainer">
+<table width="80%" align="center" border="1">
+  <tr>
+    <td colspan="2" width="100%" scope="col">
+      <label for="logs"></label>
+      <textarea name="logs" id="logs" style="width:98%" rows="50"></textarea>
+     </td>
+  </tr>
+  <tr>
+    <td width="50%"><label>Grep Text:</label>
+      <label for="grepText"></label>
+      <input type="text" name="grepText" id="grepText"/>
+    </td>
+    <td width="50%"><label>Line Numbers</label><input name="linenumbers" type="text" id="linenumbers"/></td>
+  </tr>
+  <tr>
+    <td colspan="2"><input name="logs" type="button" id="logs" value="Logs" onClick="getLogs()"/></td>
+  </tr>
+</table>
+</div>
+<script type="text/javascript">
+function getLogs(){
+  var jobId = getQueryParams("jobid");
+  var lines = $("#linenumbers").val();
+  var textToGrep = $("#grepText").val();
+  if (!!lines || typeof lines == 'undefined') lines=1000;
+  if (!!textToGrep || typeof textToGrep == 'undefined') textToGrep = "";
+  $.ajax({
+    url: "/loader-server/jobs/" + jobId + "/log?&lines=" + lines + "&grep=" + textToGrep,
+        type: "GET",
+        contentType:"text/plain",
+        success: function(data){
+          $("#logs").attr("value",data);
+        }
+  });
+}
+$(document).ready(getLogs());
+</script>
+</body>
+</html>
