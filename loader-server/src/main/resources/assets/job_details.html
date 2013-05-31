@@ -42,6 +42,7 @@
 		<td><input id="pause" name="Pause" type="button" value="Pause" /></td>
 		<td><input id="stop" name="Stop" type="button" value="Stop" onClick="killJob()"/></td>
 		<td><input id="graphs" name="Graphs" type="button" value="Graphs" onClick="generateGraphs()"/></td>
+    <td><input id="graphs" name="Logs" type="button" value="Logs" onClick="generateLogs()"/></td>
         </tr>
         </table>
       </td>
@@ -54,6 +55,11 @@
 function generateGraphs(){
   var jobId = $("#jobid").attr("value")
 	window.location.href="/collapsible_menu.html?&jobid=" + jobId;
+}
+
+function generateLogs(){
+  var jobId = $("#jobid").attr("value")
+  window.location.href="/jobLogs.html?&jobid=" + jobId;
 }
 
 function killJob(){
