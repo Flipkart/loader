@@ -35,7 +35,19 @@
             <artifactId>async-http-client</artifactId>
             <version>1.7.9</version>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlets</artifactId>
+            <version>8.1.8.v20121106</version>
+        </dependency>
     </dependencies>
+    	<repositories>
+    	    <repository>
+        		<id>jetty-releases</id>
+        		<name>Jetty Releases</name>
+        		<url>https://oss.sonatype.org/content/repositories/jetty-releases</url>
+      		</repository>
+    	</repositories>
 
     <build>
         <plugins>
