@@ -4,8 +4,12 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Search Jobs</title>
 <script src="js/jquery-1.9.1.js"></script>
+<script src="js/jquery-ui.js"></script>
+<script src="js/jquery.ui.widget.js"></script>
+<script src="js/jPaginator.js"></script>
 <script src="js/search_jobs.js"></script>
 <link href="css/nav.css" rel="stylesheet" type="text/css" />
+<link href="css/jobsList.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
@@ -40,7 +44,19 @@
     </td>
   </tr>
 </table>
-<div id="jobsList">
+<br/>
+<br/>
+<div id="jobsList" style="width:70%;margin:0px auto" hidden="true">
+  <nav id="jobsList_m_left"></nav><nav id="jobsList_o_left"></nav>
+  <div class='paginator_p_wrap'> 
+        <div class='paginator_p_bloc'> 
+        </div> 
+  </div> 
+  <nav id="jobsList_o_right"></nav><nav id="jobsList_m_right"></nav>
+  <div class='paginator_slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all'> 
+        <a class='ui-slider-handle ui-state-default ui-corner-all' href='#'></a> 
+    </div> 
 </div>
+<div id="jobsListDetails"></div>
 </body>
 </html>

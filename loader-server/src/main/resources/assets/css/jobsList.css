@@ -1,0 +1,65 @@
+	
+	#jobsList {
+		height:30px;
+	}
+	#jobsList_o_left {
+    width:22px; height:15px;
+    float:left;
+    background:url(../images/btn_precedent.bmp);
+    margin:4px 4px 0 0;
+	}
+	#jobsList_o_right {
+    width:22px; height:15px;
+    float:left;
+    background:url(../images/btn_suivant.bmp);
+    margin:4px 0 0 4px;
+	}
+	#jobsList_m_left {
+    cursor:pointer;
+    width:22px; height:15px;
+    float:left;
+    background:url(../images/btn_precedent_max.bmp);
+    margin:4px 2px 0 0;
+	}
+	#jobsList_m_right {
+    cursor:pointer;
+    width:22px; height:15px;
+    float:left;
+    background:url(../images/btn_suivant_max.bmp);
+    margin:4px 0 0 2px;
+	}
+	/* must set border width with px */
+	#jobsList .paginator_p {
+	  	width:30px;
+		height:18px;
+		font-weight:bold;
+		color: #007edf;
+		background-color:transparent;
+		border:none;
+		padding:3px 0 2px 0;
+	} 
+	#jobsList .paginator_p_wrap {
+		float: left;
+	}
+	#jobsList .paginator_p_bloc {
+		float: left;
+	}
+	#jobsList .paginator_p:hover {
+		color:white;
+		background-color:#25a29e;
+	}
+	#jobsList .paginator_p.selected {
+		color:white;
+		background-color:#dd5c78;
+	}
+	#jobsList .paginator_slider {
+		background-color:#f2d21b;
+		left:50px;
+	}
+	#jobsList .paginator_slider .ui-slider-handle {
+		width: 4px;
+		height: 9px;
+		top: -4px;
+		background-color:#f18fa8;
+		border: solid 1px black ;
+	}
