@@ -53,6 +53,13 @@
         </div> 
   </div> 
   <nav id="jobsList_o_right"></nav><nav id="jobsList_m_right"></nav>
+  <div id="sortBy" class="sort_by" style="float:right">
+    <select id="sortOptions" name="sortOptions" onchange="sortAndDisplay()">
+      <option value="runName">Run Name</option>
+      <option value="startTime" selected="selected">Start Time</option>
+      <option value="endTime">End Time</option>
+    </select>
+  </div>
   <div class='paginator_slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all'> 
         <a class='ui-slider-handle ui-state-default ui-corner-all' href='#'></a> 
     </div> 
