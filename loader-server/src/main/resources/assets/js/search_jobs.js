@@ -18,7 +18,8 @@ function searchJobs(){
 			window.jobList = jobs;
 			$("#jobsList").removeAttr("hidden");
 			displayResults();
-			displayList(0);
+			//displayList(0);
+			sortAndDisplay();
 		},
 		error: function(err){
 			console.log(err);
@@ -29,36 +30,21 @@ function searchJobs(){
 	});
 }
 
-// function displayResults(){
-// 	var begin = window.nextCounter*10;
-// 	var last = begin + 10 > window.jobList.length?window.jobList.length:begin + 10;
-// 	var insertHtml = "<table width=\"60%\" border=\"1px\" align=\"center\">";
-// 			insertHtml = insertHtml + "<thead><tr><td style=\"width:50%;text-align:left\"><button id=\"previousList\" onClick=\"previousList()\">Previous</button></td>";
-// 			insertHtml = insertHtml + "<td style=\"width:50%;text-align:right\"><button id=\"nextList\" onClick=\"nextList()\">Next</button></td></tr></thead><tbody>";
-// 			$.each(window.jobList.slice(begin, last), function(index, job){
-// 				console.log(job);
-// 				insertHtml = insertHtml + "<tr><td colspan=\"2\"><a href=/job_details.html?&jobid=" + job["jobId"] + ">" + job["jobId"] +"</a></td></tr>";
-// 			});
-// 			insertHtml = insertHtml + "</tbody></table>";
-// 			$("#jobsList").empty();
-// 			$("#jobsList").append(insertHtml);
-// 			if (window.nextCounter==0) $("#previousList").attr("disabled","true");
-// 			if (window.nextCounter==((window.jobList.length/10)>>0)) $("#nextList").attr("disabled","true");
-// }
-
-// function previousList(){
-// 	window.nextCounter = window.nextCounter -1;
-// 	displayResults();
-// 	if (window.nextCounter==0) $("#previousList").attr("disabled","true");
-// 	if (window.nextCounter==((window.jobList.length/10)-1)) $("#nextList").removeAttr("disabled");
-// }
-
-// function nextList(){
-// 	window.nextCounter = window.nextCounter + 1;
-// 	displayResults();
-// 	if (window.nextCounter==1) $("#previousList").removeAttr("disabled");
-// 	if (window.nextCounter==(window.jobList.length/10)) $("#nextList").attr("disabled","true");
-// }
+function sortList(sortOption){
+	window.jobList.sort(function(job1, job2){
+		if (sortOption=="runName"){
+			if (job1["runName"]>job2["runName"]) return 1;
+			if(job1["runName"]<job2["runName"]) return -1;
+			return 0;
+		} else {
+			if (sortOption=="startTime"){
+				return job2["startTime"] - job1["startTime"];
+			} else {
+				return job2["endTime"] - job1["endTime"] 
+			}	
+		}
+	});
+}
 
 function displayResults(){
 	if (window.jobList.length==0) return;
@@ -92,19 +78,25 @@ function displayList(index){
 	var startIndex = index,
 		endIndex = index +5<window.jobList.length?index+5:window.jobList.length;
 	var insertHtml = "<table width=\"80%\" border=\"1px\" align=\"center\">";
-	insertHtml = insertHtml + "<thead><tr><td style=\"width:10%;text-align:center\"><label><strong>#.</strong></label></td>";
-	insertHtml = insertHtml + "<td style=\"width:40%;text-align:center\"><label><strong>Job Id</strong></label></td><td><label><strong>Start Time</strong></label></td><td><label><strong>End Time</strong></label></td><td><label><strong>Status</strong></label></td></tr></thead><tbody>";
+	insertHtml = insertHtml + "<thead><tr><td style=\"width:5%;text-align:center\"><label><strong>#.</strong></label></td>";
+	insertHtml = insertHtml + "<td style=\"width:30%;text-align:center\"><label><strong>Job Id</strong></label></td>" + 
+	"<td style=\"width:20%;text-align:center\"><label><strong>RUN Name</strong></label></td><td style=\"width:15%;text-align:center\"><label><strong>Start Time</strong></label></td><td style=\"width:15%;text-align:center\"><label><strong>End Time</strong></label></td><td style=\"width:15%;text-align:center\"><label><strong>Status</strong></label></td></tr></thead><tbody>";
 	$.each(window.jobList.slice(startIndex, endIndex), function(jobIndex, job){
 		console.log(job);
 		var slNo = startIndex + jobIndex + 1;
-		insertHtml = insertHtml + "<tr><td>" + slNo + "</td><td><a href=/job_details.html?&jobid=" + job["jobId"] + ">" + job["jobId"] +"</a></td><td>" + (new Date(job["startTime"])).toString()+ "</td><td>" + (new Date(job["startTime"])).toString() + "</td><td style=\"color:" + color[job["jobStatus"]] + "\">" + job["jobStatus"] + "</td></tr>";
+		insertHtml = insertHtml + "<tr><td>" + slNo + "</td><td><a href=/job_details.html?&jobid=" + job["jobId"] + ">" + job["jobId"] +"</a></td><td><a href=\"/workflow.html?&workflow=" + job["runName"] + "\">" + job["runName"] + "</a></td><td>" + (new Date(job["startTime"])).toString()+ "</td><td>" + (new Date(job["startTime"])).toString() + "</td><td style=\"color:" + color[job["jobStatus"]] + "\">" + job["jobStatus"] + "</td></tr>";
 	});
 	insertHtml = insertHtml + "</tbody></table>";
 	$("#jobsListDetails").empty();
 	$("#jobsListDetails").append(insertHtml);
 }
 
-
+function sortAndDisplay(){
+	var opt = $("#sortOptions").val();
+	console.log("option is", opt);
+	sortList(opt);
+	displayList(0);
+}
 
 
 
