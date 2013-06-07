@@ -255,17 +255,14 @@ public class Job {
     }
 
     public void start(List<LoaderAgent> freeAgents) {
-        String runFile = configuration.getJobFSConfig().getRunFile(this.runName);
         List<LoaderAgent> agentsToUse = new ArrayList<LoaderAgent>();
         for(LoaderAgent freeAgent : freeAgents) {
             agentsToUse.add(freeAgent);
         }
 
         try {
+            String runFile = configuration.getJobFSConfig().getRunFile(this.runName);
             PerformanceRun performanceRun = objectMapper.readValue(new File(runFile) , PerformanceRun.class);
-
-            // Persisting Job Json in Local File system.
-            this.persistRunInfo(performanceRun);
 
             // Raising request to monitoring agents to start collecting metrics from on demand resource collectors
             raiseOnDemandResourceRequest(performanceRun.getOnDemandMetricCollections());
@@ -468,16 +465,17 @@ public class Job {
      * Persist Job Status in File System
      * @throws java.io.IOException
      */
-    private void persist() throws IOException {
-        objectMapper.writeValue(new FileOutputStream(configuration.getJobFSConfig().getJobStatusFile(jobId)), this);
+    public void persist() throws IOException {
+        File jobStatusFile = new File(configuration.getJobFSConfig().getJobStatusFile(jobId));
+        if(!jobStatusFile.exists())
+            FileHelper.createFilePath(jobStatusFile.getAbsolutePath());
+        objectMapper.writeValue(new FileOutputStream(jobStatusFile), this);
     }
 
-    /**
-     * Persist Run Details for this job in FS
-     * @param performanceRun
-     * @throws java.io.IOException
-     */
-    private void persistRunInfo(PerformanceRun performanceRun) throws IOException {
+    public void persistRunInfo() throws IOException {
+        String runFile = configuration.getJobFSConfig().getRunFile(this.runName);
+        PerformanceRun performanceRun = objectMapper.readValue(new File(runFile) , PerformanceRun.class);
+
         String runName = performanceRun.getRunName();
 
         // Add file containing run name in job folder
@@ -535,6 +533,10 @@ public class Job {
             }
         }
         return jobs;
+    }
+
+    public static void main(String[] args) throws IOException {
+        System.out.println(Job.searchJobs("e173fa38-e972-443f-acad-6cd2dc82aa85","",new ArrayList<String>()));
     }
 
 }
