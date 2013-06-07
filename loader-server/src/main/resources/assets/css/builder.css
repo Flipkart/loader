@@ -1,0 +1,74 @@
+#runBuilder {
+	height:320px;
+	width:80%; 
+	margin:0px auto
+}
+
+#runBuilder button {
+	height:25px; 
+	border-collapse:collapse; 
+	color:#666; 
+	text-align:center;
+	margin-left:5px; 
+	margin-right:8px;
+}
+
+#createButton button {
+	height:25px; 
+	border-collapse:collapse; 
+	color:#666; 
+	text-align:center;
+	margin-left:5px; 
+	margin-right:8px;
+}
+
+#runTree {
+	margin-top:50px; 
+	margin-bottom:30px;
+	width:30%;
+	float:left;
+	border:2px;
+	height:270px;
+	box-shadow: 2px 2px 1px #888888;
+	overflow: auto
+}
+
+#displayArea {
+	margin-top:50px; 
+	margin-left:5%; 
+	margin-bottom:30px;
+	width:60%;
+	float: left;
+	border:2px;
+	height:270px;
+	box-shadow: 2px 2px 1px #888888;
+	overflow: auto
+}
+
+#createButton {
+	width:100%;
+	height:30px;
+}
+
+#displayArea label {
+	font-family: Verdana, Geneva, sans-serif;
+	font-size:12px;
+	margin-top:5px;
+}
+
+#displayArea .bigInput {
+	width:250px; 
+	size:250px; 
+	backface-visibility:hidden; 
+	height:25px;
+	margin-top:8px;
+}
+
+#displayArea .smallInput {
+	width:80px; 
+	size:80px; 
+	backface-visibility:hidden; 
+	height:25px;
+	margin-top:8px;
+}
+
