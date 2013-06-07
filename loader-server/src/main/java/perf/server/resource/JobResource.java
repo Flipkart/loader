@@ -107,7 +107,7 @@ public class JobResource {
     @Produces(MediaType.APPLICATION_JSON)
     @POST
     @Timed
-    public Job submitJob(JobRequest jobRequest) {
+    public Job submitJob(JobRequest jobRequest) throws IOException {
         return raiseJobRequest(jobRequest);
     }
 
@@ -416,11 +416,14 @@ public class JobResource {
         job.killJobInAgents(Arrays.asList(agentIps.split(",")));
     }
 
-    private Job raiseJobRequest(JobRequest jobRequest) {
+    private Job raiseJobRequest(JobRequest jobRequest) throws IOException {
         runExistsOrException(jobRequest.getRunName());
         Job job = new Job().
                 setJobId(UUID.randomUUID().toString()).
                 setRunName(jobRequest.getRunName());
+
+        job.persist();
+        job.persistRunInfo();
 
         JobDispatcherThread.instance().addJobRequest(job);
         return job;
