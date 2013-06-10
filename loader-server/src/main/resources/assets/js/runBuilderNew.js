@@ -12,6 +12,12 @@ function renderDisplayArea(elementType, metadata){
 		case 'function':
 			renderFunctionPage(metadata);
 			break;
+		case 'metricCollection':
+			renderMetricCollectionPage(metadata);
+			break;
+		case 'monitoringAgents':
+			renderMonitoringAgentsAddPage(metadata);
+			break;
 	}
 }
 
@@ -20,9 +26,7 @@ function renderRunPage(metadata){
             "<input type=\"text\" id=\"runName\" value=\"" + window.runSchema.runName + "\" class=\"bigInput\"/>";
     insertHtml = insertHtml + "<br/><br/><br/><br/>" + 
     		"<button id=\"updateRun\" onClick=\"updateRun()\">Update</button>" + 
-    		"<button id=\"loadPart\" onClick=\"addLoadPart()\">Add LoadPart</button>" + 
-    		"<button id=\"metricCollection\" onClick=\"addMetricCollection()\">Add Metrics Collection</button>" + 
-    		"<button id=\"onDemandMetrics\" onClick=\"addOnDemandMetrics()\">Add OnDemand Metrics</button>";
+    		"<button id=\"loadPart\" onClick=\"addLoadPart()\">Add LoadPart</button>";
     $("#displayArea").empty();
     $("#displayArea").append(insertHtml);
     console.log("selecting", "#node_" + window.runSchema.runName);
@@ -53,7 +57,8 @@ function renderLoadPartPage(metadata){
 			"</br><label>Agents:</label>&nbsp;&nbsp;<input id=\"agents\" type=\"text\" value=\"" + window.runSchema.loadParts[metadata["loadPartIndex"]]["agents"] + "\" class=\"bigInput\"/><br/><br/>";
 	insertHtml = insertHtml + 
 		"<button id=\"addGroup\" onClick=\"addGroup()\">Add Group</button>" +
-		"<button id=\"updateLoadPart\" onClick=\"updateLoadPart()\">Update</button>";
+		"<button id=\"updateLoadPart\" onClick=\"updateLoadPart()\">Update</button>" + 
+		"<button id=\"deleteLoadPart\" onClick=\"deleteLoadPart()\">Delete</button>";
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
     console.log("selecting", "#node_" + window.runSchema.loadParts[metadata["loadPartIndex"]]["name"]);
@@ -70,6 +75,14 @@ function updateLoadPart(){
 	window.runSchema["loadParts"][loadPartData["loadPartIndex"]] = loadPart;
 	createTree(window.runSchema);
 	renderDisplayArea('loadPart', window.selectedElementData);
+}
+
+function deleteLoadPart(){
+	var loadPartData = window.selectedElementData;
+	var loadPart = window.runSchema["loadParts"][loadPartData["loadPartIndex"]];
+	window.runSchema["loadParts"].splice(loadPartData["loadPartIndex"],1);
+	createTree(window.runSchema);
+	renderDisplayArea('run', window.selectedElementData);
 }
 
 function addGroup(){
@@ -134,10 +147,11 @@ function renderGroupPage(metadata){
 
 	insertHtml = insertHtml + "<button id=\"updateGroup\" onClick=\"updateGroup()\">Update</button>" + 
 		"<button id=\"addFunction\" onClick=\"addFunction()\">Add Function</button>" + 
-		"<button id=\"addTimer\" onClick=\"addTimer()\">Add Timer</button>" +
+		"<button id=\"addTimer\" onClick=\"addTimer()\">Add Timer</button></br></br>" +
 		"<button id=\"addThreadResources\" onClick=\"addThreadResources()\">Add ThreadResources</button>" +
 		"<button id=\"addCustomTimer\" onClick=\"addCustomTimer()\">Add Custom Timer</button>" + 
-		"<button id=\"addCustomCounter\" onClick=\"addCustomCounter()\">Add Custom Counter</button>";
+		"<button id=\"addCustomCounter\" onClick=\"addCustomCounter()\">Add Custom Counter</button>" + 
+		"<button id=\"deleteGroup\" onClick=\"deleteGroup()\">Delete</button>";
 	//console.log(insertHtml);
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
@@ -171,6 +185,14 @@ function updateGroup(){
 
 }
 
+function deleteGroup(){
+	var grpData = window.selectedElementData;
+	//var grp = window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"][grpData["groupIndex"]];
+	window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"].splice(grpData["groupIndex"],1);
+	createTree(window.runSchema);
+	renderDisplayArea('loadPart', window.selectedElementData);
+}
+
 function addFunction(){
 	console.log("inside");
 	var grpData = window.selectedElementData;
@@ -201,11 +223,13 @@ function renderFunctionPage(metadata){
 		if (func["dumpData"]=="true"){
 			insertHtml = insertHtml + "<label>DumpData:</label><select id=\"dumpData\"><option value=\"false\">false</option>" +
 				"<option value=\"true\" selected>true</option></select><br/><br/><div id=\"ips\"></div>" + 
-				"<button id=\"updateFunction\" onClick=\"updateFunction()\">Update</button>";
+				"<button id=\"updateFunction\" onClick=\"updateFunction()\">Update</button>" + 
+				"<button id=\"deleteFunction\" onClick=\"deleteFunction()\">Delete</button>"	;
 		} else {
 			insertHtml = insertHtml + "<label>DumpData:</label><select id=\"dumpData\"><option value=\"false\" selected>false</option>" +
 				"<option value=\"true\">true</option></select><br/><br/><div id=\"ips\"></div>" + 
-				"<button id=\"updateFunction\" onClick=\"updateFunction()\">Update</button>	";
+				"<button id=\"updateFunction\" onClick=\"updateFunction()\">Update</button>	" + 
+				"<button id=\"deleteFunction\" onClick=\"deleteFunction()\">Delete</button>	";
 		}
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
@@ -229,6 +253,13 @@ function updateFunction(){
 	window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]]["functions"][metadata["functionIndex"]]=func;
 	createTree(window.runSchema);
 	renderDisplayArea('function', window.selectedElementData);
+}
+
+function deleteFunction(){
+	var metadata = window.selectedElementData;
+	window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]]["functions"].splice(metadata["functionIndex"],1);
+	createTree(window.runSchema);
+	renderDisplayArea('group', window.selectedElementData);
 }
 
 function getFunctionParameters(){
@@ -265,14 +296,106 @@ function getFunctionParameters(){
     });
 }
 
-// function showSelectGroups(){
-// 	if ($("#dependsOn").is(":checked")) {
-// 		$("#existingGrps").removeAttr("hidden");
-// 		$("#groupList").multiSelect();
-// 	} else {
-// 		$("#existingGrps").attr("hidden","true");
-// 	}
-// }
+function addMetricCollection(){
+	var metricCollector = {
+		"name":"monitor-" + window.runSchema.metricCollections.length,
+		"agent":"127.0.0.1",
+		"collectionInfo":{
+			"resources":new Array(),
+			"lastHowManyInstances":1,
+			"publishUrl":"http://" + window.location.hostname + ":9999/loader-server/jobs/{jobId}/monitoringStats",
+			"forHowLong":0,
+            "interval":20000
+		}
+
+	}
+	window.runSchema.metricCollections.push(metricCollector);
+	createTree(window.runSchema);
+	renderDisplayArea('metricCollection',{"nodeType":"metricCollection", "metricCollectionIndex":window.runSchema.metricCollections.length-1});
+}
+
+function renderMetricCollectionPage(metadata){
+	var metric = window.runSchema.metricCollections[metadata["metricCollectionIndex"]];
+	var insertHtml = "<label><strong>Agent IP</strong></label>" + 
+		"<input type=\"text\" id=\"agent\" class=\"smallInput\" value=\"" + 
+		metric["agent"] + "\"/></br></br><div id=\"resources\"></div>";
+	insertHtml = insertHtml + "<button id=\"updateFunction\" onClick=\"updateMetricCollection()\">Update</button>" +
+		"<button id=\"updateFunction\" onClick=\"deleteMetricCollection()\">Delete</button>";
+	$("#displayArea").empty();
+    $("#displayArea").append(insertHtml);
+    getResources(metric);
+    $("#runTree").bind("reselect.jstree", function(){
+    	$("#runTree").jstree("select_node","#node_" + metric["name"]);
+    }); 
+}
+
+function renderMonitoringAgentsAddPage(metadata){
+	var insertHtml = "<button id=\"metricCollection\" onClick=\"addMetricCollection()\">Add Metrics Collection</button>";
+	$("#displayArea").empty();
+    $("#displayArea").append(insertHtml);
+    $("#runTree").bind("reselect.jstree", function(){
+    	$("#runTree").jstree("select_node","#node_monitoringAgents");
+    });
+}
+
+function updateMetricCollection(){
+	var metricData = window.selectedElementData;
+	var metric = window.runSchema.metricCollections[metricData["metricCollectionIndex"]];
+	metric["agent"] = $("#agent").val();
+	metric["collectionInfo"]["resources"].length=0;
+	$("#resources input:checked").each(function(){
+		metric["collectionInfo"]["resources"].push($(this).attr('id'));
+	})
+	window.runSchema.metricCollections[metricData["metricCollectionIndex"]]=metric;
+	createTree(window.runSchema);
+	renderDisplayArea('metricCollection',window.selectedElementData);
+}
+
+function deleteMetricCollection(){
+	window.runSchema.metricCollections.splice(window.selectedElementData["metricCollectionIndex"],1);
+	createTree(window.runSchema);
+	renderDisplayArea('monitoringAgents',{});
+}
+
+function getResources(metric){
+	var insertHtml = "";
+	$.ajax({
+		"url":"http://" + metric["agent"] + ":7777/monitoring-service/resources",
+		"contentType": "application/json", 
+      	"type":"GET",
+      	"async":false,
+      	success: function(data){
+      		window.resourceData = data;
+      	},
+      	error: function(err){
+      		console.log("in error",err);
+      		//insertHtml = insertHtml + "<p>No monitoringServer running on given IP</p>";
+      	}, 
+      	complete: function(xhr, status){
+      		if(xhr.status==200){
+      			var cnt=1;
+      			$.each(window.resourceData, function(index, resource){
+      				console.log("testing", metric["collectionInfo"]["resources"]);
+      				if(metric["collectionInfo"]["resources"].indexOf(resource)> -1){
+      					console.log("found", resource);
+      					insertHtml = insertHtml + "<input type=\"checkbox\" id=\"" + resource + 
+      					"\" checked=\"true\"/>&nbsp;&nbsp;<label><strong>" + resource + "</strong></label>";
+      				} else {
+      					insertHtml = insertHtml + "<input type=\"checkbox\" id=\"" + resource + 
+      					"\" />&nbsp;&nbsp;<label><strong>" + resource + "</strong></label>";
+      				}
+      				if(cnt%3==0)insertHtml = insertHtml + "</br></br>";
+      				cnt = cnt+1;
+      			});
+      		} else {
+      			insertHtml =insertHtml + "<p>No monitoringServer running on given IP</p>";
+      		}
+      	}
+
+	});
+	$("#resources").empty();
+	$("#resources").append(insertHtml);
+}
 
 function createTree(data){ 
 	console.log(data);
@@ -282,7 +405,7 @@ function createTree(data){
 					"attr":{"id" : "node_" + data["runName"]},
 					"data" : data["runName"], 
 					"metadata" : { "name" : data["runName"], "nodeType" : "run"},    
-					"children" : getLoadParts(data)
+					"children" : getChildren(data)
                 	}],
             	"progressive_render" : true,
 			},
@@ -309,6 +432,14 @@ function createTree(data){
     });
 }
 
+function getChildren(data){
+	var lps= getLoadParts(data);
+	var mas = getMetricCollectors(data);
+	if(typeof lps == 'undefined') return [{"attr":{"id": "node_monitoringAgents"}, "data": "MonitoringAgents", "metadata": {"nodeType":"monitoringAgents"}, "children": mas}]; 
+	lps.push({"attr":{"id": "node_monitoringAgents"}, "data": "MonitoringAgents", "metadata": {"nodeType":"monitoringAgents"}, "children": mas});
+	return lps;
+}
+
 function getLoadParts(data){
 	var loadPartsName = new Array();
 	var loadParts = data["loadParts"];
@@ -319,6 +450,16 @@ function getLoadParts(data){
 	}
 	console.log("loadpartsname:", loadPartsName);
 	return loadPartsName;
+}
+
+function getMetricCollectors(data){
+	var metricsAgents = new Array();
+	var metricsCollectors = data["metricCollections"];
+	if(metricsCollectors.length==0) return undefined;
+	for( var k=0; k<metricsCollectors.length;k++){
+		metricsAgents[k]={"attr":{"id": "node_" + metricsCollectors[k]["name"]}, "data": metricsCollectors[k]["name"], "metadata": {"nodeType":"metricCollection", "metricCollectionIndex":k}};
+	}
+	return metricsAgents;
 }
 
 function getGroupList(data, loadPartIndex){
