@@ -6,6 +6,7 @@ import perf.server.cache.LibCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
 import perf.server.config.LibStorageFSConfig;
+import perf.server.exception.JobSubMissionException;
 
 import java.io.*;
 import java.util.*;
@@ -99,11 +100,11 @@ public class DeploymentHelper {
         }
     }
 
-    public void deployClassLibsOnAgent(String agentIP, String classListStr) throws IOException, ExecutionException, InterruptedException {
+    public void deployClassLibsOnAgent(String agentIP, String classListStr) throws IOException, ExecutionException, InterruptedException, JobSubMissionException {
         deployClassLibsOnAgent(agentIP, classListStr, false);
     }
 
-    public void deployClassLibsOnAgent(String agentIP, String classListStr, boolean force) throws IOException, ExecutionException, InterruptedException {
+    public void deployClassLibsOnAgent(String agentIP, String classListStr, boolean force) throws IOException, ExecutionException, InterruptedException, JobSubMissionException {
         Map<String, String> libClassListMap = makeLibClassListMap(classListStr);
         String agentClassLibInfoFile = this.agentConfig.getAgentClassLibInfoFile(agentIP);
         File classLibDeploymentFile = new File (agentClassLibInfoFile);
@@ -154,11 +155,14 @@ public class DeploymentHelper {
     }
 
 
-    private Map<String, String> makeLibClassListMap(String classListStr) {
+    private Map<String, String> makeLibClassListMap(String classListStr) throws JobSubMissionException {
         Map<String,String> libClassListMap = new HashMap<String, String>();
-        List<String> libsRequired = new ArrayList<String>();
+        Set<String> libsRequired = new HashSet<String>();
         for(String className : classListStr.split("\n")) {
-            libsRequired.add(LibCache.instance().getLibsMapWithClassAsKey().get(className));
+            if(LibCache.instance().getLibsMapWithClassAsKey().containsKey(className))
+                libsRequired.add(LibCache.instance().getLibsMapWithClassAsKey().get(className));
+            else
+                throw new JobSubMissionException("No Library Deployed for class "+className);
         }
 
         for(String libRequired : libsRequired) {
