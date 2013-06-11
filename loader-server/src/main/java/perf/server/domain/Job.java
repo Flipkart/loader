@@ -15,6 +15,7 @@ import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
 import perf.server.daemon.TimerComputationThread;
 import perf.server.exception.JobException;
+import perf.server.exception.JobSubMissionException;
 import perf.server.util.DeploymentHelper;
 
 import java.io.*;
@@ -392,7 +393,7 @@ public class Job {
      * @throws InterruptedException
      */
     private void deployLibrariesOnAgents(List<LoadPart> loadParts, List<LoaderAgent> agentsToUse)
-            throws IOException, JobException, ExecutionException, InterruptedException {
+            throws IOException, JobException, ExecutionException, InterruptedException, JobSubMissionException {
         for(LoadPart loadPart : loadParts) {
             List<String> classes = loadPart.getClasses();
 
