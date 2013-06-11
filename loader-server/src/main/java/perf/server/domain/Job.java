@@ -27,8 +27,10 @@ import perf.server.client.MonitoringClient;
 import perf.server.config.LoaderServerConfiguration;
 import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
+import perf.server.daemon.JobDispatcherThread;
 import perf.server.daemon.TimerComputationThread;
 import perf.server.exception.JobException;
+import perf.server.exception.LibNotDeployedException;
 import perf.server.util.DeploymentHelper;
 
 import com.open.perf.domain.Load;
@@ -225,6 +227,20 @@ public class Job {
         return this;
     }
 
+    /**
+     * Mark that job has been queued
+     */
+    public void queued() throws IOException {
+        this.jobStatus = JOB_STATUS.QUEUED;
+
+        // Adding to Queued Jobs File
+        List<String> queuedJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getQueuedJobsFile()), List.class);
+        queuedJobs.add(jobId);
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configuration.getJobFSConfig().getQueuedJobsFile()), queuedJobs);
+
+        this.persist();
+    }
+
 
     /**
      * Mark that job has started
@@ -233,9 +249,15 @@ public class Job {
     public void started() throws IOException {
         this.jobStatus = JOB_STATUS.RUNNING;
 
+        // Add to Running Jobs file
         List<String> runningJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), List.class);
         runningJobs.add(jobId);
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), runningJobs);
+
+        // Remove from Queued Jobs File
+        List<String> queuedJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getQueuedJobsFile()), List.class);
+        queuedJobs.remove(jobId);
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configuration.getJobFSConfig().getQueuedJobsFile()), queuedJobs);
 
         this.startTime = new Date();
         this.persist();
@@ -252,12 +274,20 @@ public class Job {
         CounterThroughputThread.getCounterCruncherThread().removeJob(jobId);
         TimerComputationThread.getComputationThread().removeJob(jobId);
 
+        // Remove from Running Jobs File
         List<String> runningJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), List.class);
         runningJobs.remove(jobId);
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), runningJobs);
 
         this.persist();
     }
+
+    public void killed() throws InterruptedException, ExecutionException, IOException {
+        this.jobStatus = JOB_STATUS.KILLED;
+        ended();
+    }
+
+
 
     /**
      * Mark that job has failed
@@ -408,7 +438,7 @@ public class Job {
      * @throws InterruptedException
      */
     private void deployLibrariesOnAgents(List<LoadPart> loadParts, List<LoaderAgent> agentsToUse)
-            throws IOException, JobException, ExecutionException, InterruptedException {
+            throws IOException, JobException, ExecutionException, InterruptedException, LibNotDeployedException {
         for(LoadPart loadPart : loadParts) {
             List<String> classes = loadPart.getClasses();
 
@@ -420,6 +450,15 @@ public class Job {
                 DeploymentHelper.instance().deployPlatformLibsOnAgent(agent.getIp());
                 DeploymentHelper.instance().deployClassLibsOnAgent(agent.getIp(), classListWithNewLine.toString().trim());
             }
+        }
+    }
+
+    public void kill() throws InterruptedException, ExecutionException, IOException {
+        if(this.isQueued()) {
+            JobDispatcherThread.instance().removeJobRequest(this);
+        }
+        else if(this.isRunning()) {
+            this.killJobInAgents(this.getAgentsJobStatus().keySet());
         }
     }
 
@@ -551,8 +590,14 @@ public class Job {
         return jobs;
     }
 
-    public static void main(String[] args) throws IOException {
-        System.out.println(Job.searchJobs("e173fa38-e972-443f-acad-6cd2dc82aa85","",new ArrayList<String>()));
+    @JsonIgnore
+    public boolean isRunning() {
+        return jobStatus == JOB_STATUS.RUNNING;
+    }
+
+    @JsonIgnore
+    public boolean isQueued() {
+        return jobStatus == JOB_STATUS.QUEUED;
     }
 
 }
