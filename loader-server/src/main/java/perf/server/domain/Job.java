@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ public class Job {
         private String agentIp=null;
         private boolean inStress=false;
         private JOB_STATUS job_status=null;
-        private Map<String, Object> healthStatus=null;
+        private Map<String, Object> healthStatus=new HashMap<String, Object>();
 
         public String getAgentIp() {
             return agentIp;
