@@ -13,6 +13,7 @@ import perf.server.client.MonitoringClient;
 import perf.server.config.LoaderServerConfiguration;
 import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
+import perf.server.daemon.JobDispatcherThread;
 import perf.server.daemon.TimerComputationThread;
 import perf.server.exception.JobException;
 import perf.server.exception.LibNotDeployedException;
@@ -266,6 +267,13 @@ public class Job {
         this.persist();
     }
 
+    public void killed() throws InterruptedException, ExecutionException, IOException {
+        this.jobStatus = JOB_STATUS.KILLED;
+        ended();
+    }
+
+
+
     /**
      * Mark that job has failed
      * @throws IOException
@@ -429,6 +437,15 @@ public class Job {
         }
     }
 
+    public void kill() throws InterruptedException, ExecutionException, IOException {
+        if(this.isQueued()) {
+            JobDispatcherThread.instance().removeJobRequest(this);
+        }
+        else if(this.isRunning()) {
+            this.killJobInAgents(this.getAgentsJobStatus().keySet());
+        }
+    }
+
     /**
      * Kill job in specified agents,
      * @param agents
@@ -557,8 +574,14 @@ public class Job {
         return jobs;
     }
 
-    public static void main(String[] args) throws IOException {
-        System.out.println(Job.searchJobs("e173fa38-e972-443f-acad-6cd2dc82aa85","",new ArrayList<String>()));
+    @JsonIgnore
+    public boolean isRunning() {
+        return jobStatus == JOB_STATUS.RUNNING;
+    }
+
+    @JsonIgnore
+    public boolean isQueued() {
+        return jobStatus == JOB_STATUS.QUEUED;
     }
 
 }
