@@ -71,7 +71,8 @@ public class Job {
         public AgentJobStatus setHealthStatus(Map<String, Object> healthStatus) {
             if(healthStatus != null) {
                 this.healthStatus = healthStatus;
-                this.inStress = (Boolean)this.healthStatus.remove("inStress");
+                Object inStressObject = this.healthStatus.remove("inStress");
+                this.inStress = inStressObject == null ? false : Boolean.parseBoolean(inStressObject.toString());
             }
             return this;
         }
@@ -583,5 +584,4 @@ public class Job {
     public boolean isQueued() {
         return jobStatus == JOB_STATUS.QUEUED;
     }
-
 }
