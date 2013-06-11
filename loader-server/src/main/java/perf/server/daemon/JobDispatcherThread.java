@@ -12,6 +12,7 @@ import perf.server.util.JobStatsHelper;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -93,8 +94,17 @@ public class JobDispatcherThread extends Thread{
     }
 
     public void addJobRequest(Job job) throws IOException {
-        jobRequestQueue.add(job);
-        job.queued();
+        synchronized (jobRequestQueue) {
+            jobRequestQueue.add(job);
+            job.queued();
+        }
+    }
+
+    public void removeJobRequest(Job job) throws InterruptedException, ExecutionException, IOException {
+        synchronized (jobRequestQueue) {
+            jobRequestQueue.add(job);
+            job.killed();
+        }
     }
 
     public void stopIt() {
