@@ -9,6 +9,7 @@ import perf.server.cache.AgentsCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
 import perf.server.domain.LoaderAgent;
+import perf.server.exception.LibNotDeployedException;
 import perf.server.util.DeploymentHelper;
 import perf.server.util.ResponseBuilder;
 
@@ -143,7 +144,7 @@ public class AgentResource {
     synchronized public void deployClassLib(
             @FormDataParam("classList") InputStream classListInputStream,
             @PathParam("agentIPs") String agentIPs,
-            @QueryParam("force") @DefaultValue("false")BooleanParam force) throws IOException, ExecutionException, InterruptedException {
+            @QueryParam("force") @DefaultValue("false")BooleanParam force) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
         String classes = FileHelper.readContent(classListInputStream);
         for(String agentIP : agentIPs.split(","))
             DeploymentHelper.instance().deployClassLibsOnAgent(agentIP, classes, force.get());

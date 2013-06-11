@@ -15,7 +15,7 @@ import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
 import perf.server.daemon.TimerComputationThread;
 import perf.server.exception.JobException;
-import perf.server.exception.JobSubMissionException;
+import perf.server.exception.LibNotDeployedException;
 import perf.server.util.DeploymentHelper;
 
 import java.io.*;
@@ -211,6 +211,20 @@ public class Job {
         return this;
     }
 
+    /**
+     * Mark that job has been queued
+     */
+    public void queued() throws IOException {
+        this.jobStatus = JOB_STATUS.QUEUED;
+
+        // Adding to Queued Jobs File
+        List<String> queuedJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getQueuedJobsFile()), List.class);
+        queuedJobs.add(jobId);
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configuration.getJobFSConfig().getQueuedJobsFile()), queuedJobs);
+
+        this.persist();
+    }
+
 
     /**
      * Mark that job has started
@@ -219,9 +233,15 @@ public class Job {
     public void started() throws IOException {
         this.jobStatus = JOB_STATUS.RUNNING;
 
+        // Add to Running Jobs file
         List<String> runningJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), List.class);
         runningJobs.add(jobId);
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), runningJobs);
+
+        // Remove from Queued Jobs File
+        List<String> queuedJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getQueuedJobsFile()), List.class);
+        queuedJobs.remove(jobId);
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configuration.getJobFSConfig().getQueuedJobsFile()), queuedJobs);
 
         this.startTime = new Date();
         this.persist();
@@ -238,6 +258,7 @@ public class Job {
         CounterThroughputThread.getCounterCruncherThread().removeJob(jobId);
         TimerComputationThread.getComputationThread().removeJob(jobId);
 
+        // Remove from Running Jobs File
         List<String> runningJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), List.class);
         runningJobs.remove(jobId);
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), runningJobs);
@@ -393,7 +414,7 @@ public class Job {
      * @throws InterruptedException
      */
     private void deployLibrariesOnAgents(List<LoadPart> loadParts, List<LoaderAgent> agentsToUse)
-            throws IOException, JobException, ExecutionException, InterruptedException, JobSubMissionException {
+            throws IOException, JobException, ExecutionException, InterruptedException, LibNotDeployedException {
         for(LoadPart loadPart : loadParts) {
             List<String> classes = loadPart.getClasses();
 

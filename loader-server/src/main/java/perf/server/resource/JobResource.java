@@ -422,7 +422,6 @@ public class JobResource {
                 setJobId(UUID.randomUUID().toString()).
                 setRunName(jobRequest.getRunName());
 
-        job.persist();
         job.persistRunInfo();
 
         JobDispatcherThread.instance().addJobRequest(job);

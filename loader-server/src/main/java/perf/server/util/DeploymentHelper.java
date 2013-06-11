@@ -6,7 +6,7 @@ import perf.server.cache.LibCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
 import perf.server.config.LibStorageFSConfig;
-import perf.server.exception.JobSubMissionException;
+import perf.server.exception.LibNotDeployedException;
 
 import java.io.*;
 import java.util.*;
@@ -100,11 +100,11 @@ public class DeploymentHelper {
         }
     }
 
-    public void deployClassLibsOnAgent(String agentIP, String classListStr) throws IOException, ExecutionException, InterruptedException, JobSubMissionException {
+    public void deployClassLibsOnAgent(String agentIP, String classListStr) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
         deployClassLibsOnAgent(agentIP, classListStr, false);
     }
 
-    public void deployClassLibsOnAgent(String agentIP, String classListStr, boolean force) throws IOException, ExecutionException, InterruptedException, JobSubMissionException {
+    public void deployClassLibsOnAgent(String agentIP, String classListStr, boolean force) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
         Map<String, String> libClassListMap = makeLibClassListMap(classListStr);
         String agentClassLibInfoFile = this.agentConfig.getAgentClassLibInfoFile(agentIP);
         File classLibDeploymentFile = new File (agentClassLibInfoFile);
@@ -155,14 +155,14 @@ public class DeploymentHelper {
     }
 
 
-    private Map<String, String> makeLibClassListMap(String classListStr) throws JobSubMissionException {
+    private Map<String, String> makeLibClassListMap(String classListStr) throws LibNotDeployedException {
         Map<String,String> libClassListMap = new HashMap<String, String>();
         Set<String> libsRequired = new HashSet<String>();
         for(String className : classListStr.split("\n")) {
             if(LibCache.instance().getLibsMapWithClassAsKey().containsKey(className))
                 libsRequired.add(LibCache.instance().getLibsMapWithClassAsKey().get(className));
             else
-                throw new JobSubMissionException("No Library Deployed for class "+className);
+                throw new LibNotDeployedException("No Library Deployed for class "+className);
         }
 
         for(String libRequired : libsRequired) {
