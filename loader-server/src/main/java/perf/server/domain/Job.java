@@ -1,12 +1,26 @@
 package perf.server.domain;
 
-import com.open.perf.domain.Load;
-import com.open.perf.jackson.ObjectMapperUtil;
-import com.open.perf.util.FileHelper;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import perf.server.cache.AgentsCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.client.MonitoringClient;
@@ -17,9 +31,10 @@ import perf.server.daemon.TimerComputationThread;
 import perf.server.exception.JobException;
 import perf.server.util.DeploymentHelper;
 
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
+import com.open.perf.domain.Load;
+import com.open.perf.jackson.ObjectMapperUtil;
+import com.open.perf.util.FileHelper;
+
 
 public class Job {
 
@@ -39,10 +54,10 @@ public class Job {
     private Set<String> monitoringAgents;
 
     public static class AgentJobStatus {
-        private String agentIp;
-        private boolean inStress;
-        private JOB_STATUS job_status;
-        private Map<String, Object> healthStatus;
+        private String agentIp=null;
+        private boolean inStress=false;
+        private JOB_STATUS job_status=null;
+        private Map<String, Object> healthStatus=null;
 
         public String getAgentIp() {
             return agentIp;
@@ -251,6 +266,7 @@ public class Job {
     public void failedToStart() throws IOException {
         this.jobStatus = JOB_STATUS.FAILED_TO_START;
         this.endTime = new Date();
+        //this.agentsJobStatus.put("", arg1)
         this.persist();
     }
 
