@@ -37,14 +37,14 @@ public class Job {
     private String runName;
     private Date startTime, endTime;
     private JOB_STATUS jobStatus;
-    private Map<String,AgentJobStatus> agentsJobStatus;
+    private Map<String,AgentJobStatus> agentsJobStatus = new HashMap<String, AgentJobStatus>();
     private Set<String> monitoringAgents;
 
     public static class AgentJobStatus {
         private String agentIp;
         private boolean inStress;
         private JOB_STATUS job_status;
-        private Map<String, Object> healthStatus;
+        private Map<String, Object> healthStatus = new HashMap<String,Object>();
 
         public String getAgentIp() {
             return agentIp;
@@ -150,8 +150,8 @@ public class Job {
         return agentsJobStatus;
     }
 
-    public Job setAgentsJobStatus(Map<String, AgentJobStatus> agentsJobStatus) {
-        this.agentsJobStatus = agentsJobStatus;
+    public Job setAgentsJobStatus(Map<String, AgentJobStatus> agentsJobStatus) {	
+    		this.agentsJobStatus = agentsJobStatus;
         return this;
     }
 
