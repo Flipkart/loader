@@ -559,6 +559,10 @@ public class Job {
                     BufferedReader runJobsFileReader = FileHelper.bufferedReader(runJobsFile.getAbsolutePath());
                     String runJobId;
                     while((runJobId = runJobsFileReader.readLine()) != null) {
+                        if(runJobId.trim().equals("")) {
+                            log.warn("Empty Job Id Found for run '"+runPath.getName()+"'");
+                            continue;
+                        }
                         if(runJobId.toUpperCase().contains(searchJobId.toUpperCase())) {
                             Job job = objectMapper.readValue(new File(configuration.getJobFSConfig().getJobStatusFile(runJobId)), Job.class);
                             if(searchJobStatusList.contains("ALL")) {
