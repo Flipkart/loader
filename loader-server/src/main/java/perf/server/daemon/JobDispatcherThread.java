@@ -10,6 +10,7 @@ import perf.server.domain.PerformanceRun;
 import perf.server.util.JobStatsHelper;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -34,6 +35,7 @@ public class JobDispatcherThread extends Thread{
     public void run() {
         logger.info("Started Job Dispatcher Thread");
 
+        loadQueuedJobs();
         while(keepRunning) {
             if(pause) {
                 try {
@@ -70,6 +72,13 @@ public class JobDispatcherThread extends Thread{
         logger.info("Job Dispatcher Thread Ended");
     }
 
+    private void loadQueuedJobs()  {
+        try {
+            jobRequestQueue.addAll(Job.searchJobs("", "", Arrays.asList(new String[]{"QUEUED"})));
+        } catch (IOException e) {
+            logger.error("Failed To Load Queued Jobs", e);
+        }
+    }
 
     public static JobDispatcherThread initialize() {
         if(thread == null) {
@@ -83,8 +92,9 @@ public class JobDispatcherThread extends Thread{
         return thread;
     }
 
-    public void addJobRequest(Job job) {
+    public void addJobRequest(Job job) throws IOException {
         jobRequestQueue.add(job);
+        job.queued();
     }
 
     public void stopIt() {
