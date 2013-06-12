@@ -5,9 +5,11 @@ package server.monitor;
  * USer : nitinka
  */
 
-import com.yammer.dropwizard.Service;
-import com.yammer.dropwizard.config.Bootstrap;
-import com.yammer.dropwizard.config.Environment;
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+
+import org.eclipse.jetty.servlets.CrossOriginFilter;
+
 import server.monitor.collector.CollectorThread;
 import server.monitor.collector.jmx.MonitorLocalJavaProcesses;
 import server.monitor.config.ServerMonitoringConfig;
@@ -16,8 +18,10 @@ import server.monitor.resource.CollectorResource;
 import server.monitor.resource.OnDemandCollectorResource;
 import server.monitor.resource.PublishRequestResource;
 
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
+import com.yammer.dropwizard.Service;
+import com.yammer.dropwizard.config.Bootstrap;
+import com.yammer.dropwizard.config.Environment;
+import com.yammer.dropwizard.config.FilterBuilder;
 
 public class MonitoringService extends Service<ServerMonitoringConfig> {
 
@@ -28,6 +32,8 @@ public class MonitoringService extends Service<ServerMonitoringConfig> {
 
     @Override
     public void run(ServerMonitoringConfig configuration, Environment environment) throws Exception {
+    	FilterBuilder filterConfig = environment.addFilter(CrossOriginFilter.class, "/*");
+        filterConfig.setInitParam(CrossOriginFilter.PREFLIGHT_MAX_AGE_PARAM, String.valueOf(60*60*24));
         CollectorThread collectorThread = startCollectorThread(1000);
         MetricPublisherThread metricPublisherThread = startStartThread(1000);
         new MonitorLocalJavaProcesses(60000, collectorThread).start();

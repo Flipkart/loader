@@ -397,7 +397,7 @@ public class JobResource {
     @Timed
     public void killJob(@PathParam("jobId") String jobId) throws InterruptedException, ExecutionException, IOException, JobException {
         Job job = jobExistsOrException(jobId);
-        job.killJobInAgents(job.getAgentsJobStatus().keySet());
+        job.kill();
     }
 
     /**
@@ -422,7 +422,6 @@ public class JobResource {
                 setJobId(UUID.randomUUID().toString()).
                 setRunName(jobRequest.getRunName());
 
-        job.persist();
         job.persistRunInfo();
 
         JobDispatcherThread.instance().addJobRequest(job);
