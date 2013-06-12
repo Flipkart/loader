@@ -22,11 +22,11 @@ function renderDisplayArea(elementType, metadata){
 }
 
 function renderRunPage(metadata){
-	var insertHtml = "<label>Run Name:</label>&nbsp;&nbsp;" + 
-            "<input type=\"text\" id=\"runName\" value=\"" + window.runSchema.runName + "\" class=\"bigInput\"/>";
-    insertHtml = insertHtml + "<br/><br/><br/><br/>" + 
+	var insertHtml = "<div id=\"runSchema\" class=\"runSchema\"><label><strong>Run Name</strong>:</label>" + 
+            "<input type=\"text\" id=\"runName\" value=\"" + window.runSchema.runName + "\" class=\"bigInput\"/></div>";
+    insertHtml = insertHtml + "<br/><br/><br/><br/>" + "<div id=\"runSchemaButton\">" + 
     		"<button id=\"updateRun\" onClick=\"updateRun()\">Update</button>" + 
-    		"<button id=\"loadPart\" onClick=\"addLoadPart()\">Add LoadPart</button>";
+    		"<button id=\"addLoadPart\" onClick=\"addLoadPart()\">Add LoadPart</button></div>";
     $("#displayArea").empty();
     $("#displayArea").append(insertHtml);
     console.log("selecting", "#node_" + window.runSchema.runName);
@@ -52,13 +52,13 @@ function addLoadPart(){
 }
 
 function renderLoadPartPage(metadata){
-	var insertHtml =  "<label>LoadPart Name: &nbsp;&nbsp;</label>" + 
+	var insertHtml =  "<div id=\"loadPart\" class=\"loadPart\"><label><strong>LoadPart Name</strong>:</label>" + 
 			"<input type=\"text\" id=\"loadPartName\" value=\"" + window.runSchema.loadParts[metadata["loadPartIndex"]]["name"] + "\" class=\"bigInput\" />" + 
-			"</br><label>Agents:</label>&nbsp;&nbsp;<input id=\"agents\" type=\"text\" value=\"" + window.runSchema.loadParts[metadata["loadPartIndex"]]["agents"] + "\" class=\"bigInput\"/><br/><br/>";
-	insertHtml = insertHtml + 
+			"</br></br><label><strong>Agents</strong>:</label><input id=\"agents\" type=\"text\" value=\"" + window.runSchema.loadParts[metadata["loadPartIndex"]]["agents"] + "\" class=\"bigInput\"/></div></br></br></br>";
+	insertHtml = insertHtml + "<div id=\"loadPartButton\">" + 
 		"<button id=\"addGroup\" onClick=\"addGroup()\">Add Group</button>" +
 		"<button id=\"updateLoadPart\" onClick=\"updateLoadPart()\">Update</button>" + 
-		"<button id=\"deleteLoadPart\" onClick=\"deleteLoadPart()\">Delete</button>";
+		"<button id=\"deleteLoadPart\" onClick=\"deleteLoadPart()\">Delete</button></div>";
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
     console.log("selecting", "#node_" + window.runSchema.loadParts[metadata["loadPartIndex"]]["name"]);
@@ -113,25 +113,25 @@ function addGroup(){
 
 function renderGroupPage(metadata){
 	var grp = window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]];
-	var insertHtml = "<label>Group Name: &nbsp;&nbsp;</label>" + 
-			"<input type=\"text\" id=\"groupName\" value=\"" + grp["name"] + "\" class=\"bigInput\" /><br/>" +
-			"<label>Group Start Delay: &nbsp;&nbsp;</label>" + 
-			"<input type=\"text\" id=\"groupStartDelay\" value=\"" + grp["groupStartDelay"] + "\" class=\"smallInput\"/>&nbsp;&nbsp;&nbsp" +
-			"<label>Thread Start Delay: &nbsp;&nbsp;</label>" + 
+	var insertHtml = "<div class=\"groupDetails\"><div id=\"groupName\" class=\"groupName\"><label><strong>Group Name</strong>:</label>" + 
+			"<input type=\"text\" id=\"groupName\" value=\"" + grp["name"] + "\" class=\"bigInput\" /></div><br/></br></br>" +
+			"<div class=\"groupConfig\"><label><strong>Group Start Delay</strong>:</label>" + 
+			"<input type=\"text\" id=\"groupStartDelay\" value=\"" + grp["groupStartDelay"] + "\" class=\"smallInput\"/>" +
+			"<label><strong>Thread Start Delay</strong>:</label>" + 
 			"<input type=\"text\" id=\"threadStartDelay\" value=\"" + grp["threadStartDelay"] + "\" class=\"smallInput\"/><br/>" +
-			"<label>ThroughPut: &nbsp;&nbsp;</label>" + 
+			"</div></br></br><div class=\"groupConfig\"><label><strong>ThroughPut</strong>:</label>" + 
 			"<input type=\"text\" id=\"throughput\" value=\"" + grp["throughput"] + "\" class=\"smallInput\"/>&nbsp;&nbsp;&nbsp" +
-			"<label>Repeats: &nbsp;&nbsp;</label>" + 
+			"<label><strong>Repeats</strong>:</label>" + 
 			"<input type=\"text\" id=\"repeats\" value=\"" + grp["repeats"] + "\" class=\"smallInput\"/><br/>" +
-			"<label>Duration(ms): &nbsp;&nbsp;</label>" + 
+			"</div></br></br><div class=\"groupConfig\"><label><strong>Duration</strong>(ms):</label>" + 
 			"<input type=\"text\" id=\"duration\" value=\"" + grp["duration"] + "\" class=\"smallInput\"/>&nbsp;&nbsp;&nbsp" +
-			"<label>Threads: &nbsp;&nbsp;</label>" + 
+			"<label><strong>Threads</strong>:</label>" + 
 			"<input type=\"text\" id=\"threads\" value=\"" + grp["threads"] + "\" class=\"smallInput\" /><br/>" +
-			"<label>Warm Up Time: &nbsp;&nbsp;</label>" + 
+			"</div></br></br><div class=\"groupConfig\"><label><strong>Warm Up Time:</strong></label>" + 
 			"<input type=\"text\" id=\"warmUpTime\" value=\"" + grp["warmUpTime"] + "\" class=\"smallInput\"/>&nbsp;&nbsp;&nbsp" +
-			"<label>Warm Up Repeats: &nbsp;&nbsp;</label>" + 
+			"<label><strong>Warm Up Repeats</strong>:</label>" + 
 			"<input type=\"text\" id=\"warmUpRepeats\" value=\"" + grp["warmUpRepeats"] + "\" class=\"smallInput\"/><br/>" +
-			"<label>Depends On: &nbsp;&nbsp;</label><br/></br>" + 
+			"</div></br></br><div id=\"multiSelect\" class=\"multiSelect\"><label><strong>Depends On</strong>:</label><br/></br>" + 
 			"<select multiple=\"multiple\" name=\"groupList\" id=\"groupList\">";
 				$.each(window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"], function(index, gr){
 					if (index != metadata["groupIndex"]) {
@@ -143,15 +143,13 @@ function renderGroupPage(metadata){
 						}
 					}
 				});
-    insertHtml = insertHtml + "</select><br/><br/>";
+    insertHtml = insertHtml + "</select></div><br/><br/>";
 
-	insertHtml = insertHtml + "<button id=\"updateGroup\" onClick=\"updateGroup()\">Update</button>" + 
+	insertHtml = insertHtml + "<div class=\"groupDetailsButton\">" + 
+		"<button id=\"updateGroup\" onClick=\"updateGroup()\">Update</button>" + 
 		"<button id=\"addFunction\" onClick=\"addFunction()\">Add Function</button>" + 
-		"<button id=\"addTimer\" onClick=\"addTimer()\">Add Timer</button></br></br>" +
-		"<button id=\"addThreadResources\" onClick=\"addThreadResources()\">Add ThreadResources</button>" +
-		"<button id=\"addCustomTimer\" onClick=\"addCustomTimer()\">Add Custom Timer</button>" + 
-		"<button id=\"addCustomCounter\" onClick=\"addCustomCounter()\">Add Custom Counter</button>" + 
-		"<button id=\"deleteGroup\" onClick=\"deleteGroup()\">Delete</button>";
+		"<button id=\"addTimer\" onClick=\"addTimer()\">Add Timer</button>" +
+		"<button id=\"deleteGroup\" onClick=\"deleteGroup()\">Delete</button></div></div>";
 	//console.log(insertHtml);
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
@@ -211,25 +209,25 @@ function addFunction(){
 
 function renderFunctionPage(metadata){
 	var func = window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]]["functions"][metadata["functionIndex"]];
-	var insertHtml =  "<label>Function Name:</label>&nbsp;&nbsp;" + 
-		"<input type=\"text\" id=\"funcName\" value=\"" + func["functionalityName"] + "\" class=\"bigInput\"/><br/></br>" +
-		"<label>Function Class:</label>&nbsp;&nbsp;" + 
-		"<select id=\"functionList\" name=\"functionList\" onChange=\"getFunctionParameters()\"><option value=\"noclass\">Choose Function</option>";
+	var insertHtml =  "<div id=\"functionPage\"><div class=\"functions\"><label><strong>Function Name</strong>:</label>" + 
+		"<input type=\"text\" id=\"funcName\" value=\"" + func["functionalityName"] + "\" class=\"bigInput\"/><br/></br></br>" +
+		"<label><strong>Function Class</strong>:</label>" + 
+		"<select id=\"functionList\" name=\"functionList\" onChange=\"getFunctionParameters()\" class=\"selectOption\"><option value=\"noclass\">Choose Function</option>";
 		$.each(window.availableFunctions, function(index, f){
 			if (f==func["functionClass"]) insertHtml = insertHtml + "<option value=\"" + f + "\" selected>" + f + "</option>";
 			else insertHtml = insertHtml + "<option value=\"" + f + "\">" + f + "</option>";
 		});
-		insertHtml = insertHtml + "</select><br/></br>";
+		insertHtml = insertHtml + "</select></br></br></br>";
 		if (func["dumpData"]=="true"){
-			insertHtml = insertHtml + "<label>DumpData:</label><select id=\"dumpData\"><option value=\"false\">false</option>" +
-				"<option value=\"true\" selected>true</option></select><br/><br/><div id=\"ips\"></div>" + 
+			insertHtml = insertHtml + "<div id=\"dumpData\"><label><strong>DumpData</strong>:</label><select id=\"dumpData\" class=\"selectOption\"><option value=\"false\">false</option>" +
+				"<option value=\"true\" selected>true</option></select></div><br/><br/><div id=\"ips\"></div></div><div class=\"functionsButton\">" + 
 				"<button id=\"updateFunction\" onClick=\"updateFunction()\">Update</button>" + 
-				"<button id=\"deleteFunction\" onClick=\"deleteFunction()\">Delete</button>"	;
+				"<button id=\"deleteFunction\" onClick=\"deleteFunction()\">Delete</button></div>"	;
 		} else {
-			insertHtml = insertHtml + "<label>DumpData:</label><select id=\"dumpData\"><option value=\"false\" selected>false</option>" +
-				"<option value=\"true\">true</option></select><br/><br/><div id=\"ips\"></div>" + 
+			insertHtml = insertHtml + "<div id=\"dumpData\"><label><strong>DumpData</strong>:</label><select id=\"dumpData\" class=\"selectOption\"><option value=\"false\" selected>false</option>" +
+				"<option value=\"true\">true</option></select></div><br/><br/><div id=\"ips\"></div></div><div class=\"functionsButton\">" + 
 				"<button id=\"updateFunction\" onClick=\"updateFunction()\">Update</button>	" + 
-				"<button id=\"deleteFunction\" onClick=\"deleteFunction()\">Delete</button>	";
+				"<button id=\"deleteFunction\" onClick=\"deleteFunction()\">Delete</button></div></div>";
 		}
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
@@ -272,7 +270,7 @@ function getFunctionParameters(){
       success: function(data) {
         var ip = data[0]["inputParameters"];
         window.inputParams = data[0]["inputParameters"];
-        var insertHtml = "<table id=\"inputParameters\" width=\"80%\" align=\"center\">" +
+        var insertHtml = "<table id=\"inputParameters\" width=\"100%\" align=\"left\">" +
 						"<thead><tr><td colspan=\"2\"><strong>Input Parameters</strong><hr><br></td></tr></thead><tbody style=\"height:200px; overflow: scroll;\">";
 		$.each(ip, function(k,v){
 			console.log("v is",v);
@@ -283,7 +281,7 @@ function getFunctionParameters(){
 			insertHtml = insertHtml + "</b></td><td width=\"70%\"><input type=\"text\" id=\"" + k + "\" value=\"Default: " + 
 			defaultVal + "\" onfocus=\"inputFocus(this)\" onblur=\"inputBlur(this)\" style=\"width:99%;color:#888;\" /></td></tr>"; 
 		});
-		insertHtml = insertHtml + "</tbody></table>";
+		insertHtml = insertHtml + "</tbody></table></br></br>";
 		$("#ips").empty();
 		$("#ips").append(insertHtml);
       },
@@ -316,11 +314,11 @@ function addMetricCollection(){
 
 function renderMetricCollectionPage(metadata){
 	var metric = window.runSchema.metricCollections[metadata["metricCollectionIndex"]];
-	var insertHtml = "<label><strong>Agent IP</strong></label>" + 
-		"<input type=\"text\" id=\"agent\" class=\"smallInput\" value=\"" + 
-		metric["agent"] + "\"/></br></br><div id=\"resources\"></div>";
-	insertHtml = insertHtml + "<button id=\"updateFunction\" onClick=\"updateMetricCollection()\">Update</button>" +
-		"<button id=\"updateFunction\" onClick=\"deleteMetricCollection()\">Delete</button>";
+	var insertHtml = "<div class=\"metrics\"><div class=\"metricsPage\"><label><strong>Agent IP</strong></label>" + 
+		"<input type=\"text\" id=\"agent\" class=\"bigInput\" value=\"" + 
+		metric["agent"] + "\"/></br></br><div id=\"resources\"></div></div></br></br></br>";
+	insertHtml = insertHtml + "<div class=\"metricsPageButton\"><button id=\"updateFunction\" onClick=\"updateMetricCollection()\">Update</button>" +
+		"<button id=\"updateFunction\" onClick=\"deleteMetricCollection()\">Delete</button></div></div>";
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
     getResources(metric);
@@ -330,7 +328,7 @@ function renderMetricCollectionPage(metadata){
 }
 
 function renderMonitoringAgentsAddPage(metadata){
-	var insertHtml = "<button id=\"metricCollection\" onClick=\"addMetricCollection()\">Add Metrics Collection</button>";
+	var insertHtml = "<div class=\"metricCollection\"><button id=\"metricCollection\" onClick=\"addMetricCollection()\">Add Metrics Collection</button></div>";
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
     $("#runTree").bind("reselect.jstree", function(){
