@@ -1,7 +1,17 @@
+html {
+	height:100%;
+}
+
+body {
+	height:100%;
+}
+
 #runBuilder {
-	height:320px;
+	height:60%;
 	width:80%; 
-	margin:0px auto
+	margin:0px auto;
+	border:1px solid black;
+	border-top:none;
 }
 
 #runBuilder button {
@@ -11,6 +21,7 @@
 	text-align:center;
 	margin-left:5px; 
 	margin-right:8px;
+	float:right;
 }
 
 #createButton button {
@@ -23,52 +34,232 @@
 }
 
 #runTree {
-	margin-top:50px; 
-	margin-bottom:30px;
+	margin-top:3%; 
+	margin-bottom:0px;
 	width:30%;
 	float:left;
-	border:2px;
-	height:270px;
-	box-shadow: 2px 2px 1px #888888;
+	height:91%;
+	/*box-shadow: 2px 2px 1px #888888;*/
 	overflow: auto
 }
 
 #displayArea {
-	margin-top:50px; 
+	margin-top:3%; 
 	margin-left:5%; 
-	margin-bottom:30px;
+	margin-bottom:0px;
 	width:60%;
 	float: left;
-	border:2px;
-	height:270px;
-	box-shadow: 2px 2px 1px #888888;
+	height:97%;
+	/*box-shadow: 2px 2px 1px #888888;*/
 	overflow: auto
 }
 
 #createButton {
-	width:100%;
+	width:80%;
+	height:30px;
+	margin:0px auto;
+}
+
+.runSchema label {
+	font-family: Verdana, Geneva, sans-serif;
+	font-size:12px;
+	float:left;
+}
+
+.runSchema .bigInput {
+	width:50%; 
+	size:100px; 
+	height:25px;
+	margin-top:0px;
+	float:right;
+}
+
+.loadPart label {
+	font-family: Verdana, Geneva, sans-serif;
+	font-size:12px;
+	float:left;
+}
+
+.loadPart .bigInput {
+	width:50%; 
+	size:100px; 
+	height:25px;
+	margin-top:0px;
+	float:right;
+}
+
+#runSchema {
+	width:40%;
+	margin:0px auto;
+}
+
+#runSchemaButton {
+	width:45%;
+	margin:0px auto;
 	height:30px;
 }
 
-#displayArea label {
+#loadPartButton {
+	width:50%;
+	margin:0px auto;
+	height:30px;
+}
+
+#loadPart {
+	width:50%;
+	margin:0px auto;
+}
+
+.groupName {
+	width:45%;
+	float:left;
+}
+
+.groupName label {
 	font-family: Verdana, Geneva, sans-serif;
+	width:20%;
+	margin:0px auto;
+	margin-right:1%;
 	font-size:12px;
-	margin-top:5px;
 }
 
-#displayArea .bigInput {
-	width:250px; 
-	size:250px; 
-	backface-visibility:hidden; 
+.groupName .bigInput {
+	width:60%; 
+	size:100px; 
 	height:25px;
-	margin-top:8px;
+	margin-top:0px;
+	float:right;
 }
 
-#displayArea .smallInput {
-	width:80px; 
-	size:80px; 
-	backface-visibility:hidden; 
+.groupConfig {
+	width:100%;
+	margin:0px auto;
+}
+
+.groupConfig label{
+	font-family: Verdana, Geneva, sans-serif;
+	width:30%;
+	margin:0px auto;
+	margin-right:30px;
+	font-size:12px;
+	float:left;
+}
+
+.groupConfig .smallInput {
+	width:10%; 
 	height:25px;
-	margin-top:8px;
+	margin-right:2%;
+	float:left;
+}
+
+.multiSelect {
+	width:100%;
+	margin:0px auto;
+}
+
+.groupDetails {
+	width:90%;
+	margin:0px auto;
+	margin-left:50px;
+	height:93%;
+	overflow: auto;
+}
+
+.groupDetailsButton {
+	width:70%;
+	float:right;
+	margin-right:10px;
+}
+
+.functions {
+	width:90%;
+	margin:0px auto;
+}
+
+.functions .bigInput {
+	width:50%; 
+	size:100px; 
+	height:25px;
+	margin-top:0px;
+	float:right;
+}
+
+.functions .selectOption {
+	height:25px;
+	float:right;
+}
+
+.functions label {
+	font-family: Verdana, Geneva, sans-serif;
+	width:30%;
+	margin:0px auto;
+	margin-right:30px;
+	font-size:12px;
+	float:left;
+}
+
+.functions #dumpData {
+	width:50%;
+	float:left;
+}
+
+.functions .functionsButton{
+	width:40%;
+}
+
+.functions #ips {
+	width:100%;
+	float:left;
+	margin-bottom: 30px;
+}
+
+#functionPage {
+	width:100%;
+	height:93%;
+	overflow:auto;
+}
+
+.metricCollection {
+	width:30%;
+	float:left;
+}
+
+.metrics {
+	height:93%;
+	width:100%;
+	overflow:auto;
+}
+
+.metricsPage {
+	width:90%;
+	margin:0px auto;
+}	
+
+.metricsPage .bigInput {
+	width:30%; 
+	size:100px; 
+	height:25px;
+	margin-top:0px;
+	margin-left:30px;
+}
+
+.metricsPage #resources {
+	float:left;
+	margin-bottom: 50px;
+	margin-top:30px;
+	overflow: auto;
+	width:100%;
+}
+
+.metricsPageButton {
+	width:45%;
+	margin:0px auto;
+}
+
+.metricsPage #resources input[type='checkbox'] {
+	margin-right:5px;
+	height:15px;
+	width:15px;
+	margin-left:20px;
 }
 
