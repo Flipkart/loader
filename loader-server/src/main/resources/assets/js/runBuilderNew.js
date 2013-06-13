@@ -114,7 +114,7 @@ function addGroup(){
 function renderGroupPage(metadata){
 	var grp = window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]];
 	var insertHtml = "<div class=\"groupDetails\"><div id=\"groupName\" class=\"groupName\"><label><strong>Group Name</strong>:</label>" + 
-			"<input type=\"text\" id=\"groupName\" value=\"" + grp["name"] + "\" class=\"bigInput\" /></div><br/></br></br>" +
+			"<input type=\"text\" id=\"groupNameText\" value=\"" + grp["name"] + "\" class=\"bigInput\" /></div><br/></br></br>" +
 			"<div class=\"groupConfig\"><label><strong>Group Start Delay</strong>:</label>" + 
 			"<input type=\"text\" id=\"groupStartDelay\" value=\"" + grp["groupStartDelay"] + "\" class=\"smallInput\"/>" +
 			"<label><strong>Thread Start Delay</strong>:</label>" + 
@@ -164,7 +164,7 @@ function renderGroupPage(metadata){
 function updateGroup(){
 	var grpData = window.selectedElementData;
 	var grp = window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"][grpData["groupIndex"]];
-	grp["name"] = $("#groupName").val();
+	grp["name"] = $("#groupNameText").val();
 	grp["groupStartDelay"] = $("#groupStartDelay").val();
 	grp["threadStartDelay"] = $("#threadStartDelay").val();
 	grp["throughput"] = $("#throughput").val();
@@ -219,12 +219,12 @@ function renderFunctionPage(metadata){
 		});
 		insertHtml = insertHtml + "</select></br></br></br>";
 		if (func["dumpData"]=="true"){
-			insertHtml = insertHtml + "<div id=\"dumpData\"><label><strong>DumpData</strong>:</label><select id=\"dumpData\" class=\"selectOption\"><option value=\"false\">false</option>" +
+			insertHtml = insertHtml + "<div id=\"dumpData\"><label><strong>DumpData</strong>:</label><select id=\"dumpDataSel\" class=\"selectOption\"><option value=\"false\">false</option>" +
 				"<option value=\"true\" selected>true</option></select></div><br/><br/><div id=\"ips\"></div></div><div class=\"functionsButton\">" + 
 				"<button id=\"updateFunction\" onClick=\"updateFunction()\">Update</button>" + 
-				"<button id=\"deleteFunction\" onClick=\"deleteFunction()\">Delete</button></div>"	;
+				"<button id=\"deleteFunction\" onClick=\"deleteFunction()\">Delete</button></div></div>"	;
 		} else {
-			insertHtml = insertHtml + "<div id=\"dumpData\"><label><strong>DumpData</strong>:</label><select id=\"dumpData\" class=\"selectOption\"><option value=\"false\" selected>false</option>" +
+			insertHtml = insertHtml + "<div id=\"dumpData\"><label><strong>DumpData</strong>:</label><select id=\"dumpDataSel\" class=\"selectOption\"><option value=\"false\" selected>false</option>" +
 				"<option value=\"true\">true</option></select></div><br/><br/><div id=\"ips\"></div></div><div class=\"functionsButton\">" + 
 				"<button id=\"updateFunction\" onClick=\"updateFunction()\">Update</button>	" + 
 				"<button id=\"deleteFunction\" onClick=\"deleteFunction()\">Delete</button></div></div>";
@@ -244,13 +244,16 @@ function updateFunction(){
 	console.log("function is", func);
 	func["functionalityName"] = $("#funcName").val();
 	func["functionClass"] = $("#functionList").val();
-	func["dumpData"] = $("#dumpData").val();
+	func["dumpData"] = $("#dumpDataSel").val();
 	$.each(window.inputParams, function(key, value){
 		func["params"][key] = $("#"+key).val();
 	});
 	window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]]["functions"][metadata["functionIndex"]]=func;
+	console.log("creating tree");
 	createTree(window.runSchema);
+	console.log("done creating tree, rendering");
 	renderDisplayArea('function', window.selectedElementData);
+	console.log("rendering done");
 }
 
 function deleteFunction(){
@@ -261,6 +264,9 @@ function deleteFunction(){
 }
 
 function getFunctionParameters(){
+	var metadata = window.selectedElementData;
+	var func = window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]]["functions"][metadata["functionIndex"]];
+	console.log("func is", func);
 	$("#ips").empty();
 	var fName = $("#functionList").val();
 	if (fName == "noclass") return;
@@ -274,11 +280,14 @@ function getFunctionParameters(){
 						"<thead><tr><td colspan=\"2\"><strong>Input Parameters</strong><hr><br></td></tr></thead><tbody style=\"height:200px; overflow: scroll;\">";
 		$.each(ip, function(k,v){
 			console.log("v is",v);
+			console.log("k is", k);
+			console.log("func is", func);
 			var redStar = "<span style=\"color:red\">*</span>";
 			insertHtml = insertHtml + "<tr><td width=\"30%\"><b>" + v["name"];
 			if(v["mandatory"]==true) insertHtml= insertHtml + redStar;
 			var defaultVal = v["defaultValue"]?v["defaultValue"]:"";
-			insertHtml = insertHtml + "</b></td><td width=\"70%\"><input type=\"text\" id=\"" + k + "\" value=\"Default: " + 
+			defaultVal=func["params"][v["name"]]?func["params"][v["name"]]:defaultVal;
+			insertHtml = insertHtml + "</b></td><td width=\"70%\"><input type=\"text\" id=\"" + k + "\" value=\"" + 
 			defaultVal + "\" onfocus=\"inputFocus(this)\" onblur=\"inputBlur(this)\" style=\"width:99%;color:#888;\" /></td></tr>"; 
 		});
 		insertHtml = insertHtml + "</tbody></table></br></br>";
@@ -483,6 +492,15 @@ function getFunctionList(group, loadPartIndex, groupIndex){
 }
 
 function createRun(){
+	var classes = new Array();
+	$.each(window.runSchema["loadParts"], function(lpIndex, loadPart){
+		$.each(loadPart["load"]["groups"], function(grpIndex, group){
+			$.each(group["functions"], function(funcIndex, funct){
+				classes.push(funct["functionClass"]);
+			});
+		}); 
+	});
+	window.runSchema["classes"] = classes;
 	console.log("sending", JSON.stringify(window.runSchema));
 	$.ajax({
 		url:"loader-server/runs",
