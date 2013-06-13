@@ -158,6 +158,7 @@ function getCounters(counterUrls, grpIndex, timerIndex){
 			},
 			complete: function(xhr,status){
 				console.log("Selecting :", "#" + key + grpIndex + timerIndex);
+				$("#" + key + grpIndex + timerIndex).empty();
 				$("#" + key + grpIndex + timerIndex).append("<strong>" + key + "</strong>" + ":&nbsp;&nbsp" + cnt);
 			}
 		});
