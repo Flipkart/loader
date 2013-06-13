@@ -492,13 +492,14 @@ function getFunctionList(group, loadPartIndex, groupIndex){
 }
 
 function createRun(){
-	var classes = new Array();
 	$.each(window.runSchema["loadParts"], function(lpIndex, loadPart){
+		var classes = new Array();
 		$.each(loadPart["load"]["groups"], function(grpIndex, group){
 			$.each(group["functions"], function(funcIndex, funct){
 				classes.push(funct["functionClass"]);
 			});
-		}); 
+		});
+		window.runSchema["loadParts"][lpIndex]["classes"] =  classes;
 	});
 	//window.runSchema["classes"] = classes;
 	console.log("sending", JSON.stringify(window.runSchema));
