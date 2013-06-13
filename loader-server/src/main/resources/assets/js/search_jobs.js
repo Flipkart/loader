@@ -84,7 +84,7 @@ function displayList(index){
 	$.each(window.jobList.slice(startIndex, endIndex), function(jobIndex, job){
 		console.log(job);
 		var slNo = startIndex + jobIndex + 1;
-		insertHtml = insertHtml + "<tr><td>" + slNo + "</td><td><a href=/job_details.html?&jobid=" + job["jobId"] + ">" + job["jobId"] +"</a></td><td><a href=\"/workflow.html?&workflow=" + job["runName"] + "\">" + job["runName"] + "</a></td><td>" + (new Date(job["startTime"])).toString()+ "</td><td>" + (new Date(job["startTime"])).toString() + "</td><td style=\"color:" + color[job["jobStatus"]] + "\">" + job["jobStatus"] + "</td></tr>";
+		insertHtml = insertHtml + "<tr><td>" + slNo + "</td><td><a href=/job_details.html?&jobid=" + job["jobId"] + ">" + job["jobId"] +"</a></td><td><a href=\"/workflow.html?&workflow=" + job["runName"] + "\">" + job["runName"] + "</a></td><td>" + (new Date(job["startTime"])).toString()+ "</td><td>" + (new Date(job["endTime"])).toString() + "</td><td style=\"color:" + color[job["jobStatus"]] + "\">" + job["jobStatus"] + "</td></tr>";
 	});
 	insertHtml = insertHtml + "</tbody></table>";
 	$("#jobsListDetails").empty();
