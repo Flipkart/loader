@@ -500,7 +500,7 @@ function createRun(){
 			});
 		}); 
 	});
-	window.runSchema["classes"] = classes;
+	//window.runSchema["classes"] = classes;
 	console.log("sending", JSON.stringify(window.runSchema));
 	$.ajax({
 		url:"loader-server/runs",
