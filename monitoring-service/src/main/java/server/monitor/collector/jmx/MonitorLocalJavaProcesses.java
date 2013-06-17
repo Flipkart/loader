@@ -67,7 +67,7 @@ public class MonitorLocalJavaProcesses extends Thread{
                             Map<String,Object> params = new HashMap<String, Object>();
                             params.put("jmxConnectorAddress", jmcConnectorAddress);
 
-                            BaseCollector collector = new JMXCollector(newJVM.displayName().split(" ")[0],params, 60000);
+                            BaseCollector collector = new JMXCollector("jmx-"+newJVM.displayName().split(" ")[0],params, 60000);
                             this.collectorThread.startCollector(collector);
                             oldJVMs.put(newJVM, collector);
                         }
@@ -92,8 +92,7 @@ public class MonitorLocalJavaProcesses extends Thread{
     }
 
     private String buildJMXConnectorAddress(VirtualMachineDescriptor newJVM) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
-        VirtualMachine vm;
-        vm = VirtualMachine.attach(newJVM);
+        VirtualMachine vm = VirtualMachine.attach(newJVM);
 
         String connectorAddress = vm.getAgentProperties().getProperty(CONNECTOR_ADDRESS);
 
