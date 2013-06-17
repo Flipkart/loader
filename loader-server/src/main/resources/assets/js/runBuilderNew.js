@@ -176,6 +176,7 @@ function updateGroup(){
 	//if ($("#dependsOn").is(":checked")) {
 		console.log("groupList", $("#groupList").val());
 		grp["dependOnGroups"] = $("#groupList").val();
+		if (!!grp["dependOnGroups"]) grp["dependOnGroups"]=[];
 	//}
 	window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"][grpData["groupIndex"]]=grp;
 	createTree(window.runSchema);
