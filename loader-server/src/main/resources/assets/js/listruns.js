@@ -6,12 +6,13 @@ function getListedRuns(){
 			dataType:"json",
 			type:"GET",
 			success: function(runs) {
-				var insertHtml = "<tr><td><div id=\"cssmenu\"><ul>";
+				var insertHtml = "<div id=\"cssmenu\"><ul>";
 				for(var k=0; k<runs.length; k++){
-					insertHtml = insertHtml + "<li><a id=\"" + runs[k] + "\" href='#'><span>" + runs[k] + "</span></a><ul><li><a id=\"" + runs[k]+ "execute\" href='#'><span>Execute</span></a></li></ul></li>";
+					insertHtml = insertHtml + "<li><a id=\"" + runs[k] + "\" href='#'><span>" + runs[k] + "</span></a><ul><li><a id=\"" + runs[k]+ "execute\" href='#'><span>Execute</span></a></li></ul></li></br>";
 					//$("#runsList").append("<tr style=\"border:1px solid black\"><td><button class=\"editbtn\">" + runs[k] + "</button></td></tr>");
 				} 
-				insertHtml = insertHtml + "</ul></div></td></tr>";
+				insertHtml = insertHtml + "</ul></div>";
+				console.log(insertHtml);
 				$("#runsList").append(insertHtml);
 				$('#cssmenu a').click(function(e){
 					e.preventDefault();
