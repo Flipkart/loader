@@ -10,6 +10,7 @@ import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.FilterBuilder;
+import com.yammer.metrics.core.HealthCheck;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import perf.server.cache.AgentsCache;
 import perf.server.cache.LibCache;
@@ -18,6 +19,8 @@ import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
 import perf.server.daemon.JobDispatcherThread;
 import perf.server.daemon.TimerComputationThread;
+import perf.server.health.CounterCompoundThreadHealthCheck;
+import perf.server.health.TimerComputationThreadHealthCheck;
 import perf.server.resource.*;
 import perf.server.util.DeploymentHelper;
 import perf.server.util.JobStatsHelper;
@@ -59,6 +62,8 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         environment.addResource(new RunResource(configuration.getJobFSConfig()));
         environment.addResource(new FunctionResource(configuration.getLibStorageFSConfig()));
         environment.addResource(new AdminResource(configuration));
+        environment.addHealthCheck(new CounterCompoundThreadHealthCheck("CounterCompoundThread"));
+        environment.addHealthCheck(new TimerComputationThreadHealthCheck("TimerComputationThread"));
     }
 
 
