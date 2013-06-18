@@ -108,6 +108,7 @@ function getResourceType(resource){
 	if(resource.indexOf("sockets") !== -1) return "sockets";
 	if(resource.indexOf("diskspace") !== -1) return "diskspace.root";
 	if(resource.indexOf("mysql") !== -1) return "mysql";
+	if(resource.indexOf('agentHealth') !== -1) return "agentHealth";
 
 }
 
