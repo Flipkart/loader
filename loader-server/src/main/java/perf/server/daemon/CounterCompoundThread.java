@@ -99,7 +99,7 @@ public class CounterCompoundThread extends Thread {
         return thread;
     }
 
-    public static CounterCompoundThread getCounterCruncherThread() {
+    public static CounterCompoundThread instance() {
         return thread;
     }
 
