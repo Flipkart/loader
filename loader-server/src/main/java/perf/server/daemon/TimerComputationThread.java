@@ -118,7 +118,7 @@ public class TimerComputationThread extends Thread {
         return thread;
     }
 
-    public static TimerComputationThread getComputationThread() {
+    public static TimerComputationThread instance() {
         return thread;
     }
 

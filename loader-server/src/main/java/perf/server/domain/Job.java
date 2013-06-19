@@ -270,9 +270,9 @@ public class Job {
     private void ended() throws IOException, ExecutionException, InterruptedException {
         this.endTime = new Date();
         this.stopMonitoring();
-        CounterCompoundThread.getCounterCruncherThread().removeJob(jobId);
+        CounterCompoundThread.instance().removeJob(jobId);
         CounterThroughputThread.getCounterCruncherThread().removeJob(jobId);
-        TimerComputationThread.getComputationThread().removeJob(jobId);
+        TimerComputationThread.instance().removeJob(jobId);
 
         // Remove from Running Jobs File
         List<String> runningJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), List.class);
@@ -321,9 +321,9 @@ public class Job {
             // Submitting Jobs to Loader Agent
             submitJobToAgents(performanceRun.getLoadParts(), agentsToUse);
 
-            CounterCompoundThread.getCounterCruncherThread().addJob(jobId);
+            CounterCompoundThread.instance().addJob(jobId);
             CounterThroughputThread.getCounterCruncherThread().addJob(jobId);
-            TimerComputationThread.getComputationThread().addJob(jobId);
+            TimerComputationThread.instance().addJob(jobId);
 
             persist();
         }
