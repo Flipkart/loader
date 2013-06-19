@@ -1,11 +1,13 @@
 package perf.server.domain;
 
-import com.open.perf.jackson.ObjectMapperUtil;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import org.codehaus.jackson.map.ObjectMapper;
+
+import perf.server.util.ObjectMapperUtil;
 
 /**
  * Represents a Performance Run
