@@ -1,12 +1,5 @@
 package perf.server.cache;
 
-import com.open.perf.jackson.ObjectMapperUtil;
-import com.open.perf.util.FileHelper;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import perf.server.config.AgentConfig;
-import perf.server.domain.LoaderAgent;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +7,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import perf.server.config.AgentConfig;
+import perf.server.domain.LoaderAgent;
+import perf.server.util.ObjectMapperUtil;
+
+import com.open.perf.util.FileHelper;
 
 public class AgentsCache {
     private static Map<String, LoaderAgent> agentInfoMap;
