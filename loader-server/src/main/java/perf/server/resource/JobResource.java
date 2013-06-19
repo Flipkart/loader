@@ -1,15 +1,38 @@
 package perf.server.resource;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.open.perf.jackson.ObjectMapperUtil;
-import com.open.perf.util.FileHelper;
-import com.yammer.dropwizard.jersey.params.BooleanParam;
-import com.yammer.metrics.annotation.Timed;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+
+import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import perf.server.config.AgentConfig;
 import perf.server.config.JobFSConfig;
 import perf.server.daemon.JobDispatcherThread;
@@ -18,22 +41,15 @@ import perf.server.domain.JobRequest;
 import perf.server.domain.ResourceCollectionInstance;
 import perf.server.exception.JobException;
 import perf.server.util.JobStatsHelper;
+import perf.server.util.ObjectMapperUtil;
 import perf.server.util.ResponseBuilder;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-
-import static org.codehaus.jackson.JsonParser.Feature;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.open.perf.util.FileHelper;
+import com.yammer.dropwizard.jersey.params.BooleanParam;
+import com.yammer.metrics.annotation.Timed;
 
 /**
  * Resource that receive Performance Job Request from Client Lib or Loader-Server UI

@@ -1,14 +1,5 @@
 package perf.server.client;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Response;
-import com.open.perf.jackson.ObjectMapperUtil;
-import org.apache.log4j.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
-import perf.server.domain.MetricPublisherRequest;
-import perf.server.domain.OnDemandCollectorRequest;
-
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +7,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
+import javax.ws.rs.core.MediaType;
+
+import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import perf.server.domain.MetricPublisherRequest;
+import perf.server.domain.OnDemandCollectorRequest;
+import perf.server.util.ObjectMapperUtil;
+
+import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.Response;
 
 /**
  * Created with IntelliJ IDEA.
