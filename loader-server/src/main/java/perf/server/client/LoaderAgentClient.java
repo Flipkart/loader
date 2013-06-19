@@ -1,22 +1,25 @@
 package perf.server.client;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Response;
-import com.ning.http.multipart.FilePart;
-import com.ning.http.multipart.StringPart;
-import com.open.perf.domain.Load;
-import com.open.perf.jackson.ObjectMapperUtil;
-import org.apache.log4j.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
-import perf.server.cache.LibCache;
-import perf.server.exception.JobException;
-
-import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
+import javax.ws.rs.core.MediaType;
+
+import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import perf.server.cache.LibCache;
+import perf.server.exception.JobException;
+import perf.server.util.ObjectMapperUtil;
+
+import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.Response;
+import com.ning.http.multipart.FilePart;
+import com.ning.http.multipart.StringPart;
+import com.open.perf.domain.Load;
 
 /**
  * Created with IntelliJ IDEA.
