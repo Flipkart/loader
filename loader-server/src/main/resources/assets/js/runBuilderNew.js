@@ -22,11 +22,19 @@ function renderDisplayArea(elementType, metadata){
 }
 
 function renderRunPage(metadata){
-	var insertHtml = "<div id=\"runSchema\" class=\"runSchema\"><label><strong>Run Name</strong>:</label>" + 
+	var insertHtml = "";
+    if(getQueryParams("runName")==undefined){
+    	insertHtml = insertHtml + "<div id=\"runSchema\" class=\"runSchema\"><label><strong>Run Name</strong>:</label>" + 
             "<input type=\"text\" id=\"runName\" value=\"" + window.runSchema.runName + "\" class=\"bigInput\"/></div>";
-    insertHtml = insertHtml + "<br/><br/><br/><br/>" + "<div id=\"runSchemaButton\">" + 
-    		"<button id=\"updateRun\" onClick=\"updateRun()\">Update</button>" + 
-    		"<button id=\"addLoadPart\" onClick=\"addLoadPart()\">Add LoadPart</button></div>";
+    	insertHtml = insertHtml + "<br/><br/><br/><br/>" + "<div id=\"runSchemaButton\">" + 
+    			"<button id=\"updateRun\" onClick=\"updateRun()\">Update</button>" + 
+    			"<button id=\"addLoadPart\" onClick=\"addLoadPart()\">Add LoadPart</button></div>";
+    } else {
+    	insertHtml = insertHtml + "<div id=\"runSchema\" class=\"runSchema\"><label><strong>Run Name</strong>:</label>" + 
+            "<input type=\"text\" id=\"runName\" disabled=\"true\" value=\"" + window.runSchema.runName + "\" class=\"bigInput\"/></div>";
+    	insertHtml = insertHtml + "<br/><br/><br/><br/>" + "<div id=\"runSchemaButton\">" + 
+    			"<button id=\"addLoadPart\" onClick=\"addLoadPart()\">Add LoadPart</button></div>";
+    }
     $("#displayArea").empty();
     $("#displayArea").append(insertHtml);
     console.log("selecting", "#node_" + window.runSchema.runName);
@@ -443,8 +451,18 @@ function createTree(data){
 function getChildren(data){
 	var lps= getLoadParts(data);
 	var mas = getMetricCollectors(data);
-	if(typeof lps == 'undefined') return [{"attr":{"id": "node_monitoringAgents"}, "data": "MonitoringAgents", "metadata": {"nodeType":"monitoringAgents"}, "children": mas}]; 
-	lps.push({"attr":{"id": "node_monitoringAgents"}, "data": "MonitoringAgents", "metadata": {"nodeType":"monitoringAgents"}, "children": mas});
+	if(typeof lps == 'undefined') {
+		if (typeof mas == 'undefined'){
+			return [{"attr":{"id": "node_monitoringAgents"}, "data": "MonitoringAgents", "metadata": {"nodeType":"monitoringAgents"}}]; 
+		} else {
+			return [{"attr":{"id": "node_monitoringAgents"}, "data": "MonitoringAgents", "metadata": {"nodeType":"monitoringAgents"}, "children": mas}]; 
+		}
+	}
+	if (typeof mas == 'undefined'){
+		lps.push({"attr":{"id": "node_monitoringAgents"}, "data": "MonitoringAgents", "metadata": {"nodeType":"monitoringAgents"}, "children": mas});
+	} else {
+		lps.push({"attr":{"id": "node_monitoringAgents"}, "data": "MonitoringAgents", "metadata": {"nodeType":"monitoringAgents"}});
+	}
 	return lps;
 }
 
@@ -497,7 +515,9 @@ function createRun(){
 		var classes = new Array();
 		$.each(loadPart["load"]["groups"], function(grpIndex, group){
 			$.each(group["functions"], function(funcIndex, funct){
-				classes.push(funct["functionClass"]);
+				if(classes.indexOf(funct["functionClass"])==-1){
+					classes.push(funct["functionClass"]);
+				}
 			});
 		});
 		window.runSchema["loadParts"][lpIndex]["classes"] =  classes;
@@ -537,4 +557,54 @@ function createRun(){
 			}
       	}
 	})
+}
+
+function updateRunSchema(){
+	$.ajax({
+		url:"loader-server/runs/" + runSchema["runName"],
+		contentType: "application/json", 
+      	type:"PUT",
+      	processData:false,
+      	data: JSON.stringify(window.runSchema),
+      	success: function(data){
+      		console.log(data);
+      	},
+      	error: function(err){
+      		console.log(err);
+      	},
+      	complete: function(xhr, status){
+      		$("#success").empty();
+      		switch (xhr.status){
+      			case 204:
+      				$("#success").append("<p>Run Updated, Successfully!!</p>");
+					$("#success").dialog();
+					break;
+				case 409:
+					$("#success").append("<p>RunName Conflict, Please Change RunName!!</p>");
+					$("#success").dialog();
+					break;
+				case 400:
+					$("#success").append("<p>Run Schema looks bad, Some JSON Parsing error!!</p>");
+					$("#success").dialog();
+					break;
+				default :
+					$("#success").append("<p>Something Went wrong, Can not Update Run!!</p>");
+					$("#success").dialog();
+			}
+      	}
+	})
+}
+
+function getQueryParams(sParam){
+	var queryString = window.location.search.substring(2);
+	var queryParams = queryString.split('&');
+	for (var i = 0; i < queryParams.length; i++){
+        var sParameterName = queryParams[i].split('=');
+		console.log(sParameterName[0]);
+        if (sParameterName[0] == sParam){
+				//console.log('matched');
+            return sParameterName[1];
+        }
+    }
+    return undefined;
 }
