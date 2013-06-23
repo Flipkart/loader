@@ -37,11 +37,11 @@
     <!-- </td>
   </tr>
 </table> -->
-  <div id="success" align="center" style="background-color:#999;alignment-adjust:central;display:block;width:100px;height:100px">
+  <div id="success" align="center" style="background-color:#999;alignment-adjust:central;display:block;width=100px;height=100px">
   </div>
 </div>
 <div id="createButton" style="width:80%;align:center">
-      <button id="create" style="float:right" onClick="createRun()">Create</button>
+      <button id="create" style="float:right" onClick="updateRunSchema()">Save</button>
 </div>
 <script>
   $(function(){
@@ -59,11 +59,22 @@
         console.log(status);
       }
     });
-    window.runSchema = {"runName" : "RunSchema",
-                        "loadParts" : new Array(),
-                        "onDemandMetricCollections" : new Array(),
-                        "metricCollections": new Array()
-                        };
+    var runName = getQueryParams("runName");
+    $.ajax({
+      url: "/loader-server/runs/"+runName,
+      contentType: "application/json", 
+      type:"GET",
+      async:false,
+      success: function(data) {
+        window.runSchema=data;
+      },
+      error: function(e){
+        console.log("Error");
+      },
+      complete: function(xhr, status){
+        console.log(status);
+      }
+    });
     createTree(window.runSchema);
     renderDisplayArea("run");
   });
