@@ -77,8 +77,8 @@ public class SequentialFunctionExecutor extends Thread {
         this.customCounters = customCounters;
         this.customTimerNames = customTimerNames;
         this.threadResources = new HashMap<String, Object>();
-
         this.fExecutors = buildFunctionExecutors();
+        threadStartDelay();
     }
 
     public int getThreadStartDelay() {
@@ -122,7 +122,6 @@ public class SequentialFunctionExecutor extends Thread {
     }
 
     public void run () {
-        threadStartDelay();
         logger.info("Sequential Function Executor "+this.getName()+" started");
         Counter repeatCounter = new Counter("",this.getName());
         initializeUserFunctions();
