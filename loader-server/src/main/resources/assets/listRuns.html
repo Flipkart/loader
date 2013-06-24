@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>List Jobs</title>
+<script type="text/javascript" src="js/_lib/jquery.js"></script>
+<script type="text/javascript" src="js/jquery.jstree.js"></script>
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+<script src="js/returntree.js"></script>
+<script src="js/getJobDetails.js"></script>
+<script src="js/createJob.js"></script>
+<script src="js/listruns.js"></script>
+<link href="css/nav.css" rel="stylesheet" type="text/css" />
+<link href="css/collapsible.css" rel="stylesheet" type="text/css" />
+<link href="css/styles.css" rel="stylesheet" type="text/css">
+<link href="css/my.css" rel="stylesheet" type="text/css">
+<link href="css/runList.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<div id="header" class="header">
+</div>
+<script>
+	$(function(){
+		$("#header").load('header.html');
+	})
+</script>
+<div class="runListContainer">
+	<div class="runs">
+		<div class="runsFilter"><label><strong>Run Names</strong></label><br/><input type="text" />
+		</div>
+		<div id="runsList" class="runList">
+		</div>
+	</div>
+	<div class="runDisplayArea"></div>
+	<div id="success" align="center" style="width:100px;height:100px;"></div>
+	<div id="cloneRun" hidden="true">
+		<form>
+			<fieldset>
+				<label for="newRunName">RunName</label>
+				<input type="text" name="newRunName" id="newRunName" class="text ui-widget-content ui-corner-all">
+			</fieldset>
+		</form>
+	</div>
+</div>
+<script>
+getListedRuns();
+</script>
+</body>
+</html>
