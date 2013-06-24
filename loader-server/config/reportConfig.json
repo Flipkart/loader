@@ -1,5 +1,51 @@
 {
+
     "chartResources":{
+        "mysql":{
+            "resource":"mysql",
+            "charts":[
+                {
+                    "title":"Threads",
+                    "keysToPlot":[
+                        "Threads_running",
+                        "Threads_cached",
+                        "Threads_connected",
+                        "Connections"
+                    ]
+                },
+                {
+                    "title":"Table_Status",
+                    "keysToPlot":[
+                        "Com_lock_tables",
+                        "Com_stmt_execute",
+                        "Table_locks_waited",
+                        "Innodb_deadlocks"
+                    ]
+                },
+                {
+                    "title":"QueriesAndData",
+                    "keysToPlot":[
+                        "Slow_queries",
+                        "Queries",
+                        "Bytes_sent",
+                        "Bytes_received"
+                    ]
+                }
+            ]
+        },
+        "cpu.total":{
+            "resource":"cpu.total",
+            "charts":[
+                {
+                    "title":"CPU",
+                    "keysToPlot":[
+                        "system",
+                        "user",
+                        "idle"
+                    ]
+                }
+            ]
+        },
         "sockets":{
             "resource":"sockets",
             "charts":[
@@ -31,6 +77,31 @@
                 }
             ]
         },
+        "jmx":{
+            "resource":"jmx",
+            "charts":[
+                {
+                    "title":"Memory",
+                    "keysToPlot":[
+                        "memory.heapMemory.usagePercentage",
+                        "memory.nonHeapMemory.usagePercentage"
+                    ]
+                },
+                {
+                    "title":"SystemLoad",
+                    "keysToPlot":[
+                        "os.systemAverageLoad"
+                    ]
+                },
+                {
+                    "title":"GCCount",
+                    "keysToPlot":[
+                        "gc.ParNew.count",
+                        "gc.ConcurrentMarkSweep.count"
+                    ]
+                }
+            ]
+        },
         "memory":{
             "resource":"memory",
             "charts":[
@@ -39,10 +110,10 @@
                     "keysToPlot":[
                         "MemTotal",
                         "MemFree",
-			"Cached",
-			"Active",
-			"Buffers",
-			"Dirty"
+                        "Cached",
+                        "Active",
+                        "Buffers",
+                        "Dirty"
                     ]
                 },
                 {
@@ -50,11 +121,11 @@
                     "keysToPlot":[
                         "SwapTotal",
                         "SwapFree",
-			"SwapCached"
+                        "SwapCached"
                     ]
                 }
-
             ]
         }
     }
+
 }
