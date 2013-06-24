@@ -22,8 +22,10 @@ function createJob(runName){
 					dialogClass:"dialogClass",
 					position:{ my: "center", at: "center", of: window },
 					close: function(){
-						location.reload();
-					};
+						var resp =xhr.responseText;
+						var respJson = $.parseJSON(resp);
+						window.location="/job_details.html?&jobid=" + respJson["jobId"];
+					}
 				});
 			} else {
 				$("#success").append("<p>Job Creation, Failed!!</p>");
@@ -33,9 +35,6 @@ function createJob(runName){
 					dialogClass:"dialogClass",
 					position:{ my: "center", at: "center", of: window },
 					close: function(){
-						var resp =xhr.responseText.text();
-						var respJson = $.parseJSON(resp);
-						window.location="/job_details.html?&jobid=" + respJson["jobId"];
 					}
 				});
 			}
