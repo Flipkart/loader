@@ -7,24 +7,27 @@ function createJob(runName){
 		contentType:"application/json",
 		data: jobData,
 		success: function(data){
-			console.log("Job Submitted");},
+			console.log("Job Submitted");
+			},
 		error: function(){
-			console.log("Job Submission Failed");},
+			console.log("Job Submission Failed");
+			},
 		complete: function(xhr, status){
 			if(xhr.status==200){
 				console.log("Job Created, Successfully");
 				$("#success").append("<p>Job Created, Successfully!!</p>");
-				$("#success").dialog(
+				$("#success").dialog({
 					height:100,
 					width:100,
 					dialogClass:"dialogClass",
 					position:{ my: "center", at: "center", of: window },
 					close: function(){
 						location.reload();
-					});
+					};
+				});
 			} else {
 				$("#success").append("<p>Job Creation, Failed!!</p>");
-				$("#success").dialog(
+				$("#success").dialog({
 					height:100,
 					width:100,
 					dialogClass:"dialogClass",
@@ -33,7 +36,9 @@ function createJob(runName){
 						var resp =xhr.responseText.text();
 						var respJson = $.parseJSON(resp);
 						window.location="/job_details.html?&jobid=" + respJson["jobId"];
-					});
+					}
+				});
 			}
-		});
+		}
+	});
 }
