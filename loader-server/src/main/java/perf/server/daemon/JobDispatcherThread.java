@@ -78,6 +78,8 @@ public class JobDispatcherThread extends Thread{
             jobRequestQueue.addAll(Job.searchJobs("", "", Arrays.asList(new String[]{"QUEUED"})));
         } catch (IOException e) {
             logger.error("Failed To Load Queued Jobs", e);
+        } catch (ExecutionException e) {
+            logger.error("Failed To Load Queued Jobs", e);
         }
     }
 

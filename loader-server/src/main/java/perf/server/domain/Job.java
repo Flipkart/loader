@@ -32,6 +32,7 @@ import perf.server.daemon.TimerComputationThread;
 import perf.server.exception.JobException;
 import perf.server.exception.LibNotDeployedException;
 import perf.server.util.DeploymentHelper;
+import perf.server.util.JobsCache;
 import perf.server.util.ObjectMapperUtil;
 
 import com.open.perf.domain.Load;
@@ -563,7 +564,7 @@ public class Job {
      * @param searchJobStatusList
      * @return
      */
-    public static List<Job> searchJobs(String searchJobId, String searchRunName, List<String> searchJobStatusList) throws IOException {
+    public static List<Job> searchJobs(String searchJobId, String searchRunName, List<String> searchJobStatusList) throws IOException, ExecutionException {
         List<Job> jobs = new ArrayList<Job>();
         File runsPath = new File(configuration.getJobFSConfig().getRunsPath());
         for(File runPath : runsPath.listFiles()) {
@@ -578,7 +579,9 @@ public class Job {
                             continue;
                         }
                         if(runJobId.toUpperCase().contains(searchJobId.toUpperCase())) {
-                            Job job = objectMapper.readValue(new File(configuration.getJobFSConfig().getJobStatusFile(runJobId)), Job.class);
+                            Job job = JobsCache.getJob(runJobId);
+                            // Old Code
+                            //Job job = objectMapper.readValue(new File(configuration.getJobFSConfig().getJobStatusFile(runJobId)), Job.class);
                             if(searchJobStatusList.contains("ALL")) {
                                 jobs.add(job);
                             }

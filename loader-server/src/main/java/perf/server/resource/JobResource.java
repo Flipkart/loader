@@ -41,6 +41,7 @@ import perf.server.domain.JobRequest;
 import perf.server.domain.ResourceCollectionInstance;
 import perf.server.exception.JobException;
 import perf.server.util.JobStatsHelper;
+import perf.server.util.JobsCache;
 import perf.server.util.ObjectMapperUtil;
 import perf.server.util.ResponseBuilder;
 
@@ -56,15 +57,6 @@ import com.yammer.metrics.annotation.Timed;
  */
 @Path("/jobs")
 public class JobResource {
-
-    private LoadingCache<String, Job> jobs = CacheBuilder.newBuilder()
-            .maximumSize(1000)
-            .build(
-                    new CacheLoader<String, Job>() {
-                        public Job load(String jobId) throws IOException {
-                            return objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(jobId)), Job.class);
-                        }
-                    });
 
     private AgentConfig agentConfig;
     private JobFSConfig jobFSConfig;
@@ -177,7 +169,7 @@ public class JobResource {
     @Timed
     public List<Job> getJobs(@QueryParam("runName") @DefaultValue("") String searchRunName,
                                         @QueryParam("jobId") @DefaultValue("") String searchJobId,
-                                        @QueryParam("jobStatus") @DefaultValue("RUNNING,QUEUED")String searchJobStatus) throws IOException {
+                                        @QueryParam("jobStatus") @DefaultValue("RUNNING,QUEUED")String searchJobStatus) throws IOException, ExecutionException {
         return Job.searchJobs(searchJobId, searchRunName, Arrays.asList(searchJobStatus.split(",")));
     }
 
@@ -454,7 +446,7 @@ public class JobResource {
         if(!new File(jobFSConfig.getJobPath(jobId)).exists()) {
             throw new WebApplicationException(ResponseBuilder.resourceNotFound("Job", jobId));
         }
-        return jobs.get(jobId);
+        return JobsCache.getJob(jobId);
     }
 
 }

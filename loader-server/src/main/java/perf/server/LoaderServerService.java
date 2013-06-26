@@ -24,6 +24,7 @@ import perf.server.health.TimerComputationThreadHealthCheck;
 import perf.server.resource.*;
 import perf.server.util.DeploymentHelper;
 import perf.server.util.JobStatsHelper;
+import perf.server.util.JobsCache;
 
 public class LoaderServerService extends Service<LoaderServerConfiguration> {
 
@@ -41,6 +42,7 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         environment.addProvider(com.sun.jersey.multipart.impl.MultiPartReaderServerSide.class);
 
         // Initialization
+        JobsCache.initiateCache(configuration.getJobFSConfig());
         LibCache.initialize(configuration.getLibStorageFSConfig());
         CounterCompoundThread.initialize(configuration.getJobFSConfig(), 10000).start();
         CounterThroughputThread.initialize(configuration.getJobFSConfig(), 10000).start();
