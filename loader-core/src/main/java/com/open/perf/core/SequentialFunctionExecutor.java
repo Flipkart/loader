@@ -31,6 +31,7 @@ public class SequentialFunctionExecutor extends Thread {
     private HashMap<String,Object> groupParams;
 
     private RequestQueue requestQueue;
+    private final RequestQueue warmUpRequestQueue;
     private final GroupStatsQueue groupStatsQueue;
 
     private final Map<String, Counter> customCounters;
@@ -47,6 +48,7 @@ public class SequentialFunctionExecutor extends Thread {
                                       List<GroupFunction> groupFunctions,
                                       HashMap<String, Object> groupParams,
                                       RequestQueue requestQueue,
+                                      RequestQueue warmUpRequestQueue,
                                       Map<String, FunctionCounter> functionCounters,
                                       Map<String, Counter> customCounters,
                                       List<String> customTimerNames,
@@ -64,6 +66,7 @@ public class SequentialFunctionExecutor extends Thread {
         this.groupFunctions = groupFunctions;
         this.groupParams = groupParams;
         this.requestQueue = requestQueue;
+        this.warmUpRequestQueue = warmUpRequestQueue;
         this.functionCounters = functionCounters;
         this.customCounters = customCounters;
         this.customTimerNames = customTimerNames;
@@ -113,11 +116,19 @@ public class SequentialFunctionExecutor extends Thread {
     }
 
     public void run () {
-        logger.info("Sequential Function Executor "+this.getName()+" started");
-        Counter repeatCounter = new Counter("",this.getName());
         initializeUserFunctions();
+        doWarmUp();
+        doRun();
+        destroyUserFunctions();
+        this.running = false;
+        this.over = true;
 
-        while(canRepeat()) {
+    }
+
+    private void doRun() {
+        logger.info("Sequential Function Executor '" + this.getName() + "' started");
+        Counter repeatCounter = new Counter("",this.getName());
+        while(canRepeat(this.requestQueue)) {
             if(this.isPaused()) {
                 logger.info(this.getName()+" is paused");
                 try {
@@ -197,19 +208,16 @@ public class SequentialFunctionExecutor extends Thread {
             repeatCounter.increment();
             sleepInterval();
         }
-        destroyUserFunctions();
-        this.running = false;
-        this.over = true;
-
-        logger.info("Sequential Function Executor '" + this.getName() + "' Over. Repeats Done :"+repeatCounter.count()+". Total Sleep Time: "+this.totalSleepTimeMS+"ms");
+        logger.info("Sequential Function Executor '" + this.getName() + "' Over. Repeats Done :"+repeatCounter.count());
     }
 
     private void doWarmUp() {
+        logger.info("Sequential Function Executor Warm Up '" + this.getName() + "' started");
 
+        long startTime = Clock.milliTick();
         Counter repeatCounter = new Counter("",this.getName());
-        while(canRepeat()) {
+        while(canRepeat(this.warmUpRequestQueue)) {
             long iterationStartTimeNS = Clock.nsTick();
-            this.running  =   true;
             this.reset();
 
             Map<String, Timer> customTimers = buildCustomTimers();
@@ -250,7 +258,7 @@ public class SequentialFunctionExecutor extends Thread {
                     }
 
                 } catch (Exception e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    e.printStackTrace();
                     throw new RuntimeException(e);
                 }
             }
@@ -258,9 +266,15 @@ public class SequentialFunctionExecutor extends Thread {
             long iterationSleepIntervalNS   = this.forcedDurationPerIterationNS - iterationTimeNS;
             if(iterationSleepIntervalNS > 0)
                 this.accumulatedSleepIntervalNS += iterationSleepIntervalNS;
+            repeatCounter.increment();
             sleepInterval();
         }
-
+        logger.info("Sequential Function Executor Warm Up '" + this.getName() + "' Over. Repeats Done :"+repeatCounter.count());
+        for(Counter counter : this.customCounters.values())
+            counter.reset();
+        long warmUpDuration = Clock.milliTick() - startTime;
+        if(this.requestQueue.getEndTimeMS() > 0)
+            this.requestQueue.setEndTimeMS(this.requestQueue.getEndTimeMS() + warmUpDuration);
     }
 
     private void threadStartDelay() {
@@ -352,8 +366,8 @@ public class SequentialFunctionExecutor extends Thread {
      * To check if execution have to be repeated again
      * @return
      */
-    public boolean canRepeat() {
-        return !this.stop && this.requestQueue.getRequest();
+    public boolean canRepeat(RequestQueue requestQueue) {
+        return !this.stop && requestQueue.hasRequest();
     }
 
     public SequentialFunctionExecutor setThreadResources(Map<String, Object> threadResources) {
