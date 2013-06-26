@@ -21,15 +21,10 @@ public class SequentialFunctionExecutor extends Thread {
     private static final int MINIMUM_SLEEP_TIME = 10;
     private List<SyncFunctionExecutor> fExecutors;
 
-    private long groupStartTimeMS;
-    private long endTime;
-    private long durationMS;
-
     private boolean paused = false;
     private boolean running = false;
     private boolean stop = false;
     private boolean over = false;
-    private boolean sleeping = false;
 
     private Map<String,Object> threadResources;
     private List<GroupFunction> groupFunctions;
@@ -51,9 +46,7 @@ public class SequentialFunctionExecutor extends Thread {
     public SequentialFunctionExecutor(String threadExecutorName,
                                       List<GroupFunction> groupFunctions,
                                       HashMap<String, Object> groupParams,
-                                      long durationMS,
                                       RequestQueue requestQueue,
-                                      long groupStartTimeMS,
                                       Map<String, FunctionCounter> functionCounters,
                                       Map<String, Counter> customCounters,
                                       List<String> customTimerNames,
@@ -68,10 +61,8 @@ public class SequentialFunctionExecutor extends Thread {
         this.ignoreDumpFunctions = ignoreDumpFunctions;
         this.fExecutors = new ArrayList<SyncFunctionExecutor>();
         this.groupStatsQueue = groupStatsQueue;
-        this.durationMS = durationMS;
         this.groupFunctions = groupFunctions;
         this.groupParams = groupParams;
-        this.groupStartTimeMS = groupStartTimeMS;
         this.requestQueue = requestQueue;
         this.functionCounters = functionCounters;
         this.customCounters = customCounters;
@@ -125,6 +116,7 @@ public class SequentialFunctionExecutor extends Thread {
         logger.info("Sequential Function Executor "+this.getName()+" started");
         Counter repeatCounter = new Counter("",this.getName());
         initializeUserFunctions();
+
         while(canRepeat()) {
             if(this.isPaused()) {
                 logger.info(this.getName()+" is paused");
@@ -135,6 +127,7 @@ public class SequentialFunctionExecutor extends Thread {
                 }
                 continue;
             }
+
             long iterationStartTimeNS = Clock.nsTick();
             this.running  =   true;
             this.reset();
@@ -205,14 +198,69 @@ public class SequentialFunctionExecutor extends Thread {
             sleepInterval();
         }
         destroyUserFunctions();
-        this.endTime = System.currentTimeMillis();
         this.running = false;
         this.over = true;
 
-        if(this.durationMS > (this.endTime - this.groupStartTimeMS)) {
-            logger.info("Sequential Function Executor '" + this.getName() + "' Prematurely(" + (this.durationMS - (this.endTime - this.groupStartTimeMS)) + " ms) Over");
-        }
         logger.info("Sequential Function Executor '" + this.getName() + "' Over. Repeats Done :"+repeatCounter.count()+". Total Sleep Time: "+this.totalSleepTimeMS+"ms");
+    }
+
+    private void doWarmUp() {
+
+        Counter repeatCounter = new Counter("",this.getName());
+        while(canRepeat()) {
+            long iterationStartTimeNS = Clock.nsTick();
+            this.running  =   true;
+            this.reset();
+
+            Map<String, Timer> customTimers = buildCustomTimers();
+
+            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters).
+                    updateParameters(this.groupParams).
+                    updateParameters(this.threadResources).
+                    setMyThread(this);
+
+            for(int functionNo = 0; functionNo < this.groupFunctions.size(); functionNo++) {
+                GroupFunction groupFunction =   this.groupFunctions.get(functionNo);
+
+                if(functionContext.isSkipFurtherFunctions()) {
+                    logger.warn("Further Functions will be skipped");
+                    continue;
+                }
+                try {
+
+                    functionContext.updateParameters(groupFunction.getParams());
+                    SyncFunctionExecutor fe = this.fExecutors.get(functionNo).
+                            setParams(new Object[]{functionContext});
+
+                    fe.execute();
+
+                    // If execution Failed because of some Exception/error that occurred while function execution
+                    if(!fe.isExecutionSuccessful()) {
+                        functionContext.skipFurtherFunctions();
+                        logger.error("Execution of Function "
+                                + fe.getAbsoluteFunctionName()
+                                + " stopped with exception ", fe.getException());
+                    }
+                    else if(functionContext.isCurrentFunctionFailed()) {
+                        logger.error("Execution of Function "
+                                + fe.getAbsoluteFunctionName()
+                                + " Failed with "
+                                + functionContext.getFailureType()
+                                + " :" +functionContext.getFailureMessage());
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    throw new RuntimeException(e);
+                }
+            }
+            long iterationTimeNS = Clock.nsTick() - iterationStartTimeNS;
+            long iterationSleepIntervalNS   = this.forcedDurationPerIterationNS - iterationTimeNS;
+            if(iterationSleepIntervalNS > 0)
+                this.accumulatedSleepIntervalNS += iterationSleepIntervalNS;
+            sleepInterval();
+        }
+
     }
 
     private void threadStartDelay() {
@@ -281,7 +329,6 @@ public class SequentialFunctionExecutor extends Thread {
         this.accumulatedSleepIntervalNS = this.forcedDurationPerIterationNS % MILLION;
 
         logger.debug("Going to Sleep for "+timeToSleepMS +" ms");
-        this.sleeping = true;
         synchronized (this) {
             try {
                 Thread.sleep(timeToSleepMS);
@@ -290,7 +337,6 @@ public class SequentialFunctionExecutor extends Thread {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
         }
-        this.sleeping = false;
         logger.debug("Coming out of sleep");
     }
 
@@ -307,14 +353,7 @@ public class SequentialFunctionExecutor extends Thread {
      * @return
      */
     public boolean canRepeat() {
-        if(this.stop)
-            return false;
-
-        if(this.durationMS > 0) {
-            return (requestQueue.getRequest() && ((Clock.milliTick() - this.groupStartTimeMS) < this.durationMS));
-        }
-
-        return requestQueue.getRequest();
+        return !this.stop && this.requestQueue.getRequest();
     }
 
     public SequentialFunctionExecutor setThreadResources(Map<String, Object> threadResources) {
