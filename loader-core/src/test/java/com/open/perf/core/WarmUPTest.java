@@ -13,19 +13,21 @@ import org.testng.annotations.Test;
  * Time: 10:56 AM
  * To change this template use File | Settings | File Templates.
  */
-public class DurationBoundGroupTest {
+public class WarmUPTest {
     @Test
     public void test() throws Exception {
         Load load = new Load().
                 addGroup(new Group().
                         setName("G1").
-                        setDuration(2000).
-                        setThroughput(2).
+                        setRepeats(10).
+                        setWarmUpRepeats(1).
                         setThreads(1).
+                        setThroughput(10).
                         addFunction(new GroupFunction().
                                 setFunctionClass(MathAddFunction.class.getCanonicalName()).
                                 setFunctionalityName("List Add").
-                                addParam(MathAddFunction.IP_NUM_JSON_LIST, "[1,2,3,4,5,6,7,8,9,10]")));
+                                addParam(MathAddFunction.IP_NUM_JSON_LIST, "[1,2,3,4,5,6,7,8,9,10]").
+                                setDumpData(true)));
         load.start(""+System.currentTimeMillis());
     }
 }

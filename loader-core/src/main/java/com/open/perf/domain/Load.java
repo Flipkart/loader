@@ -33,7 +33,6 @@ public class Load {
     public Load start(String jobId) throws Exception {
         // Validate if anything is wrong with the Load Configuration
         validate();
-        resolveWarmUpGroups();
 
         // Start the Load Controller and Wait for Completion
         LoadController loadController =  new LoadController(jobId, this);
@@ -54,27 +53,6 @@ public class Load {
         for(Group group : this.groups) {
             group.validate();
         }
-    }
-
-    /**
-     * Create duplicate groups to simulate warm up functionality
-     * @throws CloneNotSupportedException
-     */
-    private void resolveWarmUpGroups() throws CloneNotSupportedException {
-        List<Group> warmUpGroups = new ArrayList<Group>();
-        for(Group group : this.groups) {
-            if(group.needsWarmUp()) {
-                Group warmUpGroup = group.createWarmUpGroup();
-                group.getDependOnGroups().add(0,warmUpGroup.getName());
-                if(warmUpGroup.getGroupStartDelay() > 0)
-                    group.setGroupStartDelay(0);
-
-                warmUpGroups.add(warmUpGroup);
-           }
-        }
-
-        for(Group warmUpGroup : warmUpGroups)
-            this.groups.add(warmUpGroup);
     }
 
     public List<Group> getGroups() {

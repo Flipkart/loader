@@ -26,6 +26,7 @@ public class GroupController {
     private final Group group;
     private long startTimeMS = -1;
     private RequestQueue requestQueue;
+    private final RequestQueue warmUpRequestQueue;
     private Map<String, Counter> customCounters;
     private Map<String, FunctionCounter> functionCounters;
     private GroupStatsQueue groupStatsQueue;
@@ -45,6 +46,7 @@ public class GroupController {
         this.functionCounters = buildFunctionCounters();
         this.customCounters = buildCustomCounter();
         this.requestQueue = buildRequestQueue();
+        this.warmUpRequestQueue = buildWarmUpRequestQueue();
     }
 
     private List<String> findIgnoredDumpFunctions() {
@@ -94,6 +96,18 @@ public class GroupController {
     }
 
     /**
+     * Building Warm Up Request queue that would be shared across all Sequential Function Executors
+     * @return
+     */
+    private RequestQueue buildWarmUpRequestQueue() {
+        RequestQueue requestQueue = new RequestQueue(this.groupName, 0l);
+        if(group.getWarmUpRepeats() > 0)
+            requestQueue.setRequests(this.group.getWarmUpRepeats());
+
+        return requestQueue;
+    }
+
+    /**
      * Starting the Group Execution
      * @throws InterruptedException
      * @throws FileNotFoundException
@@ -102,8 +116,11 @@ public class GroupController {
         logger.info("************Group Controller "+this.groupName+" Started**************");
 
         this.startTimeMS = Clock.milliTick() + this.group.getGroupStartDelay();
-        if(group.getDuration() > 0)
+
+        if(group.getDuration() > 0) {
             requestQueue.setEndTimeMS(this.startTimeMS + this.group.getDuration());
+            // This endTime would be updated once warmUp is over
+        }
 
         this.groupStatsQueue = new GroupStatsQueue();
 
@@ -158,6 +175,7 @@ public class GroupController {
                 this.group.getFunctions(),
                 this.group.getParams(),
                 this.requestQueue,
+                this.warmUpRequestQueue,
                 this.functionCounters,
                 this.customCounters,
                 this.group.getCustomTimers(),
