@@ -86,11 +86,10 @@ public class GroupController {
      * @return
      */
     private RequestQueue buildRequestQueue() {
-        RequestQueue requestQueue = null;
+        RequestQueue requestQueue = new RequestQueue(this.groupName);
         if(group.getRepeats() > 0)
-            requestQueue = new RequestQueue(this.groupName, "requestQueue", this.group.getRepeats());
-        else
-            requestQueue = new RequestQueue(this.groupName, "requestQueue");
+            requestQueue.setRequests(this.group.getRepeats());
+
         return requestQueue;
     }
 
@@ -103,6 +102,9 @@ public class GroupController {
         logger.info("************Group Controller "+this.groupName+" Started**************");
 
         this.startTimeMS = Clock.milliTick() + this.group.getGroupStartDelay();
+        if(group.getDuration() > 0)
+            requestQueue.setEndTimeMS(this.startTimeMS + this.group.getDuration());
+
         this.groupStatsQueue = new GroupStatsQueue();
 
         this.started = true;
@@ -155,9 +157,7 @@ public class GroupController {
         return new SequentialFunctionExecutor(group.getName()+"-"+threadNo,
                 this.group.getFunctions(),
                 this.group.getParams(),
-                this.group.getDuration(),
                 this.requestQueue,
-                this.startTimeMS,
                 this.functionCounters,
                 this.customCounters,
                 this.group.getCustomTimers(),
