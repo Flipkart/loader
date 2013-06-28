@@ -1,0 +1,26 @@
+#!/bin/bash
+
+PKG=loader-agent
+
+mkdir -p /var/log/flipkart/$PKG
+mkdir -p /var/log/loader
+mkdir -p /var/log/$PKG/jobs
+mkdir -p /usr/share/$PKG
+mkdir -p /usr/share/$PKG/config
+mkdir -p /usr/share/$PKG/app
+mkdir -p /usr/share/$PKG/lib
+mkdir -p /usr/share/$PKG/libs
+mkdir -p /usr/share/$PKG/platformLibs
+touch /usr/share/$PKG/config/mapping.properties
+
+runningJobs=/var/log/loader-agent/jobs/runningJobs
+
+if [ -f "$runningJobsFile" ]
+then
+        echo "$runningJobsFile exists and not creating again"
+else
+        echo "[]" > $runningJobsFile 
+fi
+
+
+exit 0

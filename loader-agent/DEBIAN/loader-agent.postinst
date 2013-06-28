@@ -1,0 +1,29 @@
+#! /bin/bash -e
+
+PKG=loader-agent
+USERNAME=loader
+USERID=4051
+GROUPNAME=loader
+GROUPID=4051
+
+if [ "$1" == "configure" ]; then
+		#create users if they don't exist
+		if ! getent group $GROUPNAME > /dev/null; then
+				groupadd -g $GROUPID $GROUPNAME || echo "$PKG : Adding group $GROUPNAME <<FAILURE>>"| tee -a /var/log/dpkg.log || true
+		fi
+
+		if ! getent passwd $USERID > /dev/null; then
+				useradd -g $GROUPID -u $USERID $USERNAME  || echo "$PKG : Adding user $USERNAME <<FAILURE>>" | tee -a /var/log/dpkg.log || true
+		fi
+
+		chown -Rf $USERID:$GROUPID /var/log/flipkart/$PKG || true
+        	chown -Rf $USERID:$GROUPID /etc/loader-agent || true
+        	chown -Rf $USERID:$GROUPID /etc/init.d/$PKG || true
+        	chown -Rf $USERID:$GROUPID /usr/share/$PKG || true
+
+		/etc/init.d/$PKG start
+fi
+
+echo "Started loader-agent"
+
+exit 0

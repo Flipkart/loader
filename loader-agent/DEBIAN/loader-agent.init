@@ -1,0 +1,72 @@
+#!/bin/sh
+
+PKG=loader-agent
+CONF_FILE=/etc/$PKG/$PKG.yml
+LIB_JARS=/usr/share/$PKG/lib/*:/usr/share/$PKG/app/*
+LOG_FILE=/var/log/flipkart/$PKG/$PKG.log
+CMD=$1
+PID=""
+NOHUP=`which nohup`
+FIND_APP=`which loader-agent`
+HOSTNAME=`/bin/hostname -f`
+JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=4444 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+JVM_ARGS="$JMX -Xmx1024m -Xms512m -Xss512k -XX:+UseConcMarkSweepGC -XX:NewRatio=3 -XX:SurvivorRatio=4"
+
+check_process() {
+    PID=`pgrep -f "LoaderAgentService"`
+}
+
+start() {
+    echo "Starting $PKG..."
+		echo "$LIB_JARS"
+	check_process
+
+	if [ $? -ne 0 ]; then
+                nohup java $JVM_ARGS -cp $LIB_JARS perf.agent.LoaderAgentService $CONF_FILE >> $LOG_FILE 2>&1 &
+	else
+		echo "$PKG already running as PID $PID"
+	fi
+}
+
+stop() {
+    echo "Stopping $PKG..."
+    check_process    
+    if [ $? -ne 0 ]; then
+        echo "$PKG not runnning"
+    else
+		kill -15 $PID
+    fi
+}
+
+status() {
+    check_process
+    if [ $? -ne 0 ]; then
+		echo "$PKG not runnning"
+    else
+		echo "$PKG running as PID $PID"
+    fi
+}
+
+restart() {
+    echo "Restarting $PKG ..."
+    stop
+    start
+}
+
+case "$CMD" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+	status
+	;;
+    restart)
+        restart
+        ;;
+     *)
+        echo "Usage $0 {start|stop|restart|status}"
+        RETVAL=1
+esac
