@@ -1,0 +1,4 @@
+#!/bin/bash
+
+PKG=loader-agent
+/etc/init.d/$PKG stop

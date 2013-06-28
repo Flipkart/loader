@@ -1,0 +1,14 @@
+#! /bin/bash
+
+PKG=loader-agent
+#Removing the modules manifests and templates once the packge is removed
+
+if [ "$1" == "purge" ]
+then
+	[ -e "/etc/$PKG/" ] && rm -rf "/etc/$PKG/"
+fi
+
+[ -e "/usr/share/$PKG/app" ] && rm -rf "/usr/share/$PKG/app"
+[ -e "/usr/share/$PKG/lib" ] && rm -rf "/usr/share/$PKG/lib"
+
+exit 0
