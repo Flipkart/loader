@@ -1,0 +1,4 @@
+#!/bin/bash
+
+PKG=loader-server
+/etc/init.d/$PKG stop

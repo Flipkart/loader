@@ -1,0 +1,33 @@
+#!/bin/bash
+
+PKG=loader-server
+
+mkdir -p /var/log/flipkart/$PKG/jobs
+mkdir -p /var/log/flipkart/$PKG/runs
+mkdir -p /usr/share/$PKG/config
+mkdir -p /usr/share/$PKG/platformLibs
+mkdir -p /usr/share/$PKG/agents
+mkdir -p /usr/share/$PKG/libs
+touch /usr/share/$PKG/config/classLibMapping.properties
+touch /usr/share/$PKG/config/mapping.properties
+
+# Creating File that contains running Jobs
+runningJobsFile="/var/log/loader-server/jobs/runningJobs"
+if [ -f "$runningJobsFile" ]
+then
+	echo "$runningJobsFile exists and not creating again"
+else
+	echo "[]" > $runningJobsFile
+fi
+
+# Creating File that contains queued Jobs
+queuedJobsFile="/var/log/loader-server/jobs/queuedJobs"
+if [ -f "$queuedJobsFile" ]
+then
+        echo "$queuedJobsFile exists and not creating again"
+else
+        echo "[]" > $queuedJobsFile 
+fi
+
+
+exit 0
