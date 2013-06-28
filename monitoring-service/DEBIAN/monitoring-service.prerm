@@ -1,0 +1,4 @@
+#!/bin/bash
+
+PKG=monitoring-service
+/etc/init.d/$PKG stop
