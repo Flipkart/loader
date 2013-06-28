@@ -1,19 +1,19 @@
 #!/bin/sh
 
-PKG=loader-agent
+PKG=monitoring-service
 CONF_FILE=/etc/$PKG/$PKG.yml
 LIB_JARS=/usr/share/$PKG/lib/*:/usr/share/$PKG/app/*
 LOG_FILE=/var/log/flipkart/$PKG/$PKG.log
 CMD=$1
 PID=""
 NOHUP=`which nohup`
-FIND_APP=`which loader-agent`
+FIND_APP=`which monitoring-service`
 HOSTNAME=`/bin/hostname -f`
-JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=8887 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=7776 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
 JVM_ARGS="$JMX -Xmx1024m -Xms512m -Xss512k -XX:+UseConcMarkSweepGC -XX:NewRatio=3 -XX:SurvivorRatio=4"
 
 check_process() {
-    PID=`pgrep -f "LoaderAgentService"`
+    PID=`pgrep -f "MonitoringService"`
 }
 
 start() {
@@ -22,7 +22,7 @@ start() {
 	check_process
 
 	if [ $? -ne 0 ]; then
-                nohup java $JVM_ARGS -cp $LIB_JARS perf.agent.LoaderAgentService $CONF_FILE >> $LOG_FILE 2>&1 &
+                nohup java $JVM_ARGS -cp $LIB_JARS server.monitor.MonitoringService $CONF_FILE >> $LOG_FILE 2>&1 &
 	else
 		echo "$PKG already running as PID $PID"
 	fi

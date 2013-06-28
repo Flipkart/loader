@@ -1,0 +1,9 @@
+Package: monitoring-service
+Version: <VERSION>
+Section: web
+Priority: optional
+Architecture: all
+Essential: no
+Depends: sun-java6-jre
+Maintainer: Nitin Kumar Agarwal [nitinka@flipkart.com]
+Description: Used for Server Side Monitoring
