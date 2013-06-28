@@ -58,7 +58,9 @@ public class RunResource {
     @Timed
     public Response createRun(PerformanceRun performanceRun)
             throws IOException, ExecutionException, InterruptedException, JobException {
-        persistRunInfo(performanceRun);
+        if(performanceRun.exists())
+            throw new WebApplicationException(ResponseBuilder.runNameAlreadyExists(performanceRun.getRunName()));
+        performanceRun.persist();
         return ResponseBuilder.resourceCreated("Run", performanceRun.getRunName());
     }
 
@@ -98,7 +100,8 @@ public class RunResource {
     public void updateRun(@PathParam("runName") String runName,
                           PerformanceRun performanceRun)
             throws IOException, ExecutionException, InterruptedException, JobException {
-        updateRunInfo(runName, performanceRun);
+        runExistsOrException(runName);
+        performanceRun.persist();
     }
 
     /**
@@ -132,22 +135,6 @@ public class RunResource {
             jobs.add(jobId);
         FileHelper.close(br);
         return jobs;
-    }
-
-    private void persistRunInfo(PerformanceRun performanceRun) throws IOException {
-        String runName = performanceRun.getRunName();
-        if(new File(jobFSConfig.getRunPath(runName)).exists()) {
-            throw new WebApplicationException(ResponseBuilder.runNameAlreadyExists(runName));
-        }
-
-        String runFile = jobFSConfig.getRunFile(runName);
-        FileHelper.createFilePath(runFile);
-        objectMapper.writeValue(new File(runFile), performanceRun);
-    }
-
-    private void updateRunInfo(String runName, PerformanceRun performanceRun) throws IOException {
-        runExistsOrException(runName);
-        objectMapper.writeValue(new File(jobFSConfig.getRunFile(runName)), performanceRun);
     }
 
     private void deleteRunInfo(String runName) {
