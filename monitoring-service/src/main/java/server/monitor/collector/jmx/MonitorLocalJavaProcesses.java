@@ -55,7 +55,12 @@ public class MonitorLocalJavaProcesses extends Thread{
 
             // Any new jvms should also be added to monitoring
             for(VirtualMachineDescriptor newJVM : newJVMs) {
+
                 logger.info("Found JVM :"+newJVM.displayName());
+                if(newJVM.displayName().trim().equals("")) {
+                    logger.info("JVM Name is Empty. Not instrumenting");
+                    continue;
+                }
                 if(!oldJVMs.containsKey(newJVM) && !newJVM.displayName().contains("server.monitor.MonitoringService")) {
                     logger.info("Monitoring JVM :"+newJVM.displayName());
                     try {
