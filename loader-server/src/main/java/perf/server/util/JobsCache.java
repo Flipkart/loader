@@ -41,13 +41,25 @@ public class JobsCache {
                 .build(
                         new CacheLoader<String, Job>() {
                             public Job load(String jobId) throws IOException {
-                                return objectMapper.readValue(new File(jobFSConfig.getJobStatusFile(jobId)), Job.class);
+                                File jobStatusFile = new File(jobFSConfig.getJobStatusFile(jobId));
+                                if(jobStatusFile.exists())
+                                    return objectMapper.readValue(jobStatusFile, Job.class);
+                                return null;
                             }
                         });
     }
 
     public static Job getJob(String jobId) throws ExecutionException {
-        return jobs.get(jobId);
+        try {
+            return jobs.get(jobId);
+        } catch (CacheLoader.InvalidCacheLoadException e) {
+            if(e.getLocalizedMessage().contains("null"))
+                return null;
+        }
+        return null;
     }
 
+    public static void put(String jobId, Job job) {
+        jobs.put(jobId, job);
+    }
 }

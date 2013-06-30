@@ -48,7 +48,7 @@ public class DeploymentHelper {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public void deployPlatformLibsOnAgent(String agentIP) throws IOException, ExecutionException, InterruptedException {
+    public void deployPlatformLibsOnAgent(String agentIP) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
         deployPlatformLibsOnAgent(agentIP, false);
     }
 
@@ -60,7 +60,7 @@ public class DeploymentHelper {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public void deployPlatformLibsOnAgent(String agentIP, boolean force) throws IOException, ExecutionException, InterruptedException {
+    public void deployPlatformLibsOnAgent(String agentIP, boolean force) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
         String agentPlatformInfoFile = this.agentConfig.getAgentPlatformLibInfoFile(agentIP);
         boolean deployPlatformLib;
         File platformFile = new File(agentPlatformInfoFile);

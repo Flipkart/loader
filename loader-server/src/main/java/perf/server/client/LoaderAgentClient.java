@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import perf.server.cache.LibCache;
 import perf.server.exception.JobException;
+import perf.server.exception.LibNotDeployedException;
 import perf.server.util.ObjectMapperUtil;
 
 import com.ning.http.client.AsyncHttpClient;
@@ -79,7 +80,10 @@ public class LoaderAgentClient {
         return objectMapper.readValue(response.getResponseBodyAsStream(), Map.class);
     }
 
-    public boolean deployPlatformLibs() throws IOException, ExecutionException, InterruptedException {
+    public boolean deployPlatformLibs() throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
+        if(libCache.getPlatformZipPath() == null) {
+            throw new LibNotDeployedException("Platform Lib Not Deployed Yet on Loader Server. Deploy them before submitting another job");
+        }
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 preparePost("http://" + this.getHost() + ":" + this.getPort() + RESOURCE_PLATFORM_LIB).

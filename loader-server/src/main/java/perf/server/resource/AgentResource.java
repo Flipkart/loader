@@ -136,7 +136,7 @@ public class AgentResource {
     @Timed
     synchronized public void deployPlatformLib(
             @PathParam("agentIPs") String agentIPs,
-            @QueryParam("force") @DefaultValue("false")BooleanParam force) throws IOException, ExecutionException, InterruptedException {
+            @QueryParam("force") @DefaultValue("false")BooleanParam force) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
         for(String agentIP : agentIPs.split(","))
             DeploymentHelper.instance().deployPlatformLibsOnAgent(agentIP, force.get());
     }
