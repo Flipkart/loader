@@ -1,5 +1,12 @@
 package perf.server.domain;
 
+import com.open.perf.util.FileHelper;
+import org.codehaus.jackson.JsonGenerationException;
+import perf.server.config.LoaderServerConfiguration;
+import perf.server.util.ObjectMapperUtil;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +20,7 @@ import java.util.Map;
  */
 public class LoaderAgent {
     public static enum LoaderAgentStatus {
-        FREE, BUSY, DISABLED, NOT_REACHABLE
+        FREE, BUSY, DISABLED, NOT_REACHABLE, D_REGISTERED
     }
 
     private String ip;
@@ -71,28 +78,46 @@ public class LoaderAgent {
         return this;
     }
 
-    public LoaderAgent setFree() {
+    public LoaderAgent setFree() throws IOException {
         this.status = LoaderAgentStatus.FREE;
+        persist();
         return this;
     }
 
-    public LoaderAgent setBusy() {
+    public LoaderAgent setBusy() throws IOException {
         this.status = LoaderAgentStatus.BUSY;
+        persist();
         return this;
     }
 
-    public LoaderAgent setEnabled() {
+    public LoaderAgent setEnabled() throws IOException {
         this.status = LoaderAgentStatus.FREE;
+        persist();
         return this;
     }
 
-    public LoaderAgent setDisabled() {
+    public LoaderAgent setDisabled() throws IOException {
         this.status = LoaderAgentStatus.DISABLED;
+        persist();
         return this;
     }
 
-    public LoaderAgent setNotReachable() {
+    public LoaderAgent setNotReachable() throws IOException {
         this.status = LoaderAgentStatus.NOT_REACHABLE;
+        persist();
         return this;
     }
+
+    public LoaderAgent setDRegistered() throws IOException {
+        this.status = LoaderAgentStatus.D_REGISTERED;
+        persist();
+        return this;
+    }
+
+    public void persist() throws IOException {
+        String agentInfoPath = LoaderServerConfiguration.instance().getAgentConfig().getAgentInfoFile(this.ip);
+        FileHelper.createFilePath(agentInfoPath);
+        ObjectMapperUtil.instance().writeValue(new File(agentInfoPath), this);
+    }
+
 }

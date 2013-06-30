@@ -156,4 +156,16 @@ public class LoaderServerClient {
         b.execute().get();
         asyncHttpClient.close();
     }
+
+    public void deRegister() throws IOException, ExecutionException, InterruptedException {
+        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+                prepareDelete("http://" +
+                        this.getHost() +
+                        ":" +
+                        this.getPort() +
+                        RESOURCE_AGENTS);
+        b.execute().get();
+        asyncHttpClient.close();
+    }
 }
