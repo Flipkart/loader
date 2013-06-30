@@ -4,3 +4,14 @@ target/
 *.iml
 log
 *.zip
+loader-server/DEBIAN/loader-server/
+loader-server/DEBIAN/*.deb
+loader-agent/DEBIAN/loader-agent/
+loader-agent/DEBIAN/*.deb
+monitoring-service/DEBIAN/monitoring-service/
+monitoring-service/DEBIAN/*.deb
+monitoring-service/diamond/DEBIAN/diamond-conf/diamond-conf
+monitoring-service/diamond/DEBIAN/diamond-conf/*.deb
+monitoring-service/diamond/DEBIAN/diamond-conf/diamond-conf_0.0.1_all.deb
+monitoring-service/diamond/DEBIAN/diamond-redis-conf/diamond-redis-conf
+monitoring-service/diamond/DEBIAN/diamond-redis-conf/*.deb

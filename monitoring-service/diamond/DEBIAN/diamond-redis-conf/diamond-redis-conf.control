@@ -1,0 +1,9 @@
+Package: diamond-redis-conf
+Version: <VERSION>
+Section: web
+Priority: optional
+Architecture: all
+Essential: no
+Depends: 
+Maintainer: Nitin Kumar Agarwal [nitinka@flipkart.com]
+Description: Diamond Collector Configuration to Monitor Redis

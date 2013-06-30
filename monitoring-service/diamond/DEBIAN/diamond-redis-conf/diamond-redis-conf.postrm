@@ -1,0 +1,14 @@
+#! /bin/bash
+
+PKG=diamond-redis
+#Removing the modules manifests and templates once the packge is removed
+
+if [ "$1" == "purge" ]
+then
+	[ -e "/etc/$PKG/collestors/RedisCollector.conf" ] && rm -rf "/etc/$PKG/collestors/RedisCollector.conf"
+fi
+echo "Restarting Diamond"
+/etc/init.d/diamond stop
+/etc/init.d/diamond start
+
+exit 0
