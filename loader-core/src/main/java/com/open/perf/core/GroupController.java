@@ -26,6 +26,7 @@ public class GroupController {
     private final Group group;
     private long startTimeMS = -1;
     private RequestQueue requestQueue;
+    private final RequestQueue warmUpRequestQueue;
     private Map<String, Counter> customCounters;
     private Map<String, FunctionCounter> functionCounters;
     private GroupStatsQueue groupStatsQueue;
@@ -45,6 +46,7 @@ public class GroupController {
         this.functionCounters = buildFunctionCounters();
         this.customCounters = buildCustomCounter();
         this.requestQueue = buildRequestQueue();
+        this.warmUpRequestQueue = buildWarmUpRequestQueue();
     }
 
     private List<String> findIgnoredDumpFunctions() {
@@ -86,11 +88,22 @@ public class GroupController {
      * @return
      */
     private RequestQueue buildRequestQueue() {
-        RequestQueue requestQueue = null;
+        RequestQueue requestQueue = new RequestQueue(this.groupName);
         if(group.getRepeats() > 0)
-            requestQueue = new RequestQueue(this.groupName, "requestQueue", this.group.getRepeats());
-        else
-            requestQueue = new RequestQueue(this.groupName, "requestQueue");
+            requestQueue.setRequests(this.group.getRepeats());
+
+        return requestQueue;
+    }
+
+    /**
+     * Building Warm Up Request queue that would be shared across all Sequential Function Executors
+     * @return
+     */
+    private RequestQueue buildWarmUpRequestQueue() {
+        RequestQueue requestQueue = new RequestQueue(this.groupName, 0l);
+        if(group.getWarmUpRepeats() > 0)
+            requestQueue.setRequests(this.group.getWarmUpRepeats());
+
         return requestQueue;
     }
 
@@ -103,6 +116,12 @@ public class GroupController {
         logger.info("************Group Controller "+this.groupName+" Started**************");
 
         this.startTimeMS = Clock.milliTick() + this.group.getGroupStartDelay();
+
+        if(group.getDuration() > 0) {
+            requestQueue.setEndTimeMS(this.startTimeMS + this.group.getDuration());
+            // This endTime would be updated once warmUp is over
+        }
+
         this.groupStatsQueue = new GroupStatsQueue();
 
         this.started = true;
@@ -155,9 +174,8 @@ public class GroupController {
         return new SequentialFunctionExecutor(group.getName()+"-"+threadNo,
                 this.group.getFunctions(),
                 this.group.getParams(),
-                this.group.getDuration(),
                 this.requestQueue,
-                this.startTimeMS,
+                this.warmUpRequestQueue,
                 this.functionCounters,
                 this.customCounters,
                 this.group.getCustomTimers(),

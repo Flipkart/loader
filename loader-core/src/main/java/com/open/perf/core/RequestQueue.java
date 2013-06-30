@@ -1,5 +1,6 @@
 package com.open.perf.core;
 
+import com.open.perf.util.Clock;
 import com.open.perf.util.Counter;
 
 /**
@@ -8,17 +9,40 @@ import com.open.perf.util.Counter;
  */
 public class RequestQueue {
     private Counter counter;
+    private long endTimeMS = 0;
+    private long howManyRequests = Long.MAX_VALUE;
 
-    public RequestQueue(String groupName, String name) {
-        this(groupName, name, Long.MAX_VALUE);
+    public RequestQueue(String groupName) {
+        this(groupName, Long.MAX_VALUE);
     }
 
-    public RequestQueue(String groupName, String name, long operationsNeedToBeDone) {
-        this.counter = new Counter(groupName, name, operationsNeedToBeDone);
+    public RequestQueue(String groupName, long howManyRequests) {
+        this.howManyRequests = howManyRequests;
+        this.counter = new Counter(groupName, "requestQueue", howManyRequests);
     }
 
-    synchronized public boolean getRequest() {
-        return counter.decrement() >= 0;
+    public RequestQueue setRequests(long howManyRequests) {
+        this.howManyRequests = howManyRequests;
+        this.counter = new Counter(this.counter.getGroupName(), this.counter.getCounterName(), howManyRequests);
+        return this;
+    }
+
+    public RequestQueue setEndTimeMS(long futureTimeMS) {
+        this.endTimeMS = futureTimeMS;
+        return this;
+    }
+
+    public long getEndTimeMS() {
+        return endTimeMS;
+    }
+
+    public long getHowManyRequests() {
+        return howManyRequests;
+    }
+
+    synchronized public boolean hasRequest() {
+        return (this.counter.decrement() >= 0)
+                && (this.endTimeMS <= 0 || this.endTimeMS > Clock.milliTick());
     }
 
     synchronized public long requestsPending() {
