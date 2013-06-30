@@ -35,7 +35,14 @@ public class AgentResource {
 
         // Connect Will all agents which were not disabled earlier.
         for(LoaderAgent loaderAgent : AgentsCache.getAgentInfoMap().values()) {
-            refreshAgentInfo(loaderAgent);
+            try {
+                if(loaderAgent.getStatus() == LoaderAgent.LoaderAgentStatus.D_REGISTERED
+                        || loaderAgent.getStatus() == LoaderAgent.LoaderAgentStatus.DISABLED)
+                    continue;
+                refreshAgentInfo(loaderAgent);
+            } catch (IOException e) {
+                log.error(e);
+            }
         }
     }
 
@@ -72,18 +79,24 @@ public class AgentResource {
         throw new WebApplicationException(ResponseBuilder.agentNotRegistered(agentIp));
     }
 
+    @DELETE
+    @Timed
+    synchronized public void deRegisterAgent(@Context HttpServletRequest request) throws IOException, ExecutionException, InterruptedException {
+        LoaderAgent agent = AgentsCache.getAgentInfo(request.getRemoteAddr());
+        if(agent != null)
+            agent.setDRegistered();
+
+        throw new WebApplicationException(ResponseBuilder.agentNotRegistered(request.getRemoteAddr()));
+    }
+
     @Path("/{agentIp}")
     @Produces(MediaType.APPLICATION_JSON)
     @DELETE
     @Timed
-    synchronized public LoaderAgent deleteAgent(@PathParam("agentIp") String agentIp)
+    synchronized public void deleteAgent(@PathParam("agentIp") String agentIp)
             throws IOException, ExecutionException, InterruptedException {
-
-        LoaderAgent agent = AgentsCache.removeAgent(agentIp);
-        if(agent != null)
-            return agent;
-
-        throw new WebApplicationException(ResponseBuilder.agentNotRegistered(agentIp));
+        if(AgentsCache.removeAgent(agentIp) == null)
+            throw new WebApplicationException(ResponseBuilder.agentNotRegistered(agentIp));
     }
 
     @Path("/{agentIp}/disable")
@@ -150,7 +163,7 @@ public class AgentResource {
             DeploymentHelper.instance().deployClassLibsOnAgent(agentIP, classes, force.get());
     }
 
-    private void refreshAgentInfo(LoaderAgent loaderAgent) {
+    private void refreshAgentInfo(LoaderAgent loaderAgent) throws IOException {
         try {
             Map<String, Object> agentRegistrationParams = new LoaderAgentClient(loaderAgent.getIp(), agentConfig.getAgentPort()).registrationInfo();
             loaderAgent.setAttributes(agentRegistrationParams);

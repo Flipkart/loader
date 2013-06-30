@@ -1,6 +1,9 @@
 package perf.agent;
 
+import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +23,10 @@ import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.FilterBuilder;
+
+import java.io.IOException;
+import java.util.EventListener;
+import java.util.concurrent.ExecutionException;
 
 
 public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
@@ -57,6 +64,26 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
 
         AgentRegistrationThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
                 configuration.getRegistrationParams());
+
+        addShutdownHook(configuration);
+    }
+
+    private void addShutdownHook(final LoaderAgentConfiguration configuration) {
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            public void run() {
+                logger.info("DeRegistering from server");
+                try {
+                    LoaderServerClient.buildClient(configuration.getServerInfo()).deRegister();
+                } catch (IOException e) {
+                    logger.error("",e);
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                } catch (ExecutionException e) {
+                    logger.error("",e);
+                } catch (InterruptedException e) {
+                    logger.error("",e);
+                }
+            }
+        });
     }
 
 

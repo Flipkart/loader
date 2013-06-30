@@ -44,7 +44,7 @@ public class AgentsCache {
 
     public static void addAgent(LoaderAgent agent) throws IOException {
         AgentsCache.agentInfoMap.put(agent.getIp(), agent);
-        persistAgentInfo(agent);
+        agent.persist();
     }
 
     public static LoaderAgent getAgentInfo(String ip) {
@@ -53,12 +53,6 @@ public class AgentsCache {
 
     public static LoaderAgent removeAgent(String ip) {
         return AgentsCache.agentInfoMap.remove(ip);
-    }
-
-    private static void persistAgentInfo(LoaderAgent agent) throws IOException {
-        String agentInfoPath = agentConfig.getAgentInfoFile(agent.getIp());
-        FileHelper.createFilePath(agentInfoPath);
-        objectMapper.writeValue(new File(agentInfoPath), agent);
     }
 
     /**
