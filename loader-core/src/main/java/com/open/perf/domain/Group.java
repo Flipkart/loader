@@ -21,7 +21,6 @@ public class Group {
     private long repeats ;
     private long duration;
     private int threads ;
-    private int warmUpTime ;
     private int warmUpRepeats ;
 
     private List<GroupFunction> functions;
@@ -50,7 +49,6 @@ public class Group {
         this.throughput = -1;
         this.repeats =  -1;
         this.threads = 1;
-        this.warmUpTime = -1;
         this.warmUpRepeats = -1;
         this.customTimers = new ArrayList<String>();
         this.customCounters = new ArrayList<String>();
@@ -158,15 +156,6 @@ public class Group {
         return timers;
     }
 
-    public int getWarmUpTime() {
-        return warmUpTime;
-    }
-
-    public Group setWarmUpTime(int warmUpTime) {
-        this.warmUpTime = warmUpTime;
-        return this;
-    }
-
     public int getWarmUpRepeats() {
         return warmUpRepeats;
     }
@@ -174,37 +163,6 @@ public class Group {
     public Group setWarmUpRepeats(int warmUpRepeats) {
         this.warmUpRepeats = warmUpRepeats;
         return this;
-    }
-
-    public boolean needsWarmUp() {
-        return this.warmUpRepeats != -1 || this.warmUpRepeats != -1;
-    }
-
-    public Group createWarmUpGroup() throws CloneNotSupportedException {
-        Group warmUpGroup = new Group("WarmUp"+this.getName());
-        warmUpGroup.setGroupStartDelay(this.groupStartDelay).
-                setThreadStartDelay(this.threadStartDelay).
-                setRepeats(this.warmUpRepeats).
-                setDuration(this.warmUpTime).
-                setThreads(this.threads);
-
-
-        logger.debug("Adding group function to warmUp group");
-        for(GroupFunction originalFunction : this.functions) {
-            GroupFunction clonedFunction = originalFunction.clone();
-            warmUpGroup.addFunction(clonedFunction);
-        }
-
-        logger.debug("Adding Dependency to warmUp group");
-        for(String dependsOn : this.dependOnGroups) {
-            warmUpGroup.dependsOn(dependsOn);
-        }
-
-        logger.debug("Adding Params");
-        for(String key : this.params.keySet()) {
-            warmUpGroup.addParam(key, this.params.get(key).toString());
-        }
-        return warmUpGroup;
     }
 
     public List<Map<String, Object>> getThreadResources() {
