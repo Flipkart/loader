@@ -240,6 +240,7 @@ public class Job {
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(configuration.getJobFSConfig().getQueuedJobsFile()), queuedJobs);
 
         this.persist();
+        JobsCache.put(jobId, this);
     }
 
 
@@ -524,7 +525,7 @@ public class Job {
         File jobStatusFile = new File(configuration.getJobFSConfig().getJobStatusFile(jobId));
         if(!jobStatusFile.exists())
             FileHelper.createFilePath(jobStatusFile.getAbsolutePath());
-        objectMapper.writeValue(new FileOutputStream(jobStatusFile), this);
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(new FileOutputStream(jobStatusFile), this);
     }
 
     public void persistRunInfo() throws IOException {

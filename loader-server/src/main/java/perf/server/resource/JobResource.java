@@ -431,7 +431,6 @@ public class JobResource {
                 setRunName(jobRequest.getRunName());
 
         job.persistRunInfo();
-
         JobDispatcherThread.instance().addJobRequest(job);
         return job;
     }
@@ -443,10 +442,16 @@ public class JobResource {
     }
 
     private Job jobExistsOrException(String jobId) throws IOException, ExecutionException {
+        Job job = JobsCache.getJob(jobId);
+        if (job == null)
+            throw new WebApplicationException(ResponseBuilder.resourceNotFound("Job", jobId));
+        return job;
+/*
         if(!new File(jobFSConfig.getJobPath(jobId)).exists()) {
             throw new WebApplicationException(ResponseBuilder.resourceNotFound("Job", jobId));
         }
-        return JobsCache.getJob(jobId);
+        return ;
+*/
     }
 
 }
