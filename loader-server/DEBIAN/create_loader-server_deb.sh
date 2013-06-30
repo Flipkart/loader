@@ -27,6 +27,7 @@ mkdir -p $PACKAGE_ROOT/etc/init.d/
 
 ## Copying content for packaging
 cp $CODE_ROOT/config/loader-server.yml $PACKAGE_ROOT/etc/$PACKAGE/loader-server.yml
+cp $CODE_ROOT/config/dataFixers.json $PACKAGE_ROOT/etc/$PACKAGE/dataFixers.json
 cp $PACKAGE.control $PACKAGE_ROOT/DEBIAN/control
 cp $PACKAGE.postinst $PACKAGE_ROOT/DEBIAN/postinst
 cp $PACKAGE.postrm $PACKAGE_ROOT/DEBIAN/postrm

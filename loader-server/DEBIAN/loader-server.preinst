@@ -11,23 +11,16 @@ mkdir -p /usr/share/$PKG/libs
 touch /usr/share/$PKG/config/classLibMapping.properties
 touch /usr/share/$PKG/config/mapping.properties
 
-# Creating File that contains running Jobs
-runningJobsFile="/var/log/loader-server/jobs/runningJobs"
-if [ -f "$runningJobsFile" ]
-then
-	echo "$runningJobsFile exists and not creating again"
-else
-	echo "[]" > $runningJobsFile
-fi
-
-# Creating File that contains queued Jobs
-queuedJobsFile="/var/log/loader-server/jobs/queuedJobs"
-if [ -f "$queuedJobsFile" ]
-then
-        echo "$queuedJobsFile exists and not creating again"
-else
-        echo "[]" > $queuedJobsFile 
-fi
-
+# Creating Files which need to contain list of values
+filesToCreate=("/var/log/loader-server/jobs/runningJobs" "/var/log/loader-server/jobs/queuedJobs" "/var/log/loader-server/jobs/doneFixers.json")
+for fileToCreate in "${filesToCreate[@]}"
+do
+    if [ -f "$fileToCreate" ]
+    then
+        echo "$fileToCreate exists and not creating again"
+    else
+        echo "[]" > $fileToCreate
+    fi
+done
 
 exit 0

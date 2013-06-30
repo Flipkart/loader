@@ -19,6 +19,7 @@ import perf.server.daemon.CounterCompoundThread;
 import perf.server.daemon.CounterThroughputThread;
 import perf.server.daemon.JobDispatcherThread;
 import perf.server.daemon.TimerComputationThread;
+import perf.server.dataFix.DataFixRunner;
 import perf.server.health.CounterCompoundThreadHealthCheck;
 import perf.server.health.TimerComputationThreadHealthCheck;
 import perf.server.resource.*;
@@ -40,6 +41,9 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
     @Override
     public void run(LoaderServerConfiguration configuration, Environment environment) throws Exception {
         environment.addProvider(com.sun.jersey.multipart.impl.MultiPartReaderServerSide.class);
+
+        // Do Data Fixes
+        new DataFixRunner(configuration.getDataFixConfig()).run();
 
         // Initialization
         JobsCache.initiateCache(configuration.getJobFSConfig());

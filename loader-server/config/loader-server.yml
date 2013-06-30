@@ -37,6 +37,10 @@ jobFSConfig:
 
 reportConfigFile: /var/log/loader-server/report/reportConfig.yml
 
+dataFixConfig:
+  dataFixersFile: /etc/loader-server/dataFixers.json
+  doneFixersFile: /var/log/loader-server/jobs/doneFixers.json
+
 http:
   port: 9999
   adminPort: 9991
