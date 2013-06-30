@@ -16,6 +16,7 @@ public class LoaderServerConfiguration extends Configuration {
     private AgentConfig agentConfig;
     private MonitoringAgentConfig monitoringAgentConfig;
     private JobFSConfig jobFSConfig;
+    private DataFixConfig dataFixConfig;
     private String reportConfigFile;
     private static LoaderServerConfiguration instance;
 
@@ -63,8 +64,9 @@ public class LoaderServerConfiguration extends Configuration {
         return monitoringAgentConfig;
     }
 
-    public void setMonitoringAgentConfig(MonitoringAgentConfig monitoringAgentConfig) {
+    public LoaderServerConfiguration setMonitoringAgentConfig(MonitoringAgentConfig monitoringAgentConfig) {
         this.monitoringAgentConfig = monitoringAgentConfig;
+        return this;
     }
 
     public String getReportConfigFile() {
@@ -73,6 +75,15 @@ public class LoaderServerConfiguration extends Configuration {
 
     public LoaderServerConfiguration setReportConfigFile(String reportConfigFile) {
         this.reportConfigFile = reportConfigFile;
+        return this;
+    }
+
+    public DataFixConfig getDataFixConfig() {
+        return dataFixConfig;
+    }
+
+    public LoaderServerConfiguration setDataFixConfig(DataFixConfig dataFixConfig) {
+        this.dataFixConfig = dataFixConfig;
         return this;
     }
 }

@@ -5,6 +5,8 @@ import perf.server.config.JobFSConfig;
 import perf.server.config.LibStorageFSConfig;
 import perf.server.config.LoaderServerConfiguration;
 
+import java.io.FileNotFoundException;
+
 /**
  * Created with IntelliJ IDEA.
  * User: nitinka
@@ -12,6 +14,6 @@ import perf.server.config.LoaderServerConfiguration;
  * Time: 4:48 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface DataFix {
-    public void fix(LoaderServerConfiguration configuration);
+public interface DataFixer {
+    public boolean fix(LoaderServerConfiguration configuration);
 }
