@@ -5,11 +5,11 @@
     <parent>
         <artifactId>loader2.0</artifactId>
         <groupId>com.flipkart.perf</groupId>
-        <version>1.0</version>
+        <version>0.1.1</version>
     </parent>
     <groupId>perf.operation.http</groupId>
     <artifactId>loader-http-operations</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.1</version>
     <name>loader-http-operations</name>
     <url>http://maven.apache.org</url>
     <dependencies>

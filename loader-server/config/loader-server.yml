@@ -35,7 +35,7 @@ jobFSConfig:
   runningJobsFile: "/var/log/loader-server/jobs/runningJobs"
   queuedJobsFile: "/var/log/loader-server/jobs/queuedJobs"
 
-reportConfigFile: /var/log/loader-server/report/reportConfig.yml
+reportConfigFile: /etc/loader-server/reportConfig.json
 
 dataFixConfig:
   dataFixersFile: /etc/loader-server/dataFixers.json

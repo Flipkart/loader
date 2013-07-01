@@ -3,7 +3,7 @@
 PKG=monitoring-service
 CONF_FILE=/etc/$PKG/$PKG.yml
 LIB_JARS=/usr/share/$PKG/lib/*:/usr/share/$PKG/app/*
-LOG_FILE=/var/log/flipkart/$PKG/$PKG.log
+LOG_FILE=/var/log/$PKG/$PKG.log
 CMD=$1
 PID=""
 NOHUP=`which nohup`
