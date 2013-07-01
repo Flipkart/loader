@@ -57,7 +57,7 @@ public class Job {
 
     public static class AgentJobStatus {
         private String agentIp;
-        private boolean inStress;
+        private Boolean inStress;
         private JOB_STATUS job_status;
         private Map<String, Object> healthStatus = new HashMap<String,Object>();
 
@@ -86,8 +86,10 @@ public class Job {
         public AgentJobStatus setHealthStatus(Map<String, Object> healthStatus) {
             if(healthStatus != null) {
                 this.healthStatus = healthStatus;
-                Object inStressObject = this.healthStatus.remove("inStress");
-                this.inStress = inStressObject == null ? false : Boolean.parseBoolean(inStressObject.toString());
+                if(inStress == null) {
+                    Object inStressObject = this.healthStatus.remove("inStress");
+                    this.inStress = inStressObject == null ? false : Boolean.parseBoolean(inStressObject.toString());
+                }
             }
             return this;
         }
