@@ -103,7 +103,6 @@ function addGroup(){
         "repeats":1,
         "duration":-1,
         "threads":1,
-        "warmUpTime":-1,
         "warmUpRepeats":-1,
         "functions": new Array(),
         "dependOnGroups": new Array(),
@@ -135,9 +134,8 @@ function renderGroupPage(metadata){
 			"<input type=\"text\" id=\"duration\" value=\"" + grp["duration"] + "\" class=\"smallInput\"/>&nbsp;&nbsp;&nbsp" +
 			"<label><strong>Threads</strong>:</label>" + 
 			"<input type=\"text\" id=\"threads\" value=\"" + grp["threads"] + "\" class=\"smallInput\" /><br/>" +
-			"</div></br></br><div class=\"groupConfig\"><label><strong>Warm Up Time:</strong></label>" + 
-			"<input type=\"text\" id=\"warmUpTime\" value=\"" + grp["warmUpTime"] + "\" class=\"smallInput\"/>&nbsp;&nbsp;&nbsp" +
-			"<label><strong>Warm Up Repeats</strong>:</label>" + 
+			"</div></br></br><div class=\"groupConfig\">" +
+			"<label><strong>Warm Up Repeats</strong>:</label>" +
 			"<input type=\"text\" id=\"warmUpRepeats\" value=\"" + grp["warmUpRepeats"] + "\" class=\"smallInput\"/><br/>" +
 			"</div></br></br><div id=\"multiSelect\" class=\"multiSelect\"><label><strong>Depends On</strong>:</label><br/></br>" + 
 			"<select multiple=\"multiple\" name=\"groupList\" id=\"groupList\">";
@@ -179,7 +177,6 @@ function updateGroup(){
 	grp["repeats"] = $("#repeats").val();
 	grp["duration"] = $("#duration").val();
 	grp["threads"] = $("#threads").val();
-	grp["warmUpTime"] = $("#warmUpTime").val();
 	grp["warmUpRepeats"] = $("#warmUpRepeats").val();
 	//if ($("#dependsOn").is(":checked")) {
 		console.log("groupList", $("#groupList").val());
