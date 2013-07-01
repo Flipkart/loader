@@ -18,7 +18,6 @@ function getJobDetails(){
 			dataType:"json",
 			type:"GET",
 			success: function(data){
-				//console.log(data);
 				$.each(data, function(key,value){
 					//console.log(key);
 					switch(key){
@@ -32,8 +31,14 @@ function getJobDetails(){
 						case "jobStatus":
 							$("#status").attr("value",value);
 							break;
-						// case "agentsJobStatus":
-						// 	$("#agents").attr("value",value);
+					    case "agentsJobStatus":
+                            $.each(value, function(agentIp,agentsJobStatus){
+                                agentHealth = agentsJobStatus["inStress"] == true ? "InStress(" + JSON.stringify(agentsJobStatus["healthStatus"]) + ")" : "OK";
+                                rowColor = agentsJobStatus["inStress"] == true ? "red" : "#00FF00";
+                                $("#agents").append("<tr bgcolor="+rowColor+"><td>"+agentIp+"</td><td>"+agentsJobStatus["job_status"]+"</td><td>"+agentHealth+"</td></tr>");
+                            });
+					        break;
+
 					}
 				});
 				window["jobAgents"] = data["agentsJobStatus"];

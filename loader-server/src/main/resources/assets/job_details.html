@@ -32,7 +32,18 @@
     </tr>
     <tr>
       <td><label><strong>Agents</strong></label></td>
+<!--
       <td><input id="agents" name="agents" value="" type="text" size="60" maxlength="100" readonly="readonly" /></td>
+-->
+      <td>
+        <table id="agents" border="1" width="80%">
+          <tr  align="left">
+              <th>Agent</th>
+              <th>Status</th>
+              <th>Health</th>
+          </tr>
+        </table>
+      </td>
     </tr>
     <tr>
       <td>
@@ -41,7 +52,7 @@
 		<td><input id="pause" name="Pause" type="button" value="Pause" /></td>
 		<td><input id="stop" name="Stop" type="button" value="Stop" onClick="killJob()"/></td>
 		<td><input id="graphs" name="Graphs" type="button" value="Graphs" onClick="generateGraphs()"/></td>
-    <td><input id="graphs" name="Logs" type="button" value="Logs" onClick="generateLogs()"/></td>
+        <td><input id="graphs" name="Logs" type="button" value="Logs" onClick="generateLogs()"/></td>
         </tr>
         </table>
       </td>
