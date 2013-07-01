@@ -1,6 +1,7 @@
 package perf.server.dataFix;
 
 import com.open.perf.util.FileHelper;
+import org.apache.log4j.Logger;
 import perf.server.config.JobFSConfig;
 import perf.server.config.LoaderServerConfiguration;
 import perf.server.domain.PerformanceRun;
@@ -19,6 +20,8 @@ import java.io.IOException;
  */
 public class RemoveWarmUpTimeFromGroupsFixer implements DataFixer {
 
+    private static Logger log = Logger.getLogger(RemoveWarmUpTimeFromGroupsFixer.class);
+
     @Override
     public boolean fix(LoaderServerConfiguration configuration) {
         JobFSConfig jobFSconfig = configuration.getJobFSConfig();
@@ -26,13 +29,15 @@ public class RemoveWarmUpTimeFromGroupsFixer implements DataFixer {
 
         for(File runPath : runsPath.listFiles())  {
             try {
-                String runDetailsString = FileHelper.readContent(new FileInputStream(jobFSconfig.getRunFile(runPath.getName())));
-                runDetailsString = runDetailsString.replace("\"warmUpTime\" : -1,", "");
+                String runName = runPath.getName();
+                log.info("Fixing run :"+runName);
+
+                String runDetailsString = FileHelper.readContent(new FileInputStream(jobFSconfig.getRunFile(runName)));
+                runDetailsString = runDetailsString.replace("\"warmUpTime\" : -1,", "").replace("\"warmUpTime\":-1,", "");
                 PerformanceRun run = ObjectMapperUtil.instance().readValue(runDetailsString, PerformanceRun.class);
                 run.persist();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                return false;
             }
         }
         return true;
