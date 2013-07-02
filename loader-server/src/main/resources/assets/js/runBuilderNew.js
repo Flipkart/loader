@@ -37,7 +37,7 @@ function renderRunPage(metadata){
     }
     $("#displayArea").empty();
     $("#displayArea").append(insertHtml);
-    console.log("selecting", "#node_" + window.runSchema.runName);
+    //console.log("selecting", "#node_" + window.runSchema.runName);
     $("#runTree").bind("reselect.jstree", function(){
     	$("#runTree").jstree("select_node","#node_" + window.runSchema.runName);
     }); 
@@ -69,7 +69,7 @@ function renderLoadPartPage(metadata){
 		"<button id=\"deleteLoadPart\" onClick=\"deleteLoadPart()\">Delete</button></div>";
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
-    console.log("selecting", "#node_" + window.runSchema.loadParts[metadata["loadPartIndex"]]["name"]);
+    //console.log("selecting", "#node_" + window.runSchema.loadParts[metadata["loadPartIndex"]]["name"]);
     $("#runTree").bind("reselect.jstree", function(){
     	$("#runTree").jstree("select_node","#node_" + window.runSchema.loadParts[metadata["loadPartIndex"]]["name"]);
     }); 
@@ -144,7 +144,7 @@ function renderGroupPage(metadata){
 				$.each(window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"], function(index, gr){
 					if (index != metadata["groupIndex"]) {
 						if (window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]]["dependOnGroups"].indexOf(gr["name"])>-1){
-							console.log("already in array");
+							//console.log("already in array");
 							insertHtml = insertHtml + "<option value=\"" + gr["name"] + "\" selected>" + gr["name"] + "</option>";
 						} else {
 							insertHtml = insertHtml + "<option value=\"" + gr["name"] + "\">" + gr["name"] + "</option>";
@@ -162,7 +162,7 @@ function renderGroupPage(metadata){
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
     $("#groupList").multiSelect();
-    console.log("selecting", "#node_" + metadata["loadPartIndex"] + "_" + grp["name"]);
+   // console.log("selecting", "#node_" + metadata["loadPartIndex"] + "_" + grp["name"]);
     $("#runTree").bind("reselect.jstree", function(){
     	$("#runTree").jstree("select_node","#node_" + metadata["loadPartIndex"] + "_" + grp["name"]);
     }); 
@@ -182,7 +182,7 @@ function updateGroup(){
 	grp["warmUpTime"] = $("#warmUpTime").val();
 	grp["warmUpRepeats"] = $("#warmUpRepeats").val();
 	//if ($("#dependsOn").is(":checked")) {
-		console.log("groupList", $("#groupList").val());
+		//console.log("groupList", $("#groupList").val());
 		grp["dependOnGroups"] = $("#groupList").val();
 		if (!!grp["dependOnGroups"] || grp["dependOnGroups"]==null) grp["dependOnGroups"]=[];
 	//}
@@ -201,7 +201,7 @@ function deleteGroup(){
 }
 
 function addFunction(){
-	console.log("inside");
+	//console.log("inside");
 	var grpData = window.selectedElementData;
 	var funct = {
 		"functionalityName":"function" + window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"][grpData["groupIndex"]]["functions"].length,
@@ -240,17 +240,17 @@ function renderFunctionPage(metadata){
 		}
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
-    getFunctionParameters();
     $("#runTree").bind("reselect.jstree", function(){
     	$("#runTree").jstree("select_node","#node_" + metadata["loadPartIndex"] + "_" + metadata["groupIndex"]+ "_" + func["functionalityName"]);
     }); 
+    getFunctionParameters();
 }
 
 function updateFunction(){
 	var metadata = window.selectedElementData;
-	console.log("meta is", metadata);
+	//console.log("meta is", metadata);
 	var func = window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]]["functions"][metadata["functionIndex"]];
-	console.log("function is", func);
+	//console.log("function is", func);
 	func["functionalityName"] = $("#funcName").val();
 	func["functionClass"] = $("#functionList").val();
 	func["dumpData"] = $("#dumpDataSel").val();
@@ -258,11 +258,11 @@ function updateFunction(){
 		func["params"][key] = $("#"+key).val();
 	});
 	window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]]["functions"][metadata["functionIndex"]]=func;
-	console.log("creating tree");
+	//console.log("creating tree");
 	createTree(window.runSchema);
-	console.log("done creating tree, rendering");
+	//console.log("done creating tree, rendering");
 	renderDisplayArea('function', window.selectedElementData);
-	console.log("rendering done");
+	//console.log("rendering done");
 }
 
 function deleteFunction(){
@@ -274,6 +274,7 @@ function deleteFunction(){
 
 function getFunctionParameters(){
 	var metadata = window.selectedElementData;
+	console.log("metadata is",metadata);
 	var func = window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]]["functions"][metadata["functionIndex"]];
 	console.log("func is", func);
 	$("#ips").empty();
@@ -288,14 +289,16 @@ function getFunctionParameters(){
         var insertHtml = "<table id=\"inputParameters\" width=\"100%\" align=\"left\">" +
 						"<thead><tr><td colspan=\"2\"><strong>Input Parameters</strong><hr><br></td></tr></thead><tbody style=\"height:200px; overflow: scroll;\">";
 		$.each(ip, function(k,v){
-			console.log("v is",v);
-			console.log("k is", k);
-			console.log("func is", func);
+			//console.log("v is",v);
+			//console.log("k is", k);
+			//console.log("func is", func);
 			var redStar = "<span style=\"color:red\">*</span>";
 			insertHtml = insertHtml + "<tr><td width=\"30%\"><b>" + v["name"];
 			if(v["mandatory"]==true) insertHtml= insertHtml + redStar;
 			var defaultVal = v["defaultValue"]?v["defaultValue"]:"";
-			defaultVal=func["params"][v["name"]]?func["params"][v["name"]]:defaultVal;
+			//console.log("default val is", defaultVal);
+			defaultVal=func["params"][k]?func["params"][k]:defaultVal;
+			//console.log("function val is ", func["params"], defaultVal);
 			insertHtml = insertHtml + "</b></td><td width=\"70%\"><input type=\"text\" id=\"" + k + "\" value=\"" + 
 			defaultVal + "\" onfocus=\"inputFocus(this)\" onblur=\"inputBlur(this)\" style=\"width:99%;color:#888;\" /></td></tr>"; 
 		});
@@ -314,7 +317,7 @@ function getFunctionParameters(){
 
 function addMetricCollection(){
 	var metricCollector = {
-		"name":"monitor-" + window.runSchema.metricCollections.length,
+		//"name":"monitor-" + window.runSchema.metricCollections.length,
 		"agent":"127.0.0.1",
 		"collectionInfo":{
 			"resources":new Array(),
@@ -339,10 +342,11 @@ function renderMetricCollectionPage(metadata){
 		"<button id=\"updateFunction\" onClick=\"deleteMetricCollection()\">Delete</button></div></div>";
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
-    getResources(metric);
     $("#runTree").bind("reselect.jstree", function(){
     	$("#runTree").jstree("select_node","#node_" + metric["name"]);
     }); 
+    getResources(metric);
+
 }
 
 function renderMonitoringAgentsAddPage(metadata){
@@ -391,9 +395,9 @@ function getResources(metric){
       		if(xhr.status==200){
       			var cnt=1;
       			$.each(window.resourceData, function(index, resource){
-      				console.log("testing", metric["collectionInfo"]["resources"]);
+      				//console.log("testing", metric["collectionInfo"]["resources"]);
       				if(metric["collectionInfo"]["resources"].indexOf(resource)> -1){
-      					console.log("found", resource);
+      					//console.log("found", resource);
       					insertHtml = insertHtml + "<input type=\"checkbox\" id=\"" + resource + 
       					"\" checked=\"true\"/>&nbsp;&nbsp;<label><strong>" + resource + "</strong></label>";
       				} else {
@@ -414,7 +418,7 @@ function getResources(metric){
 }
 
 function createTree(data){ 
-	console.log(data);
+	//console.log(data);
 	$("#runTree").jstree({
 			"json_data" : {
 				"data" : [{
@@ -436,9 +440,10 @@ function createTree(data){
 					"selected_parent_open":true
 					}
 	}).bind("select_node.jstree", function(event, data){
-		console.log(data.rslt.obj.data());
-		renderDisplayArea(data.rslt.obj.data("nodeType"), data.rslt.obj.data());
+		//console.log(data.rslt.obj.data());
 		window.selectedElementData = data.rslt.obj.data();
+		renderDisplayArea(data.rslt.obj.data("nodeType"), data.rslt.obj.data());
+		
 	});
 	$("#runTree").bind("loaded.jstree", function (event, data) {
         $("#runTree").jstree("open_all");
@@ -459,9 +464,9 @@ function getChildren(data){
 		}
 	}
 	if (typeof mas == 'undefined'){
-		lps.push({"attr":{"id": "node_monitoringAgents"}, "data": "MonitoringAgents", "metadata": {"nodeType":"monitoringAgents"}, "children": mas});
-	} else {
 		lps.push({"attr":{"id": "node_monitoringAgents"}, "data": "MonitoringAgents", "metadata": {"nodeType":"monitoringAgents"}});
+	} else {
+		lps.push({"attr":{"id": "node_monitoringAgents"}, "data": "MonitoringAgents", "metadata": {"nodeType":"monitoringAgents"}, "children": mas});
 	}
 	return lps;
 }
@@ -483,7 +488,7 @@ function getMetricCollectors(data){
 	var metricsCollectors = data["metricCollections"];
 	if(metricsCollectors.length==0) return undefined;
 	for( var k=0; k<metricsCollectors.length;k++){
-		metricsAgents[k]={"attr":{"id": "node_" + metricsCollectors[k]["name"]}, "data": metricsCollectors[k]["name"], "metadata": {"nodeType":"metricCollection", "metricCollectionIndex":k}};
+		metricsAgents[k]={"attr":{"id": "node_" + metricsCollectors[k]["agent"]}, "data": metricsCollectors[k]["agent"], "metadata": {"nodeType":"metricCollection", "metricCollectionIndex":k}};
 	}
 	return metricsAgents;
 }
