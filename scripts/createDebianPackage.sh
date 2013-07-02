@@ -1,6 +1,6 @@
 ##This script needs to executed from within scripts folder only
+echo "mvn clean compile install package first"
 cd ../
-mvn clean compile install package
 modules=("loader-server" "loader-agent" "monitoring-service")
 for module in "${modules[@]}"
 do
