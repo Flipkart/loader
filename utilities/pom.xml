@@ -25,7 +25,7 @@
             <artifactId>log4j</artifactId>
             <version>1.2.14</version>
         </dependency>
-            <dependency>
+        <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>3.1.11</version>
@@ -44,4 +44,11 @@
             </plugin>
         </plugins>
     </build>
+    <distributionManagement>
+        <repository>
+            <id>artifactory-new</id>
+            <name>artifactory-new-releases</name>
+            <url>http://artifactory.nm.flipkart.com:8081/artifactory/libs-releases-local</url>
+        </repository>
+    </distributionManagement>
 </project>
