@@ -95,7 +95,7 @@ public class Job {
         }
 
         public boolean isInStress() {
-            return inStress;
+            return inStress == null ? false : inStress.booleanValue();
         }
 
         public AgentJobStatus setInStress(boolean inStress) {
