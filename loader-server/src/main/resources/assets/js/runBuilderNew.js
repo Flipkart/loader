@@ -183,8 +183,11 @@ function updateGroup(){
 	grp["warmUpRepeats"] = $("#warmUpRepeats").val();
 	//if ($("#dependsOn").is(":checked")) {
 		//console.log("groupList", $("#groupList").val());
-		grp["dependOnGroups"] = $("#groupList").val();
-		if (!!grp["dependOnGroups"] || grp["dependOnGroups"]==null) grp["dependOnGroups"]=[];
+		grp["dependOnGroups"].length=0;
+		grp["dependOnGroups"].push($("#groupList").val().join());
+		// console.log("depends On" , grp["dependOnGroups"]);
+		// if (!!grp["dependOnGroups"] || grp["dependOnGroups"]==null) grp["dependOnGroups"]=[];
+		// console.log("depends On" , grp["dependOnGroups"]);
 	//}
 	window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"][grpData["groupIndex"]]=grp;
 	createTree(window.runSchema);
