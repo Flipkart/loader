@@ -209,7 +209,7 @@ function addFunction(){
 	var funct = {
 		"functionalityName":"function" + window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"][grpData["groupIndex"]]["functions"].length,
 		"functionClass": "noclass",
-		"dumpData":"false",
+		"dumpData":false,
 		"params":{}
 	} 
 	window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"][grpData["groupIndex"]]["functions"].push(funct);
@@ -230,7 +230,7 @@ function renderFunctionPage(metadata){
 			else insertHtml = insertHtml + "<option value=\"" + f + "\">" + f + "</option>";
 		});
 		insertHtml = insertHtml + "</select></br></br></br>";
-		if (func["dumpData"]=="true"){
+		if (func["dumpData"]==true){
 			insertHtml = insertHtml + "<div id=\"dumpData\"><label><strong>DumpData</strong>:</label><select id=\"dumpDataSel\" class=\"selectOption\"><option value=\"false\">false</option>" +
 				"<option value=\"true\" selected>true</option></select></div><br/><br/><div id=\"ips\"></div></div><div class=\"functionsButton\">" + 
 				"<button id=\"updateFunction\" onClick=\"updateFunction()\">Update</button>" + 
@@ -256,7 +256,7 @@ function updateFunction(){
 	//console.log("function is", func);
 	func["functionalityName"] = $("#funcName").val();
 	func["functionClass"] = $("#functionList").val();
-	func["dumpData"] = $("#dumpDataSel").val();
+	func["dumpData"] = $("#dumpDataSel").val()=="true"?true:false;
 	$.each(window.inputParams, function(key, value){
 		func["params"][key] = $("#"+key).val();
 	});
