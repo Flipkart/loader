@@ -236,7 +236,7 @@ body {
 }	
 
 .metricsPage .bigInput {
-	width:30%; 
+	width:40%; 
 	size:100px; 
 	height:25px;
 	margin-top:0px;
@@ -247,8 +247,14 @@ body {
 	float:left;
 	margin-bottom: 50px;
 	margin-top:30px;
-	overflow: auto;
+	overflow: scroll;
 	width:100%;
+	max-height: 200px;
+}
+
+.metricsPage .resourceButton {
+	float:left;
+	width:60%;
 }
 
 .metricsPageButton {

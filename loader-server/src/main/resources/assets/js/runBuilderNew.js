@@ -335,18 +335,17 @@ function addMetricCollection(){
 
 function renderMetricCollectionPage(metadata){
 	var metric = window.runSchema.metricCollections[metadata["metricCollectionIndex"]];
-	var insertHtml = "<div class=\"metrics\"><div class=\"metricsPage\"><label><strong>Agent IP</strong></label>" + 
+	var insertHtml = "<div class=\"metrics\"><div class=\"metricsPage\"><div class=\"resourceButton\"><label><strong>Agent IP</strong></label>" + 
 		"<input type=\"text\" id=\"agent\" class=\"bigInput\" value=\"" + 
-		metric["agent"] + "\"/></br></br><div id=\"resources\"></div></div></br></br></br>";
+		metric["agent"] + "\"/><button id=\"findResources\" onClick=\"getResources()\">Resources</button></div></br></br><div id=\"resources\"></div></div></br></br></br>";
 	insertHtml = insertHtml + "<div class=\"metricsPageButton\"><button id=\"updateFunction\" onClick=\"updateMetricCollection()\">Update</button>" +
 		"<button id=\"updateFunction\" onClick=\"deleteMetricCollection()\">Delete</button></div></div>";
 	$("#displayArea").empty();
     $("#displayArea").append(insertHtml);
     $("#runTree").bind("reselect.jstree", function(){
-    	$("#runTree").jstree("select_node","#node_" + metric["name"]);
+    	$("#runTree").jstree("select_node","#node_" + metric["agent"].replace(/\./g,"_"));
     }); 
-    getResources(metric);
-
+    getResources();
 }
 
 function renderMonitoringAgentsAddPage(metadata){
@@ -377,10 +376,12 @@ function deleteMetricCollection(){
 	renderDisplayArea('monitoringAgents',{});
 }
 
-function getResources(metric){
+function getResources(){
 	var insertHtml = "";
+	var metricData = window.selectedElementData;
+	var metric = window.runSchema.metricCollections[metricData["metricCollectionIndex"]];
 	$.ajax({
-		"url":"http://" + metric["agent"] + ":7777/monitoring-service/resources",
+		"url":"http://" + $("#agent").val() + ":7777/monitoring-service/resources",
 		"contentType": "application/json", 
       	"type":"GET",
       	"async":false,
@@ -393,7 +394,6 @@ function getResources(metric){
       	}, 
       	complete: function(xhr, status){
       		if(xhr.status==200){
-      			var cnt=1;
       			$.each(window.resourceData, function(index, resource){
       				//console.log("testing", metric["collectionInfo"]["resources"]);
       				if(metric["collectionInfo"]["resources"].indexOf(resource)> -1){
@@ -404,8 +404,7 @@ function getResources(metric){
       					insertHtml = insertHtml + "<input type=\"checkbox\" id=\"" + resource + 
       					"\" />&nbsp;&nbsp;<label><strong>" + resource + "</strong></label>";
       				}
-      				if(cnt%3==0)insertHtml = insertHtml + "</br></br>";
-      				cnt = cnt+1;
+      				insertHtml = insertHtml + "</br>";
       			});
       		} else {
       			insertHtml =insertHtml + "<p>No monitoringServer running on given IP</p>";
@@ -488,7 +487,7 @@ function getMetricCollectors(data){
 	var metricsCollectors = data["metricCollections"];
 	if(metricsCollectors.length==0) return undefined;
 	for( var k=0; k<metricsCollectors.length;k++){
-		metricsAgents[k]={"attr":{"id": "node_" + metricsCollectors[k]["agent"]}, "data": metricsCollectors[k]["agent"], "metadata": {"nodeType":"metricCollection", "metricCollectionIndex":k}};
+		metricsAgents[k]={"attr":{"id": "node_" + metricsCollectors[k]["agent"].replace(/\./g,"_")}, "data": metricsCollectors[k]["agent"], "metadata": {"nodeType":"metricCollection", "metricCollectionIndex":k}};
 	}
 	return metricsAgents;
 }
