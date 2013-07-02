@@ -63,7 +63,7 @@ public class Main {
     }
 
     private static String statsFolder(CommandLine line) {
-        return line.getOptionValue('s',"/var/log/loader/");
+        return line.getOptionValue('s',"./");
     }
 
     private static String jobJsonFile(CommandLine line) {
