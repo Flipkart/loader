@@ -35,7 +35,7 @@ public class GroupController {
     private final List<String> ignoreDumpFunctions;
 
     public GroupController(String jobId, Group group) {
-        this.basePath = System.getProperty("BASE_PATH", "/var/log/loader/");
+        this.basePath = System.getProperty("BASE_PATH");
         basePath += jobId + File.separator + group.getName();
 
         this.groupName = group.getName();
