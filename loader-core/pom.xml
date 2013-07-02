@@ -69,4 +69,11 @@
             </plugin>
         </plugins>
     </build>
+    <distributionManagement>
+        <repository>
+            <id>artifactory-new</id>
+            <name>artifactory-new-releases</name>
+            <url>http://artifactory.nm.flipkart.com:8081/artifactory/libs-releases-local</url>
+        </repository>
+    </distributionManagement>
 </project>
