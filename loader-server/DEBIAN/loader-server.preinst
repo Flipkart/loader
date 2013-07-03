@@ -2,8 +2,9 @@
 
 PKG=loader-server
 
-mkdir -p /var/log/flipkart/$PKG/jobs
-mkdir -p /var/log/flipkart/$PKG/runs
+mkdir -p /var/log/$PKG
+mkdir -p /var/log/$PKG/jobs
+mkdir -p /var/log/$PKG/runs
 mkdir -p /usr/share/$PKG/config
 mkdir -p /usr/share/$PKG/platformLibs
 mkdir -p /usr/share/$PKG/agents

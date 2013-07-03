@@ -2,7 +2,6 @@
 
 PKG=loader-agent
 
-mkdir -p /var/log/flipkart/$PKG
 mkdir -p /var/log/loader
 mkdir -p /var/log/$PKG/jobs
 mkdir -p /usr/share/$PKG

@@ -2,7 +2,7 @@
 
 PKG=monitoring-service
 
-mkdir -p /var/log/flipkart/$PKG
+mkdir -p /var/log/$PKG
 mkdir -p /usr/share/$PKG/app
 mkdir -p /usr/share/$PKG/lib
 exit 0
