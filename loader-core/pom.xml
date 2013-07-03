@@ -67,6 +67,22 @@
                     </execution>
                 </executions>
             </plugin>
+<plugin>
+  <artifactId>exec-maven-plugin</artifactId>
+  <groupId>org.codehaus.mojo</groupId>
+  <executions>
+    <execution><!-- Run our version calculation script -->
+      <id>Build Zip Package</id>
+      <phase>package</phase>
+      <goals>
+        <goal>exec</goal>
+      </goals>
+      <configuration>
+        <executable>./script/buildZip.sh</executable>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
         </plugins>
     </build>
     <distributionManagement>
