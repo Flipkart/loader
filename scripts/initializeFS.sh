@@ -1,3 +1,5 @@
+mkdir -p /etc/loader-server
+mkdir -p /var/log/loader-server/report
 mkdir -p /var/log/loader/
 mkdir -p /var/log/loader-server/jobs
 mkdir -p /var/log/loader-server/runs
