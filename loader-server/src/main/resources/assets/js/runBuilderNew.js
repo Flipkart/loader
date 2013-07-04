@@ -515,10 +515,15 @@ function getFunctionList(group, loadPartIndex, groupIndex){
 }
 
 function createRun(){
+	var isValid = true;
 	$.each(window.runSchema["loadParts"], function(lpIndex, loadPart){
 		var classes = new Array();
 		$.each(loadPart["load"]["groups"], function(grpIndex, group){
 			$.each(group["functions"], function(funcIndex, funct){
+				if (funct["functionClass"]=="noclass") {
+					isValid = false;
+					return;
+				}
 				if(classes.indexOf(funct["functionClass"])==-1){
 					classes.push(funct["functionClass"]);
 				}
@@ -526,6 +531,12 @@ function createRun(){
 		});
 		window.runSchema["loadParts"][lpIndex]["classes"] =  classes;
 	});
+
+	if (!isValid){
+		$("#success").append("<p>U have function with no class, Can't create run!!</p>");
+		$("#success").dialog();
+		return;
+	}
 	//window.runSchema["classes"] = classes;
 	console.log("sending", JSON.stringify(window.runSchema));
 	$.ajax({
@@ -564,6 +575,28 @@ function createRun(){
 }
 
 function updateRunSchema(){
+	var isValid = true;
+	$.each(window.runSchema["loadParts"], function(lpIndex, loadPart){
+		var classes = new Array();
+		$.each(loadPart["load"]["groups"], function(grpIndex, group){
+			$.each(group["functions"], function(funcIndex, funct){
+				if (funct["functionClass"]=="noclass") {
+					isValid = false;
+					return;
+				}
+				if(classes.indexOf(funct["functionClass"])==-1){
+					classes.push(funct["functionClass"]);
+				}
+			});
+		});
+		window.runSchema["loadParts"][lpIndex]["classes"] =  classes;
+	});
+
+	if (!isValid){
+		$("#success").append("<p>U have function with no class, Can't create run!!</p>");
+		$("#success").dialog();
+		return;
+	}
 	$.ajax({
 		url:"loader-server/runs/" + runSchema["runName"],
 		contentType: "application/json", 
