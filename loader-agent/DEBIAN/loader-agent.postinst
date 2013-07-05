@@ -6,6 +6,10 @@ USERID=4051
 GROUPNAME=loader
 GROUPID=4051
 
+read -e -p "Enter loader server ip address: " -i "localhost" loader_server_ip
+echo "Using Loader Server Ip: $loader_server_ip"
+sed -i "s/\".*\"/\"$loader_server_ip\"/g" /etc/$PKG/loader-agent.yml
+
 if [ "$1" == "configure" ]; then
 		#create users if they don't exist
 		if ! getent group $GROUPNAME > /dev/null; then

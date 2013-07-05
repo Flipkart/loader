@@ -19,5 +19,5 @@ echo "[]" > /var/log/loader-server/jobs/doneFixers.json
 touch /usr/share/loader-server/config/classLibMapping.properties
 touch /usr/share/loader-agent/config/mapping.properties
 cp ../loader-server/config/reportConfig.json /var/log/loader-server/report/reportConfig.json
-cp ../loader-server/config/dataFixers.json /etc/loader-server/dataFixers.json.json
+cp ../loader-server/config/dataFixers.json /etc/loader-server/dataFixers.json
 sudo chown -R `whoami`:`whoami` /var/log/loader* /usr/share/loader*
