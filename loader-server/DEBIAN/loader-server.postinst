@@ -6,6 +6,10 @@ USERID=4051
 GROUPNAME=loader
 GROUPID=4051
 
+cd /usr/share/$PKG/platformLibs
+unzip platform.zip
+cd -
+
 if [ "$1" == "configure" ]; then
 		#create users if they don't exist
 		if ! getent group $GROUPNAME > /dev/null; then
