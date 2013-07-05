@@ -12,7 +12,7 @@ mkdir -p /usr/share/$PKG/libs
 mkdir -p /usr/share/$PKG/platformLibs
 touch /usr/share/$PKG/config/mapping.properties
 
-runningJobs=/var/log/loader-agent/jobs/runningJobs
+runningJobsFile=/var/log/loader-agent/jobs/runningJobs
 
 if [ -f "$runningJobsFile" ]
 then
