@@ -8,7 +8,7 @@ GROUPID=4051
 
 read -e -p "Enter loader server ip address: " -i "localhost" loader_server_ip
 echo "Using Loader Server Ip: $loader_server_ip"
-sed -i "s/\".*\"/\"$loader_server_ip\"/g" /etc/$PKG/loader-agent.yml
+sed -i "s/host:\ \".*\"/host:\ \"$loader_server_ip\"/g" /etc/$PKG/loader-agent.yml
 
 if [ "$1" == "configure" ]; then
 		#create users if they don't exist
