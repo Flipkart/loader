@@ -110,6 +110,7 @@ function getResourceType(resource){
 	if(resource.indexOf("mysql") !== -1) return "mysql";
 	if(resource.indexOf('agentHealth') !== -1) return "agentHealth";
 	if(resource.indexOf("redis") !== -1) return "redis";
+	return resource;
 
 }
 
