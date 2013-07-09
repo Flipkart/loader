@@ -10,7 +10,6 @@ import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.FilterBuilder;
-import com.yammer.metrics.core.HealthCheck;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import perf.server.cache.AgentsCache;
 import perf.server.cache.LibCache;
@@ -25,7 +24,7 @@ import perf.server.health.TimerComputationThreadHealthCheck;
 import perf.server.resource.*;
 import perf.server.util.DeploymentHelper;
 import perf.server.util.JobStatsHelper;
-import perf.server.util.JobsCache;
+import perf.server.cache.JobsCache;
 
 public class LoaderServerService extends Service<LoaderServerConfiguration> {
 

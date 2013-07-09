@@ -1,4 +1,4 @@
-package perf.server.util;
+package perf.server.cache;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
