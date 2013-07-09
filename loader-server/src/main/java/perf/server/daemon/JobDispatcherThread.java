@@ -8,7 +8,6 @@ import perf.server.domain.Job;
 import perf.server.domain.LoaderAgent;
 import perf.server.domain.PerformanceRun;
 import perf.server.util.JobStatsHelper;
-import perf.server.util.JobsCache;
 
 import java.io.IOException;
 import java.util.Arrays;

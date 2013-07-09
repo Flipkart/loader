@@ -32,7 +32,7 @@ import perf.server.daemon.TimerComputationThread;
 import perf.server.exception.JobException;
 import perf.server.exception.LibNotDeployedException;
 import perf.server.util.DeploymentHelper;
-import perf.server.util.JobsCache;
+import perf.server.cache.JobsCache;
 import perf.server.util.ObjectMapperUtil;
 
 import com.open.perf.domain.Load;

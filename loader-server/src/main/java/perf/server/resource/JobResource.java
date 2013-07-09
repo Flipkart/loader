@@ -41,13 +41,10 @@ import perf.server.domain.JobRequest;
 import perf.server.domain.ResourceCollectionInstance;
 import perf.server.exception.JobException;
 import perf.server.util.JobStatsHelper;
-import perf.server.util.JobsCache;
+import perf.server.cache.JobsCache;
 import perf.server.util.ObjectMapperUtil;
 import perf.server.util.ResponseBuilder;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.open.perf.util.FileHelper;
 import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
