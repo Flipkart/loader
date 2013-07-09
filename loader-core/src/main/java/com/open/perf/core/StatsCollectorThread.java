@@ -136,9 +136,8 @@ public class StatsCollectorThread extends Thread{
         granularDelay();
         int collectionCount = 0;
         while(this.keepRunning) {
-            collectStats(collectionCount);
+            collectStats(collectionCount++);
             granularDelay();
-            collectionCount++;
         }
         waitForCollectionToGetOver();
         collectStats(collectionCount++);
