@@ -51,9 +51,11 @@ public class JobStatsHelper {
     }
 
     public void persistJobStatsComingFromAgent(String jobId, String agentIp, String relatedFilePath, InputStream jobStatsStream) throws IOException {
-                // Remove job Id from relative path as loader-server has already created path
+        log.info(jobId + " " + agentIp + " " + relatedFilePath);
+        // Remove job Id from relative path as loader-server has already created path
+
         relatedFilePath = relatedFilePath.replace("/"+jobId + "/","");
-        String[] relatedFilePathTokens = relatedFilePath.split("\\/");
+        String groupName = relatedFilePath.split("\\/")[0];
 
         // Persist the stats in temporary file. As we have to read and write the stats at two places, same input stream can't be used twice.
         String tmpPath = "/tmp/"+jobId+"-"+System.nanoTime()+".txt";
@@ -61,17 +63,14 @@ public class JobStatsHelper {
 
         //TBD Move Following Code to be executed in request queue mode by a daemon thread.
         String[] jobStatsPaths = new String[] {
-
-                jobFSConfig.getJobGroupStatsPath(jobId, relatedFilePathTokens[0])
-                        + File.separator + relatedFilePathTokens[1]
-                        + File.separator + relatedFilePathTokens[2]
+                jobFSConfig.getJobGroupStatsPath(jobId, groupName)
+                        + relatedFilePath.replace(groupName,"")
                         + File.separator + "agents"
                         + File.separator + agentIp
                         + File.separator + "data",
 
-                jobFSConfig.getJobGroupStatsPath(jobId, relatedFilePathTokens[0])
-                        + File.separator + relatedFilePathTokens[1]
-                        + File.separator + relatedFilePathTokens[2]
+                jobFSConfig.getJobGroupStatsPath(jobId, groupName)
+                        + relatedFilePath.replace(groupName,"")
                         + File.separator + "agents"
                         + File.separator + "combined"
                         + File.separator + "data",
@@ -162,6 +161,8 @@ public class JobStatsHelper {
 
             boolean groupHasStats = false;
             for(File metricTypeFolder : groupPath.getAbsoluteFile().listFiles()) {
+                if(metricTypeFolder.getName().equalsIgnoreCase("realTimeConf"))
+                    continue;
                 List<MetricStatsMeta> metrics = new ArrayList<MetricStatsMeta>();
                 for(File metricPath : metricTypeFolder.listFiles()) {
 
@@ -202,6 +203,23 @@ public class JobStatsHelper {
     }
 
     /**
+     * Return Input stream representing real time Group Configuration Change
+     * @param jobId
+     * @return
+     */
+    public InputStream getJobGroupConf(String jobId, String groupName, String agent, boolean last) throws FileNotFoundException {
+        File statsFile = new File(jobFSConfig.getJobGroupConfFile(jobId, groupName, agent));
+        log.info(statsFile.getAbsolutePath());
+        if(!statsFile.exists())
+            throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Real Time Group Conf Not Received Yet for Group %s",groupName)));
+
+        if(last)
+            statsFile = new File(statsFile.getAbsoluteFile()+".last");
+        return new FileInputStream(statsFile.getAbsoluteFile());
+    }
+
+
+    /**
      * Get Stats for specific metric for a job
      * @param jobId
      * @param groupName
@@ -221,7 +239,6 @@ public class JobStatsHelper {
         if(last)
             statsFile = new File(statsFile.getAbsoluteFile()+".last");
         return new FileInputStream(statsFile.getAbsoluteFile());
-
     }
 
     public static class MonitoringAgentStats {

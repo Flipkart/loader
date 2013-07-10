@@ -35,7 +35,7 @@ public class GroupController {
     private final List<String> ignoreDumpFunctions;
 
     public GroupController(String jobId, Group group) {
-        this.basePath = System.getProperty("BASE_PATH");
+        this.basePath = System.getProperty("BASE_PATH","./");
         basePath += jobId + File.separator + group.getName();
 
         this.groupName = group.getName();
@@ -150,7 +150,7 @@ public class GroupController {
                 this.basePath,
                 this.groupStatsQueue,
                 this.functionCounters,
-                this.group.getCustomTimers(),
+                this.group,
                 this.customCounters,
                 this.startTimeMS);
 

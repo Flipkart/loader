@@ -121,7 +121,7 @@ public class CounterThroughputThread extends Thread {
         return thread;
     }
 
-    public static CounterThroughputThread getCounterCruncherThread() {
+    public static CounterThroughputThread instance() {
         return thread;
     }
 

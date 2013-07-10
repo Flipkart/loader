@@ -233,6 +233,23 @@ public class JobResource {
     }
 
     /**
+     * Get Real Group Conf
+     * @param jobId
+     * @return
+     */
+    @Path("/{jobId}/groupConf/groups/{groupName}/agents/{agentIp}")
+    @GET
+    @Timed
+    @Produces(MediaType.TEXT_PLAIN)
+    public InputStream getJobGroupConf(@PathParam("jobId") String jobId,
+                                       @PathParam("groupName") String groupName,
+                                       @PathParam("agentIp") String agentIp,
+                                       @QueryParam("last") @DefaultValue("false")BooleanParam last) throws IOException, ExecutionException {
+        jobExistsOrException(jobId);
+        return jobStatsHelper.getJobGroupConf(jobId, groupName, agentIp,last.get());
+    }
+
+    /**
      * Returns particular function stats
      * Example /jobId/jobStats/groups/sampleGroup/timers/timer1/agents/127.0.0.1
      * Example /jobId/jobStats/groups/sampleGroup/counters/counter1/agents/127.0.0.1
