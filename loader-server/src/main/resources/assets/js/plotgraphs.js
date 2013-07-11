@@ -57,6 +57,7 @@ function returnTimerGraphs(url, grpIndex, timerIndex, chart1StartIndex, chart2St
 
 function plotGraphs(grpIndex, timerIndex){
 	getCounters(window["counterUrls"][grpIndex][timerIndex], grpIndex, timerIndex);
+	getGroupRealTimeConf(window["groupConfUrls"][grpIndex][timerIndex], grpIndex, timerIndex);
 	chart1Name = "#chart" + grpIndex + timerIndex + "1";
 	chart2Name = "#chart" + grpIndex + timerIndex + "2";
 	// console.log("Lets see chart1Name:" + chart1Name);
@@ -163,6 +164,35 @@ function getCounters(counterUrls, grpIndex, timerIndex){
 			}
 		});
 	});
+}
+
+
+function getGroupRealTimeConf(groupRealTimeConfUrl, grpIndex, timerIndex){
+		var threads=0;
+		var throughput=0;
+		$.ajax({
+			url: groupRealTimeConfUrl,
+			type: "GET",
+			contentType: "text/plain",
+			async:false,
+			success: function(data){
+				var groupRealTimeConfJson = $.parseJSON(data);
+				threads=groupRealTimeConfJson["threads"];
+				throughput=groupRealTimeConfJson["throughput"];
+			},
+			error: function(data){
+
+			},
+			complete: function(xhr,status){
+				console.log("Selecting :", "#threads" + grpIndex + timerIndex);
+				$("#threads" + grpIndex + timerIndex).empty();
+				$("#threads" + grpIndex + timerIndex).append("<strong>" + "threads" + "</strong>" + " is " + threads);
+
+				console.log("Selecting :", "#throughput" + grpIndex + timerIndex);
+				$("#throughput" + grpIndex + timerIndex).empty();
+				$("#throughput" + grpIndex + timerIndex).append("<strong>" + "throughput" + "</strong>" + " is " + throughput + "(TPS)");
+			}
+		});
 }
 }
 

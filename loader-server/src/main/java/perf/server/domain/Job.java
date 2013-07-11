@@ -25,10 +25,7 @@ import perf.server.cache.AgentsCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.client.MonitoringClient;
 import perf.server.config.LoaderServerConfiguration;
-import perf.server.daemon.CounterCompoundThread;
-import perf.server.daemon.CounterThroughputThread;
-import perf.server.daemon.JobDispatcherThread;
-import perf.server.daemon.TimerComputationThread;
+import perf.server.daemon.*;
 import perf.server.exception.JobException;
 import perf.server.exception.LibNotDeployedException;
 import perf.server.util.DeploymentHelper;
@@ -275,8 +272,9 @@ public class Job {
         this.endTime = new Date();
         this.stopMonitoring();
         CounterCompoundThread.instance().removeJob(jobId);
-        CounterThroughputThread.getCounterCruncherThread().removeJob(jobId);
+        CounterThroughputThread.instance().removeJob(jobId);
         TimerComputationThread.instance().removeJob(jobId);
+        GroupConfConsolidationThread.instance().removeJob(jobId);
 
         // Remove from Running Jobs File
         List<String> runningJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), List.class);
@@ -326,8 +324,9 @@ public class Job {
             submitJobToAgents(performanceRun.getLoadParts(), agentsToUse);
 
             CounterCompoundThread.instance().addJob(jobId);
-            CounterThroughputThread.getCounterCruncherThread().addJob(jobId);
+            CounterThroughputThread.instance().addJob(jobId);
             TimerComputationThread.instance().addJob(jobId);
+            GroupConfConsolidationThread.instance().addJob(jobId);
 
             persist();
         }
@@ -597,6 +596,15 @@ public class Job {
             }
         }
         return jobs;
+    }
+
+    public List<AgentJobStatus> aliveAgents() {
+        List<AgentJobStatus> aliveAgents = new ArrayList<AgentJobStatus>();
+            for(AgentJobStatus agent : this.agentsJobStatus.values()) {
+                if(agent.getJob_status() == JOB_STATUS.RUNNING)
+                    aliveAgents.add(agent);
+            }
+        return aliveAgents;
     }
 
     @JsonIgnore
