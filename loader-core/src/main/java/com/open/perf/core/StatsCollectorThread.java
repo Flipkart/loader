@@ -1,5 +1,6 @@
 package com.open.perf.core;
 
+import com.open.perf.domain.Group;
 import com.open.perf.util.*;
 import com.open.perf.util.Timer;
 import org.apache.log4j.Logger;
@@ -30,11 +31,12 @@ public class StatsCollectorThread extends Thread{
     private final Map<String, Counter> customCounters;
     private final long startTimeMS;
     private final HashMap<String, BufferedWriter> filePathWriterMap;
+    private final Group group;
 
     public StatsCollectorThread(String statsBasePath,
                                 GroupStatsQueue groupStatsQueue,
                                 Map<String, FunctionCounter> functionCounters,
-                                List<String> customTimerNames,
+                                Group group,
                                 Map<String, Counter> customCounters,
                                 long startTimeMS) throws FileNotFoundException {
         this.statsBasePath = statsBasePath;
@@ -43,9 +45,10 @@ public class StatsCollectorThread extends Thread{
         this.fileWriters = new LinkedHashMap<String, BufferedWriter>();
         this.allCounters = new ArrayList<Counter>();
         this.functionCounters = functionCounters;
-        this.customTimers = customTimerNames;
+        this.customTimers = group.getCustomTimers();
         this.customCounters = customCounters;
         this.startTimeMS = startTimeMS;
+        this.group = group;
         for(String counter : customCounters.keySet()) {
             Counter customCounter = customCounters.get(counter);
             this.allCounters.add(customCounter);
@@ -64,6 +67,13 @@ public class StatsCollectorThread extends Thread{
     }
 
     private void createFileWriters(int filePartId) throws FileNotFoundException {
+        // Creating File Writer for realtime Group configuration
+        String realTimeConfPath = statsBasePath + File.separator + "realTimeConf" + ".part"+filePartId;
+        FileHelper.createFilePath(realTimeConfPath);
+        this.fileWriters.put("realTimeConf", new BufferedWriter(new OutputStreamWriter(new FileOutputStream(realTimeConfPath))));
+        this.filePathWriterMap.put(realTimeConfPath, this.fileWriters.get("realTimeConf"));
+
+        // Creating File Writer for Custom Timers
         for(String timer : customTimers) {
             String filePath = statsBasePath + File.separator + "timers" + File.separator + timer + ".part"+filePartId;
             FileHelper.createFilePath(filePath);
@@ -71,6 +81,7 @@ public class StatsCollectorThread extends Thread{
             this.filePathWriterMap.put(filePath, this.fileWriters.get(timer));
         }
 
+        // Creating File Writer for Custom Counters
         for(String counter : customCounters.keySet()) {
             String filePath = statsBasePath + File.separator + "counters" + File.separator + counter + ".part"+filePartId;
             FileHelper.createFilePath(filePath);
@@ -80,6 +91,7 @@ public class StatsCollectorThread extends Thread{
             this.filePathWriterMap.put(filePath, this.fileWriters.get(customCounters.get(counter).getCounterName()));
         }
 
+        // Creating File Writer for Function Counters
         for(String function : functionCounters.keySet()) {
             // For execution Times
 
@@ -210,6 +222,7 @@ public class StatsCollectorThread extends Thread{
                 dumpTimers(groupStatsInstance.getFunctionTimers());
             }
             dumpCounters();
+            dumpRealTimeGroupConf();
             this.collectingStats = false;
             completeFileWriters();
         } catch (FileNotFoundException e) {
@@ -223,9 +236,16 @@ public class StatsCollectorThread extends Thread{
         logger.debug("Time To Print Stats :" + (Clock.milliTick() - collectionStartTime));
     }
 
-
     private boolean canSwapQueues() {
         return !this.collectingStats;
+    }
+
+    private void dumpRealTimeGroupConf() {
+        BufferedWriter bw = this.fileWriters.get("realTimeConf");
+        writeToFile(bw, Clock.milliTick()
+                + "," + this.group.getThreads()
+                + "," + this.group.getThroughput()
+                + "\n");
     }
 
     private void dumpCounters(){

@@ -24,6 +24,7 @@ public class JobFSConfig {
     private String jobHealthStatusFile;
     private String runningJobsFile;
     private String queuedJobsFile;
+    private String jobGroupConfFile;
 
     public String getJobResourceMonitoringFile(String jobId, String agentIp, String resource) {
         return jobResourceMonitoringFile.replace("{jobId}", jobId).
@@ -164,6 +165,17 @@ public class JobFSConfig {
 
     public void setQueuedJobsFile(String queuedJobsFile) {
         this.queuedJobsFile = queuedJobsFile;
+    }
+
+    public void setJobGroupConfFile(String jobGroupConfFile) {
+        this.jobGroupConfFile = jobGroupConfFile;
+    }
+
+    public String getJobGroupConfFile(String jobId, String groupName, String agent) {
+        return jobGroupConfFile.
+                replace("{jobId}", jobId).
+                replace("{agentIp}",agent).
+                replace("{groupName}", groupName);
     }
 }
 
