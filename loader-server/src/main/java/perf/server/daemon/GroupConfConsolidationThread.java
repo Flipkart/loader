@@ -191,7 +191,7 @@ public class GroupConfConsolidationThread extends Thread {
                 if((lineTimeMS - startTimeMS) > 10 * MathConstant.THOUSAND ||
                         (jobOver(jobId) && cachedContent.size() == 0)) {
 
-                    int aliveAgents = JobsCache.getJob(jobId).getAliveAgents().size();
+                    int aliveAgents = JobsCache.getJob(jobId).aliveAgents().size();
                     if(aliveAgents == 0)
                         aliveAgents = 1;  // Fix it by caching last value of alive agents
                     float totalThreadsAcrossAgents = (totalThreads / lines) * aliveAgents;
