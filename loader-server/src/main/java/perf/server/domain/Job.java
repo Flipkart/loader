@@ -598,7 +598,7 @@ public class Job {
         return jobs;
     }
 
-    public List<AgentJobStatus> getAliveAgents() {
+    public List<AgentJobStatus> aliveAgents() {
         List<AgentJobStatus> aliveAgents = new ArrayList<AgentJobStatus>();
             for(AgentJobStatus agent : this.agentsJobStatus.values()) {
                 if(agent.getJob_status() == JOB_STATUS.RUNNING)
