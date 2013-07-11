@@ -6,7 +6,7 @@ import com.open.perf.util.FileHelper;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import perf.server.config.JobFSConfig;
-import perf.server.util.JobsCache;
+import perf.server.cache.JobsCache;
 import perf.server.util.ObjectMapperUtil;
 
 import java.io.*;
