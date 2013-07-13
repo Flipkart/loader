@@ -13,6 +13,7 @@ public class SampleServiceConfiguration extends Configuration {
     private String name;
     private int searchPoolSize;
     private int cacheSize;
+    private String fileContainingNames;
 
     public String getName() {
         return name;
@@ -36,5 +37,13 @@ public class SampleServiceConfiguration extends Configuration {
 
     public void setCacheSize(int cacheSize) {
         this.cacheSize = cacheSize;
+    }
+
+    public void setFileContainingNames(String fileContainingNames) {
+        this.fileContainingNames = fileContainingNames;
+    }
+
+    public String getFileContainingNames() {
+        return fileContainingNames;
     }
 }

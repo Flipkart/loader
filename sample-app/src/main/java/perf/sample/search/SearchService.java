@@ -19,11 +19,11 @@ public class SearchService {
         searchObjectPool = new GenericObjectPool<Search>(new SearchFactory(), poolSize);
     }
 
-    public List<String> search(String pattern) throws Exception {
+    public List<String> search(String pattern, int delay) throws Exception {
         Search search = null;
         try {
             search = this.searchObjectPool.borrowObject();
-            return search.search(pattern);
+            return search.search(pattern, delay);
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } finally {
