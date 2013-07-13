@@ -33,7 +33,7 @@ public class MemoryHoggerResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<String> welcome(@QueryParam("name") String namePattern) throws Exception {
-        List<String> names = searchService.search(namePattern);
+        List<String> names = searchService.search(namePattern,0);
         searchedNames.addAll(names);
         return names;
     }
