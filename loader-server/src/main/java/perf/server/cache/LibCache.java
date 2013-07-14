@@ -1,6 +1,6 @@
 package perf.server.cache;
 
-import perf.server.config.LibStorageFSConfig;
+import perf.server.config.ResourceStorageFSConfig;
 
 import java.io.*;
 import java.util.*;
@@ -15,11 +15,11 @@ import java.util.*;
 public class LibCache {
     private Map<String,String> classLibMap;
     private static LibCache self;
-    private LibStorageFSConfig storageConfig;
+    private ResourceStorageFSConfig storageConfig;
 
     private String platformZipPath;
 
-    private LibCache(LibStorageFSConfig storageConfig) throws IOException {
+    private LibCache(ResourceStorageFSConfig storageConfig) throws IOException {
         this.storageConfig = storageConfig;
         this.classLibMap = new HashMap<String, String>();
         refreshClassLibMap();
@@ -40,7 +40,7 @@ public class LibCache {
         return platformZipPath;
     }
 
-    public static LibCache initialize(LibStorageFSConfig storageConfig) throws IOException {
+    public static LibCache initialize(ResourceStorageFSConfig storageConfig) throws IOException {
         if(self == null)
             self = new LibCache(storageConfig);
         return self;

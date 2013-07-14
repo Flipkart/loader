@@ -10,22 +10,9 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.log4j.Logger;
@@ -34,7 +21,7 @@ import org.reflections.Reflections;
 import org.reflections.Store;
 
 import perf.server.cache.LibCache;
-import perf.server.config.LibStorageFSConfig;
+import perf.server.config.ResourceStorageFSConfig;
 import perf.server.domain.FunctionInfo;
 import perf.server.util.ObjectMapperUtil;
 
@@ -45,21 +32,22 @@ import com.open.perf.util.FileHelper;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
+import perf.server.util.ResponseBuilder;
 
 
 /**
- * Resource that deploy libs on the server
+ * Resource that deploys libs, file resources on the server
  */
-@Path("/libs")
-public class DeployLibResource {
-    private static Logger log = Logger.getLogger(DeployLibResource.class);
-    private LibStorageFSConfig storageConfig;
+@Path("/resourceTypes")
+public class DeployResourcesResource {
+    private static Logger log = Logger.getLogger(DeployResourcesResource.class);
+    private ResourceStorageFSConfig resourceStorageFSConfig;
     private LibCache libCache;
     private CustomClassLoader customClassLoader;
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
 
-    public DeployLibResource(LibStorageFSConfig storageConfig) throws MalformedURLException {
-        this.storageConfig = storageConfig;
+    public DeployResourcesResource(ResourceStorageFSConfig resourceStorageFSConfig) throws MalformedURLException {
+        this.resourceStorageFSConfig = resourceStorageFSConfig;
         this.libCache = LibCache.instance();
         loadPlatformLibsInCustomClassLoader();
     }
@@ -69,7 +57,7 @@ public class DeployLibResource {
         customClassLoader = null;
         URLClassLoader loader = (URLClassLoader)ClassLoader.getSystemClassLoader();
         customClassLoader = new CustomClassLoader(loader.getURLs());
-        File platformLibPath = new File(this.storageConfig.getPlatformLibPath());
+        File platformLibPath = new File(this.resourceStorageFSConfig.getPlatformLibPath());
         if(platformLibPath.exists()) {
             File[] platformLibs = platformLibPath.listFiles();
             for(File platformLib : platformLibs) {
@@ -95,7 +83,7 @@ public class DeployLibResource {
      -X POST
      -H "Content-Type: multipart/form-data"
      -F "lib=@Path-To-Jar-File"
-     http://localhost:8888/loader-server/libs/classLibs
+     http://localhost:8888/loader-server/resourceTypes/udfLibs
      *
      *
      *
@@ -103,7 +91,7 @@ public class DeployLibResource {
      * @param libFileDetails Lib file meta details
      * @throws java.io.IOException
      */
-    @Path("/classLibs")
+    @Path("/udfLibs")
     @POST
     @Timed
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -112,7 +100,7 @@ public class DeployLibResource {
             @FormDataParam("lib") InputStream libInputStream,
             @FormDataParam("lib") FormDataContentDisposition libFileDetails) throws IOException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        String userLibPath = storageConfig.getUserLibPath()
+        String userLibPath = resourceStorageFSConfig.getUdfLibsPath()
                 + File.separator
                 + libFileDetails.getFileName();
 
@@ -135,13 +123,13 @@ public class DeployLibResource {
      */
     private void persistDiscoveredUserFunctions(String libFileName, Map<String, FunctionInfo> discoveredUserFunctions) throws IOException {
         for(String userFunction : discoveredUserFunctions.keySet()) {
-            mergeMappingFile(storageConfig.getUserLibPath()
+            mergeMappingFile(resourceStorageFSConfig.getUdfLibsPath()
                     + File.separator
                     + libFileName,
                     userFunction);
 
             FunctionInfo functionInfo = discoveredUserFunctions.get(userFunction);
-            String functionInfoFile = storageConfig.getUserClassInfoPath() + File.separator + userFunction + ".info.json";
+            String functionInfoFile = resourceStorageFSConfig.getUserClassInfoPath() + File.separator + userFunction + ".info.json";
             FileHelper.createFile(functionInfoFile);
             objectMapper.writeValue(new File(functionInfoFile), functionInfo);
         }
@@ -151,14 +139,13 @@ public class DeployLibResource {
         LIB,CLASS;
     }
 
-
     /**
      *
      * @param mapKey takes LIB or CLASS as value. Default value is LIB
      * @return returns either Map(lib -> list of class) or Map(class -> Lib) depending upon mapKey
      * @throws java.io.IOException
      */
-    @Path("/classLibs")
+    @Path("/udfLibs")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Map getLibs(@QueryParam("mapKey") @DefaultValue("LIB") String mapKey) throws IOException {
@@ -180,7 +167,7 @@ public class DeployLibResource {
      -X POST
      -H "Content-Type: multipart/form-data"
      -F "lib=@Path-To-Zip-File-Containing-Platform-Lib-File"
-     http://localhost:8888/loader-server/libs/platformLibs
+     http://localhost:8888/loader-server/resourceTypes/platformLibs
 
      * @param libInputStream zip containing platform jars
      */
@@ -190,13 +177,13 @@ public class DeployLibResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     synchronized public void deployPlatformLib(
             @FormDataParam("lib") InputStream libInputStream){
-        String platformZipPath = storageConfig.getPlatformLibPath()+ File.separator + "platform.zip";
-        String tmpPlatformZipPath = storageConfig.getPlatformLibPath()+ File.separator + "platform.zip.tmp";
+        String platformZipPath = resourceStorageFSConfig.getPlatformLibPath()+ File.separator + "platform.zip";
+        String tmpPlatformZipPath = resourceStorageFSConfig.getPlatformLibPath()+ File.separator + "platform.zip.tmp";
 
         try {
             FileHelper.move(platformZipPath,tmpPlatformZipPath);
             FileHelper.persistStream(libInputStream, platformZipPath);
-            FileHelper.unzip(new FileInputStream(platformZipPath), storageConfig.getPlatformLibPath());
+            FileHelper.unzip(new FileInputStream(platformZipPath), resourceStorageFSConfig.getPlatformLibPath());
             FileHelper.remove(tmpPlatformZipPath);
             loadPlatformLibsInCustomClassLoader();
 
@@ -214,19 +201,83 @@ public class DeployLibResource {
     @Timed
     @Produces(MediaType.APPLICATION_JSON)
     synchronized public List getPlatformLib(){
-        return Arrays.asList(new File(storageConfig.getPlatformLibPath()).list());
+        return Arrays.asList(new File(resourceStorageFSConfig.getPlatformLibPath()).list());
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         String externalJar = "/home/nitinka/git/loader2.0/loader-http-operations/target/loader-http-operations-1.0-SNAPSHOT-jar-with-dependencies.jar";
-        LibStorageFSConfig storageFSConfig = new LibStorageFSConfig().
+        ResourceStorageFSConfig storageFSConfig = new ResourceStorageFSConfig().
                 setPlatformLibPath("/usr/share/loader-server/platformLibs/").
                 setUserClassInfoPath("/usr/share/loader-server/config").
                 setUserClassLibMappingFile("/usr/share/loader-server/config/classLibMapping.properties");
-        DeployLibResource deploy = new DeployLibResource(storageFSConfig);
+        DeployResourcesResource deploy = new DeployResourcesResource(storageFSConfig);
         Map<String, FunctionInfo> discoveredUserFunctions = deploy.discoverUserFunctions(externalJar);
         deploy.persistDiscoveredUserFunctions("sample", discoveredUserFunctions);
         System.out.println(discoveredUserFunctions);
+    }
+
+
+    /**
+     Following call simulates html form post call, where somebody uploads a file to server
+     curl
+     -X POST
+     -H "Content-Type: multipart/form-data"
+     -F "lib=@Path-To-Zip-File-Containing-Platform-Lib-File"
+     http://localhost:8888/loader-server/resourceTypes/inputFiles
+
+     * @param inputStream zip containing platform jars
+     */
+    @Path("/inputFiles")
+    @POST
+    @Timed
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    synchronized public void deployInputFiles(
+            @FormDataParam("file") InputStream inputStream,
+            @FormDataParam("resourceName") String resourceName) throws IOException {
+        File resourceFile = new File(resourceStorageFSConfig.getInputFilePath(resourceName));
+        if(resourceFile.exists()) {
+            throw new WebApplicationException(ResponseBuilder.resourceAlreadyExists("inputFile", resourceName));
+        }
+
+        // Copy the File in resources Folder
+        FileHelper.createFilePath(resourceFile.getAbsolutePath());
+        FileHelper.persistStream(inputStream, resourceFile.getAbsolutePath());
+    }
+
+    @Path("/inputFiles")
+    @GET
+    @Timed
+    @Produces(MediaType.APPLICATION_JSON)
+    synchronized public List<String> getInputFiles() throws IOException {
+        File inputFilesPath = new File(resourceStorageFSConfig.getInputFilesPath());
+        if(inputFilesPath.exists()) {
+            return Arrays.asList(inputFilesPath.list());
+        }
+        return new ArrayList<String>();
+    }
+
+    @Path("/inputFiles/{resourceName}")
+    @GET
+    @Timed
+    @Produces(MediaType.TEXT_PLAIN)
+    public InputStream getInputFile(@PathParam("resourceName") String resourceName) throws IOException {
+        File resourceFile = new File(resourceStorageFSConfig.getInputFilePath(resourceName));
+        if(!resourceFile.exists()) {
+            throw new WebApplicationException(ResponseBuilder.resourceNotFound("inputFile", resourceName));
+        }
+        return new FileInputStream(resourceFile);
+    }
+
+    @Path("/inputFiles/{resourceName}")
+    @DELETE
+    @Timed
+    @Produces(MediaType.TEXT_PLAIN)
+    public void deleteInputFile(@PathParam("resourceName") String resourceName) throws IOException {
+        File resourceFile = new File(resourceStorageFSConfig.getInputFilePath(resourceName));
+        if(!resourceFile.exists()) {
+            throw new WebApplicationException(ResponseBuilder.resourceNotFound("inputFile", resourceName));
+        }
+        resourceFile.delete();
     }
 
     /**
@@ -285,7 +336,7 @@ public class DeployLibResource {
      * @throws IOException
      */
     synchronized private void mergeMappingFile(String libPath, String userFunctionClass) throws IOException {
-        String mappingFile = storageConfig.getUserClassLibMappingFile();
+        String mappingFile = resourceStorageFSConfig.getUserClassLibMappingFile();
 
         Properties prop = new Properties();
         FileHelper.createFile(mappingFile);

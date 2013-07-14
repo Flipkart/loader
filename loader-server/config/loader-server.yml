@@ -1,10 +1,12 @@
 appName: "Loader Server"
 
-libStorageFSConfig:
-  userLibPath: "/usr/share/loader-server/libs"
-  platformLibPath: "/usr/share/loader-server/platformLibs"
+resourceStorageFSConfig:
+  udfLibsPath: "/usr/share/loader-server/libs"
   userClassInfoPath: "/usr/share/loader-server/config"
   userClassLibMappingFile: "/usr/share/loader-server/config/classLibMapping.properties"
+  platformLibPath: "/usr/share/loader-server/platformLibs"
+  inputFilesPath: "/usr/share/loader-server/inputFiles"
+  inputFilePath: "/usr/share/loader-server/inputFiles/{resourceName}/inputFile"
 
 agentConfig:
   agentPort: 8888

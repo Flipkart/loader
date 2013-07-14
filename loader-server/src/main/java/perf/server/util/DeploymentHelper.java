@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 import perf.server.cache.LibCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
-import perf.server.config.LibStorageFSConfig;
+import perf.server.config.ResourceStorageFSConfig;
 import perf.server.exception.LibNotDeployedException;
 
 import java.io.*;
@@ -23,14 +23,14 @@ public class DeploymentHelper {
     private static Logger log = Logger.getLogger(DeploymentHelper.class);
     private static DeploymentHelper myInstance;
     private final AgentConfig agentConfig;
-    private final LibStorageFSConfig libStorageConfig;
+    private final ResourceStorageFSConfig libStorageConfig;
 
-    private DeploymentHelper(AgentConfig agentConfig, LibStorageFSConfig libStorageConfig) {
+    private DeploymentHelper(AgentConfig agentConfig, ResourceStorageFSConfig libStorageConfig) {
         this.agentConfig = agentConfig;
         this.libStorageConfig = libStorageConfig;
     }
 
-    public static DeploymentHelper initialize(AgentConfig agentConfig, LibStorageFSConfig libStorageConfig) {
+    public static DeploymentHelper initialize(AgentConfig agentConfig, ResourceStorageFSConfig libStorageConfig) {
         if(myInstance == null)
             myInstance = new DeploymentHelper(agentConfig, libStorageConfig);
         return myInstance;
