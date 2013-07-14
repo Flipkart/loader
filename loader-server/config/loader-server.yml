@@ -6,7 +6,9 @@ resourceStorageFSConfig:
   userClassLibMappingFile: "/usr/share/loader-server/config/classLibMapping.properties"
   platformLibPath: "/usr/share/loader-server/platformLibs"
   inputFilesPath: "/usr/share/loader-server/inputFiles"
+  inputFileFolderPath: "/usr/share/loader-server/inputFiles/{resourceName}"
   inputFilePath: "/usr/share/loader-server/inputFiles/{resourceName}/inputFile"
+  inputFileAgentDeploymentPath: "/usr/share/loader-server/inputFiles/{resourceName}/agentDeployment.txt"
 
 agentConfig:
   agentPort: 8888

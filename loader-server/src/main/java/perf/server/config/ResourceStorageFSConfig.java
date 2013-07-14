@@ -8,7 +8,9 @@ public class ResourceStorageFSConfig {
     private String platformLibPath;
     private String userClassInfoPath;
     private String inputFilesPath;
+    private String inputFileFolderPath;
     private String inputFilePath;
+    private String inputFileAgentDeploymentPath;
 
     public String getUdfLibsPath() {
         return udfLibsPath;
@@ -66,5 +68,21 @@ public class ResourceStorageFSConfig {
     public ResourceStorageFSConfig setInputFilePath(String inputFilePath) {
         this.inputFilePath = inputFilePath;
         return this;
+    }
+
+    public String getInputFileAgentDeploymentPath(String resourceName) {
+        return inputFileAgentDeploymentPath.replace("{resourceName}", resourceName);
+    }
+
+    public void setInputFileAgentDeploymentPath(String inputFileAgentDeploymentPath) {
+        this.inputFileAgentDeploymentPath = inputFileAgentDeploymentPath;
+    }
+
+    public String getInputFileFolderPath(String resourceName) {
+        return inputFileFolderPath.replace("{resourceName}", resourceName);
+    }
+
+    public void setInputFileFolderPath(String inputFileFolderPath) {
+        this.inputFileFolderPath = inputFileFolderPath;
     }
 }
