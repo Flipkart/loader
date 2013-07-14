@@ -1,5 +1,6 @@
 package com.open.perf.core;
 
+import com.open.perf.config.FSConfig;
 import com.open.perf.jackson.ObjectMapperUtil;
 import com.open.perf.util.Clock;
 import com.open.perf.util.Counter;
@@ -39,6 +40,14 @@ public class FunctionContext {
     private long startTime = -1;
     private long time = -1;
 
+    private static Map<String, String> inputFileResources;
+    private static final Pattern variablePattern;
+
+    static {
+        inputFileResources = FSConfig.inputFileResources();
+        variablePattern = Pattern.compile(".*$\\{(.+)\\}.*");
+    }
+
     public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters) {
         this.functionParameters = new HashMap<String, Object>();
         this.timers = functionTimers;
@@ -46,9 +55,47 @@ public class FunctionContext {
         this.passOnParameters = new HashMap<String, Object>();
     }
 
+    public File getResourceAsFile(String resourceName) {
+        File file = new File(FSConfig.getInputFilePath(resourceName));
+        if(file.exists())
+            return file;
+        return null;
+    }
+
+    public InputStream getResourceAsInputStream(String resourceName) throws FileNotFoundException {
+        File file = new File(FSConfig.getInputFilePath(resourceName));
+        if(file.exists())
+            return new FileInputStream(file);
+        return null;
+    }
+
     public Object getParameter(String parameterName) {
         Object value = functionParameters.get(parameterName);
-        return value != null ? value : passOnParameters.get(parameterName);
+        if(value == null)
+            value = passOnParameters.get(parameterName);
+
+        // Resolve variable parameters
+        if(value instanceof String) {
+            String valueString = value.toString();
+            Matcher matcher = variablePattern.matcher(valueString);
+            while(matcher.matches()) {
+                String varName = matcher.group(1);
+                Object replacementValue = inputFileResources.get(varName);
+                if(replacementValue == null)
+                    replacementValue = functionParameters.get(varName);
+
+                if(replacementValue == null)
+                    replacementValue = passOnParameters.get(varName);
+
+                if(replacementValue == null)
+                    replacementValue = "null";
+
+                valueString = valueString.replace("${"+varName+"}", replacementValue.toString());
+                matcher = variablePattern.matcher(valueString);
+            }
+        }
+
+        return value;
     }
 
     public String getParameterAsString(String parameterName) {
