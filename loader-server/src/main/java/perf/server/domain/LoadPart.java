@@ -10,6 +10,7 @@ public class LoadPart {
     private String name;
     private int agents;
     private List<String> classes;
+    private List<String> inputFileResources;
     private Load load;
 
     public String getName() {
@@ -45,6 +46,15 @@ public class LoadPart {
 
     public LoadPart setLoad(Load load) {
         this.load = load;
+        return this;
+    }
+
+    public List<String> getInputFileResources() {
+        return inputFileResources;
+    }
+
+    public LoadPart setInputFileResources(List<String> inputFileResources) {
+        this.inputFileResources = inputFileResources;
         return this;
     }
 }

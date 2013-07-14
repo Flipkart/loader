@@ -1,10 +1,6 @@
 package perf.server.resource;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -14,6 +10,7 @@ import java.util.*;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -204,19 +201,6 @@ public class DeployResourcesResource {
         return Arrays.asList(new File(resourceStorageFSConfig.getPlatformLibPath()).list());
     }
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        String externalJar = "/home/nitinka/git/loader2.0/loader-http-operations/target/loader-http-operations-1.0-SNAPSHOT-jar-with-dependencies.jar";
-        ResourceStorageFSConfig storageFSConfig = new ResourceStorageFSConfig().
-                setPlatformLibPath("/usr/share/loader-server/platformLibs/").
-                setUserClassInfoPath("/usr/share/loader-server/config").
-                setUserClassLibMappingFile("/usr/share/loader-server/config/classLibMapping.properties");
-        DeployResourcesResource deploy = new DeployResourcesResource(storageFSConfig);
-        Map<String, FunctionInfo> discoveredUserFunctions = deploy.discoverUserFunctions(externalJar);
-        deploy.persistDiscoveredUserFunctions("sample", discoveredUserFunctions);
-        System.out.println(discoveredUserFunctions);
-    }
-
-
     /**
      Following call simulates html form post call, where somebody uploads a file to server
      curl
@@ -231,17 +215,25 @@ public class DeployResourcesResource {
     @POST
     @Timed
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    synchronized public void deployInputFiles(
+    @Produces(MediaType.APPLICATION_JSON)
+    synchronized public Response deployInputFiles(
             @FormDataParam("file") InputStream inputStream,
-            @FormDataParam("resourceName") String resourceName) throws IOException {
+            @FormDataParam("resourceName") String resourceName) {
         File resourceFile = new File(resourceStorageFSConfig.getInputFilePath(resourceName));
         if(resourceFile.exists()) {
             throw new WebApplicationException(ResponseBuilder.resourceAlreadyExists("inputFile", resourceName));
         }
 
-        // Copy the File in resources Folder
         FileHelper.createFilePath(resourceFile.getAbsolutePath());
-        FileHelper.persistStream(inputStream, resourceFile.getAbsolutePath());
+        try {
+            FileHelper.persistStream(inputStream, resourceFile.getAbsolutePath());
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(resourceStorageFSConfig.getInputFileAgentDeploymentPath(resourceName)), new HashMap());
+            return ResponseBuilder.resourceCreated("inputFile", resourceName);
+        } catch (IOException e) {
+            e.printStackTrace();
+            FileHelper.remove(resourceStorageFSConfig.getInputFileFolderPath(resourceName));
+            throw new WebApplicationException(ResponseBuilder.internalServerError(e));
+        }
     }
 
     @Path("/inputFiles")
@@ -287,11 +279,11 @@ public class DeployResourcesResource {
     @Timed
     @Produces(MediaType.TEXT_PLAIN)
     public void deleteInputFile(@PathParam("resourceName") String resourceName) throws IOException {
-        File resourceFile = new File(resourceStorageFSConfig.getInputFilePath(resourceName));
-        if(!resourceFile.exists()) {
+        File inputFileFolderPath = new File(resourceStorageFSConfig.getInputFileFolderPath(resourceName));
+        if(!inputFileFolderPath.exists()) {
             throw new WebApplicationException(ResponseBuilder.resourceNotFound("inputFile", resourceName));
         }
-        resourceFile.delete();
+        FileHelper.remove(inputFileFolderPath.getAbsolutePath());
     }
 
     /**

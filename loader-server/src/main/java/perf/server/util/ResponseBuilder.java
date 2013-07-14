@@ -43,5 +43,8 @@ public class ResponseBuilder {
         return Response.status(status).entity(message).build();
     }
 
+    public static Response internalServerError(Exception e) {
+        return response(Response.Status.INTERNAL_SERVER_ERROR, e);
+    }
 }
 
