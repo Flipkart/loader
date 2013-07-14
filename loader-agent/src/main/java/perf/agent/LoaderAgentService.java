@@ -1,9 +1,6 @@
 package perf.agent;
 
-import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
-import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
-import org.eclipse.jetty.util.component.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +13,7 @@ import perf.agent.daemon.JobProcessorThread;
 import perf.agent.daemon.JobStatsSyncThread;
 import perf.agent.health.JobProcessorHealthCheck;
 import perf.agent.resource.AdminResource;
-import perf.agent.resource.DeployLibResource;
+import perf.agent.resource.DeployResourcesResource;
 import perf.agent.resource.JobResource;
 
 import com.yammer.dropwizard.Service;
@@ -25,7 +22,6 @@ import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.FilterBuilder;
 
 import java.io.IOException;
-import java.util.EventListener;
 import java.util.concurrent.ExecutionException;
 
 
@@ -46,7 +42,7 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
         JobHealthCheckThread.initialize(LoaderServerClient.buildClient(configuration.getServerInfo()),
                 configuration.getJobProcessorConfig());
 
-        LibCache.initialize(configuration.getLibStorageConfig());
+        LibCache.initialize(configuration.getResourceStorageFSConfig());
 
         JobStatsSyncThread.initialize(configuration.getJobStatSyncConfig(),
                 configuration.getJobFSConfig(),
@@ -56,7 +52,7 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
                 LoaderServerClient.buildClient(configuration.getServerInfo()),
                 configuration.getJobFSConfig());
 
-        environment.addResource(new DeployLibResource(configuration.getLibStorageConfig()));
+        environment.addResource(new DeployResourcesResource(configuration.getResourceStorageFSConfig()));
         environment.addResource(new AdminResource(configuration));
         environment.addResource(new JobResource(configuration.getJobProcessorConfig(),
                 configuration.getJobFSConfig()));

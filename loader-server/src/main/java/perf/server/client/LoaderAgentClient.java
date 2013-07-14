@@ -22,21 +22,15 @@ import com.ning.http.multipart.FilePart;
 import com.ning.http.multipart.StringPart;
 import com.open.perf.domain.Load;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nitinka
- * Date: 7/2/13
- * Time: 11:17 AM
- * To change this template use File | Settings | File Templates.
- */
 public class LoaderAgentClient {
     private String host;
     private int port;
     private static LibCache libCache;
     private static Logger logger = Logger.getLogger(LoaderAgentClient.class);
 
-    private static final String RESOURCE_PLATFORM_LIB = "/loader-agent/libs/platformLibs";
-    private static final String RESOURCE_OPERATION_LIB = "/loader-agent/libs/classLibs";
+    private static final String RESOURCE_PLATFORM_LIB = "/loader-agent/resourceTypes/platformLibs";
+    private static final String RESOURCE_UDF_LIB = "/loader-agent/resourceTypes/udfLibs";
+    private static final String RESOURCE_INPUT_FILE = "/loader-agent/resourceTypes/inputFiles";
     private static final String RESOURCE_JOB = "/loader-agent/jobs";
     private static final String RESOURCE_JOB_KILL = "/loader-agent/jobs/{jobId}/kill";
     private static final String RESOURCE_ADMIN_REGISTRATION_INFO = "/loader-agent/admin/registrationInfo";
@@ -99,14 +93,30 @@ public class LoaderAgentClient {
         return successfulDeployment;
     }
 
-    public boolean deployClassLibs(String libPath, String classList) throws IOException, ExecutionException, InterruptedException {
+    public boolean deployUDFLib(String libPath, String classList) throws IOException, ExecutionException, InterruptedException {
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
 
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
-                preparePost("http://" + this.getHost() + ":" + this.getPort() + RESOURCE_OPERATION_LIB).
+                preparePost("http://" + this.getHost() + ":" + this.getPort() + RESOURCE_UDF_LIB).
                 setHeader("Content-Type", MediaType.MULTIPART_FORM_DATA).
                 addBodyPart(new FilePart("lib", new File(libPath))).
                 addBodyPart(new StringPart("classList", classList));
+
+        Future<Response> r = b.execute();
+        r.get();
+        boolean successfulDeployment = r.get().getStatusCode() == 204;
+        asyncHttpClient.close();
+        return successfulDeployment;
+    }
+
+    public boolean deployInputFile(String resourceName, String inputFilePath) throws IOException, ExecutionException, InterruptedException {
+        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+
+        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+                preparePost("http://" + this.getHost() + ":" + this.getPort() + RESOURCE_INPUT_FILE).
+                setHeader("Content-Type", MediaType.MULTIPART_FORM_DATA).
+                addBodyPart(new FilePart("file", new File(inputFilePath))).
+                addBodyPart(new StringPart("resourceName", resourceName));
 
         Future<Response> r = b.execute();
         r.get();

@@ -160,7 +160,7 @@ public class AgentResource {
             @QueryParam("force") @DefaultValue("false")BooleanParam force) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
         String classes = FileHelper.readContent(classListInputStream);
         for(String agentIP : agentIPs.split(","))
-            DeploymentHelper.instance().deployClassLibsOnAgent(agentIP, classes, force.get());
+            DeploymentHelper.instance().deployUDFLibsOnAgent(agentIP, classes, force.get());
     }
 
     private void refreshAgentInfo(LoaderAgent loaderAgent) throws IOException {

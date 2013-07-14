@@ -7,11 +7,13 @@ import com.yammer.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import perf.agent.cache.LibCache;
-import perf.agent.config.LibStorageConfig;
+import perf.agent.config.ResourceStorageFSConfig;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -23,15 +25,15 @@ import java.util.Properties;
  * Time: 1:16 PM
  * To change this template use File | Settings | File Templates.
  */
-@Path("/libs")
+@Path("/resourceTypes")
 
-public class DeployLibResource {
-    private static Logger logger = LoggerFactory.getLogger(DeployLibResource.class);
-    private LibStorageConfig storageConfig;
+public class DeployResourcesResource {
+    private static Logger logger = LoggerFactory.getLogger(DeployResourcesResource.class);
+    private ResourceStorageFSConfig resourceStorageFSConfig;
     private LibCache libCache;
 
-    public DeployLibResource(LibStorageConfig storageConfig) {
-        this.storageConfig = storageConfig;
+    public DeployResourcesResource(ResourceStorageFSConfig resourceStorageFSConfig) {
+        this.resourceStorageFSConfig = resourceStorageFSConfig;
         this.libCache = LibCache.getInstance();
     }
 
@@ -49,7 +51,7 @@ public class DeployLibResource {
      * @param classListStr file containing class names, one in every line
      * @throws IOException
      */
-    @Path("/classLibs")
+    @Path("/udfLibs")
     @POST
     @Timed
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -58,15 +60,15 @@ public class DeployLibResource {
             @FormDataParam("lib") FormDataContentDisposition libFileDetails,
             @FormDataParam("classList") String classListStr) throws IOException {
 
-        FileHelper.persistStream(libInputStream, storageConfig.getLibPath()
+        FileHelper.persistStream(libInputStream, resourceStorageFSConfig.getUdfLibsPath()
                 + File.separator
                 + libFileDetails.getFileName());
 
-        mergeMappingFile(storageConfig.getLibPath()
+        mergeMappingFile(resourceStorageFSConfig.getUdfLibsPath()
                 + File.separator
                 + libFileDetails.getFileName(),
                 classListStr,
-                storageConfig.getMappingFile());
+                resourceStorageFSConfig.getMappingFile());
 
         this.libCache.refreshClassLibMap();
     }
@@ -82,7 +84,7 @@ public class DeployLibResource {
      * @return returns either Map(lib -> list of class) or Map(class -> Lib) depending upon mapKey
      * @throws IOException
      */
-    @Path("/classLibs")
+    @Path("/udfLibs")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Map getLibs(@QueryParam("mapKey") @DefaultValue("LIB") String mapKey) throws IOException {
@@ -103,7 +105,7 @@ public class DeployLibResource {
      * @return return list of classes for which there are no libs deployed on agent
      * @throws IOException
      */
-    @Path("/classLibs/exist")
+    @Path("/udfLibs/exist")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List searchLibs(@QueryParam("classes") @DefaultValue("") String classes) throws IOException {
@@ -128,14 +130,14 @@ public class DeployLibResource {
     synchronized public String deployPlatformLib(
             @FormDataParam("lib") InputStream libInputStream){
 
-        FileHelper.rename(storageConfig.getPlatformLibPath(), storageConfig.getPlatformLibPath()+".tmp");
+        FileHelper.rename(resourceStorageFSConfig.getPlatformLibPath(), resourceStorageFSConfig.getPlatformLibPath() + ".tmp");
         try {
-            FileHelper.unzip(libInputStream, storageConfig.getPlatformLibPath());
-            FileHelper.remove(storageConfig.getPlatformLibPath() + ".tmp");
+            FileHelper.unzip(libInputStream, resourceStorageFSConfig.getPlatformLibPath());
+            FileHelper.remove(resourceStorageFSConfig.getPlatformLibPath() + ".tmp");
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            FileHelper.remove(storageConfig.getPlatformLibPath());
-            FileHelper.rename(storageConfig.getPlatformLibPath() + ".tmp", storageConfig.getPlatformLibPath());
+            FileHelper.remove(resourceStorageFSConfig.getPlatformLibPath());
+            FileHelper.rename(resourceStorageFSConfig.getPlatformLibPath() + ".tmp", resourceStorageFSConfig.getPlatformLibPath());
         } finally {
             this.libCache.refreshPlatformLib();
         }
@@ -149,6 +151,33 @@ public class DeployLibResource {
     synchronized public List getPlatformLib(){
         return this.libCache.getPlatformLibs();
     }
+
+    /**
+     Following call simulates html form post call, where somebody uploads a file to server
+     curl
+     -X POST
+     -H "Content-Type: multipart/form-data"
+     -F "lib=@Path-To-Zip-File-Containing-Platform-Lib-File"
+     http://localhost:8888/loader-server/resourceTypes/inputFiles
+
+     * @param inputStream zip containing platform jars
+     */
+    @Path("/inputFiles")
+    @POST
+    @Timed
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    synchronized public void deployInputFiles(
+            @FormDataParam("file") InputStream inputStream,
+            @FormDataParam("resourceName") String resourceName) throws IOException {
+        File resourceFile = new File(resourceStorageFSConfig.getInputFilePath(resourceName));
+        if(resourceFile.exists()) {
+            resourceFile.delete();
+        }
+
+        FileHelper.createFilePath(resourceFile.getAbsolutePath());
+        FileHelper.persistStream(inputStream, resourceFile.getAbsolutePath());
+    }
+
 
     synchronized public static void mergeMappingFile(String libPath, String classListStr, String mappingFile) throws IOException {
         InputStream mappingFileIS = new FileInputStream(mappingFile);
