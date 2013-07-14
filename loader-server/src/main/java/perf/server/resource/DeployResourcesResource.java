@@ -269,6 +269,20 @@ public class DeployResourcesResource {
     }
 
     @Path("/inputFiles/{resourceName}")
+    @PUT
+    @Timed
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    synchronized public void updateInputFile(
+            @FormDataParam("file") InputStream inputStream, @PathParam("resourceName") String resourceName) throws IOException {
+        File resourceFile = new File(resourceStorageFSConfig.getInputFilePath(resourceName));
+        if(!resourceFile.exists()) {
+            throw new WebApplicationException(ResponseBuilder.resourceNotFound("inputFile", resourceName));
+        }
+        resourceFile.delete();
+        FileHelper.persistStream(inputStream, resourceFile.getAbsolutePath());
+    }
+
+    @Path("/inputFiles/{resourceName}")
     @DELETE
     @Timed
     @Produces(MediaType.TEXT_PLAIN)
