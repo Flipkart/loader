@@ -23,16 +23,16 @@ public class DeploymentHelper {
     private static Logger log = Logger.getLogger(DeploymentHelper.class);
     private static DeploymentHelper myInstance;
     private final AgentConfig agentConfig;
-    private final ResourceStorageFSConfig libStorageConfig;
+    private final ResourceStorageFSConfig resourceStorageFSConfig;
 
-    private DeploymentHelper(AgentConfig agentConfig, ResourceStorageFSConfig libStorageConfig) {
+    private DeploymentHelper(AgentConfig agentConfig, ResourceStorageFSConfig resourceStorageFSConfig) {
         this.agentConfig = agentConfig;
-        this.libStorageConfig = libStorageConfig;
+        this.resourceStorageFSConfig = resourceStorageFSConfig;
     }
 
-    public static DeploymentHelper initialize(AgentConfig agentConfig, ResourceStorageFSConfig libStorageConfig) {
+    public static DeploymentHelper initialize(AgentConfig agentConfig, ResourceStorageFSConfig resourceStorageFSConfig) {
         if(myInstance == null)
-            myInstance = new DeploymentHelper(agentConfig, libStorageConfig);
+            myInstance = new DeploymentHelper(agentConfig, resourceStorageFSConfig);
         return myInstance;
     }
 
@@ -73,7 +73,7 @@ public class DeploymentHelper {
                 prop.load(new FileInputStream(platformFile));
                 if(prop.get("deploymentTime") != null) {
                     long deploymentTimeInAgent = Long.parseLong(prop.get("deploymentTime").toString());
-                    long deploymentTimeInServer = new File(this.libStorageConfig.getPlatformLibPath()).lastModified();
+                    long deploymentTimeInServer = new File(this.resourceStorageFSConfig.getPlatformLibPath()).lastModified();
                     deployPlatformLib = deploymentTimeInServer > deploymentTimeInAgent;
                 }
                 else
@@ -100,11 +100,11 @@ public class DeploymentHelper {
         }
     }
 
-    public void deployClassLibsOnAgent(String agentIP, String classListStr) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
-        deployClassLibsOnAgent(agentIP, classListStr, false);
+    public void deployUDFLibsOnAgent(String agentIP, String classListStr) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
+        deployUDFLibsOnAgent(agentIP, classListStr, false);
     }
 
-    public void deployClassLibsOnAgent(String agentIP, String classListStr, boolean force) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
+    public void deployUDFLibsOnAgent(String agentIP, String classListStr, boolean force) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
         Map<String, String> libClassListMap = makeLibClassListMap(classListStr);
         String agentClassLibInfoFile = this.agentConfig.getAgentClassLibInfoFile(agentIP);
         File classLibDeploymentFile = new File (agentClassLibInfoFile);
@@ -126,7 +126,7 @@ public class DeploymentHelper {
 
                 if(deployLib || force) {
                     if(new LoaderAgentClient(agentIP,agentConfig.getAgentPort()).
-                            deployClassLibs(lib,
+                            deployUDFLib(lib,
                                     libClassListMap.get(lib))) {
                         prop.put(lib, String.valueOf(System.currentTimeMillis()));
                     }
@@ -141,7 +141,7 @@ public class DeploymentHelper {
             FileHelper.createFilePath(classLibDeploymentFile.getAbsolutePath());
             for(String lib : libClassListMap.keySet()) {
                 if(new LoaderAgentClient(agentIP,agentConfig.getAgentPort()).
-                        deployClassLibs(lib,
+                        deployUDFLib(lib,
                                 libClassListMap.get(lib))) {
                     prop.put(lib, String.valueOf(System.currentTimeMillis()));
                 }
@@ -154,6 +154,31 @@ public class DeploymentHelper {
         prop.store(new FileOutputStream(classLibDeploymentFile), "ClassLib Deployment times");
     }
 
+    public void deployInputFilesOnAgent(String agentIP, List<String> inputFileResourceNames) throws IOException, ExecutionException, InterruptedException, LibNotDeployedException {
+        for(String inputFileResourceName : inputFileResourceNames) {
+            String inputFileResourcePath = resourceStorageFSConfig.getInputFilePath(inputFileResourceName);
+            Map agentDeploymentInfoMap = ObjectMapperUtil.instance().
+                    readValue(new File(resourceStorageFSConfig.getInputFileAgentDeploymentPath(inputFileResourceName)), Map.class);
+            boolean toDeploy = true;
+            if(agentDeploymentInfoMap.containsKey(agentIP)) {
+                toDeploy = Long.parseLong(agentDeploymentInfoMap.get(agentIP).toString()) < new File(inputFileResourcePath).lastModified();
+            }
+
+            if(toDeploy) {
+                log.info("Deploying Input File Resource '"+inputFileResourceName+"' on agent "+agentIP);
+                if(new LoaderAgentClient(agentIP,agentConfig.getAgentPort()).
+                        deployInputFile(inputFileResourceName, inputFileResourcePath)) {
+                    agentDeploymentInfoMap.put(agentIP, System.currentTimeMillis());
+                    ObjectMapperUtil.instance().writerWithDefaultPrettyPrinter().
+                            writeValue(new File(resourceStorageFSConfig.getInputFileAgentDeploymentPath(inputFileResourceName)), agentDeploymentInfoMap);
+                }
+                else {
+                    log.error("Input File Resource '"+inputFileResourceName+"' Failed on Agent "+agentIP);
+                    throw new IOException("Input File Resource '"+inputFileResourceName+"' Failed on Agent "+agentIP);
+                }
+            }
+        }
+    }
 
     private Map<String, String> makeLibClassListMap(String classListStr) throws LibNotDeployedException {
         Map<String,String> libClassListMap = new HashMap<String, String>();

@@ -320,6 +320,9 @@ public class Job {
             // Deploy Libraries on Agents
             deployLibrariesOnAgents(performanceRun.getLoadParts(), agentsToUse);
 
+            // Deploy Input File Resource On Agents
+            deployInputFileResourcesOnAgents(performanceRun.getLoadParts(), agentsToUse);
+
             // Submitting Jobs to Loader Agent
             submitJobToAgents(performanceRun.getLoadParts(), agentsToUse);
 
@@ -450,10 +453,25 @@ public class Job {
 
             for(LoaderAgent agent : agentsToUse) {
                 DeploymentHelper.instance().deployPlatformLibsOnAgent(agent.getIp());
-                DeploymentHelper.instance().deployClassLibsOnAgent(agent.getIp(), classListWithNewLine.toString().trim());
+                DeploymentHelper.instance().deployUDFLibsOnAgent(agent.getIp(), classListWithNewLine.toString().trim());
             }
         }
     }
+
+    /**
+     *
+     * @param loadParts
+     * @param agentsToUse
+     */
+    private void deployInputFileResourcesOnAgents(List<LoadPart> loadParts, List<LoaderAgent> agentsToUse)
+            throws InterruptedException, ExecutionException, LibNotDeployedException, IOException {
+        for(LoaderAgent agent : agentsToUse) {
+            for(LoadPart loadPart : loadParts) {
+                DeploymentHelper.instance().deployInputFilesOnAgent(agent.getIp(), loadPart.getInputFileResources());
+            }
+        }
+    }
+
 
     public void kill() throws InterruptedException, ExecutionException, IOException {
         if(this.isQueued()) {

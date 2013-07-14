@@ -1,6 +1,6 @@
 package perf.agent.cache;
 
-import perf.agent.config.LibStorageConfig;
+import perf.agent.config.ResourceStorageFSConfig;
 
 import javax.xml.ws.WebServiceException;
 import java.io.File;
@@ -17,9 +17,9 @@ public class LibCache {
     private Map<String,String> classLibMap;
     private String platformLibClassPath;
     private static LibCache self;
-    private LibStorageConfig storageConfig;
+    private ResourceStorageFSConfig storageConfig;
 
-    private LibCache(LibStorageConfig storageConfig) throws IOException {
+    private LibCache(ResourceStorageFSConfig storageConfig) throws IOException {
         this.storageConfig = storageConfig;
         this.classLibMap = new HashMap<String, String>();
         this.platformLibClassPath = "";
@@ -27,7 +27,7 @@ public class LibCache {
         refreshPlatformLib();
     }
 
-    public static LibCache initialize(LibStorageConfig storageConfig) throws IOException {
+    public static LibCache initialize(ResourceStorageFSConfig storageConfig) throws IOException {
         if(self == null)
             self = new LibCache(storageConfig);
         return self;

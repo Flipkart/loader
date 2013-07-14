@@ -1,6 +1,7 @@
 package perf.server.domain;
 import com.open.perf.domain.Load;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -10,7 +11,7 @@ public class LoadPart {
     private String name;
     private int agents;
     private List<String> classes;
-    private List<String> inputFileResources;
+    private List<String> inputFileResources = new ArrayList<String>();
     private Load load;
 
     public String getName() {

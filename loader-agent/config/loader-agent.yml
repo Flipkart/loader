@@ -7,10 +7,11 @@ serverInfo:
 registrationParams:
   env: "corp"
 
-libStorageConfig:
-  libPath: "/usr/share/loader-agent/libs"
+resourceStorageFSConfig:
+  udfLibsPath: "/usr/share/loader-agent/libs"
   platformLibPath: "/usr/share/loader-agent/platformLibs"
   mappingFile: "/usr/share/loader-agent/config/mapping.properties"
+  inputFilePath: "/usr/share/loader-agent/inputFiles/{resourceName}/inputFile"
 
 jobProcessorConfig:
   maxJobs: 1

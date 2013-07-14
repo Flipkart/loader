@@ -17,7 +17,7 @@ import java.util.Map;
 public class LoaderAgentConfiguration extends Configuration {
     private String appName;
     private ServerInfo serverInfo;
-    private LibStorageConfig libStorageConfig;
+    private ResourceStorageFSConfig resourceStorageFSConfig;
     private JobProcessorConfig jobProcessorConfig;
     private JobFSConfig jobFSConfig;
     private JobStatSyncConfig jobStatSyncConfig;
@@ -40,12 +40,12 @@ public class LoaderAgentConfiguration extends Configuration {
         this.appName = appName;
     }
 
-    public LibStorageConfig getLibStorageConfig() {
-        return libStorageConfig;
+    public ResourceStorageFSConfig getResourceStorageFSConfig() {
+        return resourceStorageFSConfig;
     }
 
-    public void setLibStorageConfig(LibStorageConfig libStorageConfig) {
-        this.libStorageConfig = libStorageConfig;
+    public void setResourceStorageFSConfig(ResourceStorageFSConfig resourceStorageFSConfig) {
+        this.resourceStorageFSConfig = resourceStorageFSConfig;
     }
 
     public JobProcessorConfig getJobProcessorConfig() {
