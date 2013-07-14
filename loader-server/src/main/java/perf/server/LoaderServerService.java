@@ -43,13 +43,13 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
 
         // Initialization
         JobsCache.initiateCache(configuration.getJobFSConfig());
-        LibCache.initialize(configuration.getLibStorageFSConfig());
+        LibCache.initialize(configuration.getResourceStorageFSConfig());
         CounterCompoundThread.initialize(configuration.getJobFSConfig(), 10000).start();
         CounterThroughputThread.initialize(configuration.getJobFSConfig(), 10000).start();
         TimerComputationThread.initialize(configuration.getJobFSConfig(), 10000).start();
         GroupConfConsolidationThread.initialize(configuration.getJobFSConfig(), 10000).start();
         DeploymentHelper.initialize(configuration.getAgentConfig(),
-                configuration.getLibStorageFSConfig());
+                configuration.getResourceStorageFSConfig());
         AgentsCache.initialize(configuration.getAgentConfig());
 
         FilterBuilder filterConfig = environment.addFilter(CrossOriginFilter.class, "/*");
@@ -60,10 +60,10 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
 
         environment.addResource(new JobResource(configuration.getAgentConfig(),
                 configuration.getJobFSConfig()));
-        environment.addResource(new DeployLibResource(configuration.getLibStorageFSConfig()));
+        environment.addResource(new DeployResourcesResource(configuration.getResourceStorageFSConfig()));
         environment.addResource(new AgentResource(configuration.getAgentConfig()));
         environment.addResource(new RunResource(configuration.getJobFSConfig()));
-        environment.addResource(new FunctionResource(configuration.getLibStorageFSConfig()));
+        environment.addResource(new FunctionResource(configuration.getResourceStorageFSConfig()));
         environment.addResource(new AdminResource(configuration));
         environment.addHealthCheck(new CounterCompoundThreadHealthCheck("CounterCompoundThread"));
         environment.addHealthCheck(new TimerComputationThreadHealthCheck("TimerComputationThread"));

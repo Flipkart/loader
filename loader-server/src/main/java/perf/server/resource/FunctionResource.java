@@ -25,7 +25,7 @@ import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import perf.server.config.LibStorageFSConfig;
+import perf.server.config.ResourceStorageFSConfig;
 import perf.server.domain.FunctionInfo;
 import perf.server.domain.LoadPart;
 import perf.server.domain.MetricCollection;
@@ -48,9 +48,9 @@ import com.yammer.dropwizard.jersey.params.BooleanParam;
 public class FunctionResource {
     private static Logger log = Logger.getLogger(FunctionResource.class);
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
-    private LibStorageFSConfig storageConfig;
+    private ResourceStorageFSConfig storageConfig;
 
-    public FunctionResource(LibStorageFSConfig storageConfig) throws MalformedURLException {
+    public FunctionResource(ResourceStorageFSConfig storageConfig) throws MalformedURLException {
         this.storageConfig = storageConfig;
     }
 

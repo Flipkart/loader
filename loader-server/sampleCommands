@@ -1,8 +1,8 @@
 To Deploy Platform Libs : 
-curl -X POST -H "Content-Type: multipart/form-data" -F "lib=@loader-core/deploy/platform.zip"  http://localhost:9999/loader-server/libs/platformLibs
+curl -X POST -H "Content-Type: multipart/form-data" -F "lib=@loader-core/deploy/platform.zip"  http://localhost:9999/loader-server/resourceTypes/platformLibs
 
 To Deploy Class Libs :
-curl -X POST -H "Content-Type: multipart/form-data" -F "lib=@Path-To-Jar-File" http://localhost:9999/loader-server/libs/classLibs
+curl -X POST -H "Content-Type: multipart/form-data" -F "lib=@Path-To-Jar-File" http://localhost:9999/loader-server/resourceTypes/udfLibs
 
 To Submit Job :
 curl -X POST -d @loader-http-operations/sample/sampleGetJob.json http://localhost:9999/loader-server/jobs --header "Content-Type:application/json"
