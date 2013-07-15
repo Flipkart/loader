@@ -7,8 +7,5 @@ if [ "$1" == "purge" ]
 then
 	[ -e "/etc/$PKG/collestors/RedisCollector.conf" ] && rm -rf "/etc/$PKG/collestors/RedisCollector.conf"
 fi
-echo "Restarting Diamond"
-/etc/init.d/diamond stop
-/etc/init.d/diamond start
-
+echo "Restart Diamond Now"
 exit 0
