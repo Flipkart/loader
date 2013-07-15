@@ -10,7 +10,7 @@ APP=diamond
 PACKAGE=diamond-redis-conf
 PACKAGE_ROOT=./diamond-redis-conf
 CONFIG_ROOT=../../../diamond/collector-config/
-VERSION=0.0.1
+VERSION=0.0.2
 ARCH=all
 
 rm -rf $PACKAGE_ROOT
