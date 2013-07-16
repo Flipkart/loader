@@ -1,3 +1,4 @@
 [
-    "perf.server.dataFix.RemoveWarmUpTimeFromGroupsFixer"
+    "perf.server.dataFix.RemoveWarmUpTimeFromGroupsFixer",
+    "perf.server.dataFix.AddInputFileResourceToLoadPartFixer"
 ]
