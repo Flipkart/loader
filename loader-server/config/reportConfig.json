@@ -46,6 +46,37 @@
                 }
             ]
         },
+         "cpu":
+       {
+           "resource": "cpu",
+           "charts":
+           [
+               {
+                   "title": "cpu",
+                   "keysToPlot":
+                   [
+                       "percent"
+                   ]
+               }
+           ]
+       },
+       "passenger_stats":
+       {
+           "resource": "passenger_stats",
+           "charts":
+           [
+               {
+                   "title": "passenger_stats",
+                   "keysToPlot":
+                   [
+                       "total_apache_memory",
+                        "total_passenger_mem",
+                        "apache_passenger_cpu",
+                        "total_nginx_mem"
+                   ]
+               }
+           ]
+       },
         "sockets":{
             "resource":"sockets",
             "charts":[
