@@ -45,7 +45,7 @@ public class FunctionContext {
 
     static {
         inputFileResources = FSConfig.inputFileResources();
-        variablePattern = Pattern.compile(".*$\\{(.+)\\}.*");
+        variablePattern = Pattern.compile(".*\\$\\{(.+)\\}.*");
     }
 
     public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters) {
@@ -93,6 +93,7 @@ public class FunctionContext {
                 valueString = valueString.replace("${"+varName+"}", replacementValue.toString());
                 matcher = variablePattern.matcher(valueString);
             }
+            value = valueString;
         }
 
         return value;
@@ -331,5 +332,14 @@ public class FunctionContext {
         this.failureType=null;
         this.startTime = -1;
         this.time = -1;
+    }
+
+    public static void main(String[] args) {
+        Pattern p = Pattern.compile(".*\\$\\{(.+)\\}.*");
+        String value = "${urlsTohit}";
+        Matcher m = p.matcher(value);
+        System.out.println(m.matches());
+        System.out.println(m.group(1).getClass());
+
     }
 }
