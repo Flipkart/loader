@@ -7,7 +7,8 @@ nav ul { padding:0; margin:0; }
 nav li { position:relative; float:left; list-style-type:none; }  
 nav ul:after { content:"."; display:block; height:0; clear:both; visibility:hidden; }  
 nav li a { display:block; padding:10px 20px; border-left:0px solid #999; border-right:0px solid #222; color:#eee; text-decoration:none; }  
-nav li a:focus { outline:none; text-decoration:underline; }  
+nav li div { display:block; padding:10px 20px; border-left:0px solid #999; border-right:0px solid #222; color:#eee; text-decoration:none; }
+nav li a:focus { outline:none; text-decoration:underline; }
 nav li:first-child a { border-left:none; }  
 nav li.last a { border-right:none; }  
 nav a span { display:block; float:rightright; margin-left:5px; }  
