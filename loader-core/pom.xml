@@ -4,7 +4,7 @@
 
     <groupId>com.open.perf</groupId>
     <artifactId>loader-core</artifactId>
-    <version>0.1.3</version>
+    <version>0.1.4</version>
     <packaging>jar</packaging>
 
     <name>loader-core</name>
@@ -67,29 +67,22 @@
                     </execution>
                 </executions>
             </plugin>
-<plugin>
-  <artifactId>exec-maven-plugin</artifactId>
-  <groupId>org.codehaus.mojo</groupId>
-  <executions>
-    <execution><!-- Run our version calculation script -->
-      <id>Build Zip Package</id>
-      <phase>package</phase>
-      <goals>
-        <goal>exec</goal>
-      </goals>
-      <configuration>
-        <executable>./script/buildZip.sh</executable>
-      </configuration>
-    </execution>
-  </executions>
-</plugin>
+            <plugin>
+                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <executions>
+                    <execution><!-- Run our version calculation script -->
+                        <id>Build Zip Package</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>./script/buildZip.sh</executable>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-    <distributionManagement>
-        <repository>
-            <id>artifactory-new</id>
-            <name>artifactory-new-releases</name>
-            <url>http://artifactory.nm.flipkart.com:8081/artifactory/libs-releases-local</url>
-        </repository>
-    </distributionManagement>
 </project>
