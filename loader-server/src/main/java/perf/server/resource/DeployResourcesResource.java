@@ -224,6 +224,9 @@ public class DeployResourcesResource {
             throw new WebApplicationException(ResponseBuilder.resourceAlreadyExists("inputFile", resourceName));
         }
 
+        if(resourceName == null || resourceName.trim().equals(""))
+            throw new WebApplicationException(ResponseBuilder.badRequest("resourceName can not be empty"));
+
         FileHelper.createFilePath(resourceFile.getAbsolutePath());
         try {
             FileHelper.persistStream(inputStream, resourceFile.getAbsolutePath());

@@ -46,5 +46,9 @@ public class ResponseBuilder {
     public static Response internalServerError(Exception e) {
         return response(Response.Status.INTERNAL_SERVER_ERROR, e);
     }
+
+    public static Response badRequest(String message) {
+        return response(Response.Status.BAD_REQUEST, message);
+    }
 }
 
