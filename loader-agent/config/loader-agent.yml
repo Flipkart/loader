@@ -15,7 +15,7 @@ resourceStorageFSConfig:
 
 jobProcessorConfig:
   maxJobs: 1
-  jobCLIFormat: "java -Xms500m -Xmx2g -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port={jmxPort} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -cp {classpath} com.open.perf.main.Main -f {jobJson} -j {jobId} -s /var/log/loader-agent/jobs/ > /var/log/loader-agent/jobs/{jobId}/log"
+  jobCLIFormat: "java -Xms500m -Xmx{MAX_HEAP_MB}m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port={jmxPort} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -cp {classpath} com.open.perf.main.Main -f {jobJson} -j {jobId} -s /var/log/loader-agent/jobs/ > /var/log/loader-agent/jobs/{jobId}/log"
   pendingJobCheckInterval: 5000
   healthCheckInterval: 10000
   memoryUsageThreshold: 80
