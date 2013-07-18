@@ -9,6 +9,7 @@ import perf.agent.config.JobFSConfig;
 import perf.agent.config.JobProcessorConfig;
 import perf.agent.job.AgentJob;
 import perf.agent.job.JobRunnerThread;
+import perf.agent.util.SystemInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +37,9 @@ public class JobProcessorThread extends Thread{
         this.pendingAgentJobs = new LinkedBlockingDeque<AgentJob>();
         this.serverClient = serverClient;
         this.jobFSConfig = jobFSConfig;
+        //60% of system heap
+        int maxJobHeapSize = (int)(SystemInfo.getTotalPhysicalMemorySize() /1024 / 1024 * 60 / 100);
+        this.config.setJobCLIFormat(this.config.getJobCLIFormat().replace("{MAX_HEAP_MB}",""+maxJobHeapSize));
         start();
     }
 
@@ -171,5 +175,9 @@ public class JobProcessorThread extends Thread{
             jobIds.add(jobId);
         return jobIds;
 
+    }
+
+    public static void main(String[] args) {
+        System.out.println((int)(8328228864l/1024/1024*60/100));
     }
 }
