@@ -9,11 +9,11 @@
     <name>Parent Project For All Performance Projects</name>
 
     <modules>
+        <module>utilities</module>
+        <module>loader-core</module>
         <module>loader-server</module>
         <module>loader-agent</module>
         <module>monitoring-service</module>
-        <module>loader-core</module>
-        <module>utilities</module>
 	<module>loader-http-operations</module>
 	<module>loader-common-operations</module>
   </modules>
