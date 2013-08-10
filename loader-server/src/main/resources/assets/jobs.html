@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script type="text/javascript" src="js/runningJobs.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+	</style>
+</head>
+<body>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+		  $('.dropdown-toggle').dropdown();
+	    })
+	</script>
+	<!--Navigation bar ends here-->
+	<!--Adding the breadcrumb-->
+	<ul class="breadcrumb">
+  		<li><a href="index.html">Home</a> <span class="divider">/</span></li>
+  		<li><a href="#">Jobs</a> <span class="divider">/</span></li>
+	</ul>
+	<!--Breadcrumb ends-->
+	<!--Job Details, table starts-->
+	<div class="row-fluid">
+	  	<div class="span12">
+		<table id="jobsList" class="table table-bordered table-stripped">
+			<thead>
+				<tr>
+				<th>Job Id</th>
+				<th>Run Name</th>
+				<th>Started At</th>
+				<th>Job Status</th>
+				<th>Agents</th>
+				</tr>
+			</thead>
+			<tbody data-bind="foreach: jobs">
+				<td><a data-bind="attr: {'href': jobUrl}, text: jobId"></a></td>
+				<td><a data-bind="attr: {'href': runUrl}, text: runName"></a></td>
+				<td data-bind="text: startTime"></td>
+				<td data-bind="text: jobStatus"></td>
+				<td data-bind="text: agents"></td>
+			</tbody>
+		</table>
+		</div>
+	</div> 
+	<script type="text/javascript">
+		getRunningJobs();
+	</script>
+</body>
+</html>

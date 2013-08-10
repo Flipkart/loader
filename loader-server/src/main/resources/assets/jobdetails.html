@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script type="text/javascript" src="js/getJobDetails.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+	</style>
+</head>
+<body>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+	    })
+	    $('.dropdown-toggle').dropdown();
+	    getJobDetails();
+	</script>
+	<!--Navigation bar ends here-->
+	<!--Adding the breadcrumb-->
+	<ul class="breadcrumb">
+  		<li><a href="index.html">Home</a> <span class="divider">/</span></li>
+  		<li><a href="#">Jobs</a> <span class="divider">/</span></li>
+  		<li><a href="#">Job Details</a> <span class="divider">/</span></li>
+	</ul>
+	<!--Breadcrumb ends-->
+	<!--Job Details, table starts-->
+	<div class="row-fluid">
+	  	<div class="span12">
+	  		<form>
+	  		  <fieldset>
+	  		  	<legend>Job Details</legend>
+	  		  	<div class="row-fluid">
+	  			  <div class="span8">
+	  				<label class="span3"><strong>Job</strong></label>
+	  				<div class="span9">
+	  					<p class="span12 pull-right" data-bind="html: jobId"></p>
+	  				</div>
+	  			  </div>
+	  			  <div class="span4">
+		  				<label class="span4"><strong>Started At</strong></label>
+		  				<p class="span8" data-bind="text: startTime"></p>
+		  		  </div>
+	  		    </div>
+	  		    <div class="row-fluid">
+		  			<div class="span8">
+	  				<label class="span3"><strong>Run Name</strong></label>
+	  				<p class="span9" data-bind="text: runName"></p>
+	  			  </div>
+		  			<div class="span4">
+		  				<label class="span4"><strong>Finished At</strong></label>
+		  				<p class="span8" data-bind="text: endTime"></p>
+		  			</div>
+		  		</div>
+	  		  </fieldset>
+			</form>
+		<!--Buttons(stop job, reports)-->
+		<div class="btn-group pull-left">
+  			<button id="stopJob" data-bind="attr: {'class': stopBtnClass}">Stop</button>
+  			<button class="btn">Logs</button>
+  			<button class="btn">Reports</button>
+		</div>
+		<br/>
+		<hr>
+		<!--List of agents used for the job-->
+		<table id="jobAgents" class="table table-bordered">
+			<caption class="text-left"><strong>Agents Used</strong></caption>
+			<tbody data-bind="foreach: agents">
+				<tr>
+					<th>Agent IP</th>
+					<th>Job Status</th>
+					<th>Agent Health</th>
+					<th>#</th>
+				</tr>
+				<tr data-bind="attr: {'class': rowClass}">
+					<td data-bind="text: agentIp"></td>
+					<td data-bind="text: job_status"></td>
+					<td data-bind="text: health"></td>
+					<td><button class="btn">Stop Job</button></td>
+				</tr>
+			</tbody>
+		</table>
+		<!--Job Details, table ends-->
+		</div>
+	</div> 
+</body>
+</html>

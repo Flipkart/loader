@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/_lib/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery.jstree.js"></script>
+	<script type="text/javascript" src="js/_lib/jquery.cookie.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script type="text/javascript" src="js/jquery.multi-select.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/bootstrap-combobox.js"></script>
+	<script type="text/javascript" src="js/createUpdateRun.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="css/multi-select.css">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap-combobox.css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+		@media (min-width: 768px) {
+
+			/* top row */
+			.col{ 
+    			margin-bottom: -99999px;
+    			padding-bottom: 99999px;  
+			}
+			/* bottom row */
+			.col-base{ 
+    			margin-top: -15px; /* cut off top portion of bottom wells */
+			}
+			}
+
+			@media (max-width: 767px) {
+				.row-fluid.base{
+    				display:none;
+				}
+			}
+			.col-wrap{
+    			overflow: hidden; 
+			}
+	</style>
+</head>
+<body>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+		  $('.dropdown-toggle').dropdown();
+		  ko.bindingHandlers.multiSelect = {
+		  	init: function(element, valueAccessor, allBindingAccessor, viewModel){
+		  		var selabHdr = "<div class='custom-header'><label><strong>Available Groups</strong></label>";
+		  		var selcnHdr = "<div class='custom-header'><label><strong>Depends On Groups</strong></label>";
+		  		if($(element).attr('id')=="resources"){
+		  			selabHdr = "<div class='custom-header'><label><strong>Available Resources</strong></label></div>";
+		  			selcnHdr = "<div class='custom-header'><label><strong>Monitored Resources</strong></label>";
+		  		}
+				$(element).multiSelect({
+					selectableHeader: selabHdr,
+					selectionHeader: selcnHdr
+				});
+			},
+			update: function(element, valueAccessor, allBindingAccessor, viewModel){
+				//console.log(viewModel.currMetric());
+				$(element).multiSelect('refresh');
+			}
+		  }
+		  ko.bindingHandlers.combobox = {
+		  	init: function(element, valueAccessor, allBindingAccessor, viewModel){
+		  		$("#functionClass").combobox();
+		  	},
+		  	update: function(element, valueAccessor, allBindingAccessor, viewModel){
+		  		console.log("refreshing", viewModel.curFunction()["functionClass"]);
+		  		var selFun = viewModel.curFunction()["functionClass"];
+		  		$("#functionClass option").each(function(index, opt){
+		  			if($(opt).attr("value") == selFun){ 
+		  				$(opt).attr("selected",true);
+		  			}
+		  			else { 
+		  				$(opt).removeAttr("selected"); 
+		  			}
+		  		})
+		  		//$("#functionClass").combobox('clearTarget');
+		  		$("#functionClass").combobox('refresh');
+
+		  		//$(".combobox-container .input-append .input-xlarge")
+		  	}
+		  }
+	    })
+	</script>
+	<!--Navigation bar ends here-->
+	<!--Adding the breadcrumb-->
+	<ul class="breadcrumb">
+  		<li><a href="index.html">Home</a> <span class="divider">/</span></li>
+  		<li><a href="#">Create Run</a> <span class="divider">/</span></li>
+	</ul>
+	<!--Breadcrumb ends-->
+	<div class="row-fluid col-wrap">
+		<!-- <div class="span12 col-wrap"> -->
+			<div class="span4 col well">
+				<div id="runTree">
+				</div>
+			</div>
+			<div class="span8 col well">
+				<div id="run" style="display: none" class="span12 runSchemaElement">
+					<fieldset>
+						<legend>Run</legend>
+						<label class="span2">Run Name</label>
+						<input id="runName" type="text" class="span4" data-bind="value: runName"/>
+					</fieldset>
+					<br/>
+					<div class="btn-group span6">
+						<button class="btn" onClick="updateRun()">Update</button>
+						<button class="btn" onClick="addLoadPart()">Add Loadpart</button>
+					</div>
+				</div>
+				<div id="loadPart" style="display: none" class="span12 runSchemaElement">
+					<fieldset>
+						<legend>LoadPart</legend>
+						<div class="span12">
+							<label class="span3">LoadPart Name</label>
+							<input id="loadPartName" type="text" class="span4" data-bind="value: loadPartName"/>
+						</div>
+						<div class="span12">
+							<label class="span3">Agents</label>
+							<input id="agents" type="text" class="span4" data-bind="value: agents"/>
+						</div>
+					</fieldset>
+					<br/>
+					<div class="btn-group span6">
+						<button class="btn" onClick="updateLoadPart()">Update</button>
+						<button class="btn" onClick="addGroup()">Add Group</button>
+						<button class="btn" onClick="deleteLoadPart()">Delete</button>
+					</div>
+				</div>
+				<div id="group" style="display: none" class="span12 runSchemaElement">
+					<fieldset>
+					<legend>Group Details</legend>
+					<div class="row-fluid span12">
+						<label class="span3">Group Name</label>
+						<input id="groupNameText" type="text" class="span4" data-bind="value: groupName"/>
+					</div>
+					<div class="row-fluid span12">
+						<div class="span6">
+						  <label class="span6">Group Start Delay</label>
+						  <input id="groupStartDelay" type="text" class="offset1 span5" data-bind="value: groupStartDelay"/>
+						</div>
+						<div class="span6">
+						  <label class="span6">Thread Start Delay</label>
+						  <input id="threadStartDelay" type="text" class="offset1 span5" data-bind="value: threadStartDelay"/>
+						</div>
+					</div>
+					<div class="row-fluid span12">
+						<div class="span6">
+						  <label class="span6">Throughput</label>
+						  <input id="throughput" type="text" class="offset1 span5" data-bind="value: throughput"/>
+						</div>
+						<div class="span6">
+						  <label class="span6">Repeats</label>
+						  <input id="repeats" type="text" class="offset1 span5" data-bind="value: repeats"/>
+						</div>
+					</div>
+					<div class="row-fluid span12">
+						<div class="span6">
+						  <label class="span6">Duration</label>
+						  <input id="duration" type="text" class="offset1 span5" data-bind="value: duration"/>
+						</div>
+						<div class="span6">
+						  <label class="span6">Threads</label>
+						  <input id="threads" type="text" class="offset1 span5" data-bind="value: threads"/>
+						</div>
+					</div>
+					<div class="row-fluid span6">
+						<label class="span6">Warm Up Repeats</label>
+						<input id="warmUpRepeats" type="text" class="offset1 span5" data-bind="value: warmUpRepeats"/>
+					</div>
+					<div class="row-fluid span12">
+						<label>Depends On Group(s)</label>
+					</div>
+					<div class="row-fluid span12">
+						<div class="multiSelect">
+						  <select multiple="multiple" name="groupList" id="groupList" data-bind="options: availableGroups, selectedOptions: dependsOn, multiSelect: group">
+						  </select>
+						</div>
+					</div>
+					</fieldset>
+					<br/>
+					<div class="btn-group span6">
+						<button class="btn" onClick="updateGroup()">Update</button>
+						<button class="btn" onClick="addFunction()">Add Function</button>
+						<button class="btn">Add Timer</button>
+						<button class="btn" onClick="deleteGroup()">Delete</button>
+					</div>
+				</div>
+				<div id="function" style="display: none" class="span12 runSchemaElement">
+					<fieldset>
+						<legend>Function</legend>
+						<div class="span12">
+							<label class="span3">Function Name</label>
+							<input id="funcName" type="text" class="span4" data-bind="value: functionName"/>
+						</div>
+						<div class="span12">
+							<label class="span3">Function Class</label>
+							<select id="functionClass" class="input-xlarge" data-bind="options: availableFunctionClass, value: selectedFunction, event: {'change': onchange}, combobox: selectedFunction">
+							</select> 
+						</div>
+						<div class="span12">
+							<label class="span3">Dump Data</label>
+							<select id="dumpDataSel" class="span2" data-bind="options: dumpOpts, value: dumpData">
+							</select>
+						</div>
+					</fieldset>
+					<div  class="span12">
+						<fieldset>
+						<legend>Input Parameters</legend>
+							<div id="inputParams" class="row-fluid span12" data-bind="foreach: inputParameters">
+								<div class="row-fluid">
+									<span><label class="span3" data-bind="text: key"></label>
+									<input class="span6" data-bind="value: val, attr:{'id':key}"/></span>
+								</div>
+							</div>
+						</fieldset>
+					</div>
+					<div class="btn-group span6">
+						<button class="btn" onclick="updateFunction()">Update</button>
+						<button class="btn" onClick="deleteFunction()">Delete</button>
+					</div>
+				</div>
+				<div id="metricCollection" style="display: none" class="span12 runSchemaElement">
+					<fieldset>
+						<legend>Add Metrics Collection</legend>
+					</fieldset>
+					<br>
+					<div class="btn-group spa6">
+						<button class="btn" onClick="addMetricCollection()">Add Monitoring</button>
+					</div>
+				</div> 
+				<div id="monitoringAgent" style="display: none" class="span12 runSchemaElement">
+					<fieldset>
+						<legend>Monitoring Agent</legend>
+						<div class="span12">
+							<div class="span12 input-append">
+								<input id="agent" class="span4" type="text" data-bind="value: agent"/>
+								<button class="btn" data-bind="click: findResources">Find Resources</button>
+							</div>
+						</div>
+					</fieldset>
+					<fieldset>
+						<legend>Resources</legend>
+						<div class="row-fluid span12">
+							<div>
+						  		<select multiple="multiple" id="resources" data-bind="options: opts, selectedOptions: selectedOpts, multiSelect: currMetric">
+						  		</select>
+							</div>
+						</div>
+					</fieldset>
+					<div class="btn-group span6">
+						<button class="btn" onClick="updateMetricCollection()">Update</button>
+						<button class="btn" onClick="deleteMetricCollection()">Delete</button>
+					</div>
+				</div>
+			</div>
+		<!-- </div> -->
+	</div>
+	<div class="row-fluid base col-wrap">
+	<!-- add a second row of wells or rounded corner divs immeadiately underneath-->
+    	<div class="span4 col-base well"></div>
+		<div class="span8 col-base well"></div>
+	</div><!-- close row -->
+	<div class="row-fluid">
+		<div class="span1 pull-right">
+			<div class="btn-group">
+				<button class="btn" onClick="createRun()">Ceate</button>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+    window.models = { 
+    		"run": { "instance":undefined,"firstview":true }, 
+    		"loadPart": { "instance":undefined, "firstview":true },
+    		"group": { "instance":undefined, "firstview":true },
+    		"function": {"instance": undefined, "firstview":true },
+    		"timer": {"instance":undefined, "firstview":true },
+    		"metricCollection": {"instance":undefined, "firstview":true}
+    	}
+	$(function(){
+    	$.ajax({
+	      	url: "/loader-server/functions",
+	      	contentType: "application/json", 
+	      	type:"GET",
+	      	success: function(data) {
+	      		window.availableFunctions = ["Choose Class"];
+	        	window.availableFunctions = window.availableFunctions.concat(data);
+	      	},
+	      	error: function(e){
+	        	console.log("Error");
+	      	},
+	      	complete: function(xhr, status){
+	        	console.log(status);
+	      	}
+    	});
+		window.runSchema = {"runName" : "RunSchema",
+                        "loadParts" : new Array(),
+                        "onDemandMetricCollections" : new Array(),
+                        "metricCollections": new Array()
+                        };
+        createTree(window.runSchema);
+		renderDisplayArea('run', window["runSchema"]);
+		//$("#resources").multiSelect();
+	});
+	//$("#resources").multiSelect();
+	</script>
+</body>
+</html>
