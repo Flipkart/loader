@@ -1,0 +1,149 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script type="text/javascript" src="js/getJobDetails.js"></script>
+	<script type="text/javascript" src="js/searchJobs.js"></script>
+	<script type="text/javascript" src="js/knockout-mapping-2.4.1-min.js"></script>
+	<script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
+	<script type="text/javascript" src="js/jquery.tablesorter.widgets.min.js"></script>
+	<script type="text/javascript" src="js/jquery.tablesorter.pager.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="css/jquery.tablesorter.pager.css">
+	<link rel="stylesheet" href="css/theme.bootstrap.css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+	</style>
+	<script type="text/javascript">
+		$.extend($.tablesorter.themes.bootstrap, {
+    // these classes are added to the table. To see other table classes available,
+    // look here: http://twitter.github.com/bootstrap/base-css.html#tables
+    		table      : '',
+    		header     : '', // give the header a gradient background
+    		footerRow  : '',
+    		footerCells: '',
+    		icons      : '', // add "icon-white" to make them white; this icon class is added to the <i> in the header
+    		sortNone   : 'bootstrap-icon-unsorted',
+    		sortAsc    : 'icon-chevron-up',
+    		sortDesc   : 'icon-chevron-down',
+    		active     : '', // applied when column is sorted
+    		hover      : '', // use custom css here - bootstrap class may not override it
+    		filterRow  : '', // filter row class
+    		even       : '', // odd row zebra striping
+    		odd        : ''  // even row zebra striping
+  		});
+	</script>
+</head>
+<body>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+	      ko.applyBindings(new searchJobsListModel());
+	    })
+	    $('.dropdown-toggle').dropdown();
+	</script>
+	<!--Navigation bar ends here-->
+	<!--Adding the breadcrumb-->
+	<ul class="breadcrumb">
+  		<li><a href="index.html">Home</a> <span class="divider">/</span></li>
+  		<li><a href="#">Jobs</a> <span class="divider">/</span></li>
+  		<li><a href="#">Job Search</a> <span class="divider">/</span></li>
+	</ul>
+	<!--Breadcrumb ends-->
+	<!--Job Search fields-->
+	<div class="row-fluid">
+		<div class="span12">
+			<div class="offset1 span9">
+				<div class="span6">
+					<label class="span4"><strong>Run Name</strong></label>
+					<div class="span6"><input id="runName" type="text" class="form-control" placeholder="Run Name"/>
+					</div>
+				</div>
+				<div class="offset1 span5">
+					<label class="span4"><strong>Job Id</strong></label>
+					<div class="span6"><input id="jobId" type="text" class="form-control" placeholder="Job Id"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span12">
+			<div class="offset1 span9">
+				<div class="span6">
+					<label class="span4"><strong>Job Status</strong></label>
+					<div class="span6">
+						<select id="jobStatus">
+						<option value="ALL">ALL</option>
+						<option value="COMPLETED">COMPLETED</option>
+						<option value="RUNNING">RUNNING</option>
+						</select>
+					</div>
+				</div>
+				<div class="offset1 span5">
+					<label class="span4"><strong>Active In Last</strong></label>
+					<div class="span6"><input id="activeIn" type="text" class="form-control" placeholder="Time in hours"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--Search button-->
+	<div class="row-fluid">
+		<div class="offset1 span11">
+		<button type="button" data-bind="click: getJobsList" class="btn btn-default">Search</button>
+		</div>
+	</div>
+	<br/>
+	<!--Job search fields end-->
+	<!-- Search Results Table-->
+	<div class="row-fluid">
+		<div class="span12">
+		<table id="jobsList" data-bind="sortTable: jobs" class="table table-bordered table-stripped">
+			<thead>
+				<tr>
+					<th>Job Id</th>
+					<th>Run Name</th>
+					<th>Start Time</th>
+					<th>End Time</th>
+					<th>Status</th>
+				</tr>
+			</thead>
+			<tbody data-bind="foreach: jobs">
+				<tr data-bind="attr: { 'class': rowClass }">
+					<td><a data-bind="attr: {'href': jobUrl}, text: jobId"></td>
+					<td><a data-bind="attr: {'href': runUrl}, text: runName"></td>
+					<td data-bind="text: startTime"></td>
+					<td data-bind="text: endTime"></td>
+					<td data-bind="text: jobStatus"></td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+			<div id="pager" class="pager">
+ 				<form>
+    				<img src="img/first.png" class="first"/>
+    				<img src="img/prev.png" class="prev"/>
+    				<span class="pagedisplay"></span> <!-- this can be any element, including an input -->
+    				<img src="img/next.png" class="next"/>
+    				<img src="img/last.png" class="last"/>
+    				<select class="pagesize">
+      					<option selected="selected" value="10">10</option>
+      					<option value="20">20</option>
+      					<option value="30">30</option>
+      					<option value="40">40</option>
+    				</select>
+  				</form>
+			</div>
+	</div>
+</body>
+</html>
