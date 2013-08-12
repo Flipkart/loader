@@ -31,7 +31,7 @@ if [ -f "$defaultRunFile" ]
 then
     echo "$defaultRunFile exists and not creating again"
 else
-    echo "{\"name\" : \"default\",\"teams\" : {\"default\" : {\"name\" : \"default\",\"runs\" : [ \"SimpleHttpRun\", \"SampleHttpRun\", \"testRunWithResource\" ]}}}" > $fileToCreate
+    echo "{\"name\" : \"default\",\"teams\" : {\"default\" : {\"name\" : \"default\",\"runs\" : []}}}" > $fileToCreate
 fi
 
 exit 0
