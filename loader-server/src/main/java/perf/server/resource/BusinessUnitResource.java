@@ -35,7 +35,7 @@ public class BusinessUnitResource {
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     @Timed
-    public List<String> getBusinessUnits(){
+    public Map<String, BusinessUnit> getBusinessUnits() throws IOException {
         return BusinessUnit.all();
     }
 
