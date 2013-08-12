@@ -98,12 +98,15 @@ public class BusinessUnit {
         return this;
     }
 
-    public static List<String> all() {
+    public static Map<String, BusinessUnit> all() throws IOException {
         File businessUnitsPath = new File(LoaderServerConfiguration.instance().getJobFSConfig().getBusinessUnitsPath());
+        Map<String, BusinessUnit> bus = new HashMap<String, BusinessUnit>();
         if(businessUnitsPath.exists()) {
-            return Arrays.asList(businessUnitsPath.list());
+            for(String businessUnitName : businessUnitsPath.list()) {
+                bus.put(businessUnitName, build(businessUnitName));
+            }
         }
-        return new ArrayList<String>();
+        return bus;
     }
 
     /**
