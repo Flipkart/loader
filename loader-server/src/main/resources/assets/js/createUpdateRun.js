@@ -361,7 +361,7 @@ function getFunctionParameters(functionName){
       async:false,
       success: function(data) {
         var ip = data[0]["inputParameters"];
-        window.inputParams.length = 0;
+        window.inputParams= [];
 		$.each(ip, function(k,v){
 			var defaultVal = v["defaultValue"]?v["defaultValue"]:"";
 			window.inputParams.push(new inputParamViewModel(k,defaultVal)); 
@@ -685,8 +685,8 @@ function updateRunSchema(){
 	});
 
 	if (!isValid){
-		$("#success").append("<p>U have function with no class, Can't create run!!</p>");
-		$("#success").dialog();
+		// $("#success").append("<p>U have function with no class, Can't create run!!</p>");
+		// $("#success").dialog();
 		return;
 	}
 	$.ajax({
@@ -703,23 +703,23 @@ function updateRunSchema(){
       	},
       	complete: function(xhr, status){
       		$("#success").empty();
-      		switch (xhr.status){
-      			case 204:
-      				$("#success").append("<p>Run Updated, Successfully!!</p>");
-					$("#success").dialog();
-					break;
-				case 409:
-					$("#success").append("<p>RunName Conflict, Please Change RunName!!</p>");
-					$("#success").dialog();
-					break;
-				case 400:
-					$("#success").append("<p>Run Schema looks bad, Some JSON Parsing error!!</p>");
-					$("#success").dialog();
-					break;
-				default :
-					$("#success").append("<p>Something Went wrong, Can not Update Run!!</p>");
-					$("#success").dialog();
-			}
+   //    		switch (xhr.status){
+   //    			case 204:
+   //    				$("#success").append("<p>Run Updated, Successfully!!</p>");
+			// 		$("#success").dialog();
+			// 		break;
+			// 	case 409:
+			// 		$("#success").append("<p>RunName Conflict, Please Change RunName!!</p>");
+			// 		$("#success").dialog();
+			// 		break;
+			// 	case 400:
+			// 		$("#success").append("<p>Run Schema looks bad, Some JSON Parsing error!!</p>");
+			// 		$("#success").dialog();
+			// 		break;
+			// 	default :
+			// 		$("#success").append("<p>Something Went wrong, Can not Update Run!!</p>");
+			// 		$("#success").dialog();
+			// }
       	}
 	})
 }
