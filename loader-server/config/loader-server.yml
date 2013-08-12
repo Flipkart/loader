@@ -22,6 +22,8 @@ monitoringAgentConfig:
   agentPort: 7777
 
 jobFSConfig:
+  businessUnitsPath: "/var/log/loader-server/businessUnits"
+  businessUnitFile: "/var/log/loader-server/businessUnits/{businessUnit}"
   runsPath: "/var/log/loader-server/runs"
   runPath: "/var/log/loader-server/runs/{runName}"
   runFile: "/var/log/loader-server/runs/{runName}/run.json"

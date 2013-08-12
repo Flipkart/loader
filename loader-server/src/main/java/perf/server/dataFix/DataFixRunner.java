@@ -42,7 +42,10 @@ public class DataFixRunner {
                     fixersDone.add(fixerClass);
                 }
             }
+            else {
+                logger.info("Data Fixer '"+fixerClass+"'Already finished");
+            }
         }
-        ObjectMapperUtil.instance().writerWithDefaultPrettyPrinter().writeValue(new File(dataFixConfig.getDataFixersFile()), fixersDone);
+        ObjectMapperUtil.instance().writerWithDefaultPrettyPrinter().writeValue(new File(dataFixConfig.getDoneFixersFile()), fixersDone);
     }
 }

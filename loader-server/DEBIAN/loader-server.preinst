@@ -5,6 +5,8 @@ PKG=loader-server
 mkdir -p /var/log/$PKG
 mkdir -p /var/log/$PKG/jobs
 mkdir -p /var/log/$PKG/runs
+mkdir -p /var/log/$PKG/businessUnits
+mkdir -p /var/log/$PKG/businessUnits
 mkdir -p /usr/share/$PKG/config
 mkdir -p /usr/share/$PKG/platformLibs
 mkdir -p /usr/share/$PKG/agents
@@ -23,5 +25,13 @@ do
         echo "[]" > $fileToCreate
     fi
 done
+
+defaultRunFile = "/var/log/$PKG/businessUnits/default"
+if [ -f "$defaultRunFile" ]
+then
+    echo "$defaultRunFile exists and not creating again"
+else
+    echo "{\"name\" : \"default\",\"teams\" : {\"default\" : {\"name\" : \"default\",\"runs\" : [ \"SimpleHttpRun\", \"SampleHttpRun\", \"testRunWithResource\" ]}}}" > $fileToCreate
+fi
 
 exit 0
