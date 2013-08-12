@@ -3,6 +3,7 @@ package perf.server.domain;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import com.open.perf.util.FileHelper;
@@ -20,6 +21,8 @@ import javax.ws.rs.WebApplicationException;
  * Represents a Performance Run
  */
 public class PerformanceRun {
+    private String businessUnit = "default";
+    private String team = "default";
     private String runName;
     private List<LoadPart> loadParts;
     private List<OnDemandMetricCollection> onDemandMetricCollections;
@@ -74,6 +77,22 @@ public class PerformanceRun {
         return new File(jobFSConfig.getRunPath(runName)).exists();
     }
 
+    public void create() throws IOException {
+        persist();
+        BusinessUnit businessUnit = BusinessUnit.build(this.businessUnit);
+        businessUnit.addRuns(this.team, Arrays.asList(new String[]{this.runName})).persist();
+    }
+
+    public void update(PerformanceRun newRun) throws IOException {
+        BusinessUnit businessUnit = BusinessUnit.build(this.getBusinessUnit());
+        businessUnit.getTeam(this.getTeam()).getRuns().remove(this.getRunName());
+        businessUnit.persist();
+
+        newRun.persist();
+        businessUnit = BusinessUnit.build(newRun.businessUnit);
+        businessUnit.addRuns(newRun.team, Arrays.asList(new String[]{newRun.runName})).persist();
+    }
+
     public void persist() throws IOException {
         JobFSConfig jobFSConfig = LoaderServerConfiguration.instance().getJobFSConfig();
         String runFile = jobFSConfig.getRunFile(runName);
@@ -81,9 +100,36 @@ public class PerformanceRun {
         ObjectMapperUtil.instance().writerWithDefaultPrettyPrinter().writeValue(new File(runFile), this);
     }
 
-    public static void main(String[] args) throws IOException {
-        ObjectMapper mapper = ObjectMapperUtil.instance();
-        PerformanceRun performanceRun = mapper.readValue(new File("/home/nitinka/git/loader2.0/loader-http-operations/sample/sampleGet.json"), PerformanceRun.class);
-        System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(performanceRun));
+    public String getBusinessUnit() {
+        return businessUnit;
+    }
+
+    public PerformanceRun setBusinessUnit(String businessUnit) {
+        this.businessUnit = businessUnit;
+        return this;
+    }
+
+    public String getTeam() {
+        return team;
+    }
+
+    public PerformanceRun setTeam(String team) {
+        this.team = team;
+        return this;
+    }
+
+    public static PerformanceRun runExistsOrException(String runName) throws IOException {
+        if(!new File(LoaderServerConfiguration.instance().getJobFSConfig().getRunPath(runName)).exists()) {
+            throw new WebApplicationException(ResponseBuilder.runNameDoesNotExist(runName));
+        }
+        return ObjectMapperUtil.instance().
+                readValue(new File(LoaderServerConfiguration.instance().getJobFSConfig().getRunFile(runName)), PerformanceRun.class);
+    }
+
+    public void delete() throws IOException {
+        FileHelper.remove(LoaderServerConfiguration.instance().getJobFSConfig().getRunPath(runName));
+        BusinessUnit businessUnit = BusinessUnit.build(this.getBusinessUnit());
+        businessUnit.getTeam(this.team).getRuns().remove(this.runName);
+        businessUnit.persist();
     }
 }
