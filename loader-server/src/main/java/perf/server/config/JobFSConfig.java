@@ -1,13 +1,12 @@
 package perf.server.config;
 
 /**
- * Created by IntelliJ IDEA.
- * User: nitinka
- * Date: 2/2/13
- * Time: 5:58 PM
- * To change this template use File | Settings | File Templates.
+ * Manages Performance Job related Files
  */
 public class JobFSConfig {
+
+    private String businessUnitsPath;
+    private String businessUnitFile;
     private String runsPath;
     private String runPath;
     private String runFile;
@@ -25,6 +24,24 @@ public class JobFSConfig {
     private String runningJobsFile;
     private String queuedJobsFile;
     private String jobGroupConfFile;
+
+    public String getBusinessUnitsPath() {
+        return businessUnitsPath;
+    }
+
+    public JobFSConfig setBusinessUnitsPath(String businessUnitsPath) {
+        this.businessUnitsPath = businessUnitsPath;
+        return this;
+    }
+
+    public String getBusinessUnitFile(String businessUnit) {
+        return businessUnitFile.replace("{businessUnit}", businessUnit);
+    }
+
+    public JobFSConfig setBusinessUnitFile(String businessUnitFile) {
+        this.businessUnitFile= businessUnitFile;
+        return this;
+    }
 
     public String getJobResourceMonitoringFile(String jobId, String agentIp, String resource) {
         return jobResourceMonitoringFile.replace("{jobId}", jobId).

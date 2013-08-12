@@ -50,5 +50,10 @@ public class ResponseBuilder {
     public static Response badRequest(String message) {
         return response(Response.Status.BAD_REQUEST, message);
     }
+
+    public static Response resourceDeleted(String resourceType, String resourceName) {
+        return response(Response.Status.OK,
+                String.format("{\"message\" : \"Resource %s %s deleted\"}", resourceType, resourceName));
+    }
 }
 

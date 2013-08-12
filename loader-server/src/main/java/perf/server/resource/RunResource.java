@@ -20,9 +20,11 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import perf.server.config.JobFSConfig;
+import perf.server.domain.BusinessUnit;
 import perf.server.domain.PerformanceRun;
 import perf.server.exception.JobException;
 import perf.server.util.ObjectMapperUtil;
@@ -60,7 +62,16 @@ public class RunResource {
             throws IOException, ExecutionException, InterruptedException, JobException {
         if(performanceRun.exists())
             throw new WebApplicationException(ResponseBuilder.runNameAlreadyExists(performanceRun.getRunName()));
-        performanceRun.persist();
+
+        BusinessUnit businessUnit = BusinessUnit.build(performanceRun.getBusinessUnit());
+        if(businessUnit == null)
+            throw new WebApplicationException(ResponseBuilder.badRequest("Business Unit "+ performanceRun.getBusinessUnit() + " Doesn't exist"));
+
+        if(!businessUnit.teamExist(performanceRun.getTeam()))
+            throw new WebApplicationException(ResponseBuilder.badRequest("Team " + performanceRun.getTeam()
+                    + " Doesn't exist under Business Unit " + performanceRun.getBusinessUnit()));
+
+        performanceRun.create();
         return ResponseBuilder.resourceCreated("Run", performanceRun.getRunName());
     }
 
@@ -81,14 +92,13 @@ public class RunResource {
     @Path(value = "/{runName}")
     @Timed
     public PerformanceRun getRun(@PathParam("runName") String runName) throws IOException {
-        runExistsOrException(runName);
-        return objectMapper.readValue(new File(jobFSConfig.getRunFile(runName)), PerformanceRun.class);
+        return PerformanceRun.runExistsOrException(runName);
     }
 
     /**
      Following call simulates html form post call, where somebody uploads a file to server
      curl -X PUT -d @file-containing-run-details http://localhost:9999/loader-server/runs/runName --header "Content-Type:application/json"
-     * @param performanceRun
+     * @param newRun
      * @throws IOException
      * @throws java.util.concurrent.ExecutionException
      * @throws InterruptedException
@@ -98,10 +108,10 @@ public class RunResource {
     @PUT
     @Timed
     public void updateRun(@PathParam("runName") String runName,
-                          PerformanceRun performanceRun)
+                          PerformanceRun newRun)
             throws IOException, ExecutionException, InterruptedException, JobException {
-        runExistsOrException(runName);
-        performanceRun.persist();
+        PerformanceRun existingRun = PerformanceRun.runExistsOrException(runName);
+        existingRun.update(newRun);
     }
 
     /**
@@ -118,7 +128,8 @@ public class RunResource {
     @Timed
     public void deleteRun(@PathParam("runName") String runName)
             throws IOException, ExecutionException, InterruptedException, JobException {
-        deleteRunInfo(runName);
+        PerformanceRun run = PerformanceRun.runExistsOrException(runName);
+        run.delete();
     }
 
     @Produces(MediaType.APPLICATION_JSON)
@@ -126,7 +137,7 @@ public class RunResource {
     @Path("/{runName}/jobs")
     @Timed
     public Set<String> getRunJobs(@PathParam("runName") String runName) throws IOException {
-        runExistsOrException(runName);
+        PerformanceRun.runExistsOrException(runName);
         Set<String> jobs = new HashSet<String>();
         String runJobsFile = jobFSConfig.getRunJobsFile(runName);
         BufferedReader br = FileHelper.bufferedReader(runJobsFile);
@@ -136,16 +147,4 @@ public class RunResource {
         FileHelper.close(br);
         return jobs;
     }
-
-    private void deleteRunInfo(String runName) {
-        runExistsOrException(runName);
-        FileHelper.remove(jobFSConfig.getRunPath(runName));
-    }
-
-    private void runExistsOrException(String runName) {
-        if(!new File(jobFSConfig.getRunPath(runName)).exists()) {
-            throw new WebApplicationException(ResponseBuilder.runNameDoesNotExist(runName));
-        }
-    }
-
 }
