@@ -16,6 +16,7 @@ import perf.server.cache.LibCache;
 import perf.server.config.LoaderServerConfiguration;
 import perf.server.daemon.*;
 import perf.server.dataFix.DataFixRunner;
+import perf.server.domain.BusinessUnit;
 import perf.server.health.CounterCompoundThreadHealthCheck;
 import perf.server.health.TimerComputationThreadHealthCheck;
 import perf.server.resource.*;
@@ -64,6 +65,7 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         environment.addResource(new AgentResource(configuration.getAgentConfig()));
         environment.addResource(new RunResource(configuration.getJobFSConfig()));
         environment.addResource(new FunctionResource(configuration.getResourceStorageFSConfig()));
+        environment.addResource(new BusinessUnitResource(configuration.getJobFSConfig()));
         environment.addResource(new AdminResource(configuration));
         environment.addHealthCheck(new CounterCompoundThreadHealthCheck("CounterCompoundThread"));
         environment.addHealthCheck(new TimerComputationThreadHealthCheck("TimerComputationThread"));

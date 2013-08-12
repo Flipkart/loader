@@ -1,4 +1,5 @@
 [
     "perf.server.dataFix.RemoveWarmUpTimeFromGroupsFixer",
-    "perf.server.dataFix.AddInputFileResourceToLoadPartFixer"
+    "perf.server.dataFix.AddInputFileResourceToLoadPartFixer",
+    "perf.server.dataFix.AssignDefaultBusinessUnitForExistingRuns"
 ]
