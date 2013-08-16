@@ -600,13 +600,16 @@ public class Job {
                         }
                         if(runJobId.toUpperCase().contains(searchJobId.toUpperCase())) {
                             Job job = JobsCache.getJob(runJobId);
-                            // Old Code
                             //Job job = objectMapper.readValue(new File(configuration.getJobFSConfig().getJobStatusFile(runJobId)), Job.class);
-                            if(searchJobStatusList.contains("ALL")) {
-                                jobs.add(job);
-                            }
-                            else if(searchJobStatusList.contains(job.getJobStatus().toString())) {
-                                jobs.add(job);
+
+                            if(job != null) {
+                                // In some corner cases Job status file is not persisted and hence job found here would be null.
+                                if(searchJobStatusList.contains("ALL")) {
+                                    jobs.add(job);
+                                }
+                                else if(searchJobStatusList.contains(job.getJobStatus().toString())) {
+                                    jobs.add(job);
+                                }
                             }
                         }
                     }
