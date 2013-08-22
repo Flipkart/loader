@@ -6,34 +6,9 @@ function getAgents(){
 			contentType: "application/json", 
 			dataType:"json",
 			type:"GET",
+			async: false,
 			success: function(agents){
-				console.log(agents);
-				var insertHtml="<tr>"
-				$.each(agents, function(k,v){
-					console.log(k);
-					var imgSrc="images/green.png";
-					switch(v["status"]){
-						case "RUNNING" :
-							imgSrc="images/green.png";
-							break;
-						case "NOT_REACHABLE" :
-							imgSrc="images/cross.png";
-							break;
-						case "BUSY":
-							imgSrc="images/red.png";
-							break;
-						case "DISABLED":
-							imgSrc="images/disabled.png";
-			
-					}
-					insertHtml = insertHtml + "<tr><td><input type=\"checkbox\" id=\"" + v["ip"] + "\" name=\"" + v["ip"] + "\" /><label for=\"\">" + v["ip"] + "</label></td>";
-					insertHtml = insertHtml + "<td>" + v["attributes"]["env"] + "</td>";
-					insertHtml = insertHtml + "<td><b><u>OS:</u></b>" + v["attributes"]["linux"] + "<br><b><u>Architecture:</u></b>" + v["attributes"]["architecture"] + "<br>";
-					insertHtml = insertHtml + "<b><u>Memory:</u></b>" + v["attributes"]["memory"] + "<br><b><u>Processors:</u></b>" + v["attributes"]["processors"] + "</td>";
-					insertHtml = insertHtml + "<td><img src=\"" + imgSrc + "\" width=\"12px\" height=\"12px\"/>" + v["status"] + "</td>";
-				});
-				insertHtml = insertHtml + "</tr>";
-				$("#agentsList").append(insertHtml);
+				ko.applyBindings(new agentsViewModel(agents));
 			},
 			error: function(err){
 				console.log("Error");
@@ -46,6 +21,40 @@ function getAgents(){
 	});
 }
 
+function agentRow(agentDets){
+	var self = this;
+	var memory = Math.floor(agentDets["attributes"]["memory"]/1000000000);
+	var rowClass="info";
+	switch(agentDets["status"]){
+		case "FREE" :
+			rowClass="info";
+			break;
+		case "NOT_REACHABLE" :
+			rowClass="error";
+			break;
+		case "BUSY":
+			rowClass="success";
+			break;
+		case "DISABLED":
+			rowClass="warning";
+		}
+	self.agent = agentDets["ip"];
+	self.sysDetails = agentDets["attributes"]["linux"] + ", " + agentDets["attributes"]["architecture"]+ ", " + agentDets["attributes"]["processors"] + " Cores, " + memory+ " Gb";
+	self.agentStatus = agentDets["status"];
+	self.runningJobs = agentDets["runningJobs"].join();
+	self.rwClass = rowClass;
+}
+
+function agentsViewModel(agents){
+	var self = this;
+	var agentList = []
+	$.each(agents, function(k,v){
+		console.log("creating row");
+		agentList.push(new agentRow(v));
+	});
+	self.agentRows = ko.observableArray(agentList);
+	console.log("agents", self.agentRows);
+}
 
 function enableAgents(){
 	$("input:checkbox").each(function(){

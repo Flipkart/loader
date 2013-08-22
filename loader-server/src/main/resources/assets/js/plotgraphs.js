@@ -4,27 +4,26 @@ function returnTimerGraphs(url, grpIndex, timerIndex, chart1StartIndex, chart2St
 	formatTime = d3.time.format("%H:%M"),
  	formatMinutes = function(d) { return formatTime(new Date(d)); };
 	nv.addGraph(function() {
-  		chart1 = nv.models.lineChart();
-  		chart2 = nv.models.lineChart();
-  		//chart1.x(function(d,i) { return i })
-
+  		chart1 = nv.models.lineChart().
+  		  	margin({left: 80});
+  		chart2 = nv.models.lineChart().
+  			margin({left: 80});
 		chart1.xAxis
   			//.ticks(d3.time.minutes, 5)
+  			.axisLabel('Time (HH:MM)')
   			.tickFormat(function(d) { return d3.time.format('%H:%M')(new Date(d)); });
 
   		chart1.yAxis
       		.axisLabel('Time (ms)')
       		.tickFormat(d3.format(',.2f'));
 
-      	//chart2.x(function(d,i) { return i })
-
-
   		chart2.xAxis
 		  	//.ticks(d3.time.minutes, 5)
+		  	.axisLabel('Time (HH:MM)')
   			.tickFormat(function(d) { return d3.time.format('%H:%M')(new Date(d)); });
 
   		chart2.yAxis
-      		.axisLabel('Time (ms)')
+      		.axisLabel('TPS')
       		.tickFormat(d3.format(',.2f'));
       	var metrices = {}
       	if (typeof window.stats[grpIndex][timerIndex] != 'undefined' || window.stats[grpIndex][timerIndex] != null){
@@ -56,10 +55,10 @@ function returnTimerGraphs(url, grpIndex, timerIndex, chart1StartIndex, chart2St
     });
 
 function plotGraphs(grpIndex, timerIndex){
-	getCounters(window["counterUrls"][grpIndex][timerIndex], grpIndex, timerIndex);
-	getGroupRealTimeConf(window["groupConfUrls"][grpIndex][timerIndex], grpIndex, timerIndex);
-	chart1Name = "#chart" + grpIndex + timerIndex + "1";
-	chart2Name = "#chart" + grpIndex + timerIndex + "2";
+	//getCounters(window["counterUrls"][grpIndex][timerIndex], grpIndex, timerIndex);
+	//getGroupRealTimeConf(window["groupConfUrls"][grpIndex][timerIndex], grpIndex, timerIndex);
+	chart1Name = "#chart-" + grpIndex + "-" + timerIndex + "-1";
+	chart2Name = "#chart-" + grpIndex + "-" + timerIndex + "-2";
 	// console.log("Lets see chart1Name:" + chart1Name);
 	//console.log("chart I am plotting", window.stats[grpIndex][timerIndex]["metrices"]["chart1"]);
 	d3.select(chart1Name + " svg")

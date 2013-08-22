@@ -20,10 +20,36 @@ function renderDisplayArea(elementType, metadata){
 			break;
 	}
 }
+var runJsonViewModel = function(){
+	var self=this;
+	self.run = ko.observable(window.runSchema);
+	self.runJson = ko.computed(function(){
+		return JSON.stringify(self.run(), undefined, 4);
+	});
+}
 
 var runSchemaViewModel = function(runSchema){
 	var self = this;
 	self.runName = ko.observable(runSchema["runName"]);
+	var availableGroups = [];
+	$.each(window.existingBus, function(k,v){
+		availableGroups.push(k);
+	})
+	self.businessUnit = ko.observableArray(availableGroups);
+	self.selectedBu = ko.observable(runSchema["businessUnit"]);
+	self.team = ko.computed(function(){
+		var selGrp = self.selectedBu();
+		var teams = [];
+		$.each(window.existingBus[selGrp]["teams"], function(k,v){
+			teams.push(k);
+		})
+		return teams;
+	});
+	self.selectedTeam = ko.observable(runSchema["team"]);
+	self.onBuChange = function(){
+		self.selectedBu($("#bu").val());
+	}
+	console.log("runSchemaViewModel", self);
 }
 
 var loadPartViewModel = function(loadPart){
@@ -169,6 +195,15 @@ function renderRunPage(metadata){
 
 function updateRun(){
 	window.runSchema.runName = $("#runName").val();
+	window.runSchema.businessUnit = $("#bu").val();
+	window.runSchema.team = $("#team").val();
+	createTree(window.runSchema);
+	renderDisplayArea('run',window["runSchema"]);
+}
+
+function updateRunGrpTeam(){
+	window.runSchema.businessUnit = $("#bu").val();
+	window.runSchema.team = $("#team").val();
 	createTree(window.runSchema);
 	renderDisplayArea('run',window["runSchema"]);
 }
@@ -607,6 +642,9 @@ function getFunctionList(group, loadPartIndex, groupIndex){
 
 function createRun(){
 	var isValid = true;
+	if(window.selectedView=='json'){
+		window.runSchema = $.parseJSON($("#runJson").val());
+	}
 	$.each(window.runSchema["loadParts"], function(lpIndex, loadPart){
 		var classes = new Array();
 		$.each(loadPart["load"]["groups"], function(grpIndex, group){
@@ -624,8 +662,12 @@ function createRun(){
 	});
 
 	if (!isValid){
-		$("#success").append("<p>U have function with no class, Can't create run!!</p>");
-		$("#success").dialog();
+		$("#alertMsg").empty();
+  	    $("#alertMsg").removeClass("alert-success");
+        $("#alertMsg").addClass("alert-error");
+        $("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+		$("#alertMsg").append("<h4>Error!!</h4> Function with no class exists!!");
+		$("#alertMsg").css("display", "block");
 		return;
 	}
 	//window.runSchema["classes"] = classes;
@@ -645,29 +687,47 @@ function createRun(){
       	complete: function(xhr, status){
       		console.log("COMPLETE",xhr);
       		$("#success").empty();
-   //    		switch (xhr.status){
-   //    			case 201:
-   //    				$("#success").append("<p>Run Created, Successfully!!</p>");
-			// 		$("#success").dialog();
-			// 		break;
-			// 	case 409:
-			// 		$("#success").append("<p>RunName Conflict, Please Change RunName!!</p>");
-			// 		$("#success").dialog();
-			// 		break;
-			// 	case 400:
-			// 		$("#success").append("<p>Run Schema looks bad, Some JSON Parsing error!!</p>");
-			// 		$("#success").dialog();
-			// 		break;
-			// 	default :
-			// 		$("#success").append("<p>Something Went wrong, Can not create Run!!</p>");
-			// 		$("#success").dialog();
-			 //}
+      		switch (xhr.status){
+      			case 201:
+      				$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-error");
+        		 	$("#alertMsg").addClass("alert-success");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+					$("#alertMsg").append("<h4>Success!!</h4> Run Created successfully!!");
+					$("#alertMsg").css("display", "block");
+					break;
+				case 409:
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Run name conflict!!");
+					$("#alertMsg").css("display", "block");
+					break;
+				case 400:
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Invalid options!!");
+					$("#alertMsg").css("display", "block");
+				default :
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Run creation failed!!");
+					$("#alertMsg").css("display", "block");
+			 }
       	}
 	})
 }
 
 function updateRunSchema(){
 	var isValid = true;
+	if(window.selectedView=='json'){
+		window.runSchema = $.parseJSON($("#runJson").val());
+	}
 	$.each(window.runSchema["loadParts"], function(lpIndex, loadPart){
 		var classes = new Array();
 		$.each(loadPart["load"]["groups"], function(grpIndex, group){
@@ -703,23 +763,31 @@ function updateRunSchema(){
       	},
       	complete: function(xhr, status){
       		$("#success").empty();
-   //    		switch (xhr.status){
-   //    			case 204:
-   //    				$("#success").append("<p>Run Updated, Successfully!!</p>");
-			// 		$("#success").dialog();
-			// 		break;
-			// 	case 409:
-			// 		$("#success").append("<p>RunName Conflict, Please Change RunName!!</p>");
-			// 		$("#success").dialog();
-			// 		break;
-			// 	case 400:
-			// 		$("#success").append("<p>Run Schema looks bad, Some JSON Parsing error!!</p>");
-			// 		$("#success").dialog();
-			// 		break;
-			// 	default :
-			// 		$("#success").append("<p>Something Went wrong, Can not Update Run!!</p>");
-			// 		$("#success").dialog();
-			// }
+      		switch (xhr.status){
+      			case 204:
+      				$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-error");
+        		 	$("#alertMsg").addClass("alert-success");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+					$("#alertMsg").append("<h4>Success!!</h4> Run Updated successfully!!");
+					$("#alertMsg").css("display", "block");
+					break;
+				case 400:
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Invalid options!!");
+					$("#alertMsg").css("display", "block");
+					break;
+				default :
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Run creation failed!!");
+					$("#alertMsg").css("display", "block");
+			}
       	}
 	})
 }
@@ -737,3 +805,75 @@ function getQueryParams(sParam){
     }
     return undefined;
 }
+
+function getBusinessUnits(){
+	var runName = $("#runName").val();
+	var bu = $("#buName").val();
+	var team = $("#team").val();
+	var searchUrl = "/loader-server/businessUnits";
+	$.ajax({
+		url: searchUrl,
+		contentType: "application/json", 
+		dataType:"json",
+		type:"GET",
+		async:false,
+		success: function(data){
+			window.existingBus = data;
+		},
+		error: function(){
+			console.log("Error in getting businessUnits");
+		},
+		complete: function(xhr, status){
+			switch(xhr.status){
+				case 200 : 
+					break;
+				default :
+					window.existingBus = {};
+			}
+		}
+	});
+}
+
+function showUI(){
+	$(".col-wrap").removeAttr('style');
+	$("#json").css('display','none');
+	window.selectedView='ui';
+}
+
+function showJson(){
+	$("#json").removeAttr('style');
+	$(".col-wrap").css('display','none');
+	window.selectedView='json';
+	if(window.models["jsonView"]["firstview"]){
+		window.models.jsonView.instance = new runJsonViewModel();
+		window.models["jsonView"]["firstview"]=false;
+		ko.applyBindings(window.models.jsonView.instance, $("#json")[0]);
+	} else {
+		window.models.jsonView.instance.run(window.runSchema);
+	}
+}
+
+function syntaxHighlight(json) {
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        var cls = 'number';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'key';
+            } else {
+                cls = 'string';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'boolean';
+        } else if (/null/.test(match)) {
+            cls = 'null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+    });
+}
+
+function reload(){
+	location.reload();
+}
+
+
