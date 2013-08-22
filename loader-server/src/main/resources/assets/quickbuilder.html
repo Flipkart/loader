@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script type="text/javascript" src="js/quickBuilder.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<script type="text/javascript" src="js/bootstrap-combobox.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap-combobox.css">
+
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+	</style>
+</head>
+<body>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+	    });
+	    ko.bindingHandlers.combobox = {
+		  	init: function(element, valueAccessor, allBindingAccessor, viewModel){
+		  		$("#functionClass").combobox();
+		  	},
+		  	update: function(element, valueAccessor, allBindingAccessor, viewModel){
+		  		var selFun = viewModel.selectedFunction();
+		  		$("#functionClass option").each(function(index, opt){
+		  			if($(opt).attr("value") == selFun){ 
+		  				$(opt).attr("selected",true);
+		  			}
+		  			else { 
+		  				$(opt).removeAttr("selected"); 
+		  			}
+		  		})
+		  		$("#functionClass").combobox('refresh');
+		  	}
+		}
+	</script>
+	<!--navigation bar ends-->
+	<!--breadcrumbs make it dynamic-->
+		<ul class="breadcrumb">
+  			<li><a href="index.html">Home</a> <span class="divider">/</span></li>
+  			<li><a href="#">Agents</a> <span class="divider">/</span></li>
+		</ul>
+	<!--breadcrumbs end-->
+	<!--Alert msg-->
+	<div id="alertMsg" class="alert" style="display: none">
+	</div>
+	<!-- <div class="container"> -->
+	<div class="row-fluid">
+	<div class="span12 well">
+		<fieldset>
+			<legend>Quick Run Builder</legend>
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="span6">
+						<label class="span4">Run Name</label>
+						<input id="runName" class="span6" type="text" value="TestRun"/>
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="span6">
+						<label class="span4">Group</label>
+						<select id="grp" class="span6" data-bind="options: group, selectedOption: selectedGroup, event: {change: onBuChange}"></select>
+					</div>
+					<div class="span6">
+						<label class="span4">Team</label>
+						<select id="team" class="span6" data-bind="options: team"></select>
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="span6">
+						<label class="span4">Threads</label>
+						<input id="threads" class="span6" type="text" value="1"/>
+					</div>
+					<div class="span6">
+						<label class="span4">Throughput</label>
+						<input id="throughput" class="span6" type="text" value="-1"/>
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="span6">
+						<label class="span4">Repeats</label>
+						<input id="repeats" class="span6" type="text" value="1"/>
+					</div>
+					<div class="span6">
+						<label class="span4">Duration</label>
+						<input id="duration" class="span6" type="text" value="-1"/>
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="span6">
+						<label class="span4">Warmup Repeats</label>
+						<input id="warmupRepeats" class="span6" type="text" value="-1"/>
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="span6">
+						<label class="span4">Function Class</label>
+						<select id="functionClass" class="input-xlarge" data-bind="options: functions, selectedOption: selectedFunction, combobox: functions, event: {'change': onfunctionChange}"></select>
+					</div>
+				</div>
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>Input Parameters</legend>
+			<div id="inputParameters" data-bind="foreach: inputParameters">
+				<div class="row-fluid">
+					<label class="span2" data-bind="text: key"></label>
+					<input class="span4 inputParamVal" type="text" data-bind="value: val, attr:{'id':key}"/>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="span6">
+						<button id="createRun" class="btn" onClick="createRun()">Create</button>
+					</div>
+				</div>
+			</div>
+		</fieldset>
+	</div>	
+	</div>
+	<script type="text/javascript">
+		getBusinessUnits();
+		getAvailableFunctions();
+		ko.applyBindings(new quickBuilderViewModel());
+	</script>
+</body>
+</html>

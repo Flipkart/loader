@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/_lib/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery.jstree.js"></script>
+	<script type="text/javascript" src="js/_lib/jquery.cookie.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script type="text/javascript" src="js/createJobReports.js"></script>
+	<script type="text/javascript" src="js/plotgraphs.js"></script>
+	<script src="js/lib/d3.v2.js"></script>
+	<script src="js/nv.d3.js"></script>
+	<script src="js/src/tooltip.js"></script>
+	<script src="js/src/utils.js"></script>
+	<script src="js/src/models/legend.js"></script>
+	<script src="js/src/models/axis.js"></script>
+	<script src="js/src/models/scatter.js"></script>
+	<script src="js/src/models/line.js"></script>
+	<script src="js/src/models/lineChart.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link href="js/src/nv.d3.css" rel="stylesheet" type="text/css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+	</style>
+</head>
+<body>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+		  getJobStats();
+	      getMonitoringStats();
+	      ko.applyBindings(new graphReports());
+	      createGroupTree();
+	      createMonitoringTree();
+	      //plotGraphs();
+	      hideGraphs();
+	    });
+	</script>
+	<!--navigation bar ends-->
+	<!--breadcrumbs make it dynamic-->
+		<ul class="breadcrumb">
+  			<li><a href="index.html">Home</a> <span class="divider">/</span></li>
+  			<li><a href="#">Agents</a> <span class="divider">/</span></li>
+		</ul>
+	<!--breadcrumbs end-->
+	<!-- Graphs and Tree container-->
+	<div class="row-fluid">
+		<div class="span12">
+			<div class="span3 well">
+				<div class="row-fluid">
+					<div class="span12">
+						<fieldset>
+							<legend>Groups</legend>
+							<div id="timerTree">
+							</div>
+						</fieldset>
+					</div>
+				</div>
+				<hr>
+				<div class="row-fluid">
+					<div class="span12">
+						<fieldset>
+							<legend>Monitoring Agents</legend>
+							<div id="monitoringTree">
+							</div>
+						</fieldset>
+					</div>
+				</div>
+			</div>
+			<div class="span9 well">
+				<div class="span12" data-bind="foreach: jobGroups" id="timerGraphs">
+					<div data-bind="attr: {'id': groupDivId}">
+						<fieldset>
+							<legend><span data-bind="text: groupName"></span></legend>
+							<div class="span12" data-bind="foreach: timers">
+								<div data-bind="attr:{'id':timerDivId}">
+									<div class="row-fluid">
+										<label class="pull-left" data-bind="text: timerName"></label>
+									</div>
+									<div class="row-fluid">
+										<div class="span6" data-bind="attr:{'id':chartName1}">
+											<svg style="height: 350px;min-height:350px"></svg>
+										</div>
+										<div class="span6" data-bind="attr:{'id':chartName2}">
+											<svg style="height: 350px;min-height:350px"></svg>
+										</div>
+									</div>
+								</div>
+							</div>
+						</fieldset>
+					</div>
+				</div>
+				<div class="span12" data-bind="foreach: monAgents" id="monGraphs">
+					<fieldset>
+						<legend data-bind="text: monAgent"></legend>
+						<div class="row-fluid">
+							<div class="span6" data-bind="attr:{'id':resource}">
+							</div>
+						</div>
+					</fieldset>
+				</div>
+			</div>
+		</div>
+	</div>

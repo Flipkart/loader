@@ -228,7 +228,9 @@ body {
   line-height: 20px;
   color: #333333;
   background-color: #ffffff;
-  padding:100px;
+  padding-top:50px;
+  padding-left:10px;
+  padding-right:10px;
 }
 
 a {

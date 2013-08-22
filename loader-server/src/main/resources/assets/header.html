@@ -1,84 +1,34 @@
-<script>  
-    var el = document.getElementsByTagName("body")[0];  
-    el.className = "";  
-</script>  
-<div style="color:#FFF;">
-  <table width="100%" border="0" cellpadding="0" cellspacing="0">
-    <tr>
-      <td width="57%" height="73" bgcolor="#333333"> 
-			<blockquote>
-        <pre>
-        <strong>
-        <span style="font-size:24px;color:#F00">     [ </span><a href="index.html"><span style="font-size:18px;color:#F00">L</span><span style="font-size:14px;color:#F00">OADER</span></a><span style="color:#FFF">2.0</span><span style="color:#F00">  <span style="font-size:24px">]</span></span></strong>
-        <strong><span style="color:#F00;font-size:12px">          Let's kill</span><span style="color:#FFF;font-size:12px"> some apps</span></strong> 
-        </pre>
-      </blockquote>
-      </td>
-      <td width="12%" bgcolor="#333333"><table width="100%" border="0" cellpadding="0" cellspacing="0">
-        <tr>
-          <td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td><div align="center">About Us</div></td>
-        </tr>
-      </table></td>
-      <td width="11%" bgcolor="#333333"><table width="100%" border="0" cellspacing="0">
-        <tr>
-          <td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td><div align="center">Contact Us</div></td>
-        </tr>
-      </table></td>
-      <td width="20%" bgcolor="#333333">&nbsp;</td>
-    </tr>
-  </table>
-  </div>
-  <div>
-    <table width="100%" border="0" cellpadding="0" cellspacing="0">
-    <tr>
-      <td align="center" bgcolor="#FFFFFF"><table width="100%" border="0" cellpadding="0" cellspacing="0">
-        <tr>
-          <td width="10%" align="center" bgcolor="#333333">&nbsp;</td>
-          <td width="80%" align="center" bgcolor="#999999">&nbsp;</td>
-          <td width="10%" align="center" bgcolor="#333333">&nbsp;</td>
-        </tr>
-        <tr>
-          <td align="center" bgcolor="#FFFFFF">&nbsp;</td>
-          <td align="center" bgcolor="#FFFFFF" class="no-js">
-          <nav id="menu">
-            <ul>
-              <li> <a href="listRuns.html" title="Runs">Runs</a>
-                <ul>
-                  <li class="last"><a href="runBuilderNew.html" title="Create">Create</a></li>
-                </ul>
-              </li>
-              <li> <a href="home.html" title="Jobs">Jobs</a>
-                <ul>
-                  <li class="last"><a href="search_jobs.html" title="Search">Search</a></li>
-                </ul>
-              </li>
-                <li><div>Upload Resources</div>
-                    <ul>
-                        <li class="last"><a href="upload_jar.html" title="Upload UDF">UDF Jar</a></li>
-                        <li class="last"><a href="upload_input_file.html" title="Upload Input File">Input File</a></li>
-                    </ul>
-                </li>
-              <!--<li><a href="upload_jar.html" title="Upload">Upload</a></li>-->
-              <li><a href="functions.html" title="Functions">Functions</a></li>
-              <li><a href="agentsList.html" title="Agents">Agents</a></li>
-            </ul>
-          </nav>
-          <td align="center" bgcolor="#FFFFFF">&nbsp;</td>
-        </tr>
-      </table></td>
-    </tr>
-    </table>
-    <hr />
-</div>
+		<div class="navbar navbar-inverse navbar-fixed-top">
+  			<div class="navbar-inner header-border">
+  				<div class="offset1">
+  					<a class="brand" href="#"><span style="font:Georgia">[&nbsp;&nbsp;Loader2.0&nbsp;&nbsp;]</span></a>
+  				</div>
+  				<div class="container">
+    				<ul class="nav">
+						<li class="dropdown">
+							<a href="header.html" class="dropdown-toggle" data-toggle="dropdown" id="dLabel" role="button" data-toggle="dropdown" data-target="#">Run Schemas<b class="caret"></b></a>
+							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+								<li><a href="createrun.html">Create</a></li>
+                <li><a href="quickbuilder.html">Quick Create</a></li>
+								<li><a href="searchrun.html">Search</a></li>
+							</ul>
+						</li>
+      					<li class="divider-vertical"></li>
+      					<li class="dropdown">
+      						<a href="#" class="dropdown-toggle" data-toggle="dropdown" id="dLabel" role="button" data-toggle="dropdown" data-target="#">Jobs<b class="caret"></b></a>
+      						<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+								    <li><a href="jobsearch.html">Search</a></li>
+                    <li><a href="jobs.html">Running Jobs</a></li>
+							    </ul>
+      					</li>
+      					<li class="divider-vertical"></li>
+      					<li><a href="upload.html">Upload</a></li>
+      					<li class="divider-vertical"></li>
+      					<li><a href="agents.html">Agents</a></li>
+    				</ul>
+    			</div>
+  			</div>
+		</div>
+    <script type="text/javascript">
+    $('.dropdown-toggle').dropdown();
+    </script>

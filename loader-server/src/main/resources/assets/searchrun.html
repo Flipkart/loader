@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script type="text/javascript" src="js/knockout-mapping-2.4.1-min.js"></script>
+	<script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
+	<script type="text/javascript" src="js/jquery.tablesorter.widgets.min.js"></script>
+	<script type="text/javascript" src="js/jquery.tablesorter.pager.min.js"></script>
+	<script type="text/javascript" src="js/searchRuns.js"></script>
+	<script type="text/javascript" src="js/bootstrap-paginator.min.js"></script>
+	<script type="text/javascript" src="js/manageRuns.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="css/jquery.tablesorter.pager.css">
+	<link rel="stylesheet" href="css/theme.bootstrap.css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+	</style>
+</head>
+<body>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+	     // ko.applyBindings(new searchJobsListModel());
+	      searchRuns();
+	      ko.applyBindings(new searchRunsViewModel());
+	    })
+	    //$('.dropdown-toggle').dropdown();
+	</script>
+	<!--Navigation bar ends here-->
+	<!--Adding the breadcrumb-->
+	<ul class="breadcrumb">
+  		<li><a href="index.html">Home</a> <span class="divider">/</span></li>
+  		<li><a href="#">Search Runs</a> <span class="divider">/</span></li>
+	</ul>
+	<!--Breadcrumb ends-->
+	<!--Alert box-->
+	<div id="alertMsg" class="alert" style="display: none">
+	</div>
+	<!--Search Run Table-->
+	<div id="searchrun" class="row-fluid">
+		<div class="span12">
+		<table id="searchresult" class="table table-bordered"> 
+			<thead>
+				<tr>
+					<th><div class="span12"><div class="row-fluid"><label>Run Name</label></div></div></th>
+					<th><div class="span12"><div class="row-fluid"><label class="span6">Business Unit</label><select class="span6" id="selectBU" data-bind="options: availableGroups, value: selectedGroupName"></select></div></div></th>
+					<th><div class="span12"><div class="row-fluid"><label class="span4">Team</label><select id="selectTeam" class="span8" data-bind="options: availableTeams, value: selectedTeamName"></select></div></div></th>
+					<th><div class="span12"><div class="row-fluid"><label>Action</label></div></div></th>
+				</tr>
+			</thead>
+			<tbody data-bind="foreach: slicedTableRows">
+				<tr>
+				<td data-bind="text: runName"></td>
+				<td data-bind="text: groupName"></td>
+				<td data-bind="text: teamName"></td>
+				<td>
+					<div class="btn-group">
+						<button class="btn" data-bind="click: $parent.execute">Execute</button> 
+						<button class="btn dropdown-toggle" data-toggle="dropdown"> 
+							<span class="caret"></span>
+					    </button>
+  						<ul class="dropdown-menu">
+    					<li><a href="#" data-bind="click: $parent.update">Update</a></li> 
+    					<li><a href="#" data-bind="click: $parent.clone">Clone</a></li> 
+    					<li><a href="#" data-bind="click: $parent.del">Delete</a></li>
+  						</ul>
+					</div>
+				</td>
+				</td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+	</div>
+  	<div id="pager" data-bind="pager: slicedTableRows">
+	</div>
+	<div id="deleteRun" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="deleteRun" aria-hidden="true">
+		<div class="modal-header">
+    		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    		    <h3>Delete Run</h3>
+  		</div>
+  		<div class="modal-body">
+    		<p>Are you sure, you want to delete the run??</p>
+  		</div>
+  		<div class="modal-footer">
+    		<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    		<button id="delRunButt" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Yes</button>
+  		</div>
+	</div>
+	<div id="cloneRun" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="cloneRun" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+			<h3>Clone Run</h3>
+		</div>
+		<div class="modal-body">
+			<div class="span12">
+				<div class="row-fluid">
+				<label class="span2"><strong>New Run Name</strong></label>
+				<input class="span2" type="text" id="newRunName"/>
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    		<button id="cloneRunButt" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Clone</button>
+		</div>
+	</div>
+</body>
+</html>

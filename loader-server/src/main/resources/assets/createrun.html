@@ -89,6 +89,7 @@
 		  	}
 		  }
 	    })
+		getBusinessUnits();
 	</script>
 	<!--Navigation bar ends here-->
 	<!--Adding the breadcrumb-->
@@ -97,6 +98,17 @@
   		<li><a href="#">Create Run</a> <span class="divider">/</span></li>
 	</ul>
 	<!--Breadcrumb ends-->
+	<!--Alert msg-->
+	<div id="alertMsg" class="alert" style="display: none">
+	</div>
+	<!--Buttons to switch view-->
+	<div class="row-fluid">
+			<ul class="nav nav-tabs">
+  				<li id="showUILI" class="active"><a href="#" id="showUI">UI</a></li>
+  				<li id="showJsonLI"><a href="#" id="showJson">Json</a></li>
+			</ul>
+	</div>
+	<!--UI Divs Start-->
 	<div class="row-fluid col-wrap">
 		<!-- <div class="span12 col-wrap"> -->
 			<div class="span4 col well">
@@ -109,6 +121,16 @@
 						<legend>Run</legend>
 						<label class="span2">Run Name</label>
 						<input id="runName" type="text" class="span4" data-bind="value: runName"/>
+						<div class="span12">
+							<div class="span6">
+								<label class="span4">Business Unit</label>
+								<select id="bu" class="span8" data-bind="options: businessUnit, value: selectedBu, event: {change: onBuChange}"></select>
+							</div>
+							<div class="span6">
+								<label class="span3">Team</label>
+								<select id="team" class="span8" data-bind="options: team"></select>
+							</div>
+						</div>
 					</fieldset>
 					<br/>
 					<div class="btn-group span6">
@@ -269,6 +291,12 @@
     	<div class="span4 col-base well"></div>
 		<div class="span8 col-base well"></div>
 	</div><!-- close row -->
+	<!--Json view div-->
+	<div class="row-fluid" id="json" style="display:none">
+		<div class="span12 well">
+		<textarea rows="15" id="runJson" class="span12" data-bind="value: runJson"></textarea>
+		</div>
+	</div>
 	<div class="row-fluid">
 		<div class="span1 pull-right">
 			<div class="btn-group">
@@ -283,7 +311,9 @@
     		"group": { "instance":undefined, "firstview":true },
     		"function": {"instance": undefined, "firstview":true },
     		"timer": {"instance":undefined, "firstview":true },
-    		"metricCollection": {"instance":undefined, "firstview":true}
+    		"metricCollection": {"instance":undefined, "firstview":true},
+    		"jsonView":{"instance":undefined,"firstview":true}
+
     	}
 	$(function(){
     	$.ajax({
@@ -301,13 +331,42 @@
 	        	console.log(status);
 	      	}
     	});
+    	window.selectedView='ui';
 		window.runSchema = {"runName" : "RunSchema",
+						"businessUnit":"default",
+						"team":"default",
                         "loadParts" : new Array(),
                         "onDemandMetricCollections" : new Array(),
                         "metricCollections": new Array()
                         };
         createTree(window.runSchema);
 		renderDisplayArea('run', window["runSchema"]);
+
+		$("#showJson").click(function(e){
+			e.preventDefault();
+			$("#json").removeAttr('style');
+			$(".col-wrap").css('display','none');
+			$("#showUILI").removeClass('active');
+			$("#showJsonLI").addClass('active');
+			window.selectedView='json';
+			if(window.models["jsonView"]["firstview"]){
+				window.models.jsonView.instance = new runJsonViewModel();
+				window.models["jsonView"]["firstview"]=false;
+				ko.applyBindings(window.models.jsonView.instance, $("#json")[0]);
+			} else {
+				window.models.jsonView.instance.run(window.runSchema);
+			}
+		})
+
+
+		$("#showUI").click(function(e){
+			e.preventDefault();
+			$(".col-wrap").removeAttr('style');
+			$("#json").css('display','none');
+			$("#showJsonLI").removeClass('active');
+			$("#showUILI").addClass('active');
+			window.selectedView='ui';
+		});
 		//$("#resources").multiSelect();
 	});
 	//$("#resources").multiSelect();

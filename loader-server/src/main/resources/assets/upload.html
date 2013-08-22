@@ -1,41 +1,116 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>jQuery File Upload Example</title>
-<script src="js/jquery-1.9.1.js"></script>
-<script src="js/jquery.ui.widget.js"></script>
-<script src="js/jquery.iframe-transport.js"></script>
-<script src="js/jquery.fileupload.js"></script>
-<link href="css/nav.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script type="text/javascript" src="js/upload.js"></script>
+	<script src="js/jquery.ui.widget.js"></script>
+	<script src="js/jquery.iframe-transport.js"></script>
+	<script src="js/jquery.fileupload.js"></script>
+	<!-- The File Upload processing plugin -->
+	<script src="js/jquery.fileupload-process.js"></script>
+	<link rel="stylesheet" href="css/jquery.fileupload-ui.css">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+	</style>
 </head>
 <body>
-<div id="header"></div>
-<script>
-    $(function(){
-        $("#header").load('header.html');
-    })
-</script>
-<div id="upload" style="width:60%;margin:0 auto">
-<input id="fileupload" type="file" name="lib" data-url="loader-server/resourceTypes/udfLibs">
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+		  $('.dropdown-toggle').dropdown();
+	    })
+	</script>
+	<!--Navigation bar ends here-->
+	<!--Adding the breadcrumb-->
+	<ul class="breadcrumb">
+  		<li><a href="index.html">Home</a> <span class="divider">/</span></li>
+  		<li><a href="#">Upload</a> <span class="divider">/</span></li>
+	</ul>
+	<!--Breadcrumb ends-->
+	<!--Upload forms, start-->
+<div class="container-fluid">
+	<div class="row-fluid">
+		<div class="span6 well">
+			<!--<form>-->
+				<fieldset>
+					<legend>Upload UDFs</legend> <label>UDF JAR</label>
+					<!-- <input type="text"  id="jarLoc" placeholder="Jar Location"/> -->
+					<div class="row-fluid">
+						<div class="span3">
+						<span class="btn fileinput-button">
+        					<span>Browse</span>
+        			<!-- The file input field used as target for the file upload widget -->
+        					<input id="jarupload" type="file" name="lib">
+    					</span>
+    					</div>
+    					<div id="jarLoc" class="span6">
+    					</div>
+    					<div class="span3">
+							<button id="uploadJarButton" type="submit" class="btn pull-right">Upload</button>
+						</div>
+					</div>
+				</fieldset>
+			<!--</form>-->
+			<div id="jarProgress" class="progress active progress-striped" hidden="true">
+				<div class="bar">
+				</div>
+			</div>
+			<div id="jarAlert" class="alert" hidden="true">
+				<button type="button" class="close" data-dismiss="alert">×</button>
+				<div id="jarMsg"></div>
+			</div>
+		</div>
+		<div class="span6 well">
+			<!-- <form id="resupload" action="/loader-server/resourceTypes/inputFiles" method="POST" enctype="multipart/form-data"> -->
+				<fieldset>
+					<legend>Upload Resources</legend> 
+					<div class="row-fluid span12">
+						<div class="span3">
+							<label class="pull-left">Resource Name</label>
+						</div>
+						<div class="span6">
+							<input type="text" id="resourceName" name="resourceName"/>
+						</div>
+					</div>
+					<label>Resource</label>
+					<div class="row-fluid">
+					<div class="span3">
+						<span class="btn fileinput-button">
+        					<span>Browse</span>
+        			<!-- The file input field used as target for the file upload widget -->
+        					<input id="resupload" type="file" name="file">
+    					</span>
+    				</div>
+    				<div id="resLoc" class="span6"></div>
+    				<div class="span3">
+						<button id="uploadResButton" type="submit" class="btn pull-right">Upload</button>
+					</div>
+					</div>
+				</fieldset>
+			<!-- </form> -->
+			<div id="resProgress" class="progress progress-striped active" hidden="true">
+				<div class="bar">
+				</div>
+			</div>
+			<div id="resAlert" class="alert" hidden="true">
+				<button type="button" class="close" data-dismiss="alert">×</button>
+				<div id="resMsg"></div>
+			</div>
+		</div>
+	</div>
 </div>
-<script>
-$(function () {
-    $('#fileupload').fileupload({
-        dataType: 'multipart/form-data',
-        add: function (e, data) {
-            data.context = $('<button/>').text('Upload')
-                .appendTo(document.body)
-                .click(function () {
-                    data.context = $('<p/>').text('Uploading...').replaceAll($(this));
-                    data.submit();
-                });
-        },
-        done: function (e, data) {
-            data.context.text('Upload finished.');
-        }
-    });
-});
+<script type="text/javascript">
+	initializeUpload();
 </script>
-</body> 
+</body>
 </html>

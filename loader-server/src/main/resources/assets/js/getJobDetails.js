@@ -11,47 +11,15 @@ function getQueryParams(sParam){
     }
 }
 function getJobDetails(){
-	var jobUrl = "/loader-server/jobs/" + getQueryParams('jobid');   //replace this with previous one
+	var jobUrl = "/loader-server/jobs/" + getQueryParams('jobId');   //replace this with previous one
 	console.log(jobUrl);
         $.ajax({url: jobUrl,
 			contentType: "application/json", 
 			dataType:"json",
 			type:"GET",
 			success: function(data){
-				$.each(data, function(key,value){
-					//console.log(key);
-					switch(key){
-						case "runName":
-							$("#jobname").attr("value",value);
-							console.log(key);
-							break;
-						case "jobId":
-							$("#jobid").attr("value",value);
-							break;
-						case "jobStatus":
-							$("#status").attr("value",value);
-							break;
-					    case "agentsJobStatus":
-                            $.each(value, function(agentIp,agentsJobStatus){
-                                agentHealth = agentsJobStatus["inStress"] == true ? "InStress(" + JSON.stringify(agentsJobStatus["healthStatus"]) + ")" : "OK";
-                                rowColor = agentsJobStatus["inStress"] == true ? "red" : "#00FF00";
-                                $("#agents").append("<tr bgcolor="+rowColor+"><td>"+agentIp+"</td><td>"+agentsJobStatus["job_status"]+"</td><td>"+agentHealth+"</td></tr>");
-                            });
-					        break;
-
-					}
-				});
-				window["jobAgents"] = data["agentsJobStatus"];
-				console.log("in getJobDetails", window);
-				if ($("#status").attr("value")=="RUNNING"){
-					$("#play").attr("disabled","disabled");
-					$("#pause").removeAttr("disabled");
-					$("#stop").removeAttr("disabled");
-				} else {
-					$("#play").removeAttr("disabled");
-					$("#pause").attr("disabled","disabled");
-					$("#stop").attr("disabled","disabled");
-				}
+				console.log("creating the view");
+				ko.applyBindings(new jobDetailViewModel(data));
 			},
 			error: function(e){
 				console.log("Error");
@@ -61,3 +29,83 @@ function getJobDetails(){
 				}
 		});
 }
+
+function jobDetailViewModel(jobDetails){
+	var agentList = []
+	$.each(jobDetails["agentsJobStatus"], function(k,v){
+		if(v["inStress"] == false){
+			v["health"] = "OK";
+			v["rowClass"] = "info";
+		} else {
+			v["health"] = "In Stress";
+			v["rowClass"] = "error";
+		}
+		agentList.push(ko.observable(v));
+	});
+	var status = "Complete",
+		labelClass = "label-info",
+		disableClass = "btn disabled";
+	switch(jobDetails["jobStatus"]){
+		case 'RUNNING':
+			labelClass = "label-success",
+			status = "Running",
+			disableClass = "btn";
+			break;
+		case 'FAILED_TO_START':
+			labelClass = "label-important",
+			status = "Failed",
+			disableClass = "btn disabled";
+			break;
+		case 'QUEUED':
+			labelClass = "label-warning",
+			status = "Queued",
+			disableClass = "btn disabled";
+			break;
+	}
+	console.log("agents", agentList);
+	var self = this;
+	self.runName = jobDetails["runName"];
+	self.jobId = jobDetails["jobId"] + "  (  <span class=\"label " + labelClass + "\">" + status+ "</span>  )";
+	self.startTime = jobDetails["startTime"]==null?"Yet to start":new Date(jobDetails["startTime"]).toLocaleString();
+	self.endTime = jobDetails["endTime"]==null?"Yet to Finish":new Date(jobDetails["endTime"]).toLocaleString();
+	self.jobStatus = jobDetails["jobStatus"];
+	self.stopBtnClass = disableClass;
+	self.agents = ko.observableArray(agentList);
+	console.log("self", self);
+}
+
+function stopJob(){
+	var jobId = getQueryParams("jobId");
+	$.ajax({
+    url: "loader-server/jobs/" + jobId + "/kill",
+      contentType: "application/json", 
+      dataType:"json",
+      type:"PUT",
+      complete: function(xhr, status){
+        if(xhr.status==204) {
+          //console.log("job Killed!!");
+          $("#success").empty();
+          $("#success").append("<p>Job Killed, Successfully!!</p>")
+          $("#success").dialog({
+            height: 100,
+            width: 100,
+            close: function(){
+              location.reload();
+            } 
+          });
+        } else {
+          //console.log("Run Creation, Failed!!");
+          $("#success").empty();
+          $("#success").append("<p>Failed to kill, job!!</p>")
+          $("#success").dialog({
+            height: 100,
+            width: 100,
+            close: function(event, ui){
+              location.reload();
+            }
+          });
+        }
+      }
+  });
+}
+

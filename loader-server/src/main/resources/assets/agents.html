@@ -1,56 +1,71 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<script src="js/jquery-1.9.1.js"></script>
-<script src="js/getAgents.js"></script>
-<link rel="stylesheet" type="text/css" href="css/agentList.css">
-<link href="css/nav.css" rel="stylesheet" type="text/css" />
-<style>
-.filter { width:99% }
-</style>
-
-<title>Agents</title>
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script type="text/javascript" src="js/getAgentsList.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+	</style>
 </head>
-
 <body>
-<div id="header">
-</div>
-<script>
-	$(function(){
-		$("#header").load('header.html');
-	})
-</script>
-<table width="80%" border="1" align="center" style="table-layout:fixed; min-height:200px;">
-  <tr>
-    <th width="30%" scope="col">Agents</th>
-    <th width="70%" scope="col">Details</th>
-  </tr>
-  <tr>
-    <td>
-    <table width="100%" border="1" style="table-layout:fixed; float:left">
-    <tr>
-    	<td>
-    		<label for="agentFilter"></label>
-    		<input type="text" name="agentFilter" id="agentFilter" class="filter"/>
-        </td>
-    </tr>
-    <tr style="background-color:#333">
-    	<td>
-    		<div id="agentList">
-    		</div>
-    	</td>
-    </tr>
-    </table>
-    </td>
-    <td>
-    	<div id="details">
-        </div>
-    </td>
-  </tr>
-</table>
-<script>
-getAgents();
-</script>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+	    })
+	    getAgents();
+	</script>
+	<!--navigation bar ends-->
+	<!--breadcrumbs make it dynamic-->
+		<ul class="breadcrumb">
+  			<li><a href="index.html">Home</a> <span class="divider">/</span></li>
+  			<li><a href="#">Agents</a> <span class="divider">/</span></li>
+		</ul>
+	<!--breadcrumbs end-->
+	<!-- <div class="container"> -->
+		<div class="row-fluid">
+			<div class="span12">
+			<table id="agentsList" class="table table-bordered">
+				<thead>
+					<tr>
+					<th>#</th>
+					<th>Agent</th>
+					<th>System Details</th>
+					<th>Status</th>
+					<th>Running Jobs</th>
+					</tr>
+				</thead>
+				<tbody data-bind="foreach: agentRows">
+				<tr data-bind="attr: {'class': rwClass}">
+					<td><input type="checkbox" data-bind="attr: {'id': agent}"/></td>
+					<td data-bind="text: agent"></td>
+					<td data-bind="text: sysDetails"></td>
+					<td data-bind="text: agentStatus"></td>
+					<td data-bind="text: runningJobs"></td>
+				</tr>
+				</tbody>
+			</table>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class"span3">
+				<div class="btn-group">
+					<button class="btn" onClick="disableAgents()">Disable</button>
+					<button class="btn" onClick="enableAgents()">Enable</button>
+				</div>
+			</div>
+		</div>
+	<!-- </div> -->
+	<script type="text/javascript">
+		$('.dropdown-toggle').dropdown();
+	</script>
 </body>
 </html>
