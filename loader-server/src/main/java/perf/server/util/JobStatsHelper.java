@@ -6,22 +6,24 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
+import com.open.perf.domain.Group;
+import com.open.perf.domain.GroupFunction;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import perf.server.cache.JobsCache;
 import perf.server.config.AgentConfig;
 import perf.server.config.JobFSConfig;
 import perf.server.config.MonitoringAgentConfig;
+import perf.server.domain.Job;
+import perf.server.domain.LoadPart;
 import perf.server.domain.PerformanceRun;
 
 import com.open.perf.util.FileHelper;
@@ -152,54 +154,106 @@ public class JobStatsHelper {
      * @param jobId
      * @return
      */
-    public List<GroupStatsMeta> getJobMetricsStatsMeta(String jobId) {
+    public List<GroupStatsMeta> getJobMetricsStatsMeta(String jobId) throws ExecutionException, IOException {
+        Job job = JobsCache.getJob(jobId);
+        PerformanceRun performanceRun = getPerformanceRun(job.getRunName());
+        Set<Group> allGroups = new LinkedHashSet<Group>();
+        for(LoadPart loadPart : performanceRun.getLoadParts()) {
+            allGroups.addAll(loadPart.getLoad().getGroups());
+        }
+
         List<GroupStatsMeta> groups = new ArrayList<GroupStatsMeta>();
-        File groupsPath = new File(jobFSConfig.getJobStatsPath(jobId));
-        for(File groupPath : groupsPath.listFiles()) {
-            GroupStatsMeta groupStatsMeta = new GroupStatsMeta();
-            groupStatsMeta.setGroupName(groupPath.getName());
 
-            boolean groupHasStats = false;
-            for(File metricTypeFolder : groupPath.getAbsoluteFile().listFiles()) {
-                if(metricTypeFolder.getName().equalsIgnoreCase("realTimeConf"))
-                    continue;
-                List<MetricStatsMeta> metrics = new ArrayList<MetricStatsMeta>();
-                for(File metricPath : metricTypeFolder.listFiles()) {
+        for(Group group : allGroups) {
+            File groupPath = new File(jobFSConfig.getJobGroupStatsPath(jobId, group.getName()));
+            if(groupPath.exists()) {
+                GroupStatsMeta groupStatsMeta = new GroupStatsMeta();
+                groupStatsMeta.setGroupName(groupPath.getName());
+                boolean groupHasStats = false;
 
-                    // I am using timer name here as function name
-                    MetricStatsMeta metricStatsMeta = new MetricStatsMeta();
-                    metricStatsMeta.setName(metricPath.getName());
+                List<MetricStatsMeta> groupTimers = new LinkedList<MetricStatsMeta>();
+                List<MetricStatsMeta> groupCounters = new LinkedList<MetricStatsMeta>();
 
-                    File agentsPath = new File(metricPath.getAbsoluteFile() + File.separator + "agents");
+                for(GroupFunction groupFunction : group.getFunctions()) {
+                    if(groupFunction.isDumpData()) {
+                        String functionName = groupFunction.getFunctionalityName();
 
-                    List<String> allAgents = Arrays.asList(agentsPath.list());
-                    List<String> agentsHavingData = new ArrayList<String>();
+                        // Fetch Timers
+                        File timersPath = new File(jobFSConfig.getJobGroupTimersStatsPath(jobId, group.getName()));
+                        if(timersPath.exists()) {
+                            for(File timerPath : timersPath.listFiles()) {
+                                if(functionName.equals(timerPath.getName())) {
+                                    // I am using timer name here as function name
+                                    MetricStatsMeta metricStatsMeta = new MetricStatsMeta();
+                                    metricStatsMeta.setName(timerPath.getName());
 
-                    for(String agent : allAgents) {
-                        if(new File(jobFSConfig.getJobFunctionStatsFile(jobId,
-                                groupPath.getName(),
-                                metricTypeFolder.getName(),
-                                metricPath.getName(),
-                                agent)).exists()) {
-                            agentsHavingData.add(agent);
-                            groupHasStats = true;
+                                    File agentsPath = new File(timerPath.getAbsoluteFile() + File.separator + "agents");
+
+                                    List<String> allAgents = Arrays.asList(agentsPath.list());
+                                    List<String> agentsHavingData = new ArrayList<String>();
+
+                                    for(String agent : allAgents) {
+                                        if(new File(jobFSConfig.getJobFunctionStatsFile(jobId,
+                                                groupPath.getName(),
+                                                "timers",
+                                                timerPath.getName(),
+                                                agent)).exists()) {
+                                            agentsHavingData.add(agent);
+                                            groupHasStats = true;
+                                        }
+                                    }
+
+                                    metricStatsMeta.setAgents(agentsHavingData);
+                                    groupTimers.add(metricStatsMeta);
+
+                                }
+                            }
                         }
+
+                        // Fetch Counters
+                        File countersPath = new File(jobFSConfig.getJobGroupCountersStatsPath(jobId, group.getName()));
+                        if(countersPath.exists()) {
+                            for(File counterPath : countersPath.listFiles()) {
+                                if(counterPath.getName().equals(functionName + "_count")
+                                        || counterPath.getName().equals(functionName + "_error")
+                                        || counterPath.getName().equals(functionName + "_failure")
+                                        || counterPath.getName().equals(functionName + "_skip")) {
+                                    // I am using counter name here as function name
+                                    MetricStatsMeta metricStatsMeta = new MetricStatsMeta();
+                                    metricStatsMeta.setName(counterPath.getName());
+
+                                    File agentsPath = new File(counterPath.getAbsoluteFile() + File.separator + "agents");
+
+                                    List<String> allAgents = Arrays.asList(agentsPath.list());
+                                    List<String> agentsHavingData = new ArrayList<String>();
+
+                                    for(String agent : allAgents) {
+                                        if(new File(jobFSConfig.getJobFunctionStatsFile(jobId,
+                                                groupPath.getName(),
+                                                "counters",
+                                                counterPath.getName(),
+                                                agent)).exists()) {
+                                            agentsHavingData.add(agent);
+                                            groupHasStats = true;
+                                        }
+                                    }
+
+                                    metricStatsMeta.setAgents(agentsHavingData);
+                                    groupCounters.add(metricStatsMeta);
+
+                                }
+                            }
+                        }
+
                     }
-
-                    metricStatsMeta.setAgents(agentsHavingData);
-                    metrics.add(metricStatsMeta);
                 }
-
-                if(metricTypeFolder.getName().equals("timers"))
-                    groupStatsMeta.setTimers(metrics);
-                if(metricTypeFolder.getName().equals("counters"))
-                    groupStatsMeta.setCounters(metrics);
+                groupStatsMeta.setTimers(groupTimers);
+                groupStatsMeta.setCounters(groupCounters);
+                if(groupHasStats)
+                    groups.add(groupStatsMeta);
             }
-            if(groupHasStats)
-                groups.add(groupStatsMeta);
         }
         return groups;
-
     }
 
     /**
