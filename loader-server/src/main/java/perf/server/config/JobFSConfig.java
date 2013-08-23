@@ -17,6 +17,8 @@ public class JobFSConfig {
     private String runJobsFile;
     private String jobStatsPath;
     private String jobGroupStatsPath;
+    private String jobGroupTimersStatsPath;
+    private String jobGroupCountersStatsPath;
     private String jobMetricStatsFile;
     private String jobMonitoringStatsPath;
     private String jobResourceMonitoringFile;
@@ -193,6 +195,26 @@ public class JobFSConfig {
                 replace("{jobId}", jobId).
                 replace("{agentIp}",agent).
                 replace("{groupName}", groupName);
+    }
+
+    public String getJobGroupTimersStatsPath(String jobId, String groupName) {
+        return jobGroupTimersStatsPath.
+                replace("{jobId}", jobId).
+                replace("{groupName}", groupName);
+    }
+
+    public void setJobGroupTimersStatsPath(String jobGroupTimersStatsPath) {
+        this.jobGroupTimersStatsPath = jobGroupTimersStatsPath;
+    }
+
+    public String getJobGroupCountersStatsPath(String jobId, String groupName) {
+        return jobGroupCountersStatsPath.
+                replace("{jobId}", jobId).
+                replace("{groupName}", groupName);
+    }
+
+    public void setJobGroupCountersStatsPath(String jobGroupCountersStatsPath) {
+        this.jobGroupCountersStatsPath = jobGroupCountersStatsPath;
     }
 }
 
