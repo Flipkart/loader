@@ -24,6 +24,27 @@
 		.navbar .header-border {
 			border-bottom:4px solid #E47911;
 		}
+		@media (min-width: 768px) {
+
+			/* top row */
+			.col{ 
+    			margin-bottom: -99999px;
+    			padding-bottom: 99999px;  
+			}
+			/* bottom row */
+			.col-base{ 
+    			margin-top: -15px; /* cut off top portion of bottom wells */
+			}
+			}
+
+			@media (max-width: 767px) {
+				.row-fluid.base{
+    				display:none;
+				}
+			}
+			.col-wrap{
+    			overflow: hidden; 
+			}
 	</style>
 </head>
 <body>
@@ -33,13 +54,14 @@
 	<script>
 		$(function(){
 		  $("#navigation").load('header.html');
+		  getGraphPlotScheme();
 		  getJobStats();
-	      getMonitoringStats();
+	      getGraphsData();
 	      ko.applyBindings(new graphReports());
 	      createGroupTree();
 	      createMonitoringTree();
-	      //plotGraphs();
 	      hideGraphs();
+	      hideMonitoringGraphs();
 	    });
 	</script>
 	<!--navigation bar ends-->
@@ -52,9 +74,9 @@
 	<!-- Graphs and Tree container-->
 	<div class="row-fluid">
 		<div class="span12">
-			<div class="span3 well">
-				<div class="row-fluid">
-					<div class="span12">
+			<div class="span3">
+				<div class="row-fluid col-wrap">
+					<div class="span12 col well">
 						<fieldset>
 							<legend>Groups</legend>
 							<div id="timerTree">
@@ -62,9 +84,12 @@
 						</fieldset>
 					</div>
 				</div>
-				<hr>
-				<div class="row-fluid">
-					<div class="span12">
+				<div class="row-fluid base col-wrap">
+					<!-- add a second row of wells or rounded corner divs immeadiately underneath-->
+    				<div class="span12 col-base well"></div>
+				</div><!-- close row -->
+				<div class="row-fluid col-wrap">
+					<div class="span12 col well">
 						<fieldset>
 							<legend>Monitoring Agents</legend>
 							<div id="monitoringTree">
@@ -72,6 +97,10 @@
 						</fieldset>
 					</div>
 				</div>
+				<div class="row-fluid base col-wrap">
+					<!-- add a second row of wells or rounded corner divs immeadiately underneath-->
+    				<div class="span12 col-base well"></div>
+				</div><!-- close row -->
 			</div>
 			<div class="span9 well">
 				<div class="span12" data-bind="foreach: jobGroups" id="timerGraphs">
@@ -97,13 +126,28 @@
 					</div>
 				</div>
 				<div class="span12" data-bind="foreach: monAgents" id="monGraphs">
-					<fieldset>
-						<legend data-bind="text: monAgent"></legend>
-						<div class="row-fluid">
-							<div class="span6" data-bind="attr:{'id':resource}">
+					<div data-bind="attr: {'id': monAgentDivId}">
+						<fieldset>
+							<legend data-bind="text: agent"></legend>
+							<div data-bind="foreach: resources">
+								<div data-bind="attr: {'id':resourceDivId}">
+									<div class="row-fluid">
+										<label class="pull-left" data-bind="text: resourceName"></label>
+									</div>
+									<div class="row-fluid" data-bind="foreach: charts">
+										<div class="row-fluid">
+											<div class="span6" data-bind="attr:{'id':chartName1}">
+												<svg style="height: 350px;min-height:350px"></svg>
+											</div>
+											<div class="span6" data-bind="attr:{'id':chartName2}">
+												<svg style="height: 350px;min-height:350px"></svg>
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
-						</div>
-					</fieldset>
+						</fieldset>
+					</div>
 				</div>
 			</div>
 		</div>
