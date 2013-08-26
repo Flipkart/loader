@@ -81,8 +81,8 @@ function metrics(initialize, url, grpIndex, timerIndex, c1Index, c2Index) {
 	  	initializeMetrics(url, grpIndex, timerIndex);
 	  	//populateMetrics(url, grpIndex, timerIndex);
 	  }
-	  var last1Index = c1Index+300< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length?c1Index+300:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length-5;
-	  var last2Index = c2Index+300< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length?c2Index+300:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length-5;
+	  var last1Index = c1Index+100< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length?c1Index+100:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].length;
+	  var last2Index = c2Index+100< window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length?c2Index+100:window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].length;
 	  console.log("last1Index", last1Index, "last2Index", last2Index);
 	  return { "chart1":[
     					{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpMean"].slice(c1Index, last1Index),key: "Dump Mean",color: "#ff7f0e"},
@@ -109,7 +109,7 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 		  	success: function(data){
 			  var lines = data.split('\n');
 			  //var firstLine = $.parseJSON(lines[0]);
-			  window.sliderLength=lines.length-300>0?lines.length-300:0;
+			  if(lines.length>100) addSliderToTimerGraphs(grpIndex, timerIndex, lines.length-100);
 			  for( var i=0; i<lines.length-1; i++){
 			  	if (lines[i]=="") continue;
 			  	try {
@@ -193,5 +193,22 @@ function getGroupRealTimeConf(groupRealTimeConfUrl, grpIndex, timerIndex){
 			}
 		});
 }
+}
+
+function addSliderToTimerGraphs(grpIndex, timerIndex, length){
+	var st = Math.ceil(length/100);
+	var options={
+		min: 0,
+		max: length,
+		step:st,
+		stop: function(event, ui){
+			console.log("value", ui.value);
+			returnTimerGraphs(window["groupsURLS"][grpIndex]["timerUrls"][timerIndex], grpIndex, timerIndex, 
+				$("#slider-" + grpIndex+"-"+timerIndex + "-1").slider("option", "value"), 
+				$("#slider-" + grpIndex+"-"+timerIndex + "-2").slider("option", "value"));
+		}
+	}
+	$("#slider-" + grpIndex+"-"+timerIndex + "-1").slider(options);
+	$("#slider-" + grpIndex+"-"+timerIndex + "-2").slider(options);
 }
 

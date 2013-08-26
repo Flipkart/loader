@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 	<script type="text/javascript" src="js/_lib/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
 	<script type="text/javascript" src="js/jquery.jstree.js"></script>
 	<script type="text/javascript" src="js/_lib/jquery.cookie.js"></script>
 	<script type="text/javascript" src="js/bootstrap.js"></script>
@@ -20,6 +21,7 @@
 	<script src="js/src/models/lineChart.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
 	<link href="js/src/nv.d3.css" rel="stylesheet" type="text/css">
+	<link href="css/jquery-ui.css" rel="stylesheet" type="text/css">
 	<style type="text/css">
 		.navbar .header-border {
 			border-bottom:4px solid #E47911;
@@ -57,8 +59,9 @@
 		  console.log(window.queryParams);
 		  getGraphPlotScheme();
 		  getJobStats();
-	      getGraphsData();
+		  getMonitoringStats();
 	      ko.applyBindings(new graphReports());
+	      getGraphsData();
 	      createGroupTree();
 	      createMonitoringTree();
 	      hideGraphs();
@@ -117,9 +120,15 @@
 									<div class="row-fluid">
 										<div class="span6" data-bind="attr:{'id':chartName1}">
 											<svg style="height: 350px;min-height:350px"></svg>
+											<div class="span10 offset2">
+												<div data-bind="attr:{'id':sliderName1}"></div>
+											</div>
 										</div>
 										<div class="span6" data-bind="attr:{'id':chartName2}">
 											<svg style="height: 350px;min-height:350px"></svg>
+											<div class="span10 offset2">
+												<div data-bind="attr:{'id':sliderName2}"></div>
+											</div>
 										</div>
 									</div>
 								</div>
@@ -140,9 +149,15 @@
 										<div class="row-fluid">
 											<div class="span6" data-bind="attr:{'id':chartName1}">
 												<svg style="height: 350px;min-height:350px"></svg>
+												<div class="span10 offset1">
+													<div data-bind="attr:{'id':sliderName1}"></div>
+												</div>
 											</div>
 											<div class="span6" data-bind="attr:{'id':chartName2}">
 												<svg style="height: 350px;min-height:350px"></svg>
+												<div class="span10 offset1">
+													<div data-bind="attr:{'id':sliderName2}"></div>
+												</div>
 											</div>
 										</div>
 									</div>

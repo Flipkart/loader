@@ -3,13 +3,14 @@ var graphReports = function(){
 	self.createGroupArray = function(){
 		var grpList = [];
 		$.each(window["groups"], function(grpIndex,group){
-			console.log("group", group);
+			//console.log("group", group);
 			if(group["timers"]!=null && typeof(group["timers"])!= 'undefined'){
-				console.log("group[\"timers\"]", group["timers"]);
+				//console.log("group[\"timers\"]", group["timers"]);
 				var timers = [];
 				$.each(group["timers"], function(timerIndex, timer){
 					timers.push({"timerName":timer["name"], "chartName1":"chart-"+grpIndex+"-"+timerIndex + "-1",
-						"chartName2":"chart-"+grpIndex+"-"+timerIndex + "-2", "timerDivId":"timer-" + grpIndex + "-" + timerIndex});
+						"chartName2":"chart-"+grpIndex+"-"+timerIndex + "-2", "timerDivId":"timer-" + grpIndex + "-" + timerIndex, 
+						"sliderName1":"slider-" + grpIndex+"-"+timerIndex + "-1", "sliderName2":"slider-" + grpIndex+"-"+timerIndex + "-2"});
 				});
 				grpList.push({"groupName":group["groupName"], "timers":timers, "groupDivId":"group-" + grpIndex});
 			}
@@ -29,11 +30,15 @@ var graphReports = function(){
 				noOfCharts = noOfCharts%2==0?noOfCharts:noOfCharts+1;
 				var charts = [];
 				for(var k=0;k<noOfCharts;){
+					var sliderName1 = "slider-" + monAgent["agent"] + "-" + resource + "-" + k;
 					var chartName1 = "agent-" + monAgent["agent"] + "-" + resource + "-" + k++;
+					var sliderName2 = "slider-" + monAgent["agent"] + "-" + resource + "-" + k;
 					var chartName2 = "agent-" + monAgent["agent"] + "-" + resource + "-" + k++;
 					chartName1 = chartName1.replace(/\./g,"_");
 					chartName2 = chartName2.replace(/\./g,"_");
-					charts.push({"chartName1": chartName1,"chartName2": chartName2});
+					sliderName1 = sliderName1.replace(/\./g,"_");
+					sliderName2 = sliderName2.replace(/\./g,"_");
+					charts.push({"chartName1": chartName1,"chartName2": chartName2, "sliderName1":sliderName1, "sliderName2": sliderName2});
 				}
 				monAgent["resources"].push({"resourceName":resource, "charts":charts, "resourceDivId":"resource-" + monIndex + "-" + resIndex});
 			});
@@ -59,7 +64,6 @@ function getJobStats(){
 			window["groupsURLS"] = [];
 			window["graphsState"] = [];
 			$.each(jobStats, function(index, group){
-							console.log("group",group);
 				var groupUrls = {};
 				var groupGraphsState = {};
 				var timers = group["timers"];
@@ -68,7 +72,6 @@ function getJobStats(){
 					groupGraphsState["timerGraphsState"]=[];
 					groupUrls["counterUrls"]=[];
 					$.each(timers, function(timerIndex, timer){
-													console.log("timer", timer);
 						groupGraphsState["timerGraphsState"].push(false);
 						groupUrls["timerUrls"].push("/loader-server/jobs/" + jobId + "/jobStats/groups/" + group["groupName"] + "/timers/" + timer["name"] + "/agents/combined");
 						groupUrls["counterUrls"].push({ "count":"/loader-server/jobs/" + jobId + "/jobStats/groups/" + group["groupName"] + "/counters/" + timer["name"] + "_count/agents/combined?last=true",
@@ -160,9 +163,6 @@ function createGroupTree(){
 		"progressive_render" : true,
 		}
 	}).bind("check_node.jstree", function(event, data){
-		//console.log("You checked ", event, data);
-		//console.log("metadata", data.rslt.obj.data());
-		console.log(window.queryParams);
 		updateStateOnCheck();
 		switch(data.rslt.obj.data("nodeType")){
 			case "graphs":
@@ -375,7 +375,7 @@ function getResourceType(resource){
 }
 
 function getMonitoringStats(jobId){
-	
+	var jobId = getQueryParams("jobId");
 	$.ajax({
 		url: "/loader-server/jobs/" + jobId + "/monitoringStats",
 		type: "GET",
@@ -405,19 +405,19 @@ function getMonitoringStats(jobId){
 
 function getGraphsData(){
 	var jobId = getQueryParams("jobId");
-	getMonitoringStats(jobId);
+	//getMonitoringStats(jobId);
 	//getGraphPlotScheme();
 	//getMonitoringStats(jobId);
 	window["monitoringStats"] = {};
 	var metricsToBePlot = window["monitorResources"];
 	//console.log("metricsToBePlot:", metricsToBePlot);
-	$.each(metricsToBePlot, function(index, metric){
+	$.each(metricsToBePlot, function(agentIndex, metric){
 		var agentName = metric["agent"];
 		var resources = metric["resources"];
 		window["monitoringStats"][agentName]={};
 		//console.log("agentName:", agentName);
 		//console.log("resources", resources);
-		$.each(resources, function(index, resource){
+		$.each(resources, function(resourceIndex, resource){
 			window["monitoringStats"][agentName][resource] = {};
 			$.ajax({
 				url: "/loader-server/jobs/" + jobId + "/monitoringStats/agents/" + agentName + "/resources/" + resource,
@@ -425,20 +425,15 @@ function getGraphsData(){
 				contentType: "text/plain",
 				async: false,
 				success: function(resourceData){
-					//console.log("resourceData: ", resourceData);
 					var type = getResourceType(resource);
 					var attributesToPlot = new Array();
 					$.each(window["graphSceme"]["chartResources"][type]["charts"], function(index, chart){
-						//console.log("chart:", chart["keysToPlot"]);
 						attributesToPlot=attributesToPlot.concat(chart["keysToPlot"]);
-						//console.log("attributesToPlot :", attributesToPlot);
 					});
-					//console.log("type :", type);
-					//console.log("attributesToPlot :", attributesToPlot);
 					var resourceDataLines = resourceData.split('\n');
-					//console.log("resourceDataLines:", resourceDataLines);
+					if(resourceDataLines.length>100) addSliderToMonitoringGraphs(agentIndex, resourceIndex, 
+						resourceDataLines.length-100, window["graphSceme"]["chartResources"][type]["charts"].length); 
 					$.each(resourceDataLines, function(lineIndex, resourceDataLine){
-						//console.log("resourceDataLine:", resourceDataLine);
 						if (resourceDataLine!==""){ 
 							$.each(attributesToPlot, function(metricIndex, attr){
 								if(!window["monitoringStats"][agentName][resource][attr]) window["monitoringStats"][agentName][resource][attr]=new Array();
@@ -461,12 +456,10 @@ function getGraphsData(){
 			});
 		});
 	});
-	//console.log("monitoringStats:", window["monitoringStats"]);
 }
 
 function getResourceType(resource){
 	if(resource.indexOf("jmx") !== -1) return "jmx";
-	//if(resource.indexOf("cpu") !== -1) return "cpu.total";
 	if(resource.indexOf("memory") !== -1) return "memory";
 	if(resource.indexOf("sockets") !== -1) return "sockets";
 	if(resource.indexOf("diskspace") !== -1) return "diskspace.root";
@@ -477,11 +470,11 @@ function getResourceType(resource){
 
 }
 
-function plotResourceGraphs(agentIndex, resourceIndex){
+function plotResourceGraphs(agentIndex, resourceIndex, sliderDragged){
 	$("#monGraphs").show();
 	$("#agent-" + agentIndex).show();
 	$("#resource-" + agentIndex + "-" + resourceIndex).show();
-	if (!window["monitoringGraphsState"][agentIndex][resourceIndex]){
+	if (!window["monitoringGraphsState"][agentIndex][resourceIndex] || sliderDragged){
 		var resource = window["monitorResources"][agentIndex]["resources"][resourceIndex];
 		var type = getResourceType(resource);
 		var charts = window["graphSceme"]["chartResources"][type]["charts"];
@@ -492,20 +485,20 @@ function plotResourceGraphs(agentIndex, resourceIndex){
 			var chart1;
 			nv.addGraph(function() {
 	  			chart1 = nv.models.lineChart();
-	  					//chart1.x(function(d,i) {  return i });
-	  					//chart1.y(function(d,i){ return i/1000});
 				chart1.xAxis
-	  						//.ticks(d3.time.seconds, 60)
 	    			.tickFormat(function(d) { return d3.time.format('%H:%M')(new Date(d)); });
 
 	  			chart1.yAxis
 	      			.axisLabel('Time (ms)')
 	      			.tickFormat(d3.format('.1s'));
 	      		var chart1PlaceHolder = "#agent-" + agentName + "-" + resource + "-" + chartIndex;
+	      		var sliderId = "#slider-" + agentName + "-" + resource + "-" + chartIndex;
+	      		sliderId = sliderId.replace(/\./g,"_");
 	      		chart1PlaceHolder = chart1PlaceHolder.replace(/\./g,"_");
-	      				//console.log("chart1PlaceHolder", chart1PlaceHolder);
+	      		var startPoint =0;
+	      		if(sliderDragged) startPoint=$(sliderId).slider("option", "value");
 	      		d3.select(chart1PlaceHolder + " svg")
-	      			.datum(getChartData(agentName, resource, chart))
+	      			.datum(getChartData(agentName, resource, chart, startPoint))
 	    			.transition().duration(500)
 	      			.call(chart1);
 	      		nv.utils.windowResize(chart1.update);
@@ -522,7 +515,7 @@ function plotMonAgentGraphs(agentIndex){
 	$("#agent-" + agentIndex).show();
 	var agent = window["monitorResources"][agentIndex];
 	$.each(agent["resources"], function(resIndex, resource){
-		plotResourceGraphs(agentIndex, resIndex);
+		plotResourceGraphs(agentIndex, resIndex, false);
 	});
 }
 
@@ -551,10 +544,11 @@ function hideMonitoringGraphs(){
 }
 
 
-function getChartData(agentName, resource, chart){
+function getChartData(agentName, resource, chart, startIndex){
 	var returnData = new Array();
 	$.each(chart["keysToPlot"], function(attrIndex, attr){
-		returnData.push({values: window["monitoringStats"][agentName][resource][attr], key: attr, color: pickColor(attrIndex)});
+		var lastIndex = startIndex + 100>window["monitoringStats"][agentName][resource][attr]?window["monitoringStats"][agentName][resource][attr].length:startIndex + 100;
+		returnData.push({values: window["monitoringStats"][agentName][resource][attr].slice(startIndex, lastIndex), key: attr, color: pickColor(attrIndex)});
 	});
 	//console.log("returnData", returnData);
 	return returnData;
@@ -634,6 +628,26 @@ function checkMonNodes(){
 			$.jstree._reference('#monitoringTree').check_node("#"+monRes);
 			console.log("checking ", "#" + monRes);
 		});
+	}
+}
+
+function addSliderToMonitoringGraphs(agentIndex, resourceIndex, length, k){
+	var st = Math.ceil(length/100);
+	var options={
+		min: 0,
+		max: length,
+		step:st,
+		stop: function(event, ui){
+			console.log("value", ui.value);
+			plotResourceGraphs(agentIndex, resourceIndex, true);
+		}
+	}
+	var agentName = window["monitorResources"][agentIndex]["agent"];
+	var resName = window["monitorResources"][agentIndex]["resources"][resourceIndex];
+	for(var i=0;i<k;i++){
+		var sldr = "#slider-" + agentName + "-" + resName + "-" + i;
+		sldr = sldr.replace(/\./g,"_");
+		$(sldr).slider(options);
 	}
 }
 
