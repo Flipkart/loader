@@ -277,11 +277,11 @@
 				'.jstree > ul > li { margin-left:0px; } ' + 
 				'.jstree-rtl > ul > li { margin-right:0px; } ' + 
 				'.jstree ins { display:inline-block; text-decoration:none; width:18px; height:18px; margin:0 0 0 0; padding:0; } ' + 
-				'.jstree a { display:inline-block; line-height:25px; height:25px; color:black; white-space:nowrap; text-decoration:none; padding:1px 2px; margin-top:3px; } ' + 
+				'.jstree a { display:inline-block; line-height:18px; height:18px; color:black; white-space:nowrap; text-decoration:none; padding:1px 2px; margin-top:3px; } ' + 
 				'.jstree a:focus { outline: none; } ' + 
-				'.jstree a > ins { height:25px; width:25px; } ' + 
-				'.jstree a > .jstree-icon { margin-right:3px; } ' + 
-				'.jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; } ' + 
+				'.jstree a > ins { height:18px; width:18px; } ' + 
+				'.jstree a > .jstree-icon { margin-right:3px; background-size:100%;} ' + 
+				'.jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; background-size:100%;} ' + 
 				'li.jstree-open > ul { display:block; } ' + 
 				'li.jstree-closed > ul { display:none; } ';
 		// Correct IE 6 (does not support the > CSS selector)
