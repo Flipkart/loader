@@ -41,6 +41,12 @@ function jobDetailViewModel(jobDetails){
 			v["health"] = "In Stress";
 			v["rowClass"] = "error";
 		}
+		console.log("job_status is ", v["job_status"]);
+		if(v["job_status"]=="RUNNING"){
+			v["stopAgentJobClass"]="btn";
+		} else {
+			v["stopAgentJobClass"] = "btn disabled";
+		}
 		agentList.push(ko.observable(v));
 		window["jobAgents"].push(k);
 	});
@@ -48,21 +54,29 @@ function jobDetailViewModel(jobDetails){
 	var status = "Complete",
 		labelClass = "label-info",
 		disableClass = "btn disabled";
+		logBtnCls = "btn";
+		grfBtnClass = "btn";
 	switch(jobDetails["jobStatus"]){
 		case 'RUNNING':
 			labelClass = "label-success",
 			status = "Running",
 			disableClass = "btn";
+			logBtnCls = "btn";
+			grfBtnClass="btn";
 			break;
 		case 'FAILED_TO_START':
 			labelClass = "label-important",
 			status = "Failed",
 			disableClass = "btn disabled";
+			logBtnCls = "btn disabled";
+			grfBtnClass="btn disabled";
 			break;
 		case 'QUEUED':
 			labelClass = "label-warning",
 			status = "Queued",
 			disableClass = "btn disabled";
+			logBtnCls = "btn disabled";
+			grfBtnClass="btn disabled";
 			break;
 	}
 	var self = this;
@@ -72,6 +86,8 @@ function jobDetailViewModel(jobDetails){
 	self.endTime = jobDetails["endTime"]==null?"Yet to Finish":new Date(jobDetails["endTime"]).toLocaleString();
 	self.jobStatus = jobDetails["jobStatus"];
 	self.stopBtnClass = disableClass;
+	self.logsBtnClass = logBtnCls;
+	self.graphsBtnClass = grfBtnClass;
 	self.agents = ko.observableArray(agentList);
 	console.log("self", self);
 }
