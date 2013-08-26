@@ -69,7 +69,7 @@
 	<!--breadcrumbs make it dynamic-->
 		<ul class="breadcrumb">
   			<li><a href="index.html">Home</a> <span class="divider">/</span></li>
-  			<li><a href="#">Agents</a> <span class="divider">/</span></li>
+  			<li><a href="jobsearch.html">Job Search</a> <span class="divider">/</span></li>
 		</ul>
 	<!--breadcrumbs end-->
 	<!-- Graphs and Tree container-->
@@ -154,3 +154,10 @@
 			</div>
 		</div>
 	</div>
+	<script type="text/javascript">
+	var jobId = getQueryParams("jobId");
+		$(".breadcrumb").append("<li><a href=\"jobdetails.html?&jobId" + jobId + "\">Job Search</a> <span class=\"divider\">/</span></li>");
+		$(".breadcrumb").append("<li><a href=\"#\">Job Graphs</a> <span class=\"divider\">/</span></li>");
+	</script>
+</body>
+</html>
