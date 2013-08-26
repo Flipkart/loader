@@ -76,7 +76,7 @@ ko.bindingHandlers.sortTable = {
             	container: $(".pager"),
             	updateArrows: true,
             	page : 0,
-            	size : 10,
+            	size : 7,
             	removeRows: false,
             	output: '{page}/{totalPages}',
             	cssNext: '.next',

@@ -68,8 +68,8 @@
 		<!--Buttons(stop job, reports)-->
 		<div class="btn-group pull-left">
   			<button id="stopJob" data-bind="attr: {'class': stopBtnClass}" onClick="stopJob()">Stop</button>
-  			<button class="btn" onClick="generateLogs()">Logs</button>
-  			<button class="btn" onClick="generateGraphs()">Reports</button>
+  			<button id="generateLogs" class="btn" data-bind="attr: {'class': logsBtnClass}" onClick="generateLogs()">Logs</button>
+  			<button id="generateGraphs" class="btn" data-bind="attr: {'class': graphsBtnClass}" onClick="generateGraphs()">Reports</button>
 		</div>
 		<br/>
 		<hr>
@@ -87,7 +87,7 @@
 					<td data-bind="text: agentIp"></td>
 					<td data-bind="text: job_status"></td>
 					<td data-bind="text: health"></td>
-					<td><button class="btn">Stop Job</button></td>
+					<td><button id="stopAgentJob" data-bind="attr: {'class': stopAgentJobClass}">Stop Job</button></td>
 				</tr>
 			</tbody>
 		</table>

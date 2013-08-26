@@ -18,6 +18,27 @@
 		.navbar .header-border {
 			border-bottom:4px solid #E47911;
 		}
+		@media (min-width: 768px) {
+
+			/* top row */
+			.col{ 
+    			margin-bottom: -99999px;
+    			padding-bottom: 99999px;  
+			}
+			/* bottom row */
+			.col-base{ 
+    			margin-top: -15px; /* cut off top portion of bottom wells */
+			}
+			}
+
+			@media (max-width: 767px) {
+				.row-fluid.base{
+    				display:none;
+				}
+			}
+			.col-wrap{
+    			overflow: hidden; 
+			}
 	</style>
 </head>
 <body>
@@ -38,13 +59,15 @@
 	</ul>
 	<!--Breadcrumb ends-->
 	<!--Upload forms, start-->
-<div class="container-fluid">
-	<div class="row-fluid">
-		<div class="span6 well">
+	<div class="row-fluid col-wrap">
+		<div class="span6 col well">
 			<!--<form>-->
 				<fieldset>
-					<legend>Upload UDFs</legend> <label>UDF JAR</label>
+					<legend>Upload UDFs</legend> 
 					<!-- <input type="text"  id="jarLoc" placeholder="Jar Location"/> -->
+					<div class="row-fluid">
+						<br><br><label>UDF Jar</label>
+					</div>
 					<div class="row-fluid">
 						<div class="span3">
 						<span class="btn fileinput-button">
@@ -70,11 +93,11 @@
 				<div id="jarMsg"></div>
 			</div>
 		</div>
-		<div class="span6 well">
+		<div class="span6 col well">
 			<!-- <form id="resupload" action="/loader-server/resourceTypes/inputFiles" method="POST" enctype="multipart/form-data"> -->
 				<fieldset>
 					<legend>Upload Resources</legend> 
-					<div class="row-fluid span12">
+					<div class="row-fluid">
 						<div class="span3">
 							<label class="pull-left">Resource Name</label>
 						</div>
@@ -108,7 +131,11 @@
 			</div>
 		</div>
 	</div>
-</div>
+	<div class="row-fluid base col-wrap">
+	<!-- add a second row of wells or rounded corner divs immeadiately underneath-->
+    	<div class="span6 col-base well"></div>
+		<div class="span6 col-base well"></div>
+	</div><!-- close row -->
 <script type="text/javascript">
 	initializeUpload();
 </script>
