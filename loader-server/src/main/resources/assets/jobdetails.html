@@ -32,6 +32,9 @@
   		<li><a href="#">Job Details</a> <span class="divider">/</span></li>
 	</ul>
 	<!--Breadcrumb ends-->
+	<!--Alert msg-->
+	<div id="alertMsg" class="alert" style="display: none">
+	</div>
 	<!--Job Details, table starts-->
 	<div class="row-fluid">
 	  	<div class="span12">
@@ -64,9 +67,9 @@
 			</form>
 		<!--Buttons(stop job, reports)-->
 		<div class="btn-group pull-left">
-  			<button id="stopJob" data-bind="attr: {'class': stopBtnClass}">Stop</button>
-  			<button class="btn">Logs</button>
-  			<button class="btn">Reports</button>
+  			<button id="stopJob" data-bind="attr: {'class': stopBtnClass}" onClick="stopJob()">Stop</button>
+  			<button class="btn" onClick="generateLogs()">Logs</button>
+  			<button class="btn" onClick="generateGraphs()">Reports</button>
 		</div>
 		<br/>
 		<hr>
@@ -92,4 +95,15 @@
 		</div>
 	</div> 
 </body>
+<script type="text/javascript">
+	function generateGraphs(){
+ 		var jobId = getQueryParams("jobId");
+  		window.location.href="/graphreports.html?&jobId=" + jobId;
+	}
+
+	function generateLogs(){
+  		var jobId = getQueryParams("jobId");
+  		window.location.href="/logs.html?&jobid=" + jobId + "&agents=" + window["jobAgents"].join();
+	}
+</script>
 </html>

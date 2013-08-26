@@ -116,7 +116,7 @@ function getQueryParams(sParam){
 	var queryParams = queryString.split('&');
 	for (var i = 0; i < queryParams.length; i++){
         var sParameterName = queryParams[i].split('=');
-		console.log(sParameterName[0]);
+		//console.log(sParameterName[0]);
         if (sParameterName[0] == sParam){
 				//console.log('matched');
             return sParameterName[1];
@@ -127,12 +127,31 @@ function getQueryParams(sParam){
 
 function createGroupTree(){
 	$("#timerTree").jstree({
-		"plugins":["themes", "json_data", "checkbox", "ui"],
+		"plugins":["themes", "json_data", "checkbox", "ui", "types"],
+		"types": {
+			"types":{
+				"graphs": {
+					"icon": {
+						"image":"../img/graphs.png"
+					},
+				},
+				"group": {
+					"icon":{
+						"image":"../img/group.png"
+					}
+				},
+				"timer": {
+					"icon":{
+						"image":"../img/function.png"
+					}
+				}
+			}
+		},
 		"json_data":{
 			"data":[{
 				"attr":{"id" : "node_graphs", "rel":"graphs"},
 				"data" : "Graphs", 
-				"metadata" : { "name" : "Graphs", "nodeType" : "graphs"},    
+				"metadata" : { "name" : "Graphs", "nodeType" : "graphs", "id" : "node_graphs"},    
 				"children" : getGraphsChildren()
 			}],
 		"checkbox":{
@@ -141,9 +160,10 @@ function createGroupTree(){
 		"progressive_render" : true,
 		}
 	}).bind("check_node.jstree", function(event, data){
-		console.log("You checked ", event, data);
-		console.log("metadata", data.rslt.obj.data());
-		updateState();
+		//console.log("You checked ", event, data);
+		//console.log("metadata", data.rslt.obj.data());
+		console.log(window.queryParams);
+		updateStateOnCheck();
 		switch(data.rslt.obj.data("nodeType")){
 			case "graphs":
 				plotGraphs();
@@ -157,7 +177,7 @@ function createGroupTree(){
 		}
 	}).bind("uncheck_node.jstree", function(event, data){
 		console.log("You unchecked ", event, data);
-		updateState();
+		updateStateOnUnCheck();
 		switch(data.rslt.obj.data("nodeType")){
 			case "graphs":
 				hideGraphs();
@@ -172,19 +192,21 @@ function createGroupTree(){
 	});
 	$("#timerTree").bind("loaded.jstree", function (event, data) {
         $("#timerTree").jstree("open_all");
-        $.jstree._reference("#timerTree").check_node("#node_"+window["groups"][0]["groupName"]);  
+        checkTimerNodes();
+        //$.jstree._reference("#timerTree").check_node("#node_"+window["groups"][0]["groupName"]);  
     });
     $("#timerTree").bind("refresh.jstree", function (event, data) {
         $("#timerTree").jstree("open_all");
-        $.jstree._reference('#timerTree').check_node("#node_"+window["groups"][0]["groupName"]);  
+        checkTimerNodes();
+        //$.jstree._reference('#timerTree').check_node("#node_"+window["groups"][0]["groupName"]);  
     });
 }
 
 function getGraphsChildren(){
-	if(window["groups"]==undefined) return undefined;
+	if(window["groups"]==undefined || window["groups"].length==0) return undefined;
 	var children = []
 	$.each(window["groups"], function(index, group){
-		children.push({"attr":{"id":"node_" + group["groupName"],"rel":"group"}, "metadata":{ "nodeType":"group", "groupIndex":index },"data": group["groupName"], "children": getTimersChildren(group["timers"], index)});
+		children.push({"attr":{"id":"node_" + group["groupName"],"rel":"group"}, "metadata":{ "nodeType":"group", "groupIndex":index, "id":"node_" + group["groupName"]},"data": group["groupName"], "children": getTimersChildren(group["timers"], index)});
 	});
 	return children;
 }
@@ -193,7 +215,7 @@ function getTimersChildren(timers, groupIndex){
 	if(timers==null || timers.length == 0) return undefined;
 	var children = []
 	$.each(timers, function(index, timer){
-		children.push({"attr":{"id":"node_" + timer["name"], "rel":"timer"},"metadata":{"nodeType":"timer", "groupIndex":groupIndex, "timerIndex": index},"data": timer["name"]});
+		children.push({"attr":{"id":"node_" + window["groups"][groupIndex]["groupName"]+ "_" +timer["name"], "rel":"timer"},"metadata":{"nodeType":"timer", "groupIndex":groupIndex, "timerIndex": index, "id":"node_" + window["groups"][groupIndex]["groupName"]+ "_" +timer["name"]},"data": timer["name"]});
 	})
 	return children;
 }
@@ -248,7 +270,26 @@ function hideGraphs(){
 
 function createMonitoringTree(){
 	$("#monitoringTree").jstree({
-		"plugins":["themes", "json_data", "checkbox", "ui"],
+		"plugins":["themes", "json_data", "checkbox", "ui", "types"],
+		"types":{
+			"types":{
+				"monag": {
+					"icon": {
+						"image":"../img/monagents.png"
+					},
+				},
+				"agent": {
+					"icon":{
+						"image":"../img/metriccol.png"
+					}
+				},
+				"resource": {
+					"icon":{
+						"image":"../img/timer.png"
+					}
+				}
+			}
+		},
 		"json_data":{
 			"data":[{
 				"attr":{"id" : "node_graphs", "rel":"monag"},
@@ -258,13 +299,12 @@ function createMonitoringTree(){
 			}],
 		"checkbox":{
 			"override_ui":true,
-
-
 		},
 		"progressive_render" : true,
 		}
 	}).bind("check_node.jstree", function(event, data){
 		console.log("You checked ", event, data);
+		updateStateOnCheck();
 		switch(data.rslt.obj.data("nodeType")){
 			case "agent":
 				plotMonAgentGraphs(data.rslt.obj.data("agentIndex"));
@@ -278,6 +318,7 @@ function createMonitoringTree(){
 		}
 	}).bind("uncheck_node.jstree", function(event, data){
 		console.log("You unchecked ", event, data);
+		updateStateOnUnCheck();
 		switch(data.rslt.obj.data("nodeType")){
 			case "agent":
 				hideMonAgentGraphs(data.rslt.obj.data("agentIndex"));
@@ -292,26 +333,30 @@ function createMonitoringTree(){
 
 	$("#monitoringTree").bind("loaded.jstree", function (event, data) {
         $("#monitoringTree").jstree("open_all");
+        //checkTimerNodes();
+        checkMonNodes();
     });
     $("#monitoringTree").bind("refresh.jstree", function (event, data) {
         $("#monitoringTree").jstree("open_all");
+        //checkTimerNodes();
+        checkMonNodes();
     });
 }
 
 function getMonitoringChildren(){
-	if(window["monitorResources"]==undefined) return undefined;
+	if(window["monitorResources"]==undefined || window["monitorResources"].length ==0) return undefined;
 	var children = [];
 	$.each(window["monitorResources"], function(index, monRes){
-		children.push({"attr":{"id":"node_"+monRes["agent"], "rel":"agent"}, "metadata":{"nodeType":"agent", "agentIndex":index},"data":monRes["agent"], "children": getResourcesChildren(monRes, index)});
+		children.push({"attr":{"id":"node_"+monRes["agent"].replace(/\./g,"_"), "rel":"agent"}, "metadata":{"nodeType":"agent", "agentIndex":index},"data":monRes["agent"], "children": getResourcesChildren(monRes, index)});
 	});
 	return children;
 }
 
 function getResourcesChildren(monRes, agentIndex){
-	if(monRes["resources"]==null) return undefined;
+	if(monRes["resources"]==null || monRes["resources"]==undefined || monRes["resources"].length == 0) return undefined;
 	var children = [];
 	$.each(monRes["resources"], function(index, resource){
-		children.push({"attr":{"id":"node_"+resource, "rel":"resource"}, "metadata":{"nodeType":"resource", "agentIndex":agentIndex, "resourceIndex":index},"data":resource});
+		children.push({"attr":{"id":"node_"+ window["monitorResources"][agentIndex]["agent"].replace(/\./g,"_") + "_" +resource, "rel":"resource"}, "metadata":{"nodeType":"resource", "agentIndex":agentIndex, "resourceIndex":index},"data":resource});
 	})
 	return children;
 }
@@ -520,10 +565,75 @@ function pickColor(index){
 	return colors[index%9];
 }
 
-function updateState(){
+function updateStateOnCheck(){
 	var selectedTimerNodes = $.jstree._reference('#timerTree').get_checked(null, 'get_all');
 	var selectedMonNodes = $.jstree._reference('#monitoringTree').get_checked(null, 'get_all');
-	console.log(selectedTimerNodes, selectedMonNodes);
-	//history.replaceState(null, null, )
+	var selTimerList = [];
+	$.each(selectedTimerNodes, function(index, node){
+		console.log($(node).attr('id'));
+		selTimerList.push($(node).attr('id'));
+	});
+	if(getQueryParams('timerNodes')!=undefined){
+		$.each(getQueryParams('timerNodes').split(","), function(index, node){
+			if(selTimerList.indexOf(node)==-1) selTimerList.push(node);
+		});
+	}
+	var selMonResList = [];
+	$.each(selectedMonNodes, function(index, node){
+		console.log($(node).attr('id'));
+		selMonResList.push($(node).attr('id'));
+	});
+	if(getQueryParams('monNodes')!=undefined){
+		$.each(getQueryParams('monNodes').split(","), function(index, node){
+			if(selMonResList.indexOf(node)==-1) selMonResList.push(node);
+		});
+	}
+	var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId") + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join();
+	//console.log(selectedTimerNodes, selectedMonNodes);
+	history.replaceState(null, null, link);
+}
+
+function updateStateOnUnCheck(){
+	var selectedTimerNodes = $.jstree._reference('#timerTree').get_checked(null, 'get_all');
+	var selectedMonNodes = $.jstree._reference('#monitoringTree').get_checked(null, 'get_all');
+	var selTimerList = [];
+	$.each(selectedTimerNodes, function(index, node){
+		console.log($(node).attr('id'));
+		selTimerList.push($(node).attr('id'));
+	});
+	
+	var selMonResList = [];
+	$.each(selectedMonNodes, function(index, node){
+		console.log($(node).attr('id'));
+		selMonResList.push($(node).attr('id'));
+	});
+	
+	var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId") + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join();
+	history.replaceState(null, null, link);
+}
+
+function checkTimerNodes(){
+	var selTimerList = getQueryParams('timerNodes');
+	if(selTimerList != undefined && selTimerList!=""){
+		selTimerList = selTimerList.split(",");
+		$.each(selTimerList, function(index, timer){
+			console.log("checking","#"+timer);
+			$.jstree._reference('#timerTree').check_node("#"+timer);
+			console.log("checking","#"+timer);
+		});
+	}
+}
+
+function checkMonNodes(){
+	var selMonResList = getQueryParams('monNodes');
+	console.log("monNodes is", selMonResList);
+	if(selMonResList!=undefined && selMonResList!=""){
+		selMonResList = selMonResList.split(",");
+		$.each(selMonResList, function(index, monRes){
+			console.log("checking","#"+monRes);
+			$.jstree._reference('#monitoringTree').check_node("#"+monRes);
+			console.log("checking ", "#" + monRes);
+		});
+	}
 }
 

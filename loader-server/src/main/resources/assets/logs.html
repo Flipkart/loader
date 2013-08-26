@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script type="text/javascript" src="js/getLogs.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+	</style>
+</head>
+<body>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+	    })
+	</script>
+	<!--navigation bar ends-->
+	<!--breadcrumbs make it dynamic-->
+		<ul class="breadcrumb">
+  			<li><a href="index.html">Home</a> <span class="divider">/</span></li>
+  			<li><a href="#">Agents</a> <span class="divider">/</span></li>
+		</ul>
+	<!--breadcrumbs end-->
+	<div class="row-fluid">
+		<div class="span12 well">
+			<textarea rows="15" id="logsArea" class="span12"></textarea>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span4">
+			<label class="span4">Agent</label>
+			<select id="agents" class="span8" data-bind="options: agentsOption"></select>
+		</div>
+		<div class="span4">
+			<label class="span4">Number Of Lines</label>
+			<input type="text" id="linenumbers" class="span8"/>
+		</div>
+		<div class="span4">
+			<label class="span4">Grep Text</label>
+			<input type="text" id="grepText" class="span8"/>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span3">
+			<button class="btn" onClick="getLogs()">Get Logs</button>
+		</div>
+	</div>
+</body>
+<script>
+ko.applyBindings(new logsViewModel());
+</script>
+</html>

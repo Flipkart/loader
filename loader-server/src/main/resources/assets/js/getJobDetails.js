@@ -31,7 +31,8 @@ function getJobDetails(){
 }
 
 function jobDetailViewModel(jobDetails){
-	var agentList = []
+	var agentList = [];
+	window["jobAgents"] = [];
 	$.each(jobDetails["agentsJobStatus"], function(k,v){
 		if(v["inStress"] == false){
 			v["health"] = "OK";
@@ -41,7 +42,9 @@ function jobDetailViewModel(jobDetails){
 			v["rowClass"] = "error";
 		}
 		agentList.push(ko.observable(v));
+		window["jobAgents"].push(k);
 	});
+	console.log("agents used", window["jobAgents"]);
 	var status = "Complete",
 		labelClass = "label-info",
 		disableClass = "btn disabled";
@@ -62,7 +65,6 @@ function jobDetailViewModel(jobDetails){
 			disableClass = "btn disabled";
 			break;
 	}
-	console.log("agents", agentList);
 	var self = this;
 	self.runName = jobDetails["runName"];
 	self.jobId = jobDetails["jobId"] + "  (  <span class=\"label " + labelClass + "\">" + status+ "</span>  )";
@@ -83,27 +85,19 @@ function stopJob(){
       type:"PUT",
       complete: function(xhr, status){
         if(xhr.status==204) {
-          //console.log("job Killed!!");
-          $("#success").empty();
-          $("#success").append("<p>Job Killed, Successfully!!</p>")
-          $("#success").dialog({
-            height: 100,
-            width: 100,
-            close: function(){
-              location.reload();
-            } 
-          });
+          	$("#alertMsg").empty();
+  	       	$("#alertMsg").removeClass("alert-error");
+        	$("#alertMsg").addClass("alert-success");
+        	$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+			$("#alertMsg").append("<h4>Success!!</h4> Job Killed Successfully!!");
+			$("#alertMsg").css("display", "block");
         } else {
-          //console.log("Run Creation, Failed!!");
-          $("#success").empty();
-          $("#success").append("<p>Failed to kill, job!!</p>")
-          $("#success").dialog({
-            height: 100,
-            width: 100,
-            close: function(event, ui){
-              location.reload();
-            }
-          });
+          	$("#alertMsg").empty();
+  	        $("#alertMsg").removeClass("alert-success");
+        	$("#alertMsg").addClass("alert-error");
+        	$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+			$("#alertMsg").append("<h4>Error!!</h4> Job Kill Failed!!");
+			$("#alertMsg").css("display", "block");
         }
       }
   });
