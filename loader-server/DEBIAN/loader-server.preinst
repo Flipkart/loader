@@ -26,7 +26,7 @@ do
     fi
 done
 
-defaultRunFile = "/var/log/$PKG/businessUnits/default"
+defaultRunFile="/var/log/$PKG/businessUnits/default"
 if [ -f "$defaultRunFile" ]
 then
     echo "$defaultRunFile exists and not creating again"
