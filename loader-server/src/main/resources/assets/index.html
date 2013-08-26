@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+</head>
+<body>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+		  $('.dropdown-toggle').dropdown();
+	    })
+	</script>
+	<!--Navigation bar ends here-->
+	<div class="container-fluid">
+	<div class="row-fluid">
+		<div class="span12">
+			<div class="hero-unit">
+				<h1>
+					Loader 2.0
+				</h1>
+				<div>
+					Distributed Load Generation Tool.
+				</div>
+				<p>
+					<a class="btn btn-primary btn-large" href="https://github.com/Flipkart/loader2.0/wiki">Learn more »</a>
+				</p>
+			</div>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span4">
+			<h2>
+				Centralized Deployment
+			</h2>
+			<p>
+				<span>Loader2.0 comes along with support of UI and REST services for all features. It allows teams/companies to have a centralized deployment of platform instead of every user having to deploy locally and trigger performance runs locally.</span> <span>Users can create their performance runs on UI, can trigger runs, monitor them and visualize reports in near real time.</span>
+			</p>
+		</div>
+		<div class="span4">
+			<h2>
+				Distributed Load Generation
+			</h2>
+			<p>
+				<span>Loader2.0 deployment works as server-agent model. User can define work load on server UI and also mention how many agents should be used to generate the load. This feature is extremely important when user need to generate in the order of 10s-100s of 1000s of requests per second , which is not possible if you generate from single machine.</span>
+			</p>
+		</div>
+		<div class="span4">
+			<h2>
+				Server side Monitoring
+			</h2>
+			<p>
+				<span>Loader deployment comes along with monitoring-agent deployment. This monitoring-agent allows user to monitor/collect system metrics like cpu, memory, processes, network usage etc while the your application is under performance test. In addition to monitoring system stats of box where your application under test is deployed, monitoring-agent also allows user to monitor application stats like stats exposed by JMX, mysql connections etc.</span>
+			</p>
+		</div>
+	</div>
+	</div>
+</body>
+</html>
+
