@@ -11,7 +11,7 @@ LOADER_BASE_ROOT="../../"
 CODE_ROOT="../"
 LOADER_CORE_CODE_ROOT="../../loader-core"
 PACKAGE_ROOT="./loader-server"
-VERSION=0.1.16
+VERSION=0.2.0
 ARCH=all
 
 echo "Pre requisite to create this package : mvn clean compile package install -Dmaven.test.skip=true at loader2.0 level"
