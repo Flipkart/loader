@@ -311,7 +311,7 @@ function updateGroup(){
 	grp["threads"] = $("#threads").val();
 	grp["warmUpRepeats"] = $("#warmUpRepeats").val();
 	grp["dependOnGroups"].length=0;
-	grp["dependOnGroups"].push($("#groupList").val()==null?"":$("#groupList").val().join());
+	if($("#groupList").val()!=null) grp["dependOnGroups"].push($("#groupList").val().join());
 	window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"][grpData["groupIndex"]]=grp;
 	createTree(window.runSchema);
 	renderDisplayArea('group', window.selectedElementData);
