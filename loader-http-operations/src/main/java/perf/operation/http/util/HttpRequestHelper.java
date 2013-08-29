@@ -240,4 +240,13 @@ public class HttpRequestHelper {
                         setDefaultValue("UTF-8").
                         setDescription("Character Encoding for Body"));
     }
+
+    public static void addInputPassOnBody(LinkedHashMap<String, FunctionParameter> parameters) {
+        parameters.put(Constants.IP_PASS_ON_BODY,
+                new FunctionParameter().
+                        setName(Constants.IP_PASS_ON_BODY).
+                        setMandatory(true).
+                        setDefaultValue(false).
+                        setDescription("If you want to pass the response body to next function"));
+    }
 }
