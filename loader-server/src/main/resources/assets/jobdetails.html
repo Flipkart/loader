@@ -6,6 +6,7 @@
 	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
 	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
 	<script type="text/javascript" src="js/getJobDetails.js"></script>
+	<script type="text/javascript" src="js/manageRuns.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
 	<style type="text/css">
 		.navbar .header-border {
@@ -56,8 +57,9 @@
 	  		    <div class="row-fluid">
 		  			<div class="span8">
 	  				<label class="span3"><strong>Run Name</strong></label>
-	  				<p class="span9" data-bind="text: runName"></p>
-	  			  </div>
+<!-- 	  				<p class="span9" id="runName" data-bind="text: runName"></p> -->	  			
+						<a class="span9" id="runName" data-bind="attr: {'href': runUrl}, text: runName"></a>
+					</div>
 		  			<div class="span4">
 		  				<label class="span4"><strong>Finished At</strong></label>
 		  				<p class="span8" data-bind="text: endTime"></p>
@@ -70,6 +72,7 @@
   			<button id="stopJob" data-bind="attr: {'class': stopBtnClass}" onClick="stopJob()">Stop</button>
   			<button id="generateLogs" class="btn" data-bind="attr: {'class': logsBtnClass}" onClick="generateLogs()">Logs</button>
   			<button id="generateGraphs" class="btn" data-bind="attr: {'class': graphsBtnClass}" onClick="generateGraphs()">Reports</button>
+  			<button id="reRun" class="btn" data-bind="attr: {'class': reRunBtnClass}" onClick="reRun()">Rerun</button>
 		</div>
 		<br/>
 		<hr>

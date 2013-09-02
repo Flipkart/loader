@@ -53,9 +53,10 @@ function jobDetailViewModel(jobDetails){
 	console.log("agents used", window["jobAgents"]);
 	var status = "Complete",
 		labelClass = "label-info",
-		disableClass = "btn disabled";
-		logBtnCls = "btn";
-		grfBtnClass = "btn";
+		disableClass = "btn disabled",
+		logBtnCls = "btn",
+		grfBtnClass = "btn",
+		runBtnClass="btn";
 	switch(jobDetails["jobStatus"]){
 		case 'RUNNING':
 			labelClass = "label-success",
@@ -63,6 +64,7 @@ function jobDetailViewModel(jobDetails){
 			disableClass = "btn";
 			logBtnCls = "btn";
 			grfBtnClass="btn";
+			runBtnClass="btn disabled";
 			break;
 		case 'FAILED_TO_START':
 			labelClass = "label-important",
@@ -70,6 +72,7 @@ function jobDetailViewModel(jobDetails){
 			disableClass = "btn disabled";
 			logBtnCls = "btn disabled";
 			grfBtnClass="btn disabled";
+			runBtnClass="btn";
 			break;
 		case 'QUEUED':
 			labelClass = "label-warning",
@@ -77,6 +80,7 @@ function jobDetailViewModel(jobDetails){
 			disableClass = "btn disabled";
 			logBtnCls = "btn disabled";
 			grfBtnClass="btn disabled";
+			runBtnClass="btn disabled";
 			break;
 	}
 	var self = this;
@@ -89,6 +93,8 @@ function jobDetailViewModel(jobDetails){
 	self.logsBtnClass = logBtnCls;
 	self.graphsBtnClass = grfBtnClass;
 	self.agents = ko.observableArray(agentList);
+	self.reRunBtnClass = runBtnClass;
+	self.runUrl = "/updaterun.html?&runName=" + jobDetails["runName"];
 	console.log("self", self);
 }
 
@@ -116,6 +122,13 @@ function stopJob(){
 			$("#alertMsg").css("display", "block");
         }
       }
-  });
+  	});
 }
 
+function reload(){
+	location.reload();
+}
+
+function reRun(){
+	executeRun($("#runName").text());
+}
