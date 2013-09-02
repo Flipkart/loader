@@ -692,7 +692,7 @@ function createRun(){
       				$("#alertMsg").empty();
   	                $("#alertMsg").removeClass("alert-error");
         		 	$("#alertMsg").addClass("alert-success");
-        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"goToUpdate()\">&times;</button>");
 					$("#alertMsg").append("<h4>Success!!</h4> Run Created successfully!!");
 					$("#alertMsg").css("display", "block");
 					break;
@@ -874,6 +874,14 @@ function syntaxHighlight(json) {
 
 function reload(){
 	location.reload();
+}
+
+function execRun(){
+	executeRun(window.runSchema.runName);
+}
+
+function goToUpdate(){
+	window.location = "/updaterun.html?&runName=" + window.runSchema.runName;
 }
 
 
