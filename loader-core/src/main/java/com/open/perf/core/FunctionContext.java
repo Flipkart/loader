@@ -14,13 +14,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nitinka
- * Date: 14/2/13
- * Time: 8:57 AM
- * To change this template use File | Settings | File Templates.
- */
 public class FunctionContext {
 
     public static enum FailureType {
@@ -70,9 +63,9 @@ public class FunctionContext {
     }
 
     public Object getParameter(String parameterName) {
-        Object value = functionParameters.get(parameterName);
+        Object value = passOnParameters.get(parameterName);
         if(value == null)
-            value = passOnParameters.get(parameterName);
+            value = functionParameters.get(parameterName);
 
         // Resolve variable parameters
         if(value instanceof String) {

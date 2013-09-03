@@ -34,6 +34,7 @@ public class HttpPost extends PerformanceFunction implements Constants {
         HttpRequestHelper.setCharacterEncoding(context, requestBuilder);
 
         Response response = HttpRequestHelper.executeRequest(context, requestBuilder);
+        System.out.println(response.getResponseBody());
 
         if(HttpResponseHelper.successfulRequest(context, response)) {
             HttpResponseHelper.passOnResponse(context, response);
@@ -60,6 +61,7 @@ public class HttpPost extends PerformanceFunction implements Constants {
         HttpRequestHelper.addInputBodyString(parameters);
         HttpRequestHelper.addInputBodyFile(parameters);
         HttpRequestHelper.addInputCharacterEncoding(parameters);
+        HttpRequestHelper.addInputPassOnBody(parameters);
         return parameters;
     }
 
