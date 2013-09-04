@@ -46,6 +46,7 @@ function returnTimerGraphs(url, grpIndex, timerIndex, chart1StartIndex, chart2St
         	metrices = metrics(true, url, grpIndex, timerIndex, 0, 0);
         	window.stats[grpIndex][timerIndex]["metrices"]= metrices;
         }
+        getCounters(window["groupsURLS"][grpIndex]["counterUrls"][timerIndex], grpIndex, timerIndex);
         plotGraphs(grpIndex, timerIndex);
         nv.utils.windowResize(chart1.update);
   		nv.utils.windowResize(chart2.update);
@@ -157,9 +158,9 @@ function getCounters(counterUrls, grpIndex, timerIndex){
 
 			},
 			complete: function(xhr,status){
-				console.log("Selecting :", "#" + key + grpIndex + timerIndex);
-				$("#" + key + grpIndex + timerIndex).empty();
-				$("#" + key + grpIndex + timerIndex).append("<strong>" + key + "</strong>" + ":&nbsp;&nbsp" + cnt);
+				console.log("Selecting :", "#" + key+ "-" + grpIndex + "-" + timerIndex);
+				$("#" + key+ "-" + grpIndex + "-" + timerIndex).empty();
+				$("#" + key+ "-" + grpIndex + "-" + timerIndex).append(cnt);
 			}
 		});
 	});

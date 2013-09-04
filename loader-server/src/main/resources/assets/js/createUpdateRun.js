@@ -694,13 +694,15 @@ function createRun(){
         		 	$("#alertMsg").addClass("alert-success");
         			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"goToUpdate()\">&times;</button>");
 					$("#alertMsg").append("<h4>Success!!</h4> Run Created successfully!!");
+					$("#alertMsg").append("<br>Redirecting to update run page...");
 					$("#alertMsg").css("display", "block");
+					setTimeout(function(){goToUpdate();},5000);
 					break;
 				case 409:
 					$("#alertMsg").empty();
   	                $("#alertMsg").removeClass("alert-success");
         		 	$("#alertMsg").addClass("alert-error");
-        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
 					$("#alertMsg").append("<h4>Error!!</h4> Run name conflict!!");
 					$("#alertMsg").css("display", "block");
 					break;
@@ -708,14 +710,14 @@ function createRun(){
 					$("#alertMsg").empty();
   	                $("#alertMsg").removeClass("alert-success");
         		 	$("#alertMsg").addClass("alert-error");
-        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
 					$("#alertMsg").append("<h4>Error!!</h4> Invalid options!!");
 					$("#alertMsg").css("display", "block");
 				default :
 					$("#alertMsg").empty();
   	                $("#alertMsg").removeClass("alert-success");
         		 	$("#alertMsg").addClass("alert-error");
-        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
 					$("#alertMsg").append("<h4>Error!!</h4> Run creation failed!!");
 					$("#alertMsg").css("display", "block");
 			 }
@@ -776,7 +778,7 @@ function updateRunSchema(){
 					$("#alertMsg").empty();
   	                $("#alertMsg").removeClass("alert-success");
         		 	$("#alertMsg").addClass("alert-error");
-        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
 					$("#alertMsg").append("<h4>Error!!</h4> Invalid options!!");
 					$("#alertMsg").css("display", "block");
 					break;
@@ -784,8 +786,8 @@ function updateRunSchema(){
 					$("#alertMsg").empty();
   	                $("#alertMsg").removeClass("alert-success");
         		 	$("#alertMsg").addClass("alert-error");
-        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
-					$("#alertMsg").append("<h4>Error!!</h4> Run creation failed!!");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Run Update failed!!");
 					$("#alertMsg").css("display", "block");
 			}
       	}
@@ -872,8 +874,9 @@ function syntaxHighlight(json) {
     });
 }
 
-function reload(){
-	location.reload();
+function returnToPage(){
+	//location.reload();
+	$("#alertBox").append("<div id=\"alertMsg\" class=\"alert\" style=\"display: none\"></div>");
 }
 
 function execRun(){
