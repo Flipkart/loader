@@ -115,7 +115,26 @@
 							<div class="span12" data-bind="foreach: timers">
 								<div data-bind="attr:{'id':timerDivId}">
 									<div class="row-fluid">
-										<label class="pull-left" data-bind="text: timerName"></label>
+										<span class="label label-info pull-left" data-bind="text: timerName"></span></br>
+<!-- 										<label class="pull-left" data-bind="text: timerName"></label>
+ -->									</div>
+									<div class="row-fluid">
+										<div class="span2">
+											<span class="label label-success pull-left">Count&nbsp;:&nbsp;</span>
+											<p class="span6" data-bind="attr: {'id':countId}"></p>
+										</div>
+										<div class="span2">
+											<span class="label label-warning pull-left">Skip&nbsp;:&nbsp;</span>
+											<p class="span6" data-bind="attr: {'id':skipId}"></p>
+										</div>
+										<div class="span2">
+											<span class="label label-important pull-left">Error&nbsp;:&nbsp;</span>
+											<p class="span6" data-bind="attr: {'id':errorId}"></p>
+										</div>
+										<div class="span2">
+											<span class="label label-important pull-left">Failure&nbsp;:&nbsp;</span>
+											<p class="span6" data-bind="attr: {'id':failureId}"></p>
+										</div>
 									</div>
 									<div class="row-fluid">
 										<div class="span6" data-bind="attr:{'id':chartName1}">

@@ -10,7 +10,9 @@ var graphReports = function(){
 				$.each(group["timers"], function(timerIndex, timer){
 					timers.push({"timerName":timer["name"], "chartName1":"chart-"+grpIndex+"-"+timerIndex + "-1",
 						"chartName2":"chart-"+grpIndex+"-"+timerIndex + "-2", "timerDivId":"timer-" + grpIndex + "-" + timerIndex, 
-						"sliderName1":"slider-" + grpIndex+"-"+timerIndex + "-1", "sliderName2":"slider-" + grpIndex+"-"+timerIndex + "-2"});
+						"sliderName1":"slider-" + grpIndex+"-"+timerIndex + "-1", "sliderName2":"slider-" + grpIndex+"-"+timerIndex + "-2",
+						"countId":"count-" + grpIndex+"-"+timerIndex, "skipId":"skip-" + grpIndex+"-"+timerIndex, "errorId":"error-" + grpIndex+"-"+timerIndex,
+						"failureId":"failure-" + grpIndex+"-"+timerIndex});
 				});
 				grpList.push({"groupName":group["groupName"], "timers":timers, "groupDivId":"group-" + grpIndex});
 			}

@@ -47,6 +47,40 @@ function jobDetailViewModel(jobDetails){
 		} else {
 			v["stopAgentJobClass"] = "btn disabled";
 		}
+		v.killOnAgent = function(data, event){
+			console.log("in kill on Agent",data);
+			var ip = data["agentIp"];
+			var jobId = 
+			$.ajax({
+				url: "loader-server/jobs/" + getQueryParams('jobId') + "/agents/" + ip + "/kill",
+				contentType: "application/json", 
+				dataType:"json",
+				type:"PUT",
+				async: false,
+				success: function(agents){
+				},
+				error: function(err){
+					console.log("Error");
+				},
+				complete: function(xhr, status){
+					if(xhr.status==204) {
+          				$("#alertMsg").empty();
+  	       				$("#alertMsg").removeClass("alert-error");
+        				$("#alertMsg").addClass("alert-success");
+        				$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+						$("#alertMsg").append("<h4>Success!!</h4> Job Killed Successfully On Agent " + ip + " !!");
+						$("#alertMsg").css("display", "block");
+        			} else {
+          				$("#alertMsg").empty();
+  	        			$("#alertMsg").removeClass("alert-success");
+        				$("#alertMsg").addClass("alert-error");
+        				$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+						$("#alertMsg").append("<h4>Error!!</h4> Job Kill Failed On Agent " + ip + " !!");
+						$("#alertMsg").css("display", "block");
+        			}
+				}
+			});
+		}
 		agentList.push(ko.observable(v));
 		window["jobAgents"].push(k);
 	});
@@ -123,10 +157,6 @@ function stopJob(){
         }
       }
   	});
-}
-
-function reload(){
-	location.reload();
 }
 
 function reRun(){

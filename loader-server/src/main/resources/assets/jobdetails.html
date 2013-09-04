@@ -21,6 +21,10 @@
 	<script>
 		$(function(){
 		  $("#navigation").load('header.html');
+		  console.log("I have selected", $("button .disabled"));
+		  $("button .disabled").on('click', function(){
+		  	$(this).prop("disabled",true);
+		  });
 	    })
 	    $('.dropdown-toggle').dropdown();
 	    getJobDetails();
@@ -79,18 +83,20 @@
 		<!--List of agents used for the job-->
 		<table id="jobAgents" class="table table-bordered">
 			<caption class="text-left"><strong>Agents Used</strong></caption>
-			<tbody data-bind="foreach: agents">
+			<thead>
 				<tr>
 					<th>Agent IP</th>
 					<th>Job Status</th>
 					<th>Agent Health</th>
 					<th>#</th>
 				</tr>
+			</thead>
+			<tbody data-bind="foreach: agents">
 				<tr data-bind="attr: {'class': rowClass}">
 					<td data-bind="text: agentIp"></td>
 					<td data-bind="text: job_status"></td>
 					<td data-bind="text: health"></td>
-					<td><button id="stopAgentJob" data-bind="attr: {'class': stopAgentJobClass}">Stop Job</button></td>
+					<td><button id="stopAgentJob" data-bind="click: killOnAgent ,attr: {'class': stopAgentJobClass}">Stop Job</button></td>
 				</tr>
 			</tbody>
 		</table>
