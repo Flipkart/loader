@@ -5,6 +5,7 @@ import java.io.File;
 public class ResourceStorageFSConfig {
     private String userClassLibMappingFile;
     private String udfLibsPath;
+    private String udfUnDeployedLibsPath;
     private String platformLibPath;
     private String userClassInfoPath;
     private String inputFilesPath;
@@ -84,5 +85,14 @@ public class ResourceStorageFSConfig {
 
     public void setInputFileFolderPath(String inputFileFolderPath) {
         this.inputFileFolderPath = inputFileFolderPath;
+    }
+
+    public String getUdfUnDeployedLibsPath() {
+        return udfUnDeployedLibsPath;
+    }
+
+    public ResourceStorageFSConfig setUdfUnDeployedLibsPath(String udfUnDeployedLibsPath) {
+        this.udfUnDeployedLibsPath = udfUnDeployedLibsPath;
+        return this;
     }
 }
