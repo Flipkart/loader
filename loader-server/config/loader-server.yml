@@ -2,6 +2,7 @@ appName: "Loader Server"
 
 resourceStorageFSConfig:
   udfLibsPath: "/usr/share/loader-server/libs"
+  udfUnDeployedLibsPath: "/usr/share/loader-server/unDeployedLibs"
   userClassInfoPath: "/usr/share/loader-server/config"
   userClassLibMappingFile: "/usr/share/loader-server/config/classLibMapping.properties"
   platformLibPath: "/usr/share/loader-server/platformLibs"

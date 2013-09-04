@@ -6,12 +6,14 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.text.ParseException;
 import java.util.*;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sun.jersey.core.header.ContentDisposition;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.reflections.Reflections;
@@ -45,6 +47,29 @@ public class DeployResourcesResource {
     public DeployResourcesResource(ResourceStorageFSConfig resourceStorageFSConfig) throws MalformedURLException {
         this.resourceStorageFSConfig = resourceStorageFSConfig;
         this.libCache = LibCache.instance();
+        deployUnDeployedUDFLibs();
+    }
+
+    // UDF Libs which are copied as part of deployment will always be un deployed before 1st loader-server start
+    private void deployUnDeployedUDFLibs() {
+        for(File unDeployedUDFLib : new File(resourceStorageFSConfig.getUdfUnDeployedLibsPath()).listFiles()) {
+            try {
+                deployUDF(new FileInputStream(unDeployedUDFLib), unDeployedUDFLib.getName());
+                unDeployedUDFLib.delete();
+            } catch (IOException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (InstantiationException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
     }
 
     static class CustomClassLoader extends URLClassLoader {
@@ -77,19 +102,23 @@ public class DeployResourcesResource {
     @Timed
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    synchronized public Map<String, FunctionInfo> deployLib(
+    synchronized public Map<String, FunctionInfo> deployUDF(
             @FormDataParam("lib") InputStream libInputStream,
             @FormDataParam("lib") FormDataContentDisposition libFileDetails) throws IOException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
 
+        return deployUDF(libInputStream, libFileDetails.getFileName());
+    }
+
+    private Map<String, FunctionInfo> deployUDF(InputStream libInputStream, String udfFileName) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         String userLibPath = resourceStorageFSConfig.getUdfLibsPath()
                 + File.separator
-                + libFileDetails.getFileName();
+                + udfFileName;
 
         FileHelper.persistStream(libInputStream, userLibPath);
 
         Map<String, FunctionInfo> discoveredUserFunctions = discoverUserFunctions(userLibPath);
 
-        persistDiscoveredUserFunctions(libFileDetails.getFileName(), discoveredUserFunctions);
+        persistDiscoveredUserFunctions(udfFileName, discoveredUserFunctions);
 
         this.libCache.refreshClassLibMap();
 
@@ -162,7 +191,7 @@ public class DeployResourcesResource {
         String tmpPlatformZipPath = resourceStorageFSConfig.getPlatformLibPath()+ File.separator + "platform.zip.tmp";
 
         try {
-            FileHelper.move(platformZipPath,tmpPlatformZipPath);
+            FileHelper.move(platformZipPath, tmpPlatformZipPath);
             FileHelper.persistStream(libInputStream, platformZipPath);
             FileHelper.unzip(new FileInputStream(platformZipPath), resourceStorageFSConfig.getPlatformLibPath());
             FileHelper.remove(tmpPlatformZipPath);
