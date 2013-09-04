@@ -40,27 +40,11 @@ public class DeployResourcesResource {
     private static Logger log = Logger.getLogger(DeployResourcesResource.class);
     private ResourceStorageFSConfig resourceStorageFSConfig;
     private LibCache libCache;
-    private CustomClassLoader customClassLoader;
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
 
     public DeployResourcesResource(ResourceStorageFSConfig resourceStorageFSConfig) throws MalformedURLException {
         this.resourceStorageFSConfig = resourceStorageFSConfig;
         this.libCache = LibCache.instance();
-        loadPlatformLibsInCustomClassLoader();
-    }
-
-    // Needed. It allows me to instantiate UDF and extract information
-    private void loadPlatformLibsInCustomClassLoader() throws MalformedURLException {
-        customClassLoader = null;
-        URLClassLoader loader = (URLClassLoader)ClassLoader.getSystemClassLoader();
-        customClassLoader = new CustomClassLoader(loader.getURLs());
-        File platformLibPath = new File(this.resourceStorageFSConfig.getPlatformLibPath());
-        if(platformLibPath.exists()) {
-            File[] platformLibs = platformLibPath.listFiles();
-            for(File platformLib : platformLibs) {
-                customClassLoader.addURL(new URL("file://" + platformLib.getAbsolutePath()));
-            }
-        }
     }
 
     static class CustomClassLoader extends URLClassLoader {
@@ -182,7 +166,6 @@ public class DeployResourcesResource {
             FileHelper.persistStream(libInputStream, platformZipPath);
             FileHelper.unzip(new FileInputStream(platformZipPath), resourceStorageFSConfig.getPlatformLibPath());
             FileHelper.remove(tmpPlatformZipPath);
-            loadPlatformLibsInCustomClassLoader();
 
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -303,6 +286,16 @@ public class DeployResourcesResource {
     public Map<String,FunctionInfo> discoverUserFunctions(String userLibJar) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Map<String, FunctionInfo> discoveredUserFunctions = new HashMap<String, FunctionInfo>();
 
+        URLClassLoader loader = (URLClassLoader)ClassLoader.getSystemClassLoader();
+        CustomClassLoader customClassLoader = new CustomClassLoader(loader.getURLs());
+        File platformLibPath = new File(this.resourceStorageFSConfig.getPlatformLibPath());
+        if(platformLibPath.exists()) {
+            File[] platformLibs = platformLibPath.listFiles();
+            for(File platformLib : platformLibs) {
+                customClassLoader.addURL(new URL("file://" + platformLib.getAbsolutePath()));
+            }
+        }
+
         customClassLoader.addURL(new URL("file://" + userLibJar));
         System.out.println("User Lib Path = " + userLibJar);
         Reflections reflections = new Reflections("");
@@ -332,6 +325,7 @@ public class DeployResourcesResource {
                     functionInfo.setOutputParameters((LinkedHashMap<String, FunctionParameter>) method.invoke(object, new Object[]{}));
 
                     discoveredUserFunctions.put(performanceFunction, functionInfo);
+
                 }
            }
         }
