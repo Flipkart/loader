@@ -2,6 +2,7 @@
 
 PKG=loader-server
 
+mkdir -p /etc/$PKG
 mkdir -p /var/log/$PKG
 mkdir -p /var/log/$PKG/jobs
 mkdir -p /var/log/$PKG/runs
@@ -11,8 +12,8 @@ mkdir -p /usr/share/$PKG/config
 mkdir -p /usr/share/$PKG/platformLibs
 mkdir -p /usr/share/$PKG/agents
 mkdir -p /usr/share/$PKG/libs
+mkdir -p /usr/share/$PKG/unDeployedLibs
 touch /usr/share/$PKG/config/classLibMapping.properties
-touch /usr/share/$PKG/config/mapping.properties
 
 # Creating Files which need to contain list of values
 filesToCreate=("/var/log/loader-server/jobs/runningJobs" "/var/log/loader-server/jobs/queuedJobs" "/var/log/loader-server/jobs/doneFixers.json")
@@ -26,12 +27,19 @@ do
     fi
 done
 
-defaultRunFile="/var/log/$PKG/businessUnits/default"
-if [ -f "$defaultRunFile" ]
+runFile="/var/log/$PKG/businessUnits/default"
+if [ -f "$runFile" ]
 then
-    echo "$defaultRunFile exists and not creating again"
+    echo "$runFile exists and not creating again"
 else
-    echo "{\"name\" : \"default\",\"teams\" : {\"default\" : {\"name\" : \"default\",\"runs\" : []}}}" > $defaultRunFile
+    echo "{\"name\" : \"default\",\"teams\" : {\"default\" : {\"name\" : \"default\",\"runs\" : []}}}" > $runFile
 fi
 
+runFile="/var/log/$PKG/businessUnits/sample"
+if [ -f "$runFile" ]
+then
+    echo "$runFile exists and not creating again"
+else
+    echo "{\"name\" : \"sample\",\"teams\" : {\"sample\" : {\"name\" : \"sample\",\"runs\" : []}}}" > $runFile
+fi
 exit 0
