@@ -31,7 +31,7 @@
         <dependency>
             <groupId>com.open.perf</groupId>
             <artifactId>loader-core</artifactId>
-            <version>0.1.4</version>
+            <version>0.1.5</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
