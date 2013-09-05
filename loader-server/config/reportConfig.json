@@ -1,12 +1,28 @@
 {
-
-    "chartResources":{
-        "mysql":{
-            "resource":"mysql",
-            "charts":[
+    "chartResources": {
+        "loadavg": {
+            "resource": "loadavg",
+            "charts": [
                 {
-                    "title":"Threads",
-                    "keysToPlot":[
+                    "title": "Load",
+                    "keysToPlot": [
+                        "01",
+                        "05",
+                        "15"
+                    ]
+                }
+            ]
+        },
+        "vmstats": {
+            "resource": "vmstats",
+            "charts": []
+        },
+        "mysql": {
+            "resource": "mysql",
+            "charts": [
+                {
+                    "title": "Threads",
+                    "keysToPlot": [
                         "Threads_running",
                         "Threads_cached",
                         "Threads_connected",
@@ -14,8 +30,8 @@
                     ]
                 },
                 {
-                    "title":"Table_Status",
-                    "keysToPlot":[
+                    "title": "Table_Status",
+                    "keysToPlot": [
                         "Com_lock_tables",
                         "Com_stmt_execute",
                         "Table_locks_waited",
@@ -23,8 +39,8 @@
                     ]
                 },
                 {
-                    "title":"QueriesAndData",
-                    "keysToPlot":[
+                    "title": "QueriesAndData",
+                    "keysToPlot": [
                         "Slow_queries",
                         "Queries",
                         "Bytes_sent",
@@ -33,12 +49,12 @@
                 }
             ]
         },
-        "cpu.total":{
-            "resource":"cpu.total",
-            "charts":[
+        "cpu.total": {
+            "resource": "cpu.total",
+            "charts": [
                 {
-                    "title":"CPU",
-                    "keysToPlot":[
+                    "title": "CPU",
+                    "keysToPlot": [
                         "system",
                         "user",
                         "idle"
@@ -46,99 +62,93 @@
                 }
             ]
         },
-         "cpu":
-       {
-           "resource": "cpu",
-           "charts":
-           [
-               {
-                   "title": "cpu",
-                   "keysToPlot":
-                   [
-                       "percent"
-                   ]
-               }
-           ]
-       },
-       "passenger_stats":
-       {
-           "resource": "passenger_stats",
-           "charts":
-           [
-               {
-                   "title": "passenger_stats",
-                   "keysToPlot":
-                   [
-                       "total_apache_memory",
+        "cpu": {
+            "resource": "cpu",
+            "charts": [
+                {
+                    "title": "cpu",
+                    "keysToPlot": [
+                        "percent"
+                    ]
+                }
+            ]
+        },
+        "passenger_stats": {
+            "resource": "passenger_stats",
+            "charts": [
+                {
+                    "title": "passenger_stats",
+                    "keysToPlot": [
+                        "total_apache_memory",
                         "total_passenger_mem",
                         "apache_passenger_cpu",
                         "total_nginx_mem"
-                   ]
-               }
-           ]
-       },
-        "sockets":{
-            "resource":"sockets",
-            "charts":[
+                    ]
+                }
+            ]
+        },
+        "sockets": {
+            "resource": "sockets",
+            "charts": [
                 {
-                    "title":"Mem",
-                    "keysToPlot":[
+                    "title": "Mem",
+                    "keysToPlot": [
                         "tcp_mem",
                         "udp_mem"
                     ]
                 },
                 {
-                    "title":"Sockets In Use",
-                    "keysToPlot":[
+                    "title": "Sockets In Use",
+                    "keysToPlot": [
                         "tcp_inuse",
                         "udp_inuse"
                     ]
                 }
             ]
         },
-        "diskspace.root":{
-            "resource":"diskspace.root",
-            "charts":[
+        "diskspace.root": {
+            "resource": "diskspace.root",
+            "charts": [
                 {
-                    "title":"Diskspace",
-                    "keysToPlot":[
+                    "title": "Diskspace",
+                    "keysToPlot": [
                         "byte_used",
                         "byte_free"
                     ]
                 }
             ]
         },
-        "jmx":{
-            "resource":"jmx",
-            "charts":[
+        "jmx": {
+            "resource": "jmx",
+            "charts": [
                 {
-                    "title":"Memory",
-                    "keysToPlot":[
+                    "title": "Memory",
+                    "keysToPlot": [
                         "memory.heapMemory.usagePercentage",
                         "memory.nonHeapMemory.usagePercentage"
                     ]
                 },
                 {
-                    "title":"SystemLoad",
-                    "keysToPlot":[
+                    "title": "SystemLoad",
+                    "keysToPlot": [
                         "os.systemAverageLoad"
                     ]
                 },
                 {
-                    "title":"GCCount",
-                    "keysToPlot":[
+                    "title": "GCCount",
+                    "keysToPlot": [
                         "gc.ParNew.count",
                         "gc.ConcurrentMarkSweep.count"
                     ]
                 }
             ]
         },
-        "memory":{
-            "resource":"memory",
-            "charts":[
+        "memory": {
+            "resource": "memory",
+            "charts": [
                 {
-                    "title":"Physical Memory",
-                    "keysToPlot":[
+                    "title": "Physical Memory",
+                    "keysToPlot": [
                         "MemTotal",
                         "MemFree",
                         "Cached",
@@ -148,8 +158,8 @@
                     ]
                 },
                 {
-                    "title":"Swap",
-                    "keysToPlot":[
+                    "title": "Swap",
+                    "keysToPlot": [
                         "SwapTotal",
                         "SwapFree",
                         "SwapCached"
@@ -158,5 +168,5 @@
             ]
         }
     }
-
 }
+
