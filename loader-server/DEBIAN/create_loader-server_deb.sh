@@ -10,6 +10,8 @@ PACKAGE=loader-server
 LOADER_BASE_ROOT="../../"
 CODE_ROOT="../"
 LOADER_CORE_CODE_ROOT="../../loader-core"
+LOADER_HTTP_OPERATIONS_CODE_ROOT="../../loader-http-operations"
+LOADER_COMMON_OPERATIONS_CODE_ROOT="../../loader-common-operation"
 PACKAGE_ROOT="./loader-server"
 VERSION=0.2.8
 ARCH=all
@@ -23,6 +25,7 @@ rm loader-server_*.deb
 mkdir -p $PACKAGE_ROOT/etc/$PACKAGE
 mkdir -p $PACKAGE_ROOT/DEBIAN
 mkdir -p $PACKAGE_ROOT/usr/share/$PACKAGE/lib
+mkdir -p $PACKAGE_ROOT/usr/share/$PACKAGE/unDeployedLibs
 mkdir -p $PACKAGE_ROOT/usr/share/$PACKAGE/app
 mkdir -p $PACKAGE_ROOT/usr/share/$PACKAGE/platformLibs
 mkdir -p $PACKAGE_ROOT/etc/init.d/
@@ -42,6 +45,11 @@ cp $PACKAGE.init $PACKAGE_ROOT/etc/init.d/$PACKAGE
 cp -R $CODE_ROOT/target/*.jar $PACKAGE_ROOT/usr/share/$PACKAGE/app/
 cp -R $CODE_ROOT/target/lib/*.jar $PACKAGE_ROOT/usr/share/$PACKAGE/lib/
 cp -R $LOADER_CORE_CODE_ROOT/target/platform.zip $PACKAGE_ROOT/usr/share/$PACKAGE/platformLibs/
+cp -R $LOADER_HTTP_OPERATIONS_CODE_ROOT/target/loader-http-operations-*-jar-with-dependencies.jar $PACKAGE_ROOT/usr/share/$PACKAGE/unDeployedLibs/
+cp -R $LOADER_COMMON_OPERATIONS_CODE_ROOT=/target/loader-common-operations-*-jar-with-dependencies.jar $PACKAGE_ROOT/usr/share/$PACKAGE/unDeployedLibs/
+
+LOADER_HTTP_OPERATIONS_CODE_ROOT="../../loader-http-operations"
+LOADER_COMMON_OPERATIONS_CODE_ROOT="../../loader-common-operation"
 
 ## Creating Package
 sed -i "s/<VERSION>/$VERSION/g" $PACKAGE_ROOT/DEBIAN/control

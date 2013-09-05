@@ -1,0 +1,54 @@
+{
+    "businessUnit": "sample",
+    "team": "sample",
+    "runName": "SampleHttpGetFor10000Times",
+    "loadParts": [
+        {
+            "name": "SampleLoadPart",
+            "agents": 1,
+            "classes": [
+                "perf.operation.http.function.HttpGet"
+            ],
+            "inputFileResources": [],
+            "load": {
+                "groups": [
+                    {
+                        "name": "SampleGroup",
+                        "groupStartDelay": 0,
+                        "threadStartDelay": 0,
+                        "throughput": 50,
+                        "repeats": 10000,
+                        "duration": -1,
+                        "threads": 2,
+                        "warmUpRepeats": -1,
+                        "functions": [
+                            {
+                                "functionalityName": "HttpGet",
+                                "functionClass": "perf.operation.http.function.HttpGet",
+                                "dumpData": true,
+                                "params": {
+                                    "url": "http://localhost:8888/loader-agent/jobs",
+                                    "expectedStatusCode": "200",
+                                    "followRedirects": "false",
+                                    "headers": "{}",
+                                    "parameters": "{}",
+                                    "queryParameters": "{}",
+                                    "proxy": "{}",
+                                    "cookies": "[]"
+                                }
+                            }
+                        ],
+                        "dependOnGroups": [],
+                        "params": {},
+                        "timers": [],
+                        "threadResources": [],
+                        "customTimers": [],
+                        "customCounters": []
+                    }
+                ]
+            }
+        }
+    ],
+    "onDemandMetricCollections": [],
+    "metricCollections": []
+}
