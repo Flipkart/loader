@@ -19,10 +19,16 @@ unzip ../loader-core/target/platform.zip -d /usr/share/$PKG/platformLibs/
 
 #Setting up Out of Box Perf Operations
 echo "\n****Copying Out out Box Perf Operations"
-cp ../loader-http-operations/target/loader-http-operations-0.1.1-jar-with-dependencies.jar /usr/share/loader-server/unDeployedLibs/
-cp ../loader-common-operations/target/loader-common-operations-0.1.1-jar-with-dependencies.jar /usr/share/loader-server/unDeployedLibs/
+cp ../loader-http-operations/target/loader-http-operations-*-jar-with-dependencies.jar /usr/share/loader-server/unDeployedLibs/
+cp ../loader-common-operations/target/loader-common-operations-*-jar-with-dependencies.jar /usr/share/loader-server/unDeployedLibs/
 
-pwd
+#Setting Sample Runs
+echo "\n****Setting up Sample Performance Run Schemas"
+mkdir /var/log/loader-server/runs/SampleHttpGetFor10000Times
+cp ../loader-server/sample/runs/SampleHttpGetFor10000Times.json /var/log/loader-server/runs/SampleHttpGetFor10000Times/run.json
+mkdir /var/log/loader-server/runs/SampleHttpGetFor30Seconds
+cp ../loader-server/sample/runs/SampleHttpGetFor30Seconds.json /var/log/loader-server/runs/SampleHttpGetFor30Seconds/run.json
+
 # Setting up loader agent
 echo "\n===============Setting up Loader Agent file system================\n"
 PKG=loader-agent
