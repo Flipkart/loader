@@ -14,8 +14,8 @@ public class SyncFunctionExecutor {
     private boolean executionSuccessful = true;
     private Throwable exception;
     private Throwable exceptionCause;
-    private long startTime;
-    private long endTime;
+    private long startTimeNS;
+    private long endTimeNS;
     private boolean executed = false;
     private final Method method;
     private Object[] params;
@@ -33,12 +33,12 @@ public class SyncFunctionExecutor {
     public Object execute() {
         returnObject = null;
         try {
-            startTime = Clock.nsTick();
+            startTimeNS = Clock.nsTick();
             returnObject = method.invoke(this.classObject, params);
-            endTime = Clock.nsTick();
+            endTimeNS = Clock.nsTick();
         }
         catch(Exception exception) {
-            endTime = Clock.nsTick();
+            endTimeNS = Clock.nsTick();
             this.executionSuccessful = false;
             this.exceptionCause = exception.getCause();
             this.exception 		= exception;
@@ -74,8 +74,8 @@ public class SyncFunctionExecutor {
     }
 
     //Nano Seconds
-    public long getExecutionTime() {
-        return (this.endTime - this.startTime);
+    public long getExecutionTimeNS() {
+        return (this.endTimeNS - this.startTimeNS);
     }
 
     public String getAbsoluteFunctionName() {

@@ -312,7 +312,7 @@ public class FunctionContext {
         return this;
     }
 
-    long getTime() {
+    long getTimeNS() {
         return time;
     }
 
@@ -327,12 +327,18 @@ public class FunctionContext {
         this.time = -1;
     }
 
-    public static void main(String[] args) {
-        Pattern p = Pattern.compile(".*\\$\\{(.+)\\}.*");
-        String value = "${urlsTohit}";
-        Matcher m = p.matcher(value);
-        System.out.println(m.matches());
-        System.out.println(m.group(1).getClass());
+    public static void main(String[] args) throws IOException {
+        Map<String,String> map = new HashMap<String, String>();
+        map.put("one", "1");
+        map.put("two", "2");
+        map.put("three", "3");
+        System.out.println(map);
+        System.out.println(map.get("one"));
+
+
+        FunctionContext context = new FunctionContext(null, null);
+        context.addParameter("map", "{\"one\" : \"1\"}");
+        System.out.println(context.getParameterAsMap("map").get("one"));
 
     }
 }

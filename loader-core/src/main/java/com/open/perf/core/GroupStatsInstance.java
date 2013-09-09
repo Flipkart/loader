@@ -20,8 +20,8 @@ public class GroupStatsInstance {
         return customTimers;
     }
 
-    public void addFunctionExecutionTime(String function, double executionTime) {
-        this.functionTimers.get(function).add(executionTime);
+    public void addFunctionExecutionTime(String function, long executionTimeNS) {
+        this.functionTimers.get(function).add(executionTimeNS);
     }
 
 

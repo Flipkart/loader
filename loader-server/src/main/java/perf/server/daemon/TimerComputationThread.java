@@ -369,8 +369,11 @@ public class TimerComputationThread extends Thread {
     }
 
     public static void main(String[] args) throws IOException {
+        System.out.println("" + (long)Double.parseDouble("2.636512277E9"));
+/*
         TimerComputationThread t = new TimerComputationThread(null, 10000);
         long startTime = Clock.nsTick();
-        t.crunchJobFileTimer("", new File("/var/log/loader-server/jobs/452e04ca-5c2f-45d9-8a5c-24a9b0f30e72/combinedStats/SampleGroup/timers/HttpGet"));
+        t.crunchJobFileTimer("", new File("/home/nitinka/git/loader2.0/loader-server/bug/data"));
+*/
     }
 }

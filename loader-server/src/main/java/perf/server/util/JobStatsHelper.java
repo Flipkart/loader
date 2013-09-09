@@ -66,13 +66,13 @@ public class JobStatsHelper {
         //TBD Move Following Code to be executed in request queue mode by a daemon thread.
         String[] jobStatsPaths = new String[] {
                 jobFSConfig.getJobGroupStatsPath(jobId, groupName)
-                        + relatedFilePath.replace(groupName,"")
+                        + relatedFilePath.replaceFirst(groupName, "")
                         + File.separator + "agents"
                         + File.separator + agentIp
                         + File.separator + "data",
 
                 jobFSConfig.getJobGroupStatsPath(jobId, groupName)
-                        + relatedFilePath.replace(groupName,"")
+                        + relatedFilePath.replaceFirst(groupName, "")
                         + File.separator + "agents"
                         + File.separator + "combined"
                         + File.separator + "data",

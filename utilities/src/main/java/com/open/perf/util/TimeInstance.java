@@ -9,9 +9,9 @@ package com.open.perf.util;
  */
 public class TimeInstance {
     private long atTime;
-    private double howMuchTime;
+    private long howMuchTime;
 
-    public TimeInstance(long atTime, double howMuchTime) {
+    public TimeInstance(long atTime, long howMuchTime) {
         this.atTime = atTime;
         this.howMuchTime = howMuchTime;
     }
@@ -25,7 +25,7 @@ public class TimeInstance {
         return this;
     }
 
-    public double getHowMuchTime() {
+    public long getHowMuchTime() {
         return howMuchTime;
     }
 
