@@ -64,7 +64,7 @@ public class HttpRequestHelper {
     }
 
     public static void addParameters(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) throws IOException {
-        Map<String, Object> parameters = context.getParameterAsMap(Constants.IP_PARAMETERS);
+        Map<String, String> parameters = context.getParameterAsMap(Constants.IP_PARAMETERS);
         if(parameters != null) {
             for(String parameter : parameters.keySet()) {
                 requestBuilder.addParameter(parameter, parameters.get(parameter).toString());

@@ -43,16 +43,16 @@ public class Timer{
         return "Function Timer Name :"+this.timerName + " Samples :"+this.timeList.size();
     }
 
-    synchronized public void add(double time) {
-        add(System.currentTimeMillis(), time);
+    synchronized public void add(long timeNS) {
+        add(System.currentTimeMillis(), timeNS);
     }
 
-    public void add(Map<Long, Double> timeList) {
+    public void add(Map<Long, Long> timeList) {
         for(Long timeStamp : timeList.keySet())
             add(timeStamp, timeList.get(timeStamp));
     }
 
-    synchronized public void add(long timeStampMS, double time) {
-        this.timeList.add(new TimeInstance(timeStampMS, time));
+    synchronized public void add(long timeStampMS, long timeNS) {
+        this.timeList.add(new TimeInstance(timeStampMS, timeNS));
     }
 }

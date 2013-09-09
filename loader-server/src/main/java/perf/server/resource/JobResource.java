@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -28,6 +29,10 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.Cookie;
+import com.ning.http.client.FluentStringsMap;
+import com.ning.http.client.Response;
 import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -468,4 +473,73 @@ public class JobResource {
 */
     }
 
+    @Path("/testParameters")
+    @GET
+    public String testParameters(@Context HttpServletRequest request) {
+        StringBuilder parameters = new StringBuilder("");
+        parameters.append(request.getParameterMap().toString() + "\n");
+        for(String parameterName : request.getParameterMap().keySet()) {
+            parameters.append("Parameter '" + parameterName + "' has value :" + Arrays.asList(request.getParameterValues(parameterName)) + "\n");
+        }
+        return parameters.toString();
+    }
+
+    @Path("/testParameters")
+    @POST
+    public String postParameters(@Context HttpServletRequest request) {
+        StringBuilder parameters = new StringBuilder("");
+        parameters.append(request.getParameterMap().toString() + "\n");
+        for(String parameterName : request.getParameterMap().keySet()) {
+            parameters.append("Parameter '" + parameterName + "' has value :" + Arrays.asList(request.getParameterValues(parameterName)) + "\n");
+        }
+        return parameters.toString();
+    }
+
+    public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
+/*        AsyncHttpClient client = new AsyncHttpClient();
+        AsyncHttpClient.BoundRequestBuilder builder = client.prepareGet("http://localhost:9999/loader-server/jobs/testParameters");
+
+        FluentStringsMap map = new FluentStringsMap();
+        map.put("Key", Arrays.asList(new String[]{"value"}));
+
+
+        builder.setHeader("header","value");
+        builder.addCookie(new Cookie("c","b","1","2",2,false));
+
+        builder.setParameters(map);
+        Future<Response> f = builder.execute();
+
+        Response r = f.get();
+        System.out.println(r.getResponseBody());
+
+        client.close();
+ */
+
+        AsyncHttpClient client = new AsyncHttpClient();
+        AsyncHttpClient.BoundRequestBuilder builder = client.preparePost("https://172.17.68.32:8443/loginTicket");
+//        builder.addCookie(new Cookie("localhost", "tgt", "TGC-1378375536rA59EA595C18A6510AA", "/", 10000, true));
+
+        Future<Response> response = builder.execute();
+        Response resp = response.get();
+        String loginTicket = resp.getResponseBody();
+        System.out.println("login ticket " + loginTicket);
+
+        builder = client.preparePost("https://172.17.68.32:8443/login?service=http://localhost:9999/index.htm");
+        FluentStringsMap map = new FluentStringsMap();
+        map.add("username", "sc_automation");
+        map.add("password", "Wkag16jew4AS");
+        map.add("lt", loginTicket);
+        builder.addParameter("username", "sc_automation");
+        builder.addParameter("password", "Wkag16jew4AS");
+        builder.addParameter("lt", "LT-1378379842rBFFAA9658B3BD9F58C");
+//        builder.setParameters(map);
+
+
+        Future<Response> future = builder.execute();
+        Response response1 = future.get();
+        System.out.println("Output " + response1.getResponseBody());
+        System.out.println("Response Code " + response1.getStatusCode());
+        System.out.println("Location Header " + response1.getHeader("Location"));
+
+    }
 }

@@ -9,7 +9,7 @@
     </parent>
     <groupId>perf.operation.http</groupId>
     <artifactId>loader-http-operations</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <name>loader-http-operations</name>
     <url>http://maven.apache.org</url>
     <dependencies>
@@ -21,13 +21,13 @@
         <dependency>
             <groupId>com.open.perf</groupId>
             <artifactId>loader-core</artifactId>
-            <version>0.1.5</version>
+            <version>0.1.6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.ning</groupId>
             <artifactId>async-http-client</artifactId>
-            <version>1.7.12</version>
+            <version>1.7.9</version>
         </dependency>
     </dependencies>
     <properties>
