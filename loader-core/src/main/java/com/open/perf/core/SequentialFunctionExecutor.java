@@ -72,7 +72,6 @@ public class SequentialFunctionExecutor extends Thread {
         this.customTimerNames = customTimerNames;
         this.threadResources = new HashMap<String, Object>();
         this.fExecutors = buildFunctionExecutors();
-        threadStartDelay();
     }
 
     public int getThreadStartDelay() {
@@ -81,6 +80,7 @@ public class SequentialFunctionExecutor extends Thread {
 
     public SequentialFunctionExecutor setThreadStartDelay(int threadStartDelay) {
         this.threadStartDelay = threadStartDelay;
+        logger.info("Thread Start Delay :"+this.threadStartDelay);
         return this;
     }
 
@@ -116,6 +116,7 @@ public class SequentialFunctionExecutor extends Thread {
     }
 
     public void run () {
+        threadStartDelay();
         initializeUserFunctions();
         doWarmUp();
         doRun();
@@ -279,6 +280,7 @@ public class SequentialFunctionExecutor extends Thread {
 
     private void threadStartDelay() {
         try {
+            logger.info("Sleeping for Thread start Delay :"+threadStartDelay);
             Clock.sleep(this.threadStartDelay);
         } catch (InterruptedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
