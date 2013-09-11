@@ -51,6 +51,7 @@ public class Job {
     private JOB_STATUS jobStatus;
     private Map<String,AgentJobStatus> agentsJobStatus = new HashMap<String, AgentJobStatus>();
     private Set<String> monitoringAgents;
+    private String remarks = "";
 
     public static class AgentJobStatus {
         private String agentIp;
@@ -636,5 +637,14 @@ public class Job {
     @JsonIgnore
     public boolean isQueued() {
         return jobStatus == JOB_STATUS.QUEUED;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public Job setRemarks(String remarks) {
+        this.remarks = remarks;
+        return this;
     }
 }
