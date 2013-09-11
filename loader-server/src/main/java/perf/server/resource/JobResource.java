@@ -443,6 +443,21 @@ public class JobResource {
         job.killJobInAgents(Arrays.asList(agentIps.split(",")));
     }
 
+    /**
+     * Returns Monitoring Stats Meta Data. Useful to see what all monitoring stats are being collected as part of performance testing
+     * @param jobId
+     * @return
+     */
+    @Path("/{jobId}/remarks")
+    @PUT
+    @Timed
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void updateJobRemarks(@PathParam("jobId") String jobId, String remarks) throws IOException, ExecutionException {
+        jobExistsOrException(jobId).
+                setRemarks(remarks).
+                persist();
+    }
+
     private Job raiseJobRequest(JobRequest jobRequest) throws IOException {
         runExistsOrException(jobRequest.getRunName());
         Job job = new Job().
@@ -465,81 +480,5 @@ public class JobResource {
         if (job == null)
             throw new WebApplicationException(ResponseBuilder.resourceNotFound("Job", jobId));
         return job;
-/*
-        if(!new File(jobFSConfig.getJobPath(jobId)).exists()) {
-            throw new WebApplicationException(ResponseBuilder.resourceNotFound("Job", jobId));
-        }
-        return ;
-*/
-    }
-
-    @Path("/testParameters")
-    @GET
-    public String testParameters(@Context HttpServletRequest request) {
-        StringBuilder parameters = new StringBuilder("");
-        parameters.append(request.getParameterMap().toString() + "\n");
-        for(String parameterName : request.getParameterMap().keySet()) {
-            parameters.append("Parameter '" + parameterName + "' has value :" + Arrays.asList(request.getParameterValues(parameterName)) + "\n");
-        }
-        return parameters.toString();
-    }
-
-    @Path("/testParameters")
-    @POST
-    public String postParameters(@Context HttpServletRequest request) {
-        StringBuilder parameters = new StringBuilder("");
-        parameters.append(request.getParameterMap().toString() + "\n");
-        for(String parameterName : request.getParameterMap().keySet()) {
-            parameters.append("Parameter '" + parameterName + "' has value :" + Arrays.asList(request.getParameterValues(parameterName)) + "\n");
-        }
-        return parameters.toString();
-    }
-
-    public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
-/*        AsyncHttpClient client = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder builder = client.prepareGet("http://localhost:9999/loader-server/jobs/testParameters");
-
-        FluentStringsMap map = new FluentStringsMap();
-        map.put("Key", Arrays.asList(new String[]{"value"}));
-
-
-        builder.setHeader("header","value");
-        builder.addCookie(new Cookie("c","b","1","2",2,false));
-
-        builder.setParameters(map);
-        Future<Response> f = builder.execute();
-
-        Response r = f.get();
-        System.out.println(r.getResponseBody());
-
-        client.close();
- */
-
-        AsyncHttpClient client = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder builder = client.preparePost("https://172.17.68.32:8443/loginTicket");
-//        builder.addCookie(new Cookie("localhost", "tgt", "TGC-1378375536rA59EA595C18A6510AA", "/", 10000, true));
-
-        Future<Response> response = builder.execute();
-        Response resp = response.get();
-        String loginTicket = resp.getResponseBody();
-        System.out.println("login ticket " + loginTicket);
-
-        builder = client.preparePost("https://172.17.68.32:8443/login?service=http://localhost:9999/index.htm");
-        FluentStringsMap map = new FluentStringsMap();
-        map.add("username", "sc_automation");
-        map.add("password", "Wkag16jew4AS");
-        map.add("lt", loginTicket);
-        builder.addParameter("username", "sc_automation");
-        builder.addParameter("password", "Wkag16jew4AS");
-        builder.addParameter("lt", "LT-1378379842rBFFAA9658B3BD9F58C");
-//        builder.setParameters(map);
-
-
-        Future<Response> future = builder.execute();
-        Response response1 = future.get();
-        System.out.println("Output " + response1.getResponseBody());
-        System.out.println("Response Code " + response1.getStatusCode());
-        System.out.println("Location Header " + response1.getHeader("Location"));
-
     }
 }
