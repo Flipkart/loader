@@ -1,0 +1,11 @@
+#! /bin/bash
+
+PKG=diamond-mysql
+#Removing the modules manifests and templates once the packge is removed
+
+if [ "$1" == "purge" ]
+then
+	[ -e "/etc/$PKG/collestors/MySQLCollector.conf" ] && rm -rf "/etc/$PKG/collestors/MySQLCollector.conf"
+fi
+echo "Restart Diamond Now"
+exit 0
