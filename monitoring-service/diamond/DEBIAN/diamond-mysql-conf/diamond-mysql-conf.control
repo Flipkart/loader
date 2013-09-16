@@ -1,0 +1,9 @@
+Package: diamond-mysql-conf
+Version: <VERSION>
+Section: web
+Priority: optional
+Architecture: all
+Essential: no
+Depends: python-setuptools
+Maintainer: Nitin Kumar Agarwal [nitinka@flipkart.com]
+Description: Diamond Collector Configuration to Monitor MySql
