@@ -62,6 +62,10 @@ var loadPartViewModel = function(loadPart){
 	self.agents = ko.computed(function(){
 		return self.lPart().agents;
 	});
+	self.availableInputResources = ko.observableArray(window.availableInputResources);
+	self.useInputResources = ko.computed(function(){
+		return self.lPart()["inputFileResources"];
+	});
 }
 
 var groupViewModel = function(grp){
@@ -211,7 +215,8 @@ function updateRunGrpTeam(){
 function addLoadPart(){
 	var loadPart = {"name":"loadPart" + window.runSchema.loadParts.length,
 					"agents":1,
-					"load":{"groups" : new Array()}
+					"load":{"groups" : new Array()},
+					"inputFileResources":new Array()
 					};
 	window.runSchema.loadParts.push(loadPart);
 	createTree(window.runSchema);
@@ -241,6 +246,8 @@ function updateLoadPart(){
 	console.log("loadPart", loadPart);
 	loadPart["name"] = $("#loadPartName").val();
 	loadPart["agents"] = $("#agents").val();
+	if($("#inputResourceList").val()!=null) loadPart["inputFileResources"]=$("#inputResourceList").val();
+	console.log("input",$("#inputResourceList").val().join());
 	window.runSchema["loadParts"][loadPartData["loadPartIndex"]] = loadPart;
 	createTree(window.runSchema);
 	renderDisplayArea('loadPart', window.selectedElementData);

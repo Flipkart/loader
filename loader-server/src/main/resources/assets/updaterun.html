@@ -57,6 +57,11 @@
 		  		if($(element).attr('id')=="resources"){
 		  			selabHdr = "<div class='custom-header'><label><strong>Available Resources</strong></label></div>";
 		  			selcnHdr = "<div class='custom-header'><label><strong>Monitored Resources</strong></label>";
+		  		} else {
+		  			if($(element).attr('id')=="inputResourceList"){
+		  				selabHdr = "<div class='custom-header'><label><strong>Available InputFile Resources</strong></label></div>";
+		  				selcnHdr = "<div class='custom-header'><label><strong>InputFile Resources in Use</strong></label>";
+		  			}
 		  		}
 				$(element).multiSelect({
 					selectableHeader: selabHdr,
@@ -149,6 +154,13 @@
 						<div class="span12">
 							<label class="span3">Agents</label>
 							<input id="agents" type="text" class="span4" data-bind="value: agents"/>
+						</div>
+						<br>
+						<div class="row-fluid span12">
+							<div class="multiSelect">
+						  		<select multiple="multiple" name="inputResourceList" id="inputResourceList" data-bind="options: availableInputResources, selectedOptions: useInputResources, multiSelect: loadPart">
+						  		</select>
+							</div>
 						</div>
 					</fieldset>
 					<br/>
@@ -348,6 +360,20 @@
       		complete: function(xhr, status){
         		console.log(status);
       		}
+    	});
+    	$.ajax({
+	      	url: "/loader-server/resourceTypes/inputFiles",
+	      	contentType: "application/json", 
+	      	type:"GET",
+	      	success: function(data) {
+	        	window.availableInputResources = data;
+	      	},
+	      	error: function(e){
+	        	console.log("Error");
+	      	},
+	      	complete: function(xhr, status){
+	        	console.log(status);
+	      	}
     	});
         createTree(window.runSchema);
 		renderDisplayArea('run', window["runSchema"]);
