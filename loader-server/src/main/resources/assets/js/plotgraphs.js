@@ -40,7 +40,8 @@ function returnTimerGraphs(url, grpIndex, timerIndex, chart1StartIndex, chart2St
       						"ninetieth": new Array(),
       						"nintyFifth": new Array(),
       						"nintyEighth": new Array(),
-      						"nintyNinth": new Array()
+      						"nintyNinth": new Array(),
+      						"sd": new Array()
       					};
         	window.stats[grpIndex][timerIndex]={"statsqueues": statsQueues};
         	metrices = metrics(true, url, grpIndex, timerIndex, 0, 0);
@@ -92,7 +93,8 @@ function metrics(initialize, url, grpIndex, timerIndex, c1Index, c2Index) {
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["seventyFifth"].slice(c1Index, last1Index),key: "75Th%",color: "#0B610B"	},
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].slice(c1Index, last1Index),key: "90Th%",color: "#0B0B61"},
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].slice(c1Index, last1Index),key: "95Th%",color: "#FE9A2E"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].slice(c1Index, last1Index),key: "98Th%",color: "#0E0D0D"}
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].slice(c1Index, last1Index),key: "98Th%",color: "#0E0D0D"},
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].slice(c1Index, last1Index),key: "SD",color: "#DF01D7"}
 	  					],
 			   "chart2":[
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].slice(c2Index, last2Index),key: "Dump Throughput",color: "#2ca02c"},
@@ -111,7 +113,7 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 			  var lines = data.split('\n');
 			  //var firstLine = $.parseJSON(lines[0]);
 			  if(lines.length>100) addSliderToTimerGraphs(grpIndex, timerIndex, lines.length-100);
-			  for( var i=0; i<lines.length-1; i++){
+			  for( var i=0; i<lines.length-2; i++){
 			  	if (lines[i]=="") continue;
 			  	try {
 			  		//console.log("line", lines[i]);
@@ -128,6 +130,7 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyFifth"]});
 					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyEight"]});
 					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyNinth"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x: new Date(dataJson["time"]), y: dataJson["sd"]});
 				} catch (err){
 					console.log("Err in parsing:",lines[i] );
 				}
