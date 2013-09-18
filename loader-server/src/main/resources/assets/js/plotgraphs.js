@@ -94,7 +94,7 @@ function metrics(initialize, url, grpIndex, timerIndex, c1Index, c2Index) {
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["ninetieth"].slice(c1Index, last1Index),key: "90Th%",color: "#0B0B61"},
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].slice(c1Index, last1Index),key: "95Th%",color: "#FE9A2E"},
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].slice(c1Index, last1Index),key: "98Th%",color: "#0E0D0D"},
-						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].slice(c1Index, last1Index),key: "SD",color: "#DF01D7"}
+						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["sd"].slice(c1Index, last1Index),key: "SD",color: "#DF01D7"}
 	  					],
 			   "chart2":[
 						{values: window.stats[grpIndex][timerIndex]["statsqueues"]["dumpThroughPut"].slice(c2Index, last2Index),key: "Dump Throughput",color: "#2ca02c"},
@@ -130,7 +130,7 @@ function initializeMetrics(httpUrl, grpIndex, timerIndex){
 					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyFifth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyFifth"]});
 					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyEighth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyEight"]});
 					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x: new Date(dataJson["time"]), y: dataJson["ninetyNinth"]});
-					window.stats[grpIndex][timerIndex]["statsqueues"]["nintyNinth"].push({x: new Date(dataJson["time"]), y: dataJson["sd"]});
+					window.stats[grpIndex][timerIndex]["statsqueues"]["sd"].push({x: new Date(dataJson["time"]), y: dataJson["sd"]});
 				} catch (err){
 					console.log("Err in parsing:",lines[i] );
 				}
