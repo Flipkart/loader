@@ -43,7 +43,7 @@ public class HttpPut extends PerformanceFunction implements Constants {
     @Override
     public void end(FunctionContext context) {
         logger.info("Closing Connection");
-        this.asyncHttpClient.close();
+        HttpRequestHelper.closeConnection();
     }
 
     @Override
