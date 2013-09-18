@@ -61,6 +61,7 @@ public class JobDispatcherThread extends Thread{
             //Check if required number of agents are free
             try {
                 List<LoaderAgent> freeAgents = AgentsCache.freeAgents();
+
                 PerformanceRun performanceRun = JobStatsHelper.instance().getPerformanceRun(job.getRunName());
                 if(freeAgents.size() >= performanceRun.agentsNeeded()) {
                     job = jobRequestQueue.remove();

@@ -49,6 +49,7 @@ public class Job {
     private String runName;
     private Date startTime, endTime;
     private JOB_STATUS jobStatus;
+    private String failedToStartReason = ""; // Will be set only in case when job failed to start
     private Map<String,AgentJobStatus> agentsJobStatus = new HashMap<String, AgentJobStatus>();
     private Set<String> monitoringAgents;
     private String remarks = "";
@@ -296,8 +297,9 @@ public class Job {
      * Mark that job has failed
      * @throws IOException
      */
-    public void failedToStart() throws IOException {
+    public void failedToStart(String reason) throws IOException {
         this.jobStatus = JOB_STATUS.FAILED_TO_START;
+        this.failedToStartReason = reason;
         this.endTime = new Date();
         this.persist();
     }
@@ -337,7 +339,7 @@ public class Job {
         catch (Exception e) {
             log.error("Job Submission Failed",e);
             try {
-                this.failedToStart();
+                this.failedToStart(e.getMessage());
                 jobCleanUpOnFailure(this);
             } catch (Exception e1) {
                 log.error("Job Clean up Failure",e);
@@ -646,5 +648,13 @@ public class Job {
     public Job setRemarks(String remarks) {
         this.remarks = remarks;
         return this;
+    }
+
+    public String getFailedToStartReason() {
+        return failedToStartReason;
+    }
+
+    public void setFailedToStartReason(String failedToStartReason) {
+        this.failedToStartReason = failedToStartReason;
     }
 }

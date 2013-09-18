@@ -10,6 +10,7 @@ import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
 import perf.server.domain.LoaderAgent;
 import perf.server.exception.LibNotDeployedException;
+import perf.server.util.AgentHelper;
 import perf.server.util.DeploymentHelper;
 import perf.server.util.ResponseBuilder;
 
@@ -39,7 +40,7 @@ public class AgentResource {
                 if(loaderAgent.getStatus() == LoaderAgent.LoaderAgentStatus.D_REGISTERED
                         || loaderAgent.getStatus() == LoaderAgent.LoaderAgentStatus.DISABLED)
                     continue;
-                refreshAgentInfo(loaderAgent);
+                AgentHelper.refreshAgentInfo(loaderAgent);
             } catch (IOException e) {
                 log.error(e);
             }
@@ -122,7 +123,7 @@ public class AgentResource {
 
         LoaderAgent agent = AgentsCache.getAgentInfo(agentIp);
         if(agent != null) {
-            refreshAgentInfo(agent);
+            AgentHelper.refreshAgentInfo(agent);
             if(agent.getStatus() != LoaderAgent.LoaderAgentStatus.NOT_REACHABLE)
                 agent.setEnabled();
             return agent;
@@ -162,20 +163,4 @@ public class AgentResource {
         for(String agentIP : agentIPs.split(","))
             DeploymentHelper.instance().deployUDFLibsOnAgent(agentIP, classes, force.get());
     }
-
-    private void refreshAgentInfo(LoaderAgent loaderAgent) throws IOException {
-        try {
-            Map<String, Object> agentRegistrationParams = new LoaderAgentClient(loaderAgent.getIp(), agentConfig.getAgentPort()).registrationInfo();
-            loaderAgent.setAttributes(agentRegistrationParams);
-        } catch (Exception e) {
-            loaderAgent.setNotReachable();
-            log.error(e);
-        }
-        try {
-            AgentsCache.addAgent(loaderAgent);
-        } catch (IOException e) {
-            log.error(e);
-        }
-    }
-
 }
