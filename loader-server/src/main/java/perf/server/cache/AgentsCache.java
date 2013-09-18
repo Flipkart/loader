@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import perf.server.config.AgentConfig;
 import perf.server.domain.LoaderAgent;
+import perf.server.util.AgentHelper;
 import perf.server.util.ObjectMapperUtil;
 
 import com.open.perf.util.FileHelper;
@@ -71,11 +72,14 @@ public class AgentsCache {
         }
     }
 
-    public static List<LoaderAgent> freeAgents() {
+    public static List<LoaderAgent> freeAgents() throws IOException {
         List<LoaderAgent> freeAgents = new ArrayList<LoaderAgent>();
         for(LoaderAgent loaderAgent : agentInfoMap.values()) {
             if(loaderAgent.getStatus().equals(LoaderAgent.LoaderAgentStatus.FREE)) {
-                freeAgents.add(loaderAgent);
+                AgentHelper.refreshAgentInfo(loaderAgent);
+                if(loaderAgent.getStatus().equals(LoaderAgent.LoaderAgentStatus.FREE)) {
+                    freeAgents.add(loaderAgent);
+                }
             }
         }
         return freeAgents;
