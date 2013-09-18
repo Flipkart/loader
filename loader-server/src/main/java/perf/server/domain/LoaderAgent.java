@@ -19,6 +19,7 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 public class LoaderAgent {
+
     public static enum LoaderAgentStatus {
         FREE, BUSY, DISABLED, NOT_REACHABLE, D_REGISTERED
     }
@@ -74,7 +75,9 @@ public class LoaderAgent {
     }
 
     public LoaderAgent addRunningJob(String runningJob) {
-        this.runningJobs.add(runningJob);
+        synchronized (this.runningJobs) {
+            this.runningJobs.add(runningJob);
+        }
         return this;
     }
 
@@ -111,6 +114,13 @@ public class LoaderAgent {
     public LoaderAgent setDRegistered() throws IOException {
         this.status = LoaderAgentStatus.D_REGISTERED;
         persist();
+        return this;
+    }
+
+    public LoaderAgent removeJob(String jobId) {
+        synchronized (this.runningJobs) {
+            runningJobs.remove(jobId);
+        }
         return this;
     }
 
