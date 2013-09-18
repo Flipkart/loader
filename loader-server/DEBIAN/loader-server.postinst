@@ -7,6 +7,7 @@ GROUPNAME=loader
 GROUPID=4051
 
 cd /usr/share/$PKG/platformLibs
+rm *
 unzip platform.zip
 cd -
 
