@@ -55,7 +55,7 @@ public class JMXCollector extends BaseCollector {
 
         if(this.getParam("host") != null && this.getParam("port") != null) {
             jmxConnection = new JMXConnection(this.getParam("host").toString(),
-                    (Integer) this.getParam("port"));
+                    Integer.parseInt(this.getParam("port").toString()));
         }
         else if(this.getParam("jmxConnectorAddress") != null) {
             jmxConnection = new JMXConnection(this.getParam("jmxConnectorAddress").toString());

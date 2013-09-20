@@ -10,7 +10,7 @@ PACKAGE=monitoring-service
 LOADER_BASE_ROOT="../../"
 CODE_ROOT="../"
 PACKAGE_ROOT="./monitoring-service"
-VERSION=0.1.4
+VERSION=0.1.5
 ARCH=all
 
 echo "Pre requisite to create this package : mvn clean compile package install -Dmaven.test.skip=true at loader2.0 level"
