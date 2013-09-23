@@ -36,7 +36,7 @@ public class MonitoringService extends Service<ServerMonitoringConfig> {
         filterConfig.setInitParam(CrossOriginFilter.PREFLIGHT_MAX_AGE_PARAM, String.valueOf(60*60*24));
         CollectorThread collectorThread = startCollectorThread(1000);
         MetricPublisherThread metricPublisherThread = startStartThread(1000);
-        new MonitorLocalJavaProcesses(60000, collectorThread).start();
+        //new MonitorLocalJavaProcesses(60000, collectorThread).start();
         environment.addResource(new CollectorResource());
         environment.addResource(new PublishRequestResource(metricPublisherThread));
         environment.addResource(new OnDemandCollectorResource(configuration.getOnDemandCollectors(),
