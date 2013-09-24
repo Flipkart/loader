@@ -486,13 +486,14 @@ function plotResourceGraphs(agentIndex, resourceIndex, sliderDragged){
 			formatMinutes = function(d) { return formatTime(new Date(d)); };
 			var chart1;
 			nv.addGraph(function() {
-	  			chart1 = nv.models.lineChart();
+	  			chart1 = nv.models.lineChart().margin({left: 80});
 				chart1.xAxis
+					.axisLabel('Time (HH:MM)')
 	    			.tickFormat(function(d) { return d3.time.format('%H:%M')(new Date(d)); });
 
 	  			chart1.yAxis
-	      			.axisLabel('Time (ms)')
-	      			.tickFormat(d3.format('.1s'));
+	      			.axisLabel('Resource')
+	      			.tickFormat(d3.format('.2f'));
 	      		var chart1PlaceHolder = "#agent-" + agentName + "-" + resource + "-" + chartIndex;
 	      		var sliderId = "#slider-" + agentName + "-" + resource + "-" + chartIndex;
 	      		sliderId = sliderId.replace(/\./g,"_");
