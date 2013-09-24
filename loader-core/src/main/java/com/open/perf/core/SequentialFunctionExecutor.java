@@ -39,8 +39,8 @@ public class SequentialFunctionExecutor extends Thread {
     private final Map<String, FunctionCounter> functionCounters;
     private final List<String> ignoreDumpFunctions;
     private float throughput;
-    private int forcedDurationPerIterationNS;
-    private int accumulatedSleepIntervalNS; // When This accumulated Sleep Interval Goes above 1 ms then sleep for near by ms value
+    private long forcedDurationPerIterationNS;
+    private long accumulatedSleepIntervalNS; // When This accumulated Sleep Interval Goes above 1 ms then sleep for near by ms value
     private long totalSleepTimeMS = 0;
     private int threadStartDelay;
 
@@ -58,7 +58,7 @@ public class SequentialFunctionExecutor extends Thread {
 
         super(threadExecutorName);
         this.throughput = throughput;
-        this.forcedDurationPerIterationNS = (int)((1000 / this.throughput) * 1000000);
+        this.forcedDurationPerIterationNS = (long)((1000 / this.throughput) * 1000000);
 
         this.ignoreDumpFunctions = ignoreDumpFunctions;
         this.fExecutors = new ArrayList<SyncFunctionExecutor>();
@@ -337,7 +337,7 @@ public class SequentialFunctionExecutor extends Thread {
      * If there needs to be any throttling, this function would be used.
      */
     private void sleepInterval() {
-        int timeToSleepMS = this.accumulatedSleepIntervalNS/MILLION;
+        int timeToSleepMS = (int)(this.accumulatedSleepIntervalNS/MILLION);
         if(timeToSleepMS <= MINIMUM_SLEEP_TIME)
             return;
 

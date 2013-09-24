@@ -15,17 +15,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HttpRequestHelper {
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
+    private static AsyncHttpClient asyncHttpClient;
+    private static AtomicInteger counter = new AtomicInteger(0);
 
     public static AsyncHttpClient buildClient() {
-        AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
-        builder.setAllowPoolingConnection(true).
-                setMaximumConnectionsTotal(1000).
-                setCompressionEnabled(true).
-                setRequestTimeoutInMs(120000);
-        return new AsyncHttpClient(builder.build());
+        if(asyncHttpClient == null) {
+            AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
+            builder.setAllowPoolingConnection(true).
+                    setMaximumConnectionsTotal(1000).
+                    setCompressionEnabled(true).
+                    setRequestTimeoutInMs(120000);
+            asyncHttpClient = new AsyncHttpClient(builder.build());
+        }
+
+        counter.incrementAndGet();
+        return asyncHttpClient;
+    }
+
+    public static void closeConnection() {
+        if(counter.decrementAndGet() == 0)
+            asyncHttpClient.close();
     }
 
     public static Response executeRequest(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) throws IOException, InterruptedException, ExecutionException {
