@@ -493,7 +493,7 @@ function plotResourceGraphs(agentIndex, resourceIndex, sliderDragged){
 
 	  			chart1.yAxis
 	      			.axisLabel('Resource')
-	      			.tickFormat(d3.format('.2f'));
+	      			.tickFormat(d3.format('.2s'));
 	      		var chart1PlaceHolder = "#agent-" + agentName + "-" + resource + "-" + chartIndex;
 	      		var sliderId = "#slider-" + agentName + "-" + resource + "-" + chartIndex;
 	      		sliderId = sliderId.replace(/\./g,"_");
