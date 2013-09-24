@@ -10,7 +10,7 @@ APP=diamond
 PACKAGE=diamond-mysql-conf
 PACKAGE_ROOT=./diamond-mysql-conf
 CONFIG_ROOT=../../../diamond/collector-config/
-VERSION=0.0.1
+VERSION=0.0.2
 ARCH=all
 
 rm -rf $PACKAGE_ROOT

@@ -4,6 +4,6 @@ Section: web
 Priority: optional
 Architecture: all
 Essential: no
-Depends: python-setuptools
+Depends: python-setuptools, python-mysqldb
 Maintainer: Nitin Kumar Agarwal [nitinka@flipkart.com]
 Description: Diamond Collector Configuration to Monitor MySql
