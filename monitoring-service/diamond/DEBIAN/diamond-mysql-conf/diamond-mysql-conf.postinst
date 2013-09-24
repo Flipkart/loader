@@ -20,7 +20,7 @@ if [ "$1" == "configure" ]; then
         	chown -Rf $USERID:$GROUPID /etc/diamond || true
 fi
 
-easy_install mysql
+#easy_install mysql
 echo "RedisCollector.conf copied. Restart Diamond"
 
 exit 0
