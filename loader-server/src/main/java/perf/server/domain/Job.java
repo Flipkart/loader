@@ -218,8 +218,7 @@ public class Job {
             this.jobStatus = JOB_STATUS.COMPLETED;
         }
 
-        AgentsCache.getAgentInfo(agentIp).setFree();
-        AgentsCache.getAgentInfo(agentIp).getRunningJobs().remove(jobId);
+        AgentsCache.getAgentInfo(agentIp).setFree().removeJob(jobId).persist();
 
         if(isCompleted()) {
             this.ended();

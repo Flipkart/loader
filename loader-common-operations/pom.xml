@@ -9,7 +9,7 @@
     </parent>
     <groupId>perf.operation.http</groupId>
     <artifactId>loader-common-operations</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <name>loader-common-operations</name>
     <url>http://maven.apache.org</url>
     <dependencies>
@@ -31,7 +31,7 @@
         <dependency>
             <groupId>com.open.perf</groupId>
             <artifactId>loader-core</artifactId>
-            <version>0.1.7</version>
+            <version>0.1.8</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
