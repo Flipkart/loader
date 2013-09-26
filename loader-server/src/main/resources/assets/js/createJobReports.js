@@ -585,7 +585,7 @@ function updateStateOnCheck(){
 			if(selMonResList.indexOf(node)==-1) selMonResList.push(node);
 		});
 	}
-	var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId") + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join();
+	var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId") + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join() ;
 	//console.log(selectedTimerNodes, selectedMonNodes);
 	history.replaceState(null, null, link);
 }
