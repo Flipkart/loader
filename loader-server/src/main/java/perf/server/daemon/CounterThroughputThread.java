@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.open.perf.util.Timer;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -129,7 +130,12 @@ public class CounterThroughputThread extends Thread {
         while(keepRunning()) {
             synchronized (this.aliveJobs) {
                 for(String jobId : this.aliveJobs) {
-                    crunchJobCounters(jobId);
+                    try {
+                        crunchJobCounters(jobId);
+                    }
+                    catch (Exception e) {
+                        logger.error(e);
+                    }
                 }
             }
             checkInterval();
@@ -273,18 +279,23 @@ public class CounterThroughputThread extends Thread {
         stop = true;
     }
 
-    synchronized public void addJob(String jobId) {
-        this.aliveJobs.add(jobId);
+    public void addJob(String jobId) {
+        synchronized (this.aliveJobs) {
+            this.aliveJobs.add(jobId);
+        }
     }
 
     synchronized public void removeJob(String jobId) {
-        this.aliveJobs.remove(jobId);
+        synchronized (this.aliveJobs) {
+            this.aliveJobs.remove(jobId);
+        }
         crunchJobCounters(jobId);
     }
 
     public static void main(String[] args) {
         CounterThroughputThread t = new CounterThroughputThread(null, 10);
         t.crunchJobFileCounter("", new File("/var/log/loader-server/jobs/a09cc4f7-e868-4b2c-ae55-d9e992c2bd46/jobStats/SampleGroup/counters/tmp1.cumulative"));
+//        Timer t = new com.yammer.metrics.core.Timer();
 
     }
 }
