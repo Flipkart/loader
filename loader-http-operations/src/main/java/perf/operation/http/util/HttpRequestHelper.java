@@ -22,8 +22,8 @@ public class HttpRequestHelper {
     private static AsyncHttpClient asyncHttpClient;
     private static AtomicInteger counter = new AtomicInteger(0);
 
-    public static AsyncHttpClient buildClient() {
-        if(asyncHttpClient == null) {
+    public synchronized static AsyncHttpClient buildClient() {
+        if(counter.incrementAndGet() == 1) {
             AsyncHttpClientConfig.Builder builder = new AsyncHttpClientConfig.Builder();
             builder.setAllowPoolingConnection(true).
                     setMaximumConnectionsTotal(1000).
@@ -32,11 +32,10 @@ public class HttpRequestHelper {
             asyncHttpClient = new AsyncHttpClient(builder.build());
         }
 
-        counter.incrementAndGet();
         return asyncHttpClient;
     }
 
-    public static void closeConnection() {
+    public synchronized static void closeConnection() {
         if(counter.decrementAndGet() == 0)
             asyncHttpClient.close();
     }
