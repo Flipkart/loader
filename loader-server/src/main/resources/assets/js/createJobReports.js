@@ -585,7 +585,11 @@ function updateStateOnCheck(){
 			if(selMonResList.indexOf(node)==-1) selMonResList.push(node);
 		});
 	}
-	var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId") + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join() ;
+	var autoRefresh = getQueryParams("autoRefresh");
+	var interval = getQueryParams("interval");
+	if(autoRefresh==undefined) autoRefresh = "false";
+	if(interval==undefined) interval = "60000";
+	var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId")+ "&autoRefresh="+ autoRefresh + "&interval=" + interval + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join() ;
 	//console.log(selectedTimerNodes, selectedMonNodes);
 	history.replaceState(null, null, link);
 }
@@ -604,8 +608,11 @@ function updateStateOnUnCheck(){
 		console.log($(node).attr('id'));
 		selMonResList.push($(node).attr('id'));
 	});
-	
-	var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId") + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join();
+	var autoRefresh = getQueryParams("autoRefresh");
+	var interval = getQueryParams("interval");
+	if(autoRefresh==undefined) autoRefresh = "false";
+	if(interval==undefined) interval = "60000";
+	var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId")+ "&autoRefresh="+ autoRefresh + "&interval=" + interval  + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join();
 	history.replaceState(null, null, link);
 }
 
