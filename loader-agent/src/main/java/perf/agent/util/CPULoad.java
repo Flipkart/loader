@@ -1,7 +1,5 @@
 package perf.agent.util;
 
-import com.open.perf.util.Clock;
-
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 
@@ -73,6 +71,7 @@ public class CPULoad {
     }
 
 
+/*
     public static void main(String[] args) throws InterruptedException {
         for(int i=0;i<10 ;i++) {
             MyThread myThread = new MyThread();
@@ -86,7 +85,9 @@ public class CPULoad {
             Clock.sleep(1000);
         }
     }
+*/
 
+/*
     static class MyThread extends Thread {
         public void run() {
             double num = 1;
@@ -96,4 +97,5 @@ public class CPULoad {
         }
 
     }
+*/
 }

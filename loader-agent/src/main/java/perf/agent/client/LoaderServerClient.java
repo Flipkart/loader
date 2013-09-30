@@ -29,6 +29,8 @@ public class LoaderServerClient {
 
     private static Logger logger = LoggerFactory.getLogger(LoaderServerClient.class);
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
+    private static AsyncHttpClient httpClient = new AsyncHttpClient();
+
     public LoaderServerClient(String host, int port) {
         this.host = host;
         this.port = port;
@@ -67,8 +69,7 @@ public class LoaderServerClient {
         for(String key : registrationParams.keySet())
         node.put(key, registrationParams.get(key).toString());
 
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+        AsyncHttpClient.BoundRequestBuilder b = httpClient.
                 preparePost("http://" + this.getHost() + ":" +
                         this.getPort() +
                         RESOURCE_AGENTS).
@@ -84,8 +85,6 @@ public class LoaderServerClient {
             logger.info("Registration Succeeded");
             logger.info(r.get().getResponseBody());
         }
-
-        asyncHttpClient.close();
     }
 
     /**
@@ -96,8 +95,7 @@ public class LoaderServerClient {
      * @throws InterruptedException
      */
     public void notifyJobIsOver(String jobId, String jobStatus) throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+        AsyncHttpClient.BoundRequestBuilder b = httpClient.
                 preparePut("http://" + this.getHost() + ":" +
                         this.getPort() +
                         RESOURCE_JOB_OVER.
@@ -111,7 +109,6 @@ public class LoaderServerClient {
             logger.error("Delete on "+RESOURCE_JOB_OVER.
                     replace("{jobId}", jobId));
         }
-        asyncHttpClient.close();
     }
 
     /**
@@ -124,8 +121,7 @@ public class LoaderServerClient {
      * @throws InterruptedException
      */
     public void publishJobStats(String jobId, String filePath, String trimmedFileName) throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+        AsyncHttpClient.BoundRequestBuilder b = httpClient.
                 preparePost("http://" +
                         this.getHost() +
                         ":" +
@@ -136,7 +132,6 @@ public class LoaderServerClient {
                 setBody(new FileInputStream(filePath));
 
         b.execute().get();
-        asyncHttpClient.close();
     }
 
     public static LoaderServerClient buildClient(ServerInfo serverInfo) {
@@ -144,8 +139,7 @@ public class LoaderServerClient {
     }
 
     public void notifyJobHealth(String jobId, String jobHealthStatus) throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+        AsyncHttpClient.BoundRequestBuilder b = httpClient.
                 preparePut("http://" +
                         this.getHost() +
                         ":" +
@@ -154,18 +148,15 @@ public class LoaderServerClient {
                                 replace("{jobId}", jobId)).
                 setBody(jobHealthStatus);
         b.execute().get();
-        asyncHttpClient.close();
     }
 
     public void deRegister() throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+        AsyncHttpClient.BoundRequestBuilder b = httpClient.
                 prepareDelete("http://" +
                         this.getHost() +
                         ":" +
                         this.getPort() +
                         RESOURCE_AGENTS);
         b.execute().get();
-        asyncHttpClient.close();
     }
 }
