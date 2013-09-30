@@ -1,13 +1,9 @@
 package perf.server.domain;
 
 import com.open.perf.util.FileHelper;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
 import perf.server.config.LoaderServerConfiguration;
 import perf.server.util.ObjectMapperUtil;
 import perf.server.util.ResponseBuilder;
-import sun.reflect.generics.tree.ArrayTypeSignature;
-
 import javax.ws.rs.WebApplicationException;
 import java.io.File;
 import java.io.IOException;
@@ -139,15 +135,4 @@ public class BusinessUnit {
             throw new WebApplicationException(ResponseBuilder.resourceNotFound("Team", teamName));
         return this.getTeam(teamName);
     }
-
-
-    public static void main(String[] args) throws IOException {
-        Map<String, Team> teams = new LinkedHashMap<String, Team>();
-        teams.put("T1", new Team().setName("T1").setRuns(Arrays.asList(new String[]{"R1","R2"})));
-        teams.put("T2", new Team().setName("T2").setRuns(Arrays.asList(new String[]{"R3","R4"})));
-        teams.put("T3", new Team().setName("T3").setRuns(Arrays.asList(new String[]{"R5", "R6"})));
-        BusinessUnit unit = new BusinessUnit().setName("BU1").setTeams(teams);
-        System.out.println(ObjectMapperUtil.instance().writerWithDefaultPrettyPrinter().writeValueAsString(unit));
-    }
-
 }
