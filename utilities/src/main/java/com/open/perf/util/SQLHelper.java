@@ -1,18 +1,15 @@
 package com.open.perf.util;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 
-public class SQLHelper
-{
+public class SQLHelper {
     private Connection con = null;
     private Statement stm = null;
-    private static Logger logger;
+    private static Logger logger = LoggerFactory.getLogger(SQLHelper.class);
 
-    static {
-        logger = Logger.getLogger(SQLHelper.class);
-    }
     /**
      *
      * @param hostName

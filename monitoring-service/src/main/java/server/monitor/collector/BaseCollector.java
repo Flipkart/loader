@@ -1,7 +1,8 @@
 package server.monitor.collector;
 
 import com.open.perf.jackson.ObjectMapperUtil;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.monitor.domain.ResourceCollectionInstance;
 
 import java.util.HashMap;
@@ -18,7 +19,7 @@ public abstract class BaseCollector{
     private Map<String,Object> params;
     public static Map<String,Object> SYSTEM_PROPERTIES;
     public static OS CLIENT_OS;
-    protected static Logger log = Logger.getLogger(BaseCollector.class);
+    protected static Logger log = LoggerFactory.getLogger(BaseCollector.class);
 
     static {
         populateClientOS();

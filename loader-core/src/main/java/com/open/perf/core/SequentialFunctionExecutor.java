@@ -6,7 +6,8 @@ import com.open.perf.util.ClassHelper;
 import com.open.perf.util.Clock;
 import com.open.perf.util.Counter;
 import com.open.perf.util.Timer;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.Map;
 
 public class SequentialFunctionExecutor extends Thread {
     private static final int PAUSE_CHECK_DELAY   =   200;
-    private static Logger logger = Logger.getLogger(SequentialFunctionExecutor.class.getName());
+    private static Logger logger = LoggerFactory.getLogger(SequentialFunctionExecutor.class);
     private static final int MILLION = 1000000;
     private static final int MINIMUM_SLEEP_TIME = 10;
     private List<SyncFunctionExecutor> fExecutors;
@@ -107,7 +108,7 @@ public class SequentialFunctionExecutor extends Thread {
                                 new Class[]{FunctionContext.class},
                                 new Object[] {null}));
             } catch (Exception e) {
-                logger.error(e);
+                logger.error("Error While building SyncFunctionExecutor", e);
                 throw new RuntimeException(e);
             }
         }

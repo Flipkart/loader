@@ -1,7 +1,8 @@
 package perf.server.util;
 
 import com.open.perf.util.FileHelper;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.server.cache.LibCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
@@ -20,7 +21,7 @@ import java.util.concurrent.ExecutionException;
  * To change this template use File | Settings | File Templates.
  */
 public class DeploymentHelper {
-    private static Logger log = Logger.getLogger(DeploymentHelper.class);
+    private static Logger logger = LoggerFactory.getLogger(DeploymentHelper.class);
     private static DeploymentHelper myInstance;
     private final AgentConfig agentConfig;
     private final ResourceStorageFSConfig resourceStorageFSConfig;
@@ -85,7 +86,7 @@ public class DeploymentHelper {
         }
 
         if(deployPlatformLib) {
-            log.info("Deploying Platform Lib on Agent "+agentIP);
+            logger.info("Deploying Platform Lib on Agent "+agentIP);
             Properties prop = new Properties();
             if(new LoaderAgentClient(agentIP,
                     agentConfig.getAgentPort()).deployPlatformLibs()) {
@@ -94,7 +95,7 @@ public class DeploymentHelper {
                 prop.store(new FileOutputStream(platformFile), "Platform Lib Information");
             }
             else {
-                log.error("Platform Lib Deployment Failed on Agent "+agentIP);
+                logger.error("Platform Lib Deployment Failed on Agent "+agentIP);
                 throw new IOException("Platform Lib Deployment Failed on Agent "+agentIP);
             }
         }
@@ -131,7 +132,7 @@ public class DeploymentHelper {
                         prop.put(lib, String.valueOf(System.currentTimeMillis()));
                     }
                     else {
-                        log.error("Class Lib Deployment Failed on Agent "+agentIP);
+                        logger.error("Class Lib Deployment Failed on Agent "+agentIP);
                         throw new IOException("Class Lib Deployment Failed on Agent "+agentIP);
                     }
                 }
@@ -146,7 +147,7 @@ public class DeploymentHelper {
                     prop.put(lib, String.valueOf(System.currentTimeMillis()));
                 }
                 else {
-                    log.error("Class Lib Deployment Failed on Agent "+agentIP);
+                    logger.error("Class Lib Deployment Failed on Agent "+agentIP);
                     throw new IOException("Class Lib Deployment Failed on Agent "+agentIP);
                 }
             }
@@ -165,7 +166,7 @@ public class DeploymentHelper {
             }
 
             if(toDeploy) {
-                log.info("Deploying Input File Resource '"+inputFileResourceName+"' on agent "+agentIP);
+                logger.info("Deploying Input File Resource '"+inputFileResourceName+"' on agent "+agentIP);
                 if(new LoaderAgentClient(agentIP,agentConfig.getAgentPort()).
                         deployInputFile(inputFileResourceName, inputFileResourcePath)) {
                     agentDeploymentInfoMap.put(agentIP, System.currentTimeMillis());
@@ -173,7 +174,7 @@ public class DeploymentHelper {
                             writeValue(new File(resourceStorageFSConfig.getInputFileAgentDeploymentPath(inputFileResourceName)), agentDeploymentInfoMap);
                 }
                 else {
-                    log.error("Input File Resource '"+inputFileResourceName+"' Failed on Agent "+agentIP);
+                    logger.error("Input File Resource '"+inputFileResourceName+"' Failed on Agent "+agentIP);
                     throw new IOException("Input File Resource '"+inputFileResourceName+"' Failed on Agent "+agentIP);
                 }
             }

@@ -1,7 +1,8 @@
 package com.open.perf.core;
 
 import com.open.perf.domain.GroupTimer;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -10,7 +11,7 @@ public class GroupTimerManagerThread extends Thread{
     private List<GroupTimer> timers;
     private String          currentTimer;
     private int interval;
-    private Logger logger      = Logger.getLogger(GroupTimerManagerThread.class);
+    private static Logger logger = LoggerFactory.getLogger(GroupTimerManagerThread.class);
 
     public GroupTimerManagerThread(GroupController groupController, List<GroupTimer> timers) {
         this.groupController    =   groupController;

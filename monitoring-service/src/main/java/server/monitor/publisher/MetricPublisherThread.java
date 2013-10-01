@@ -1,8 +1,9 @@
 package server.monitor.publisher;
 
 import com.open.perf.util.Clock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.monitor.domain.MetricPublisherRequest;
-import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -17,7 +18,7 @@ import java.util.concurrent.ExecutionException;
  * To change this template use File | Settings | File Templates.
  */
 public class MetricPublisherThread extends Thread{
-    private static final Logger log = Logger.getLogger(MetricPublisherThread.class);
+    private static final Logger logger = LoggerFactory.getLogger(MetricPublisherThread.class);
     private Map<String,MetricPublisherRequest> requestPublisherMap;
     private Map<String,Long> requestLastExecutionTimeMap;
     private int interval;
@@ -50,7 +51,7 @@ public class MetricPublisherThread extends Thread{
             try {
                 Clock.sleep(interval);
             } catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                logger.error("Error while sleeping", e);
             }
         }
     }

@@ -4,9 +4,9 @@ import com.open.perf.util.FileHelper;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.server.cache.AgentsCache;
-import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
 import perf.server.domain.LoaderAgent;
 import perf.server.exception.LibNotDeployedException;
@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutionException;
  */
 @Path("/agents")
 public class AgentResource {
-    private static Logger log = Logger.getLogger(AgentResource.class);
+    private static Logger logger = LoggerFactory.getLogger(AgentResource.class);
     private AgentConfig agentConfig;
 
     public AgentResource(AgentConfig agentConfig){
@@ -42,7 +42,7 @@ public class AgentResource {
                     continue;
                 AgentHelper.refreshAgentInfo(loaderAgent);
             } catch (IOException e) {
-                log.error(e);
+                logger.error("Error While contacting Agent",e);
             }
         }
     }

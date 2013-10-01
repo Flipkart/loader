@@ -11,10 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.open.perf.util.Timer;
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.server.config.JobFSConfig;
 import perf.server.util.ObjectMapperUtil;
 
@@ -46,7 +46,7 @@ public class CounterThroughputThread extends Thread {
 //        DateFormat dateFormat = new SimpleDateFormat("MMM dd hh:mm:ss z yyyy");
 //        objectMapper.setDateFormat(dateFormat);
 
-        logger = Logger.getLogger(CounterThroughputThread.class);
+        logger = LoggerFactory.getLogger(CounterThroughputThread.class);
         FILE_EXTENSION = "stats";
     }
 
@@ -134,7 +134,7 @@ public class CounterThroughputThread extends Thread {
                         crunchJobCounters(jobId);
                     }
                     catch (Exception e) {
-                        logger.error(e);
+                        logger.error("Error while crunching numbers for job "+jobId,e);
                     }
                 }
             }

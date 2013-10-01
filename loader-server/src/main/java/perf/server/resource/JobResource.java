@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -29,10 +28,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Cookie;
-import com.ning.http.client.FluentStringsMap;
-import com.ning.http.client.Response;
 import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -65,7 +60,7 @@ public class JobResource {
     private static JobStatsHelper jobStatsHelper;
     private static ObjectMapper objectMapper;
     private static Map<String,Map<String,ResourceCollectionInstance>> jobLastResourceMetricInstanceMap;
-    private static Logger log;
+    private static Logger logger;
 
     static {
         objectMapper = new ObjectMapper();
@@ -75,7 +70,7 @@ public class JobResource {
 
         jobLastResourceMetricInstanceMap = new HashMap<String, Map<String, ResourceCollectionInstance>>();
         jobStatsHelper = JobStatsHelper.instance();
-        log = LoggerFactory.getLogger(JobResource.class);
+        logger = LoggerFactory.getLogger(JobResource.class);
     }
 
     public JobResource(AgentConfig agentConfig,
@@ -86,7 +81,7 @@ public class JobResource {
         try {
             cleanRunningJobsBeforeRestart();
         } catch (IOException e) {
-            log.error("",e);
+            logger.error("",e);
         }
     }
 
@@ -94,10 +89,10 @@ public class JobResource {
         List<String> runningJobs = objectMapper.readValue(new File(jobFSConfig.getRunningJobsFile()), List.class);
         while(runningJobs.size() > 0) {
             try {
-                log.info("Clearing Job '"+runningJobs.get(0)+"' with RUNNING status at startup");
+                logger.info("Clearing Job '"+runningJobs.get(0)+"' with RUNNING status at startup");
                 killJob(runningJobs.remove(0));
             } catch (Exception e) {
-                log.error("",e);
+                logger.error("",e);
             }
         }
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(jobFSConfig.getRunningJobsFile()), runningJobs);

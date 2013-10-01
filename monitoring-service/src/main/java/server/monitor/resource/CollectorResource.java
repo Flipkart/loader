@@ -2,9 +2,10 @@ package server.monitor.resource;
 
 import com.yammer.dropwizard.jersey.params.IntParam;
 import com.yammer.metrics.annotation.Timed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.monitor.cache.ResourceCache;
 import server.monitor.domain.ResourceCollectionInstance;
-import org.apache.log4j.Logger;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -16,7 +17,7 @@ import java.util.*;
  */
 @Path("/resources")
 public class CollectorResource {
-    private static Logger log = Logger.getLogger(CollectorResource.class);
+    private static Logger log = LoggerFactory.getLogger(CollectorResource.class);
     private static List<String> ignoreSubResourceList = Arrays.asList(new String[]{"cpu.cpu"});
 
     /**

@@ -8,7 +8,6 @@ import java.util.concurrent.Future;
 
 import javax.ws.rs.core.MediaType;
 
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import perf.server.cache.LibCache;
@@ -26,7 +25,6 @@ public class LoaderAgentClient {
     private String host;
     private int port;
     private static LibCache libCache;
-    private static Logger logger = Logger.getLogger(LoaderAgentClient.class);
 
     private static final String RESOURCE_PLATFORM_LIB = "/loader-agent/resourceTypes/platformLibs";
     private static final String RESOURCE_UDF_LIB = "/loader-agent/resourceTypes/udfLibs";

@@ -24,7 +24,7 @@ import java.util.Map;
 @Path("/publishResourcesRequests")
 public class PublishRequestResource {
     private static Map<String, MetricPublisherRequest> publisherRequestMap;
-    private static Logger log = LoggerFactory.getLogger(PublishRequestResource.class);
+    private static Logger logger = LoggerFactory.getLogger(PublishRequestResource.class);
     private MetricPublisherThread metricPublisherThread;
 
     public PublishRequestResource(MetricPublisherThread metricPublisherThread) {
@@ -50,7 +50,7 @@ public class PublishRequestResource {
     @POST
     @Timed
     synchronized public void addRequest(@Valid MetricPublisherRequest metricPublisherRequest) throws IOException, InterruptedException {
-        log.info("Publisher Request :" + ObjectMapperUtil.instance().writeValueAsString(metricPublisherRequest));
+        logger.info("Publisher Request :" + ObjectMapperUtil.instance().writeValueAsString(metricPublisherRequest));
         metricPublisherThread.addRequest(metricPublisherRequest);
         publisherRequestMap.put(metricPublisherRequest.getRequestId(), metricPublisherRequest);
     }
@@ -59,7 +59,7 @@ public class PublishRequestResource {
     @DELETE
     @Timed
     synchronized public void removeRequest(@PathParam("requestId") String requestId) throws IOException, InterruptedException {
-        log.info("All Publisher Requests :"+publisherRequestMap.toString());
+        logger.info("All Publisher Requests :"+publisherRequestMap.toString());
         MetricPublisherRequest metricPublisherRequest = publisherRequestMap.remove(requestId);
         if(metricPublisherRequest != null)
             metricPublisherThread.removeRequest(metricPublisherRequest);

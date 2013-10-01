@@ -31,8 +31,6 @@ public class JMXConnection
     public JMXConnection(String connectorAddress) throws IOException {
         JMXServiceURL url = new JMXServiceURL(connectorAddress);
         this.jmxConnector = JMXConnectorFactory.connect(url);
-
-        this.jmxConnector = jmxConnector;
         this.server = jmxConnector.getMBeanServerConnection();
     }
 

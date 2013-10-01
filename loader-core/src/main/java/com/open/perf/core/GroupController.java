@@ -5,7 +5,8 @@ import com.open.perf.domain.GroupFunction;
 import com.open.perf.domain.GroupTimer;
 import com.open.perf.util.Clock;
 import com.open.perf.util.Counter;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,10 +18,7 @@ import java.util.Map;
 public class GroupController {
     private boolean started = false;
     private String groupName;
-    private static Logger logger;
-    static {
-        logger = Logger.getLogger(GroupController.class);
-    }
+    private static Logger logger = LoggerFactory.getLogger(GroupController.class);
 
     private List<SequentialFunctionExecutor> sequentialFEs;
     private final Group group;

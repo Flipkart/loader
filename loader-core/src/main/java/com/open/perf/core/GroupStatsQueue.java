@@ -1,6 +1,7 @@
 package com.open.perf.core;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -14,11 +15,7 @@ final public class GroupStatsQueue {
     private LinkedBlockingQueue<GroupStatsInstance> groupWriteQueueLink;
     private LinkedBlockingQueue<GroupStatsInstance> groupReadQueueLink;
     private boolean oppositeQueue = true;
-
-    private static Logger logger;
-    static {
-        logger = Logger.getLogger(GroupStatsQueue.class);
-    }
+    private static Logger logger = LoggerFactory.getLogger(GroupStatsQueue.class);
 
     public GroupStatsQueue() {
         this.groupWriteQueue = new LinkedBlockingQueue<GroupStatsInstance>();

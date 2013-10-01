@@ -1,15 +1,11 @@
 package com.open.perf.domain;
 
-import org.apache.log4j.Logger;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Group {
-
-    private static Logger        logger ;
 
     private String name ;
     private int groupStartDelay ;
@@ -32,10 +28,6 @@ public class Group {
     private List<Map<String,Object>> threadResources ;
     private List<String> customTimers;
     private List<String> customCounters;
-
-    static {
-        logger = Logger.getLogger(Group.class.getName());
-    }
 
     public Group(){
         this.functions = new ArrayList<GroupFunction>();
@@ -174,7 +166,6 @@ public class Group {
     }
 
     public Group addThreadResource(int threadNumber, String resource, Object value) {
-        logger.debug("Putting Resource " + resource + " " + value + " for thread " + threadNumber);
         this.threadResources.get(threadNumber).put(resource, value);
         return this;
     }
@@ -206,11 +197,9 @@ public class Group {
 
         // Resetting repeat or duration if needed
         if(this.repeats==0) {
-            logger.info("In group '"+this.name+"' repeat = 0 has no meaning, changing it to -1");
             this.repeats = -1;
         }
         if(this.duration==0) {
-            logger.info("In group '"+this.name+"' life = 0 has no meaning, changing it to -1");
             this.duration = -1;
         }
 
