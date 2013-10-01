@@ -1,14 +1,15 @@
 package com.open.perf.function;
 
 import com.open.perf.core.FunctionContext;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 abstract public class PerformanceFunction {
-    protected static Logger logger = Logger.getLogger(PerformanceFunction.class);
+    protected static Logger logger = LoggerFactory.getLogger(PerformanceFunction.class);
 
     /**
      * Will Be called only once. Before the actual run starts.

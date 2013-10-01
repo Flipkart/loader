@@ -3,7 +3,8 @@ package perf.server.daemon;
 import com.open.perf.constant.MathConstant;
 import com.open.perf.util.Clock;
 import com.open.perf.util.FileHelper;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.server.config.JobFSConfig;
 
 import java.io.*;
@@ -32,7 +33,7 @@ public class CounterCompoundThread extends Thread {
     static {
         CLUB_CRUNCH_DURATION_MS = 10 * MathConstant.THOUSAND;
         CRUNCH_DATA_OLDER_THAN_MS = 30 * MathConstant.THOUSAND;
-        logger = Logger.getLogger(CounterCompoundThread.class);
+        logger = LoggerFactory.getLogger(CounterCompoundThread.class);
         FILE_EXTENSION = "cumulative";
     }
 

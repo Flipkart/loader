@@ -1,6 +1,7 @@
 package perf.server.util;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.server.cache.AgentsCache;
 import perf.server.client.LoaderAgentClient;
 import perf.server.config.AgentConfig;
@@ -18,7 +19,7 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 public class AgentHelper {
-    private static Logger log = Logger.getLogger(AgentHelper.class);
+    private static Logger log = LoggerFactory.getLogger(AgentHelper.class);
     private static AgentConfig agentConfig = LoaderServerConfiguration.instance().getAgentConfig();
     public static void refreshAgentInfo(LoaderAgent loaderAgent) throws IOException {
         try {
@@ -27,12 +28,12 @@ public class AgentHelper {
             loaderAgent.setAttributes(agentRegistrationParams);
         } catch (Exception e) {
             loaderAgent.setNotReachable();
-            log.error(e);
+            log.error("Error while contacting agent",e);
         }
         try {
             AgentsCache.addAgent(loaderAgent);
         } catch (IOException e) {
-            log.error(e);
+            log.error("Error while adding agent info to cache",e);
         }
     }
 

@@ -13,12 +13,12 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.sun.jersey.core.header.ContentDisposition;
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.reflections.Reflections;
 import org.reflections.Store;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.server.cache.LibCache;
 import perf.server.config.ResourceStorageFSConfig;
 import perf.server.domain.FunctionInfo;
@@ -39,7 +39,6 @@ import perf.server.util.ResponseBuilder;
  */
 @Path("/resourceTypes")
 public class DeployResourcesResource {
-    private static Logger log = Logger.getLogger(DeployResourcesResource.class);
     private ResourceStorageFSConfig resourceStorageFSConfig;
     private LibCache libCache;
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();

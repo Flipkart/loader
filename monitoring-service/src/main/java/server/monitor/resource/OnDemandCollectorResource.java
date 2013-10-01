@@ -2,9 +2,10 @@ package server.monitor.resource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.open.perf.jackson.ObjectMapperUtil;
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.monitor.collector.BaseCollector;
 import server.monitor.collector.CollectorFactory;
 import server.monitor.collector.CollectorThread;
@@ -31,7 +32,7 @@ import java.util.Map;
  */
 @Path("/onDemandResources")
 public class OnDemandCollectorResource {
-    private static Logger log = Logger.getLogger(OnDemandCollectorResource.class);
+    private static Logger logger = LoggerFactory.getLogger(OnDemandCollectorResource.class);
     private List<OnDemandCollectorConfig> onDemandCollectorConfigs;
     private Map<String, List<BaseCollector>> onDemandCollectorsRequestMap;
     private CollectorThread collectorThread;
@@ -99,7 +100,7 @@ public class OnDemandCollectorResource {
 
     private void startCollection(OnDemandCollectorRequest request) throws InvocationTargetException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         try {
-            log.info("Request :" + ObjectMapperUtil.instance().writeValueAsString(request));
+            logger.info("Request :" + ObjectMapperUtil.instance().writeValueAsString(request));
         } catch (JsonProcessingException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (JsonMappingException e) {

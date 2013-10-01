@@ -22,7 +22,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import perf.server.config.ResourceStorageFSConfig;
@@ -46,7 +45,6 @@ import com.yammer.dropwizard.jersey.params.BooleanParam;
  */
 @Path("/functions")
 public class FunctionResource {
-    private static Logger log = Logger.getLogger(FunctionResource.class);
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
     private ResourceStorageFSConfig storageConfig;
 

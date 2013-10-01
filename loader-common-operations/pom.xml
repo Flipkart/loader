@@ -9,15 +9,10 @@
     </parent>
     <groupId>perf.operation.http</groupId>
     <artifactId>loader-common-operations</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
     <name>loader-common-operations</name>
     <url>http://maven.apache.org</url>
     <dependencies>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.14</version>
-        </dependency>
         <dependency>
         	<groupId>net.sf.opencsv</groupId>
         	<artifactId>opencsv</artifactId>
@@ -31,7 +26,7 @@
         <dependency>
             <groupId>com.open.perf</groupId>
             <artifactId>loader-core</artifactId>
-            <version>0.1.8</version>
+            <version>0.1.9</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

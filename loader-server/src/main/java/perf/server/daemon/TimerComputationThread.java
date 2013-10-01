@@ -13,9 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.server.config.JobFSConfig;
 import perf.server.domain.TimerStatsInstance;
 import perf.server.util.ObjectMapperUtil;
@@ -50,7 +51,7 @@ public class TimerComputationThread extends Thread {
 
     static {
         objectMapper = ObjectMapperUtil.instance();
-        logger = Logger.getLogger(TimerComputationThread.class);
+        logger = LoggerFactory.getLogger(TimerComputationThread.class);
         FILE_EXTENSION = "stats";
     }
 

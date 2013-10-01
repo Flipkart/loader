@@ -7,12 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
 import javax.ws.rs.core.MediaType;
-
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.server.domain.MetricPublisherRequest;
 import perf.server.domain.OnDemandCollectorRequest;
 import perf.server.util.ObjectMapperUtil;
@@ -30,7 +29,7 @@ import com.ning.http.client.Response;
 public class MonitoringClient {
     private String host;
     private int port;
-    private static Logger log = Logger.getLogger(MonitoringClient.class);
+    private static Logger log = LoggerFactory.getLogger(MonitoringClient.class);
 
     private static final String RESOURCE_RESOURCES = "/monitoring-service/resources";
     private static final String RESOURCE_RESOURCE = "/monitoring-service/resources/{resources}";

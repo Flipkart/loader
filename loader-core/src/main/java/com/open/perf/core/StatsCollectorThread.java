@@ -3,7 +3,8 @@ package com.open.perf.core;
 import com.open.perf.domain.Group;
 import com.open.perf.util.*;
 import com.open.perf.util.Timer;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
@@ -17,10 +18,7 @@ public class StatsCollectorThread extends Thread{
     private final GroupStatsQueue groupStatsQueue;
     private Map<String,BufferedWriter> fileWriters;
 
-    private static Logger logger;
-    static {
-        logger      = Logger.getLogger(StatsCollectorThread.class);
-    }
+    private static Logger logger = LoggerFactory.getLogger(StatsCollectorThread.class);
 
     private long lastQueueSwapTime;
     private boolean collectingStats;

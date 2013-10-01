@@ -22,7 +22,6 @@ import java.util.Map;
 @Path("/admin")
 
 public class AdminResource {
-    private static Logger logger = LoggerFactory.getLogger(AdminResource.class);
     private LoaderAgentConfiguration loaderAgentConfiguration;
 
     public AdminResource(LoaderAgentConfiguration loaderAgentConfiguration)

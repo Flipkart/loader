@@ -35,7 +35,7 @@ public class JobStatsHelper {
     private JobFSConfig jobFSConfig;
     private static JobStatsHelper instance;
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
-    private static Logger log = LoggerFactory.getLogger(JobStatsHelper.class);
+    private static Logger logger = LoggerFactory.getLogger(JobStatsHelper.class);
 
 
     public JobStatsHelper(JobFSConfig jobFSConfig, AgentConfig agentConfig, MonitoringAgentConfig monitoringAgentConfig) {
@@ -53,7 +53,7 @@ public class JobStatsHelper {
     }
 
     public void persistJobStatsComingFromAgent(String jobId, String agentIp, String relatedFilePath, InputStream jobStatsStream) throws IOException {
-        log.info(jobId + " " + agentIp + " " + relatedFilePath);
+        logger.info(jobId + " " + agentIp + " " + relatedFilePath);
         // Remove job Id from relative path as loader-server has already created path
 
         relatedFilePath = relatedFilePath.replace("/"+jobId + "/","");
@@ -263,7 +263,7 @@ public class JobStatsHelper {
      */
     public InputStream getJobGroupConf(String jobId, String groupName, String agent, boolean last) throws FileNotFoundException {
         File statsFile = new File(jobFSConfig.getJobGroupConfFile(jobId, groupName, agent));
-        log.info(statsFile.getAbsolutePath());
+        logger.info(statsFile.getAbsolutePath());
         if(!statsFile.exists())
             throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Real Time Group Conf Not Received Yet for Group %s",groupName)));
 
@@ -286,7 +286,7 @@ public class JobStatsHelper {
      */
     public InputStream getJobMetricStats(String jobId, String groupName, String metricType, String metricName, String agent, boolean last) throws FileNotFoundException {
         File statsFile = new File(jobFSConfig.getJobFunctionStatsFile(jobId, groupName, metricType, metricName, agent));
-        log.info(statsFile.getAbsolutePath());
+        logger.info(statsFile.getAbsolutePath());
         if(!statsFile.exists())
             throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Stats for %s %s Not computed yet",metricType,metricName)));
 
@@ -352,7 +352,7 @@ public class JobStatsHelper {
      */
     public InputStream getJobMonitoringResourceStats(String jobId, String agent, String resourceName, Boolean last) throws FileNotFoundException {
         File statsFile = new File(jobFSConfig.getJobResourceMonitoringFile(jobId, agent, resourceName));
-        log.info(statsFile.getAbsolutePath());
+        logger.info(statsFile.getAbsolutePath());
         if(!statsFile.exists())
             throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Monitoring Stats for %s %s Not collected yet",agent,resourceName)));
 
@@ -371,7 +371,7 @@ public class JobStatsHelper {
      */
     public Set<String> getJobMonitoringResourceMeta(String jobId, String agent, String resourceName) throws IOException {
         File statsFile = new File(jobFSConfig.getJobResourceMonitoringFile(jobId, agent, resourceName));
-        log.info(statsFile.getAbsolutePath());
+        logger.info(statsFile.getAbsolutePath());
         if(!statsFile.exists())
             throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Monitoring Stats for %s %s Not collected yet",agent,resourceName)));
 

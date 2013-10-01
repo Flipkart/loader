@@ -3,7 +3,8 @@ package com.open.perf.core;
 import com.open.perf.domain.Group;
 import com.open.perf.domain.Load;
 import com.open.perf.util.Clock;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -22,7 +23,7 @@ public class LoadController extends Thread{
     // Map of Group Name and Group Bean (Which contains user information)
     private Map<String,Group> groupMap;
 
-    private static Logger logger = Logger.getLogger(LoadController.class);
+    private static Logger logger = LoggerFactory.getLogger(LoadController.class);
 
     private final String jobId;
 

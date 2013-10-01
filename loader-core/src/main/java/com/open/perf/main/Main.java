@@ -3,8 +3,10 @@ package com.open.perf.main;
 import com.open.perf.domain.Load;
 import com.open.perf.jackson.ObjectMapperUtil;
 import org.apache.commons.cli.*;
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.UUID;
@@ -18,7 +20,7 @@ public class Main {
     private static ObjectMapper objectMapper;
     static {
         objectMapper = ObjectMapperUtil.instance();
-        logger = Logger.getLogger(Main.class);
+        logger = LoggerFactory.getLogger(Main.class);
         options = new Options();
 
         Option fileOption = new Option("f", "jobFile", true, "File containing Json representing the performance run");
@@ -49,7 +51,7 @@ public class Main {
                     start(jobId(line));
         }
         catch (Exception e) {
-            logger.error(e);
+            logger.error("Error while building loader instance",e);
             help();
         }
     }

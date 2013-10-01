@@ -1,8 +1,9 @@
 package server.monitor.collector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import server.monitor.cache.ResourceCache;
 import server.monitor.domain.ResourceCollectionInstance;
-import org.apache.log4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ public class CollectorThread extends Thread{
     private boolean keepRunning = true;
     private Map<String,BaseCollector> collectors;
     private Map<String,Long> collectorLastExecutionTimeMap;
-    private static final Logger log = Logger.getLogger(CollectorThread.class);
+    private static final Logger log = LoggerFactory.getLogger(CollectorThread.class);
     private int interval;
 
     public CollectorThread(int interval) throws ClassNotFoundException,

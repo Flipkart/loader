@@ -39,7 +39,7 @@ public class Job {
 
     private static final LoaderServerConfiguration configuration = LoaderServerConfiguration.instance();
     private static final ObjectMapper objectMapper = ObjectMapperUtil.instance();
-    private static Logger log = LoggerFactory.getLogger(Job.class);
+    private static Logger logger = LoggerFactory.getLogger(Job.class);
 
     public static enum JOB_STATUS {
         QUEUED, RUNNING, PAUSED, COMPLETED, KILLED, FAILED_TO_START, ERROR;
@@ -336,12 +336,12 @@ public class Job {
             persist();
         }
         catch (Exception e) {
-            log.error("Job Submission Failed",e);
+            logger.error("Job Submission Failed",e);
             try {
                 this.failedToStart(e.getMessage());
                 jobCleanUpOnFailure(this);
             } catch (Exception e1) {
-                log.error("Job Clean up Failure",e);
+                logger.error("Job Clean up Failure",e);
             }
         }
     }
@@ -360,7 +360,7 @@ public class Job {
                     configuration.getMonitoringAgentConfig().getAgentPort()).
                     raiseOnDemandResourceRequest(onDemandMetricCollection.buildRequest(jobId));
             this.addMonitoringAgent(agentIp);
-            log.info("Request "+onDemandMetricCollection+" raised on Agent "+agentIp);
+            logger.info("Request "+onDemandMetricCollection+" raised on Agent "+agentIp);
         }
     }
 
@@ -378,7 +378,7 @@ public class Job {
                     configuration.getMonitoringAgentConfig().getAgentPort()).
                     raiseMetricPublishRequest(metricCollection.buildRequest(jobId));
             this.addMonitoringAgent(agentIp);
-            log.info("Request "+metricCollection+" raised on Agent "+agentIp);
+            logger.info("Request "+metricCollection+" raised on Agent "+agentIp);
         }
     }
 
@@ -426,11 +426,11 @@ public class Job {
      */
     private void submitJobToAgent(String agentIp, String jobId, Load load, String classListStr)
             throws InterruptedException, ExecutionException, JobException, IOException {
-        log.info("Agent Ip :" + agentIp);
+        logger.info("Agent Ip :" + agentIp);
         new LoaderAgentClient(agentIp,
                 configuration.getAgentConfig().getAgentPort()).
                 submitJob(jobId, load, classListStr);
-        log.info("Load Job " + load + " submitted to Agent " + agentIp);
+        logger.info("Load Job " + load + " submitted to Agent " + agentIp);
     }
 
 
@@ -500,11 +500,11 @@ public class Job {
             for(String agent : agents) {
                 if(!agentsJobStatusMap.get(agent).getJob_status().equals(Job.JOB_STATUS.KILLED) &&
                         !agentsJobStatusMap.get(agent).getJob_status().equals(Job.JOB_STATUS.COMPLETED)) {
-                    log.info("Killing Job '"+jobId+"' in agent '"+agent+"'");
+                    logger.info("Killing Job '"+jobId+"' in agent '"+agent+"'");
                     try {
                         new LoaderAgentClient(agent, configuration.getAgentConfig().getAgentPort()).killJob(this.jobId);
                     } catch (Exception e) {
-                        log.error("", e);
+                        logger.error("", e);
                     } finally {
                         this.jobKilledInAgent(agent);
                     }
@@ -597,7 +597,7 @@ public class Job {
                     String runJobId;
                     while((runJobId = runJobsFileReader.readLine()) != null) {
                         if(runJobId.trim().equals("")) {
-                            log.warn("Empty Job Id Found for run '"+runPath.getName()+"'");
+                            logger.warn("Empty Job Id Found for run '"+runPath.getName()+"'");
                             continue;
                         }
                         if(runJobId.toUpperCase().contains(searchJobId.toUpperCase())) {

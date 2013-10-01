@@ -9,13 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import perf.server.config.JobFSConfig;
 import perf.server.domain.Job;
-import perf.server.domain.ResourceCollectionInstance;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -28,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 public class JobsCache {
     private static ObjectMapper objectMapper;
     private static LoadingCache<String, Job> jobs;
-    private static Logger log = LoggerFactory.getLogger(Job.class);
+    private static Logger logger = LoggerFactory.getLogger(Job.class);
 
     static {
         objectMapper = new ObjectMapper();
@@ -46,7 +44,7 @@ public class JobsCache {
                                 File jobStatusFile = new File(jobFSConfig.getJobStatusFile(jobId));
                                 if(jobStatusFile.exists())
                                     return objectMapper.readValue(jobStatusFile, Job.class);
-                                log.error("Status File Not Found for Job Id '"+jobId+"'");
+                                logger.error("Status File Not Found for Job Id '"+jobId+"'");
                                 return null;
                             }
                         });

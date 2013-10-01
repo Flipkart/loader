@@ -3,8 +3,9 @@ package perf.server.daemon;
 import com.open.perf.constant.MathConstant;
 import com.open.perf.util.Clock;
 import com.open.perf.util.FileHelper;
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import perf.server.config.JobFSConfig;
 import perf.server.cache.JobsCache;
 import perf.server.util.ObjectMapperUtil;
@@ -64,7 +65,7 @@ public class GroupConfConsolidationThread extends Thread {
 
     static {
         objectMapper = ObjectMapperUtil.instance();
-        logger = Logger.getLogger(GroupConfConsolidationThread.class);
+        logger = LoggerFactory.getLogger(GroupConfConsolidationThread.class);
         FILE_EXTENSION = "stats";
     }
 
@@ -94,11 +95,11 @@ public class GroupConfConsolidationThread extends Thread {
                     try {
                         crunchRealTimeGroupConf(jobId);
                     } catch (FileNotFoundException e) {
-                        logger.error(e);
+                        logger.error("Error While Crunching stats for job "+jobId,e);
                     } catch (IOException e) {
-                        logger.error(e);
+                        logger.error("Error While Crunching stats for job "+jobId,e);
                     } catch (ExecutionException e) {
-                        logger.error(e);
+                        logger.error("Error While Crunching stats for job "+jobId,e);
                     }
                 }
             }
