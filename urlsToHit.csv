@@ -1,3 +1,0 @@
-url,expectedStatusCode
-http://localhost:9999/loader-server/agents,200
-http://localhost:9999/loader-server/functions,200
