@@ -22,7 +22,7 @@ start() {
 	check_process
 
 	if [ $? -ne 0 ]; then
-                nohup java $JVM_ARGS -cp $LIB_JARS perf.server.LoaderServerService $CONF_FILE >> $LOG_FILE 2>&1 &
+                nohup java $JVM_ARGS -cp $LIB_JARS com.flipkart.perf.server.LoaderServerService $CONF_FILE >> $LOG_FILE 2>&1 &
 	else
 		echo "$PKG already running as PID $PID"
 	fi

@@ -1,9 +1,9 @@
 package perf.operation.common.data;
 
-import com.open.perf.core.FunctionContext;
-import com.open.perf.function.FunctionParameter;
-import com.open.perf.function.PerformanceFunction;
-import com.open.perf.util.JsonHelper;
+import com.flipkart.perf.core.FunctionContext;
+import com.flipkart.perf.function.FunctionParameter;
+import com.flipkart.perf.function.PerformanceFunction;
+import com.flipkart.perf.common.util.JsonHelper;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;

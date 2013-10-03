@@ -6,7 +6,7 @@
         <artifactId>loader</artifactId>
         <version>0.3.0</version>
     </parent>
-    <groupId>com.open.perf.agent</groupId>
+    <groupId>com.flipkart.perf</groupId>
     <artifactId>loader-agent</artifactId>
     <version>0.3.0</version>
     <packaging>jar</packaging>
@@ -28,12 +28,17 @@
 
     <dependencies>
         <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.0.13</version>
+        </dependency>
+        <dependency>
             <groupId>com.yammer.dropwizard</groupId>
             <artifactId>dropwizard-core</artifactId>
             <version>0.6.1</version>
         </dependency>
         <dependency>
-            <groupId>com.open.perf</groupId>
+            <groupId>com.flipkart.perf</groupId>
             <artifactId>utilities</artifactId>
             <version>0.3.0</version>
         </dependency>
@@ -67,7 +72,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>perf.agent.LoaderAgentService</mainClass>
+                    <mainClass>com.flipkart.perf.agent.LoaderAgentService</mainClass>
                     <arguments>
                         <argument>${project.basedir}/config/loader-agent.yml</argument>
                     </arguments>

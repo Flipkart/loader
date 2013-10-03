@@ -1,1 +1,0 @@
-com.open.perf.test.TestClass
