@@ -1,9 +1,9 @@
 package perf.operation.http.util;
 
 import com.ning.http.client.*;
-import com.open.perf.core.FunctionContext;
-import com.open.perf.function.FunctionParameter;
-import com.open.perf.jackson.ObjectMapperUtil;
+import com.flipkart.perf.core.FunctionContext;
+import com.flipkart.perf.function.FunctionParameter;
+import com.flipkart.perf.common.jackson.ObjectMapperUtil;
 import org.codehaus.jackson.map.ObjectMapper;
 import perf.operation.http.constant.Constants;
 

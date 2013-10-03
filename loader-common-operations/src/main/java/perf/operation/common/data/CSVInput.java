@@ -1,9 +1,9 @@
 package perf.operation.common.data;
 
 import au.com.bytecode.opencsv.CSVReader;
-import com.open.perf.core.FunctionContext;
-import com.open.perf.function.FunctionParameter;
-import com.open.perf.function.PerformanceFunction;
+import com.flipkart.perf.core.FunctionContext;
+import com.flipkart.perf.function.FunctionParameter;
+import com.flipkart.perf.function.PerformanceFunction;
 
 import java.io.FileReader;
 import java.io.IOException;

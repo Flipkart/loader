@@ -1,12 +1,12 @@
 package perf.operation.http.util;
 
 import com.ning.http.client.Response;
-import com.open.perf.core.FunctionContext;
+import com.flipkart.perf.core.FunctionContext;
 import perf.operation.http.constant.Constants;
 
 import java.io.IOException;
 
-import static com.open.perf.core.FunctionContext.FailureType.FUNCTIONAL_FAILURE;
+import static com.flipkart.perf.core.FunctionContext.FailureType.FUNCTIONAL_FAILURE;
 
 public class HttpResponseHelper {
     public static boolean successfulRequest(FunctionContext context, Response response) {

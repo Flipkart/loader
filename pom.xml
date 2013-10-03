@@ -16,15 +16,9 @@
         <module>monitoring-service</module>
         <module>loader-http-operations</module>
         <module>loader-common-operations</module>
+        <module>sample-app</module>
     </modules>
 
-    <dependencies>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.0.13</version>
-        </dependency>
-    </dependencies>
     <build>
         <pluginManagement>
             <plugins>
