@@ -4,5 +4,5 @@ loader is a distributed load generation platform with server side monitoring cap
 [**# Get Started Locally**](https://github.com/Flipkart/loader/wiki/Getting-Started-Locally)<br>
 [**# Create a Sample Performance Run**](https://github.com/Flipkart/loader/wiki/Sample-Run)<br>
 [**# End To End Performance Run Orchestration**](https://github.com/Flipkart/loader/wiki/End-To-End-Working)<br>
-[**# How To Write UDFs**](https://github.com/Flipkart/loader/wiki/How-to-write-UDF)<br>
+[**# How To Write Custom Performance Functions**](https://github.com/Flipkart/loader/wiki/Custom-Performance-Functions)<br>
 [**# Server Side Monitoring**](https://github.com/Flipkart/loader/wiki/Server-Side-Monitoring)<br>
