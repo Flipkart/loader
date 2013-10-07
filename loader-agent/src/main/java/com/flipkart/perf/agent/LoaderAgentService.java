@@ -49,7 +49,6 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
                 LoaderServerClient.buildClient(configuration.getServerInfo()));
 
         JobProcessorThread.initialize(configuration.getJobProcessorConfig(),
-                LoaderServerClient.buildClient(configuration.getServerInfo()),
                 configuration.getJobFSConfig());
 
         environment.addResource(new DeployResourcesResource(configuration.getResourceStorageFSConfig()));

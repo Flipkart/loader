@@ -27,15 +27,13 @@ public class JobProcessorThread extends Thread{
     private static Logger logger = LoggerFactory.getLogger(JobProcessorThread.class);
     private JobProcessorConfig config;
     private static JobProcessorThread instance;
-    private final LoaderServerClient serverClient;
     private final JobFSConfig jobFSConfig;
     private static final ObjectMapper objectMapper = ObjectMapperUtil.instance();
 
-    private JobProcessorThread(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient, JobFSConfig jobFSConfig) {
+    private JobProcessorThread(JobProcessorConfig jobProcessorConfig, JobFSConfig jobFSConfig) {
         this.config = jobProcessorConfig;
         this.jobRunners = new HashMap<String, JobRunnerThread>();
         this.pendingAgentJobs = new LinkedBlockingDeque<AgentJob>();
-        this.serverClient = serverClient;
         this.jobFSConfig = jobFSConfig;
         //60% of system heap
         int maxJobHeapSize = (int)(SystemInfo.getTotalPhysicalMemorySize() /1024 / 1024 * 60 / 100);
@@ -43,9 +41,9 @@ public class JobProcessorThread extends Thread{
         start();
     }
 
-    public static JobProcessorThread initialize(JobProcessorConfig jobProcessorConfig, LoaderServerClient serverClient, JobFSConfig jobFSConfig) throws IOException, InterruptedException, ExecutionException {
+    public static JobProcessorThread initialize(JobProcessorConfig jobProcessorConfig, JobFSConfig jobFSConfig) throws IOException, InterruptedException, ExecutionException {
         if(instance == null)
-            instance = new JobProcessorThread(jobProcessorConfig, serverClient, jobFSConfig);
+            instance = new JobProcessorThread(jobProcessorConfig, jobFSConfig);
 
         instance.cleanIncompleteJobs();
         return instance;

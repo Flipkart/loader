@@ -507,10 +507,10 @@ public class Job {
                     logger.info("Killing Job '"+jobId+"' in agent '"+agent+"'");
                     try {
                         new LoaderAgentClient(agent, configuration.getAgentConfig().getAgentPort()).killJob(this.jobId);
-                    } catch (Exception e) {
-                        logger.error("", e);
-                    } finally {
                         this.jobKilledInAgent(agent);
+                    } catch (Exception e) {
+                        logger.error("Error while killing job at agent "+agent, e);
+                        throw new WebApplicationException(ResponseBuilder.internalServerError(e));
                     }
                 }
             }
