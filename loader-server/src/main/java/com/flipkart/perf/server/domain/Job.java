@@ -18,6 +18,8 @@ import java.util.concurrent.ExecutionException;
 
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.domain.Load;
+import com.flipkart.perf.server.util.ResponseBuilder;
+import com.sun.jersey.spi.container.WebApplication;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -33,6 +35,8 @@ import com.flipkart.perf.server.exception.LibNotDeployedException;
 import com.flipkart.perf.server.util.DeploymentHelper;
 import com.flipkart.perf.server.cache.JobsCache;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
+
+import javax.ws.rs.WebApplicationException;
 
 public class Job {
 
@@ -167,8 +171,8 @@ public class Job {
         return agentsJobStatus;
     }
 
-    public Job setAgentsJobStatus(Map<String, AgentJobStatus> agentsJobStatus) {	
-    		this.agentsJobStatus = agentsJobStatus;
+    public Job setAgentsJobStatus(Map<String, AgentJobStatus> agentsJobStatus) {
+        this.agentsJobStatus = agentsJobStatus;
         return this;
     }
 
@@ -535,7 +539,9 @@ public class Job {
     @JsonIgnore
     public boolean isCompleted() {
         return this.getJobStatus().equals(Job.JOB_STATUS.COMPLETED) ||
-                        this.getJobStatus().equals(Job.JOB_STATUS.KILLED);
+                this.getJobStatus().equals(Job.JOB_STATUS.KILLED) ||
+                this.getJobStatus().equals(JOB_STATUS.ERROR)||
+                this.getJobStatus().equals(JOB_STATUS.FAILED_TO_START);
     }
 
     /**
@@ -623,10 +629,10 @@ public class Job {
 
     public List<AgentJobStatus> aliveAgents() {
         List<AgentJobStatus> aliveAgents = new ArrayList<AgentJobStatus>();
-            for(AgentJobStatus agent : this.agentsJobStatus.values()) {
-                if(agent.getJob_status() == JOB_STATUS.RUNNING)
-                    aliveAgents.add(agent);
-            }
+        for(AgentJobStatus agent : this.agentsJobStatus.values()) {
+            if(agent.getJob_status() == JOB_STATUS.RUNNING)
+                aliveAgents.add(agent);
+        }
         return aliveAgents;
     }
 
@@ -663,5 +669,15 @@ public class Job {
 
     public void setLogLevel(String logLevel) {
         this.logLevel = logLevel;
+    }
+
+    public void delete() {
+        if(this.isCompleted()) {
+            FileHelper.remove(configuration.getJobFSConfig().getJobPath(this.jobId));
+            JobsCache.removeJob(this.jobId);
+        }
+        else {
+            throw new WebApplicationException(ResponseBuilder.badRequest("Job id "+this.jobId+" not completed yet"));
+        }
     }
 }

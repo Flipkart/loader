@@ -15,16 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
@@ -151,6 +142,20 @@ public class JobResource {
     @Timed
     public Job getJob(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
         return jobExistsOrException(jobId);
+    }
+
+    /**
+     * Delte Job Details
+     * @param jobId
+     * @return
+     * @throws IOException
+     */
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{jobId}")
+    @DELETE
+    @Timed
+    public void deleteJob(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
+        jobExistsOrException(jobId).delete();
     }
 
     /**
