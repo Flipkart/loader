@@ -52,6 +52,7 @@ public class Job {
     private Map<String,AgentJobStatus> agentsJobStatus = new HashMap<String, AgentJobStatus>();
     private Set<String> monitoringAgents;
     private String remarks = "";
+    private String logLevel = "INFO";
 
     public static class AgentJobStatus {
         private String agentIp;
@@ -654,5 +655,13 @@ public class Job {
 
     public void setFailedToStartReason(String failedToStartReason) {
         this.failedToStartReason = failedToStartReason;
+    }
+
+    public String getLogLevel() {
+        return logLevel;
+    }
+
+    public void setLogLevel(String logLevel) {
+        this.logLevel = logLevel;
     }
 }

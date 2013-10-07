@@ -1,6 +1,10 @@
 package com.flipkart.perf.domain;
 
+import ch.qos.logback.classic.Level;
 import com.flipkart.perf.core.LoadController;
+import org.apache.commons.cli.CommandLine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +15,7 @@ import java.util.Map;
  * Top Level Bean which is used to create Load configuration
  */
 public class Load {
+    private String logLevel = "INFO";
     private List<Group> groups;
     public Load() {
         this.groups = new ArrayList<Group>();
@@ -31,6 +36,7 @@ public class Load {
      * @throws Exception
      */
     public Load start(String jobId) throws Exception {
+        this.setLogLevel();
         // Validate if anything is wrong with the Load Configuration
         validate();
 
@@ -39,6 +45,12 @@ public class Load {
         loadController.start();
         loadController.join();
         return this;
+    }
+
+    private void setLogLevel() {
+        Level logLevel = Level.valueOf(this.logLevel);
+        ch.qos.logback.classic.Logger root =  (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        root.setLevel(logLevel);
     }
 
     /**
@@ -71,4 +83,11 @@ public class Load {
         return groupMap;
     }
 
+    public String getLogLevel() {
+        return logLevel;
+    }
+
+    public void setLogLevel(String logLevel) {
+        this.logLevel = logLevel;
+    }
 }
