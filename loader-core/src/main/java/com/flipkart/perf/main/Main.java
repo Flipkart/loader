@@ -1,5 +1,6 @@
 package com.flipkart.perf.main;
 
+import ch.qos.logback.classic.Level;
 import com.flipkart.perf.domain.Load;
 import com.flipkart.perf.common.jackson.ObjectMapperUtil;
 import org.apache.commons.cli.*;
@@ -29,6 +30,7 @@ public class Main {
 
         options.addOption(new Option("j", "jobId", true, "Unique Job Id. By default it would be Random UUID"));
         options.addOption(new Option("s", "statsFolder", true, "Path where stats will be stored. Default is /var/log/loader/"));
+        options.addOption(new Option("l", "logLevel", true, "Log Level, Default Value is INFO"));
     }
 
     /**
@@ -46,6 +48,7 @@ public class Main {
                 return;
             }
 
+            setLogLevel(line);
             System.setProperty("BASE_PATH", statsFolder(line));
             buildLoader(jobJsonFile(line)).
                     start(jobId(line));
@@ -54,6 +57,12 @@ public class Main {
             logger.error("Error while building loader instance",e);
             help();
         }
+    }
+
+    private static void setLogLevel(CommandLine line) {
+        Level logLevel = Level.valueOf(line.getOptionValue('l',"INFO"));
+        ch.qos.logback.classic.Logger root =  (ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        root.setLevel(logLevel);
     }
 
     private static Load buildLoader(String jobJsonFile) throws IOException {
