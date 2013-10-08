@@ -225,9 +225,46 @@
 					<div class="btn-group span6">
 						<button class="btn" onClick="updateGroup()">Save Changes</button>
 						<button class="btn" onClick="addFunction()">Add Function</button>
-						<button class="btn">Add Timer</button>
+						<button class="btn" onClick="addTimer()">Add Timer</button>
 						<button class="btn" onClick="deleteGroup()">Delete</button>
 					</div>
+				</div>
+				<div id="timers" class="span12 runSchemaElement" style="display: none">
+					<fieldset>
+						<legend>Timers</legend>
+						<div class="btn-group row-fluid">
+							<button class="btn" id="addTimer" onClick="plusTimer()">Add Timer</button>
+						</div>
+						<br/>
+						<br/>
+					<div data-bind="foreach: timers">
+						<!-- <div data-bind="attr:{'id':timerId}" class="row-fluid"> -->
+						<div class="row-fluid">
+							<div class="thumbnail">
+								<div class="row-fluid">
+									<label class="span2">Timer Name</label>
+									<input id="timerName" type="text" class="span4" data-bind="value: name"/>
+									<button type='button' class='close pull-right' data-bind="event: {'click': $parent.removeTimer}">×</button>
+								</div>
+								<div class="row-fluid">
+									<div class="span4">
+								  		<label class="span6">Duration</label>
+								  		<input id="duration" type="text" class="span6" data-bind="value: duration"/>
+									</div>
+									<div class="span4">
+								  		<label class="span6">Threads</label>
+								  		<input id="threads" type="text" class="span6" data-bind="value: threads"/>
+									</div>
+									<div class="span4">
+								  		<label class="span6">Throughput</label>
+								  		<input id="throughput" type="text" class="span6" data-bind="value: throughput"/>
+									</div>
+								</div>
+							</div>
+						</div>
+						<br/>
+					</div>
+					</fieldset>
 				</div>
 				<div id="function" style="display: none" class="span12 runSchemaElement">
 					<fieldset>
@@ -324,7 +361,7 @@
     		"loadPart": { "instance":undefined, "firstview":true },
     		"group": { "instance":undefined, "firstview":true },
     		"function": {"instance": undefined, "firstview":true },
-    		"timer": {"instance":undefined, "firstview":true },
+    		"timers": {"instance":undefined, "firstview":true },
     		"metricCollection": {"instance":undefined, "firstview":true},
     		"jsonView":{"instance":undefined,"firstview":true}
     	}
