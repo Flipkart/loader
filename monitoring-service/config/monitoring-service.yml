@@ -2,16 +2,16 @@
 boxName: "myBox"
 
 onDemandCollectors:
-  - klass: "server.monitor.collector.DFCollector"
+  - klass: "com.flipkart.server.monitor.collector.DFCollector"
     name: "df"
     requiredParams: []
-  - klass: "server.monitor.collector.JMXCollector"
+  - klass: "com.flipkart.server.monitor.collector.JMXCollector"
     name: "jmx"
     requiredParams: ["host","port"]
-  - klass: "server.monitor.collector.MysqlConnectionCollector"
+  - klass: "com.flipkart.server.monitor.collector.MysqlConnectionCollector"
     name: "dbConnections"
     requiredParams: ["host","port","user","password","db"]
-  - klass: "server.monitor.collector.SocketCheckCollector"
+  - klass: "com.flipkart.server.monitor.collector.SocketCheckCollector"
     name: "socketCheck"
     requiredParams: ["host","port"]
 

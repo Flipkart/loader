@@ -2,9 +2,9 @@ package perf.operation.http.function;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import com.open.perf.core.FunctionContext;
-import com.open.perf.function.FunctionParameter;
-import com.open.perf.function.PerformanceFunction;
+import com.flipkart.perf.core.FunctionContext;
+import com.flipkart.perf.function.FunctionParameter;
+import com.flipkart.perf.function.PerformanceFunction;
 import perf.operation.http.constant.Constants;
 import perf.operation.http.util.HttpRequestHelper;
 import perf.operation.http.util.HttpResponseHelper;

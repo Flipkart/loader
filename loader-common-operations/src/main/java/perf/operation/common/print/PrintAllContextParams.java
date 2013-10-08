@@ -1,7 +1,7 @@
 package perf.operation.common.print;
 
-import com.open.perf.core.FunctionContext;
-import com.open.perf.function.PerformanceFunction;
+import com.flipkart.perf.core.FunctionContext;
+import com.flipkart.perf.function.PerformanceFunction;
 
 /**
  * Created with IntelliJ IDEA.

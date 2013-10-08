@@ -3,9 +3,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.flipkart.perf</groupId>
-    <artifactId>loader2.0</artifactId>
+    <artifactId>loader</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.1</version>
+    <version>0.3.0</version>
     <name>Parent Project For All Performance Projects</name>
 
     <modules>
@@ -14,10 +14,17 @@
         <module>loader-server</module>
         <module>loader-agent</module>
         <module>monitoring-service</module>
-	<module>loader-http-operations</module>
-	<module>loader-common-operations</module>
-  </modules>
-
+        <module>loader-http-operations</module>
+        <module>loader-common-operations</module>
+        <module>sample-app</module>
+    </modules>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
     <build>
         <pluginManagement>
             <plugins>

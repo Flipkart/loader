@@ -1,5 +1,5 @@
 [
-    "perf.server.dataFix.RemoveWarmUpTimeFromGroupsFixer",
-    "perf.server.dataFix.AddInputFileResourceToLoadPartFixer",
-    "perf.server.dataFix.AssignDefaultBusinessUnitForExistingRuns"
+    "com.flipkart.perf.server.dataFix.RemoveWarmUpTimeFromGroupsFixer",
+    "com.flipkart.perf.server.dataFix.AddInputFileResourceToLoadPartFixer",
+    "com.flipkart.perf.server.dataFix.AssignDefaultBusinessUnitForExistingRuns"
 ]
