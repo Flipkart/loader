@@ -29,6 +29,8 @@ import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import com.flipkart.perf.server.util.ResponseBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -39,6 +41,7 @@ public class DeployResourcesResource {
     private ResourceStorageFSConfig resourceStorageFSConfig;
     private LibCache libCache;
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
+    private static Logger logger = LoggerFactory.getLogger(DeployResourcesResource.class);
 
     public DeployResourcesResource(ResourceStorageFSConfig resourceStorageFSConfig) throws MalformedURLException {
         this.resourceStorageFSConfig = resourceStorageFSConfig;
@@ -52,18 +55,8 @@ public class DeployResourcesResource {
             try {
                 deployUDF(new FileInputStream(unDeployedUDFLib), unDeployedUDFLib.getName());
                 unDeployedUDFLib.delete();
-            } catch (IOException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (InstantiationException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (Exception e) {
+                logger.error("Exception in deploying undeployed UDFs", e);
             }
         }
     }
@@ -352,7 +345,7 @@ public class DeployResourcesResource {
                     discoveredUserFunctions.put(performanceFunction, functionInfo);
 
                 }
-           }
+            }
         }
         return discoveredUserFunctions;
     }
