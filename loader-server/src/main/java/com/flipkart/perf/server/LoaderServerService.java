@@ -11,6 +11,7 @@ import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.FilterBuilder;
+import com.yammer.metrics.core.Gauge;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import com.flipkart.perf.server.cache.AgentsCache;
 import com.flipkart.perf.server.cache.LibCache;
@@ -69,11 +70,6 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         environment.addHealthCheck(new CounterCompoundThreadHealthCheck("CounterCompoundThread"));
         environment.addHealthCheck(new TimerComputationThreadHealthCheck("TimerComputationThread"));
     }
-
-    private void deployUnDeployedUDFs() {
-        //To change body of created methods use File | Settings | File Templates.
-    }
-
 
     public static void main(String[] args) throws Exception {
         args = new String[]{"server",args[0]};
