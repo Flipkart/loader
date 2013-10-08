@@ -3,25 +3,30 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>loader2.0</artifactId>
         <groupId>com.flipkart.perf</groupId>
-        <version>0.1.1</version>
+        <artifactId>loader</artifactId>
+        <version>0.3.0</version>
     </parent>
     <groupId>perf.operation.http</groupId>
     <artifactId>loader-http-operations</artifactId>
-    <version>0.1.4</version>
+    <version>0.3.0</version>
     <name>loader-http-operations</name>
     <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
     <dependencies>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.14</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.0.13</version>
         </dependency>
         <dependency>
-            <groupId>com.open.perf</groupId>
+            <groupId>com.flipkart.perf</groupId>
             <artifactId>loader-core</artifactId>
-            <version>0.1.8</version>
+            <version>0.3.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -30,9 +35,7 @@
             <version>1.7.9</version>
         </dependency>
     </dependencies>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+
     <build>
         <plugins>
             <plugin>

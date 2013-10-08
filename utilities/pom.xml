@@ -1,10 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <groupId>com.open.perf</groupId>
+    <parent>
+        <groupId>com.flipkart.perf</groupId>
+        <artifactId>loader</artifactId>
+        <version>0.3.0</version>
+    </parent>
+    <groupId>com.flipkart.perf</groupId>
     <artifactId>utilities</artifactId>
-    <version>0.1.2</version>
+    <version>0.3.0</version>
     <packaging>jar</packaging>
 
     <name>utilities</name>
@@ -16,14 +20,14 @@
 
     <dependencies>
         <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.0.13</version>
+        </dependency>
+        <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-jaxrs</artifactId>
             <version>1.9.9</version>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.14</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
@@ -31,24 +35,4 @@
             <version>3.1.11</version>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.0</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    <distributionManagement>
-        <repository>
-            <id>artifactory-new</id>
-            <name>artifactory-new-releases</name>
-            <url>http://artifactory.nm.flipkart.com:8081/artifactory/libs-releases-local</url>
-        </repository>
-    </distributionManagement>
 </project>

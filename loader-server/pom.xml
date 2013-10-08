@@ -1,10 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.flipkart.perf</groupId>
+        <artifactId>loader</artifactId>
+        <version>0.3.0</version>
+    </parent>
 
-    <groupId>com.open.perf.server</groupId>
+    <groupId>com.flipkart.perf</groupId>
     <artifactId>loader-server</artifactId>
-    <version>0.1.1</version>
+    <version>0.3.0</version>
     <packaging>jar</packaging>
 
     <name>loader-server</name>
@@ -14,23 +19,27 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-
     <dependencies>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.0.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.rrd4j</groupId>
+            <artifactId>rrd4j</artifactId>
+            <version>2.2</version>
+        </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
             <version>8.1.8.v20121106</version>
         </dependency>
         <dependency>
-            <groupId>com.open.perf</groupId>
+            <groupId>com.flipkart.perf</groupId>
             <artifactId>loader-core</artifactId>
-            <version>0.1.8</version>
+            <version>0.3.0</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.open.perf</groupId>
-            <artifactId>utilities</artifactId>
-            <version>0.1.2</version>
         </dependency>
         <dependency>
             <groupId>com.yammer.dropwizard</groupId>
@@ -56,15 +65,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.0</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
@@ -76,7 +76,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>perf.server.LoaderServerService</mainClass>
+                    <mainClass>com.flipkart.perf.server.LoaderServerService</mainClass>
                     <arguments>
                         <argument>${project.basedir}/config/loader-server.yml</argument>
                     </arguments>

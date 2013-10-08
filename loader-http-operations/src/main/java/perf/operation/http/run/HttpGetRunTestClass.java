@@ -1,8 +1,8 @@
 package perf.operation.http.run;
 
-import com.open.perf.domain.Group;
-import com.open.perf.domain.GroupFunction;
-import com.open.perf.domain.Load;
+import com.flipkart.perf.domain.Group;
+import com.flipkart.perf.domain.GroupFunction;
+import com.flipkart.perf.domain.Load;
 import perf.operation.http.function.HttpGet;
 
 import java.util.UUID;

@@ -2,7 +2,7 @@ package perf.operation.http;
 
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.Response;
-import com.open.perf.core.FunctionContext;
+import com.flipkart.perf.core.FunctionContext;
 
 
 class HttpHandler extends AsyncCompletionHandler<Response> {
