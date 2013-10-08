@@ -18,6 +18,9 @@ function renderDisplayArea(elementType, metadata){
 		case 'monitoringAgents':
 			renderMonitoringAgentsAddPage(metadata);
 			break;
+		case 'timers':
+			renderTimersPage(metadata);
+			break;
 	}
 }
 var runJsonViewModel = function(){
@@ -149,6 +152,19 @@ var functionViewModel = function(funct){
 		f["functionClass"] = $("#functionClass").val();
 		console.log("setting", $("#functionClass").val());
 		self.curFunction(f);
+	}
+}
+
+var timersViewModel = function(groupTimers) {
+	console.log("i got groupTimers",groupTimers);
+	var self = this;
+	self.timers = ko.observableArray(groupTimers);
+	self.removeTimer = function(data, event){
+		console.log("in cut", data);
+		var timersData = window.selectedElementData;
+		self.timers.remove(data);
+		window.runSchema.loadParts[timersData["loadPartIndex"]]["load"]["groups"][timersData["groupIndex"]]["timers"]=self.timers();
+
 	}
 }
 
@@ -390,6 +406,51 @@ function deleteFunction(){
 	renderDisplayArea('group', window.selectedElementData);
 }
 
+function addTimer(){
+	var grpData = window.selectedElementData;
+	if(window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"][grpData["groupIndex"]]["timers"].length == 0) {
+		var timer = {
+			"name":"Timer-" + window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"][grpData["groupIndex"]]["timers"].length,
+			"duration" : -1,
+			"threads" : -1,
+			"throughput" : -1
+		}	
+		window.runSchema.loadParts[grpData["loadPartIndex"]]["load"]["groups"][grpData["groupIndex"]]["timers"].push(timer);
+	}
+	createTree(window.runSchema);
+	renderDisplayArea('timers',{"loadPartIndex":grpData["loadPartIndex"],"groupIndex":grpData["groupIndex"]});
+}
+
+function plusTimer(){
+	var timersData = window.selectedElementData;
+	var timer = {
+		"name":"Timer-" + window.runSchema.loadParts[timersData["loadPartIndex"]]["load"]["groups"][timersData["groupIndex"]]["timers"].length,
+		"duration" : -1,
+		"threads" : -1,
+		"throughput" : -1
+	}	
+	window.runSchema.loadParts[timersData["loadPartIndex"]]["load"]["groups"][timersData["groupIndex"]]["timers"].push(timer);
+	renderDisplayArea('timers',{"loadPartIndex":timersData["loadPartIndex"],"groupIndex":timersData["groupIndex"]});	
+}
+
+
+function renderTimersPage(metadata){
+	var timers = window.runSchema.loadParts[metadata["loadPartIndex"]]["load"]["groups"][metadata["groupIndex"]]["timers"];
+	$(".runSchemaElement").css("display","none");
+	$("#timers").removeAttr("style");
+	if(window.models["timers"]["firstview"]){
+		window.models["timers"].instance = new timersViewModel(timers);
+		ko.applyBindings(window.models["timers"].instance, $("#timers")[0]);
+		window.models["timers"]["firstview"]=false;
+	} else {
+		window.models["timers"].instance.timers(timers);
+	}
+	$("#runTree").bind("reselect.jstree", function(){
+    	console.log("selecting the funcion node");
+    	$("#runTree").jstree("select_node","#node_" + metadata["loadPartIndex"] + "_" + metadata["groupIndex"]+ "_timers");
+    });
+}
+
 function getFunctionParameters(functionName){
 	if (typeof functionName == 'undefined' || functionName == 'undefined' || functionName == "Choose Class") { 
 		window.inputParams = [];
@@ -547,6 +608,12 @@ function createTree(data){
 						},
 						"valid_children":[]
 					},
+					"timers":{
+						"icon":{
+							"image":"../img/function.png"
+						},
+						"valid_children":[]
+					},
 					"monitoringAgents":{
 						"icon":{
 							"image":"../img/monagents.png"
@@ -639,9 +706,12 @@ function getGroupList(data, loadPartIndex){
 function getFunctionList(group, loadPartIndex, groupIndex){
 	var functionName = new Array();
 	var functions = group["functions"];
-	if (functions.length==0) return undefined;
+	if (functions.length==0 && group["timers"].length ==0) return undefined;
 	for(var i=0;i<functions.length; i++){
 		functionName[i]={"attr":{"id":"node_" + loadPartIndex + "_" + groupIndex + "_" + functions[i]["functionalityName"], "rel":"function"}, "type":"function","metadata": {"nodeType":"function", "loadPartIndex":loadPartIndex, "groupIndex": groupIndex, "functionIndex":i}, "data": functions[i]["functionalityName"]};
+	}
+	if(group["timers"].length>0){
+		functionName[functions.length] = {"attr":{"id":"node_" + loadPartIndex + "_" + groupIndex + "_" + "timers", "rel":"timers"}, "type":"timers", "metadata": {"nodeType":"timers", "loadPartIndex":loadPartIndex, "groupIndex": groupIndex}, "data":"timers"};
 	}
 	console.log("returning from getFunctionList");
 	return functionName;
