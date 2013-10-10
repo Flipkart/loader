@@ -27,6 +27,10 @@ public class JobFSConfig {
     private String queuedJobsFile;
     private String jobGroupConfFile;
 
+    private String workflowsPath;
+    private String workflowPath;
+    private String workflowStatusPath;
+
     public String getBusinessUnitsPath() {
         return businessUnitsPath;
     }
@@ -215,6 +219,33 @@ public class JobFSConfig {
 
     public void setJobGroupCountersStatsPath(String jobGroupCountersStatsPath) {
         this.jobGroupCountersStatsPath = jobGroupCountersStatsPath;
+    }
+
+    public String getWorkflowsPath() {
+        return workflowsPath;
+    }
+
+    public JobFSConfig setWorkflowsPath(String workflowsPath) {
+        this.workflowsPath = workflowsPath;
+        return this;
+    }
+
+    public String getWorkflowPath(String workflowId) {
+        return workflowPath.replace("{workflowId}",workflowId);
+    }
+
+    public JobFSConfig setWorkflowPath(String workflowPath) {
+        this.workflowPath = workflowPath;
+        return this;
+    }
+
+    public String getWorkflowStatusPath(String workflowId) {
+        return workflowStatusPath.replace("{workflowId}", workflowId);
+    }
+
+    public JobFSConfig setWorkflowStatusPath(String workflowStatusPath) {
+        this.workflowStatusPath = workflowStatusPath;
+        return this;
     }
 }
 
