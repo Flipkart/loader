@@ -5,15 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import com.flipkart.perf.common.util.FileHelper;
@@ -57,6 +49,17 @@ public class Job {
     private Set<String> monitoringAgents;
     private String remarks = "";
     private String logLevel = "INFO";
+
+    public static Job raiseJobRequest(JobRequest jobRequest) throws IOException {
+        //runExistsOrException(jobRequest.getRunName());
+        Job job = new Job().
+                setJobId(UUID.randomUUID().toString()).
+                setRunName(jobRequest.getRunName());
+
+        job.persistRunInfo();
+        JobDispatcherThread.instance().addJobRequest(job);
+        return job;
+    }
 
     public static class AgentJobStatus {
         private String agentIp;

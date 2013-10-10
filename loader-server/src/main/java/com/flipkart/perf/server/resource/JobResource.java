@@ -104,7 +104,8 @@ public class JobResource {
     @POST
     @Timed
     public Job submitJob(JobRequest jobRequest) throws IOException {
-        return raiseJobRequest(jobRequest);
+        runExistsOrException(jobRequest.getRunName()); 
+   			return raiseJobRequest(jobRequest);
     }
 
     /**
@@ -459,7 +460,6 @@ public class JobResource {
     }
 
     private Job raiseJobRequest(JobRequest jobRequest) throws IOException {
-        runExistsOrException(jobRequest.getRunName());
         Job job = new Job().
                 setJobId(UUID.randomUUID().toString()).
                 setRunName(jobRequest.getRunName());

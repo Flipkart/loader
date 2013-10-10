@@ -57,7 +57,12 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         filterConfig.setInitParam(CrossOriginFilter.PREFLIGHT_MAX_AGE_PARAM, String.valueOf(60*60*24)); // 1 day - jetty-servlet CrossOriginFilter will convert to Int.
 
         JobStatsHelper.build(configuration.getJobFSConfig(), configuration.getAgentConfig(), configuration.getMonitoringAgentConfig());
+
         JobDispatcherThread.initialize();
+
+        RunWorkflowDispatcherThread.initialize();
+        Thread workFlowDispatcher = new Thread(RunWorkflowDispatcherThread.getInstance());
+        workFlowDispatcher.start();
 
         environment.addResource(new JobResource(configuration.getAgentConfig(),
                 configuration.getJobFSConfig()));
@@ -67,6 +72,7 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         environment.addResource(new FunctionResource(configuration.getResourceStorageFSConfig()));
         environment.addResource(new BusinessUnitResource(configuration.getJobFSConfig()));
         environment.addResource(new AdminResource(configuration));
+        environment.addResource(new RunWorkFlowResource());
         environment.addHealthCheck(new CounterCompoundThreadHealthCheck("CounterCompoundThread"));
         environment.addHealthCheck(new TimerComputationThreadHealthCheck("TimerComputationThread"));
     }
