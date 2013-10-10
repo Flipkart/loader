@@ -54,12 +54,7 @@ public class JobProcessorThread extends Thread{
         while(runningJobs.size() > 0) {
             String runningJob = runningJobs.remove(0);
             AgentJob agentJob = objectMapper.readValue(new File(jobFSConfig.getJobFile(runningJob)), AgentJob.class);
-            try{
-                agentJob.kill();
-            }
-            catch (IOException e) {
-                logger.error("Error while contacting job to kill. Assuming it to be dead", e);
-            }
+            agentJob.kill();
         }
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(jobFSConfig.getRunningJobsFile()), runningJobs);
     }
