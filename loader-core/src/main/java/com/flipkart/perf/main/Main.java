@@ -53,10 +53,9 @@ public class Main {
                 return;
             }
 
-            initializeHttpServer(line);
             System.setProperty("BASE_PATH", statsFolder(line));
             buildLoader(jobJsonFile(line)).
-                    start(jobId(line));
+                    start(jobId(line), httpPort(line));
         }
         catch (Exception e) {
             logger.error("Error while building loader instance",e);
@@ -64,11 +63,8 @@ public class Main {
         }
     }
 
-    private static void initializeHttpServer(CommandLine line) {
-        RestExpress server = new RestExpress();
-        server.putResponseProcessor(Format.JSON, ResponseProcessor.defaultJsonProcessor());
-        server.uri("/loader-core/kill", new JobController()).action("kill", HttpMethod.PUT);
-        server.bind(Integer.parseInt(line.getOptionValue("p")));
+    private static int httpPort(CommandLine line) {
+        return Integer.parseInt(line.getOptionValue("p"));
     }
 
     private static Load buildLoader(String jobJsonFile) throws IOException {
