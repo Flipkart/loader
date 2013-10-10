@@ -27,7 +27,7 @@ public class JobClient {
      * @throws java.util.concurrent.ExecutionException
      * @throws InterruptedException
      */
-    public static void killJob(String jobId) throws IOException, ExecutionException, InterruptedException {
+    public static void killJob(String jobId) throws ExecutionException, InterruptedException, IOException {
         int jobHttpPort = AgentJobHelper.jobExistsOrException(jobId).getHttpPort();
         logger.info("Killing Job "+ jobId +" running with http port "+jobHttpPort);
         AsyncHttpClient.BoundRequestBuilder b = httpClient.
@@ -35,7 +35,13 @@ public class JobClient {
                         jobHttpPort +
                         RESOURCE_JOB_KILL);
 
-        Future<Response> r = b.execute();
+        Future<Response> r = null;
+        try {
+            r = b.execute();
+        } catch (IOException e) {
+            logger.error("Error While Contacting Job to Kill. eating away the exception assuming job can't be contacted and is dead", e);
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
         r.get();
         if(r.get().getStatusCode() != 204) {
             logger.error("Delete on "+RESOURCE_JOB_KILL +" gave "+r.get().getStatusCode() + " http status code");
