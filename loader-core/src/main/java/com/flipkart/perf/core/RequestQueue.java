@@ -1,7 +1,7 @@
 package com.flipkart.perf.core;
 
 import com.flipkart.perf.common.util.Clock;
-import com.flipkart.perf.common.util.Counter;
+import com.flipkart.perf.util.Counter;
 
 /**
  * It appears to behave like a request queue from out side.
@@ -18,12 +18,12 @@ public class RequestQueue {
 
     public RequestQueue(String groupName, long howManyRequests) {
         this.howManyRequests = howManyRequests;
-        this.counter = new Counter(groupName, "requestQueue", howManyRequests);
+        this.counter = new Counter(groupName, "", "requestQueue", howManyRequests);
     }
 
     public RequestQueue setRequests(long howManyRequests) {
         this.howManyRequests = howManyRequests;
-        this.counter = new Counter(this.counter.getGroupName(), this.counter.getCounterName(), howManyRequests);
+        this.counter = new Counter(this.counter.getGroupName(), "", this.counter.getCounterName(), howManyRequests);
         return this;
     }
 

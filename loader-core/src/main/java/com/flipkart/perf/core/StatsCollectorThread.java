@@ -1,11 +1,14 @@
 package com.flipkart.perf.core;
 
 import com.flipkart.perf.common.util.Clock;
-import com.flipkart.perf.common.util.Counter;
+import com.flipkart.perf.util.Histogram;
+import com.flipkart.perf.domain.GroupFunction;
+import com.flipkart.perf.util.Counter;
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.common.util.TimeInstance;
 import com.flipkart.perf.domain.Group;
-import com.flipkart.perf.common.util.Timer;
+import com.flipkart.perf.util.HistogramInstance;
+import com.flipkart.perf.util.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +22,7 @@ public class StatsCollectorThread extends Thread{
 
     private boolean keepRunning = true;
     private final GroupStatsQueue groupStatsQueue;
-    private Map<String,BufferedWriter> fileWriters;
+    private Map<String,BufferedWriter> statsFileWritersMap;
 
     private static Logger logger = LoggerFactory.getLogger(StatsCollectorThread.class);
 
@@ -27,11 +30,8 @@ public class StatsCollectorThread extends Thread{
     private boolean collectingStats;
     private List<Counter> allCounters;
     private final String statsBasePath;
-    private final Map<String,FunctionCounter> functionCounters;
-    private final List<String> customTimers;
-    private final Map<String, Counter> customCounters;
     private final long startTimeMS;
-    private final HashMap<String, BufferedWriter> filePathWriterMap;
+    private final Map<String,BufferedWriter> fileWriterMap;
     private final Group group;
 
     public StatsCollectorThread(String statsBasePath,
@@ -43,13 +43,11 @@ public class StatsCollectorThread extends Thread{
         this.statsBasePath = statsBasePath;
         this.groupStatsQueue = groupStatsQueue;
         this.lastQueueSwapTime = Clock.milliTick();
-        this.fileWriters = new LinkedHashMap<String, BufferedWriter>();
+        this.statsFileWritersMap = new LinkedHashMap<String, BufferedWriter>();
         this.allCounters = new ArrayList<Counter>();
-        this.functionCounters = functionCounters;
-        this.customTimers = group.getCustomTimers();
-        this.customCounters = customCounters;
         this.startTimeMS = startTimeMS;
         this.group = group;
+
         for(String counter : customCounters.keySet()) {
             Counter customCounter = customCounters.get(counter);
             this.allCounters.add(customCounter);
@@ -62,86 +60,109 @@ public class StatsCollectorThread extends Thread{
             this.allCounters.add(functionCounter.getFailureCounter());
             this.allCounters.add(functionCounter.getSkipCounter());
         }
-
-        this.filePathWriterMap = new HashMap<String, BufferedWriter>();
-
+        this.fileWriterMap = new HashMap<String, BufferedWriter>();
     }
 
     private void createFileWriters(int filePartId) throws FileNotFoundException {
-        // Creating File Writer for realtime Group configuration
-        String realTimeConfPath = statsBasePath + File.separator + "realTimeConf" + ".part"+filePartId;
-        FileHelper.createFilePath(realTimeConfPath);
-        this.fileWriters.put("realTimeConf", new BufferedWriter(new OutputStreamWriter(new FileOutputStream(realTimeConfPath))));
-        this.filePathWriterMap.put(realTimeConfPath, this.fileWriters.get("realTimeConf"));
+        // Creating File Writer for real time Group configuration
+        String filePath = statsBasePath
+                + File.separator + "conf"
+                + File.separator + "realTimeConf"
+                + ".part" + filePartId;
 
-        // Creating File Writer for Custom Timers
-        for(String timer : customTimers) {
-            String filePath = statsBasePath + File.separator + "timers" + File.separator + timer + ".part"+filePartId;
-            FileHelper.createFilePath(filePath);
-            this.fileWriters.put(timer, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
-            this.filePathWriterMap.put(filePath, this.fileWriters.get(timer));
+        FileHelper.createFilePath(filePath);
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
+        this.statsFileWritersMap.put("realTimeConf", bw);
+        this.fileWriterMap.put(filePath, bw);
+
+        for(GroupFunction groupFunction : group.getFunctions()) {
+            if(groupFunction.isDumpData()) {
+
+                // Creating File Writer for Function Execution Time
+                filePath = statsBasePath
+                        + File.separator + "functions" + File.separator + groupFunction.getFunctionalityName()
+                        + File.separator + "timers" + File.separator + groupFunction.getFunctionalityName()
+                        + ".part" + filePartId;
+
+                FileHelper.createFilePath(filePath);
+                bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
+                this.statsFileWritersMap.put(groupFunction.getFunctionalityName() + "." + groupFunction.getFunctionalityName(), bw);
+                this.fileWriterMap.put(filePath, bw);
+
+                // Creating File Writers for Function Counters
+                String[] functionCounters = new String[]{
+                        groupFunction.getFunctionalityName() + "_count",
+                        groupFunction.getFunctionalityName() + "_error",
+                        groupFunction.getFunctionalityName() + "_failure",
+                        groupFunction.getFunctionalityName() + "_skip"};
+
+                for(String functionCounter : functionCounters) {
+                    filePath = statsBasePath
+                            + File.separator + "functions" + File.separator + groupFunction.getFunctionalityName()
+                            + File.separator + "counters" + File.separator + functionCounter
+                            + ".part" + filePartId;
+
+                    FileHelper.createFilePath(filePath);
+                    bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
+                    this.statsFileWritersMap.put(groupFunction.getFunctionalityName() + "." + functionCounter, bw);
+                    this.fileWriterMap.put(filePath, bw);
+                }
+
+                // Creating File Writer for Custom Timers
+                for(String customTimerName : groupFunction.getCustomTimers()) {
+                    filePath = statsBasePath
+                            + File.separator + "functions" + File.separator + groupFunction.getFunctionalityName()
+                            + File.separator +  "timers" + File.separator + customTimerName
+                            + ".part" + filePartId;
+
+                    FileHelper.createFilePath(filePath);
+                    bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
+                    this.statsFileWritersMap.put(groupFunction.getFunctionalityName() + "." + customTimerName, bw);
+                    this.fileWriterMap.put(filePath, bw);
+                }
+
+                // Creating File Writer for Custom Histograms
+                for(String customHistogramName : groupFunction.getCustomHistograms()) {
+                    filePath = statsBasePath
+                            + File.separator + "functions" + File.separator + groupFunction.getFunctionalityName()
+                            + File.separator +  "histograms" + File.separator + customHistogramName
+                            + ".part" + filePartId;
+
+                    FileHelper.createFilePath(filePath);
+                    bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
+                    this.statsFileWritersMap.put(groupFunction.getFunctionalityName() + "." + customHistogramName, bw);
+                    this.fileWriterMap.put(filePath, bw);
+                }
+
+                // Creating File Writer for Custom Counters
+                for(String customCounterName : groupFunction.getCustomCounters()) {
+                    filePath = statsBasePath
+                            + File.separator + "functions" + File.separator + groupFunction.getFunctionalityName()
+                            + File.separator +  "counters" + File.separator + customCounterName
+                            + ".part" + filePartId;
+
+                    FileHelper.createFilePath(filePath);
+                    bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath)));
+                    this.statsFileWritersMap.put(groupFunction.getFunctionalityName() + "." + customCounterName, bw);
+                    this.fileWriterMap.put(filePath, bw);
+                }
+            }
         }
 
-        // Creating File Writer for Custom Counters
-        for(String counter : customCounters.keySet()) {
-            String filePath = statsBasePath + File.separator + "counters" + File.separator + counter + ".part"+filePartId;
-            FileHelper.createFilePath(filePath);
-
-            this.fileWriters.put(customCounters.get(counter).getCounterName(),
-                    new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
-            this.filePathWriterMap.put(filePath, this.fileWriters.get(customCounters.get(counter).getCounterName()));
-        }
-
-        // Creating File Writer for Function Counters
-        for(String function : functionCounters.keySet()) {
-            // For execution Times
-
-            String filePath = statsBasePath + File.separator + "timers" + File.separator + function + ".part"+filePartId;
-            FileHelper.createFilePath(filePath);
-
-            this.fileWriters.put(function, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
-            this.filePathWriterMap.put(filePath, this.fileWriters.get(function));
-
-            // For all counters
-            FunctionCounter functionCounter = functionCounters.get(function);
-
-            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getCount().getCounterName() + ".part"+filePartId;
-            FileHelper.createFilePath(filePath);
-            this.fileWriters.put(functionCounter.getCount().getCounterName(),
-                    new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
-            this.filePathWriterMap.put(filePath, this.fileWriters.get(functionCounter.getCount().getCounterName()));
-
-            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getErrorCounter().getCounterName() + ".part"+filePartId;
-            FileHelper.createFilePath(filePath);
-            this.fileWriters.put(functionCounter.getErrorCounter().getCounterName(),
-                    new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
-            this.filePathWriterMap.put(filePath, this.fileWriters.get(functionCounter.getErrorCounter().getCounterName()));
-
-            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getFailureCounter().getCounterName() + ".part"+filePartId;
-            FileHelper.createFilePath(filePath);
-            this.fileWriters.put(functionCounter.getFailureCounter().getCounterName(),
-                    new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
-            this.filePathWriterMap.put(filePath, this.fileWriters.get(functionCounter.getFailureCounter().getCounterName()));
-
-            filePath = statsBasePath + File.separator + "counters" + File.separator + functionCounter.getSkipCounter().getCounterName() + ".part"+filePartId;
-            FileHelper.createFilePath(filePath);
-            this.fileWriters.put(functionCounter.getSkipCounter().getCounterName(),
-                    new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath))));
-            this.filePathWriterMap.put(filePath, this.fileWriters.get(functionCounter.getSkipCounter().getCounterName()));
-        }
         if(filePartId == 0) {
             // initialize Counter file
             for(Counter counter : this.allCounters) {
-                BufferedWriter bw = this.fileWriters.get(counter.getCounterName());
-                try {
-                    bw.write(startTimeMS + ",0\n");
-                    bw.flush();
-                } catch (IOException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                    throw new RuntimeException(e);
+                bw = this.statsFileWritersMap.get(counter.getFunctionName() + "." + counter.getCounterName());
+                if(bw != null) {
+                    try {
+                        bw.write(startTimeMS + ",0\n");
+                        bw.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                        throw new RuntimeException(e);
+                    }
                 }
             }
-
         }
     }
 
@@ -160,13 +181,13 @@ public class StatsCollectorThread extends Thread{
     }
 
     private void completeFileWriters() throws IOException {
-        for(String filePath : this.filePathWriterMap.keySet()) {
-            BufferedWriter bw = this.filePathWriterMap.get(filePath);
+        for(String filePath : this.fileWriterMap.keySet()) {
+            BufferedWriter bw = this.fileWriterMap.get(filePath);
             bw.close();
             new File(filePath).renameTo(new File(filePath+".done"));
         }
-        this.filePathWriterMap.clear();
-        this.fileWriters.clear();
+        this.fileWriterMap.clear();
+        this.statsFileWritersMap.clear();
     }
 
     private void waitForCollectionToGetOver() {
@@ -184,7 +205,7 @@ public class StatsCollectorThread extends Thread{
     }
 
     private void closeFiles() {
-        for(BufferedWriter bw : this.fileWriters.values())
+        for(BufferedWriter bw : this.statsFileWritersMap.values())
             try {
                 bw.close();
             } catch (IOException e) {
@@ -221,6 +242,7 @@ public class StatsCollectorThread extends Thread{
             while((groupStatsInstance = this.groupStatsQueue.getGroupStats()) != null) {
                 dumpTimers(groupStatsInstance.getCustomTimers());
                 dumpTimers(groupStatsInstance.getFunctionTimers());
+                dumpHistograms(groupStatsInstance.getFunctionHistograms());
             }
             dumpCounters();
             dumpRealTimeGroupConf();
@@ -242,7 +264,7 @@ public class StatsCollectorThread extends Thread{
     }
 
     private void dumpRealTimeGroupConf() {
-        BufferedWriter bw = this.fileWriters.get("realTimeConf");
+        BufferedWriter bw = this.statsFileWritersMap.get("realTimeConf");
         writeToFile(bw, Clock.milliTick()
                 + "," + this.group.getThreads()
                 + "," + this.group.getThroughput()
@@ -251,32 +273,58 @@ public class StatsCollectorThread extends Thread{
 
     private void dumpCounters(){
         for(Counter counter: this.allCounters) {
-            BufferedWriter bw = this.fileWriters.get(counter.getCounterName());
-            synchronized (counter) {
-                if((Clock.milliTick() - counter.getLastUpdateTimeMS() < (4 * STATS_QUEUE_POLL_INTERVAL))) //  Dumb optimization to avoid writing if counter is not being updated in last 4 dump cycles
-                writeToFile(bw, counter.getLastUpdateTimeMS() + "," + counter.count() + "\n");
-                counter.reset();
+            BufferedWriter bw = this.statsFileWritersMap.get(counter.getFunctionName() + "." + counter.getCounterName());
+            if(bw != null) {
+                synchronized (counter) {
+                    if((Clock.milliTick() - counter.getLastUpdateTimeMS() < (4 * STATS_QUEUE_POLL_INTERVAL))) //  Dumb optimization to avoid writing if counter is not being updated in last 4 dump cycles
+                        writeToFile(bw, counter.getLastUpdateTimeMS() + "," + counter.count() + "\n");
+                    counter.reset();
+                }
             }
         }
     }
 
     private void dumpTimers(Map<String, Timer> timers) {
-        for(String timer : timers.keySet()) {
-            int buffered = 0 ;
-            String bufferedData = "";
-            BufferedWriter bw = this.fileWriters.get(timer);
-            List<TimeInstance> timeList = timers.get(timer).getTimeList();
-            for(TimeInstance timeInstance : timeList) {
-                bufferedData += timeInstance.getAtTime() + "," + timeInstance.getHowMuchTime() + "\n";
-                buffered++;
-                if(buffered % this.BULK_WRITE_SIZE == 0) {
+        for(Timer timer : timers.values()) {
+            BufferedWriter bw = this.statsFileWritersMap.get(timer.getFunctionName() + "." + timer.getTimerName());
+            if(bw != null) {
+                int buffered = 0 ;
+                String bufferedData = "";
+                List<TimeInstance> timeList = timer.getTimeList();
+                for(TimeInstance timeInstance : timeList) {
+                    bufferedData += timeInstance.getAtTime() + "," + timeInstance.getHowMuchTime() + "\n";
+                    buffered++;
+                    if(buffered % this.BULK_WRITE_SIZE == 0) {
+                        writeToFile(bw, bufferedData);
+                        bufferedData = "";
+                        buffered = 0;
+                    }
+                }
+                if(!bufferedData.equals("")) {
                     writeToFile(bw, bufferedData);
-                    bufferedData = "";
-                    buffered = 0;
                 }
             }
-            if(!bufferedData.equals("")) {
-                writeToFile(bw, bufferedData);
+        }
+    }
+
+    private void dumpHistograms(Map<String, Histogram> histograms) {
+        for(Histogram histogram : histograms.values()) {
+            BufferedWriter bw = this.statsFileWritersMap.get(histogram.getFunctionName() + "." + histogram.getName());
+            if(bw != null) {
+                int buffered = 0 ;
+                String bufferedData = "";
+                for(HistogramInstance histogramInstance : histogram.getInstances()) {
+                    bufferedData += histogramInstance.getAtTime() + "," + histogramInstance.getValue() + "\n";
+                    buffered++;
+                    if(buffered % this.BULK_WRITE_SIZE == 0) {
+                        writeToFile(bw, bufferedData);
+                        bufferedData = "";
+                        buffered = 0;
+                    }
+                }
+                if(!bufferedData.equals("")) {
+                    writeToFile(bw, bufferedData);
+                }
             }
         }
     }

@@ -35,15 +35,16 @@
                                     "queryParameters": "{}",
                                     "proxy": "{}",
                                     "cookies": "[]"
-                                }
+                                },
+                                "customTimers": [],
+                                "customCounters": [],
+                                "customHistograms": []
                             }
                         ],
                         "dependOnGroups": [],
                         "params": {},
                         "timers": [],
-                        "threadResources": [],
-                        "customTimers": [],
-                        "customCounters": []
+                        "threadResources": []
                     }
                 ]
             }

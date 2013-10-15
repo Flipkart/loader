@@ -26,8 +26,6 @@ public class Group {
 
     // Resources (params) that could be passed to specific thread in the group
     private List<Map<String,Object>> threadResources ;
-    private List<String> customTimers;
-    private List<String> customCounters;
 
     public Group(){
         this.functions = new ArrayList<GroupFunction>();
@@ -42,8 +40,6 @@ public class Group {
         this.repeats =  -1;
         this.threads = 1;
         this.warmUpRepeats = -1;
-        this.customTimers = new ArrayList<String>();
-        this.customCounters = new ArrayList<String>();
     }
 
     public Group (String name) {
@@ -167,25 +163,6 @@ public class Group {
 
     public Group addThreadResource(int threadNumber, String resource, Object value) {
         this.threadResources.get(threadNumber).put(resource, value);
-        return this;
-    }
-
-
-    public Group addFunctionTimer(String timerName) {
-        this.customTimers.add(timerName);
-        return this;
-    }
-
-    public List<String> getCustomTimers() {
-        return customTimers;
-    }
-
-    public List<String> getCustomCounters() {
-        return customCounters;
-    }
-
-    public Group addFunctionCounter(String counterName) {
-        this.customCounters.add(counterName);
         return this;
     }
 

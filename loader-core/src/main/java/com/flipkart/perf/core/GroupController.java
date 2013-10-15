@@ -4,7 +4,7 @@ import com.flipkart.perf.domain.Group;
 import com.flipkart.perf.domain.GroupTimer;
 import com.flipkart.perf.domain.GroupFunction;
 import com.flipkart.perf.common.util.Clock;
-import com.flipkart.perf.common.util.Counter;
+import com.flipkart.perf.util.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,8 +61,13 @@ public class GroupController {
      */
     private Map<String, Counter> buildCustomCounter() {
         Map<String, Counter> functionCounters = new HashMap<String, Counter>();
-        for(String functionCounterName : group.getCustomCounters())
-            functionCounters.put(functionCounterName, new Counter(this.groupName, functionCounterName));
+        for(GroupFunction groupFunction : group.getFunctions()) {
+            for(String customCounterName : groupFunction.getCustomCounters()) {
+                functionCounters.put(customCounterName, new Counter(this.groupName,
+                        groupFunction.getFunctionalityName(),
+                        customCounterName));
+            }
+        }
         return functionCounters;
     }
 
@@ -170,16 +175,13 @@ public class GroupController {
      */
     private SequentialFunctionExecutor buildSequentialFunctionExecutor(int threadNo) {
         return new SequentialFunctionExecutor(group.getName()+"-"+threadNo,
-                this.group.getFunctions(),
-                this.group.getParams(),
+                group,
                 this.requestQueue,
                 this.warmUpRequestQueue,
                 this.functionCounters,
                 this.customCounters,
-                this.group.getCustomTimers(),
                 this.groupStatsQueue,
-                this.ignoreDumpFunctions,
-                this.group.getThroughput() / group.getThreads());
+                this.ignoreDumpFunctions);
     }
 
     /**

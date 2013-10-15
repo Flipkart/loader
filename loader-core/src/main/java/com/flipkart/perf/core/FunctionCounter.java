@@ -1,26 +1,26 @@
 package com.flipkart.perf.core;
 
-import com.flipkart.perf.common.util.Counter;
+import com.flipkart.perf.util.Counter;
 
 /**
  * This class keep stats about a single function under execution
  */
 public class FunctionCounter {
-	private final String name;
-    private final String scope;
+	private final String functionName;
+    private final String groupName;
     private Counter count;
     private Counter failureCounter;
     private Counter skipCounter;
     private Counter errorCounter;
     private boolean ignore = false;
 
-    public FunctionCounter(String scope, String name) {
-        this.name = name;
-        this.scope = scope;
-        this.count = new Counter(scope, name+"_count");
-        this.failureCounter = new Counter(scope, name+"_failure");
-        this.errorCounter = new Counter(scope, name+"_error");
-        this.skipCounter = new Counter(scope, name+"_skip");
+    public FunctionCounter(String groupName,String functionName) {
+        this.functionName = functionName;
+        this.groupName = groupName;
+        this.count = new Counter(groupName, functionName, this.functionName +"_count");
+        this.failureCounter = new Counter(groupName, functionName, this.functionName +"_failure");
+        this.errorCounter = new Counter(groupName, functionName, this.functionName +"_error");
+        this.skipCounter = new Counter(groupName, functionName, this.functionName +"_skip");
     }
 
     public FunctionCounter executed(int howMany) {
@@ -71,8 +71,8 @@ public class FunctionCounter {
         return this;
     }
 
-    public String getName() {
-        return name;
+    public String getFunctionName() {
+        return functionName;
     }
 
     public Counter getCount() {
@@ -91,8 +91,8 @@ public class FunctionCounter {
         return errorCounter;
     }
 
-    public String getScope() {
-        return scope;
+    public String getGroupName() {
+        return groupName;
     }
 
     public boolean isIgnore() {

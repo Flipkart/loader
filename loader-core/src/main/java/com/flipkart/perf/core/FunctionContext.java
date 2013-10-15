@@ -1,10 +1,12 @@
 package com.flipkart.perf.core;
 
+import com.flipkart.perf.common.util.*;
 import com.flipkart.perf.config.FSConfig;
 import com.flipkart.perf.common.jackson.ObjectMapperUtil;
-import com.flipkart.perf.common.util.Clock;
-import com.flipkart.perf.common.util.Counter;
-import com.flipkart.perf.common.util.Timer;
+import com.flipkart.perf.util.Counter;
+import com.flipkart.perf.util.Histogram;
+import com.flipkart.perf.util.Timer;
+import com.flipkart.perf.util.TimerContext;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
@@ -25,6 +27,7 @@ public class FunctionContext {
     private Map<String, Object> functionParameters;
     private Map<String, Counter> counters;
     private Map<String, Timer> timers;
+    private Map<String, Histogram> histograms;
     private Map<String, Object> passOnParameters; // Will be populated by User in function and would be passed further
     private boolean skipFurtherFunctions = false;
     private FailureType failureType;
@@ -41,10 +44,11 @@ public class FunctionContext {
         variablePattern = Pattern.compile(".*\\$\\{(.+)\\}.*");
     }
 
-    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters) {
+    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters, Map<String, Histogram> functionHistograms) {
         this.functionParameters = new HashMap<String, Object>();
         this.timers = functionTimers;
         this.counters = functionCounters;
+        this.histograms = functionHistograms;
         this.passOnParameters = new HashMap<String, Object>();
     }
 
@@ -232,15 +236,49 @@ public class FunctionContext {
         return this;
     }
 
-    public Timer getFunctionTimer(String timerName) {
-        return this.timers.get(timerName);
+    public TimerContext startTimer(String timerName) {
+        Timer timer = this.timers.get(timerName);
+        TimerContext context;
+        if(timer == null)
+            context = new TimerContext(null);
+        else
+            context = timer.startTimer();
+        return context;
     }
 
-    public Counter getFunctionCounter(String counterName) {
+    public FunctionContext updateHistogram(String histogramName, double value) {
+        Histogram histogram = this.histograms.get(histogramName);
+        if(histogram != null)
+            histogram.addValue(value);
+        return this;
+    }
+
+    public FunctionContext incrementCounter(String counterName) {
         Counter counter = this.counters.get(counterName);
-        if(counter == null)
-            throw new RuntimeException("Counter "+counterName+" doesn't exist");
-        return counter;
+        if(counter != null)
+            counter.increment();
+        return this;
+    }
+
+    public FunctionContext incrementCounter(String counterName, int by) {
+        Counter counter = this.counters.get(counterName);
+        if(counter != null)
+            counter.increment(by);
+        return this;
+    }
+
+    public FunctionContext decrementCounter(String counterName) {
+        Counter counter = this.counters.get(counterName);
+        if(counter != null)
+            counter.decrement();
+        return this;
+    }
+
+    public FunctionContext decrementCounter(String counterName, int by) {
+        Counter counter = this.counters.get(counterName);
+        if(counter != null)
+            counter.decrement(by);
+        return this;
     }
 
     public FunctionContext updateParameters(Map<String, Object> params) {
@@ -325,20 +363,5 @@ public class FunctionContext {
         this.failureType=null;
         this.startTime = -1;
         this.time = -1;
-    }
-
-    public static void main(String[] args) throws IOException {
-        Map<String,String> map = new HashMap<String, String>();
-        map.put("one", "1");
-        map.put("two", "2");
-        map.put("three", "3");
-        System.out.println(map);
-        System.out.println(map.get("one"));
-
-
-        FunctionContext context = new FunctionContext(null, null);
-        context.addParameter("map", "{\"one\" : \"1\"}");
-        System.out.println(context.getParameterAsMap("map").get("one"));
-
     }
 }
