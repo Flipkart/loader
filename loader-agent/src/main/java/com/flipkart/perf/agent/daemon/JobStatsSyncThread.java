@@ -91,10 +91,11 @@ public class JobStatsSyncThread extends Thread{
 
     private void publishAndDelete(String jobId, File jobFile) {
         try {
-            if(jobFile.length() > 0)
+            if(jobFile.length() > 0) {
                 this.serverClient.publishJobStats(jobId,
-                    jobFile.getAbsolutePath(),
-                    trimFileName(jobFile.getAbsolutePath()));
+                        jobFile.getAbsolutePath(),
+                        trimFileName(jobFile.getAbsolutePath()));
+            }
             jobFile.delete();
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.

@@ -1,11 +1,12 @@
 package com.flipkart.perf.core;
 
 import com.flipkart.perf.common.constant.MathConstant;
+import com.flipkart.perf.common.util.*;
+import com.flipkart.perf.domain.Group;
 import com.flipkart.perf.domain.GroupFunction;
-import com.flipkart.perf.common.util.ClassHelper;
-import com.flipkart.perf.common.util.Clock;
-import com.flipkart.perf.common.util.Counter;
-import com.flipkart.perf.common.util.Timer;
+import com.flipkart.perf.util.Counter;
+import com.flipkart.perf.util.Histogram;
+import com.flipkart.perf.util.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,7 @@ public class SequentialFunctionExecutor extends Thread {
     private boolean stop = false;
     private boolean over = false;
 
+    private final Group group;
     private Map<String,Object> threadResources;
     private List<GroupFunction> groupFunctions;
     private HashMap<String,Object> groupParams;
@@ -36,41 +38,37 @@ public class SequentialFunctionExecutor extends Thread {
     private final GroupStatsQueue groupStatsQueue;
 
     private final Map<String, Counter> customCounters;
-    private List<String> customTimerNames;
     private final Map<String, FunctionCounter> functionCounters;
     private final List<String> ignoreDumpFunctions;
     private float throughput;
     private long forcedDurationPerIterationNS;
     private long accumulatedSleepIntervalNS; // When This accumulated Sleep Interval Goes above 1 ms then sleep for near by ms value
-    private long totalSleepTimeMS = 0;
     private int threadStartDelay;
 
     public SequentialFunctionExecutor(String threadExecutorName,
-                                      List<GroupFunction> groupFunctions,
-                                      HashMap<String, Object> groupParams,
+                                      Group group,
                                       RequestQueue requestQueue,
                                       RequestQueue warmUpRequestQueue,
                                       Map<String, FunctionCounter> functionCounters,
                                       Map<String, Counter> customCounters,
-                                      List<String> customTimerNames,
                                       GroupStatsQueue groupStatsQueue,
-                                      List<String> ignoreDumpFunctions,
-                                      float throughput) {
+                                      List<String> ignoreDumpFunctions) {
+
 
         super(threadExecutorName);
-        this.throughput = throughput;
+        this.group = group;
+        this.throughput = group.getThroughput() / group.getThreads();
         this.forcedDurationPerIterationNS = (long)((1000 / this.throughput) * 1000000);
 
         this.ignoreDumpFunctions = ignoreDumpFunctions;
         this.fExecutors = new ArrayList<SyncFunctionExecutor>();
         this.groupStatsQueue = groupStatsQueue;
-        this.groupFunctions = groupFunctions;
-        this.groupParams = groupParams;
+        this.groupFunctions = group.getFunctions();
+        this.groupParams = group.getParams();
         this.requestQueue = requestQueue;
         this.warmUpRequestQueue = warmUpRequestQueue;
         this.functionCounters = functionCounters;
         this.customCounters = customCounters;
-        this.customTimerNames = customTimerNames;
         this.threadResources = new HashMap<String, Object>();
         this.fExecutors = buildFunctionExecutors();
     }
@@ -129,7 +127,7 @@ public class SequentialFunctionExecutor extends Thread {
 
     private void doRun() {
         logger.info("Sequential Function Executor '" + this.getName() + "' started");
-        Counter repeatCounter = new Counter("",this.getName());
+        Counter repeatCounter = new Counter(this.group.getName(), this.getName(), this.getName());
         while(canRepeat(this.requestQueue)) {
             if(this.isPaused()) {
                 logger.info(this.getName()+" is paused");
@@ -147,13 +145,14 @@ public class SequentialFunctionExecutor extends Thread {
 
             Map<String, Timer> customTimers = buildCustomTimers();
             Map<String, Timer> functionTimers = buildFunctionTimers();
+            Map<String, Histogram> functionHistograms = buildCustomHistograms();
 
-            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters).
+            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters, functionHistograms).
                     updateParameters(this.groupParams).
                     updateParameters(this.threadResources).
                     setMyThread(this);
 
-            GroupStatsInstance groupStatsInstance = new GroupStatsInstance(customTimers, functionTimers);
+            GroupStatsInstance groupStatsInstance = new GroupStatsInstance(customTimers, functionTimers, functionHistograms);
 
             for(int functionNo = 0; functionNo < this.groupFunctions.size(); functionNo++) {
                 GroupFunction groupFunction =   this.groupFunctions.get(functionNo);
@@ -217,14 +216,15 @@ public class SequentialFunctionExecutor extends Thread {
         logger.info("Sequential Function Executor Warm Up '" + this.getName() + "' started");
 
         long startTime = Clock.milliTick();
-        Counter repeatCounter = new Counter("",this.getName());
+        Counter repeatCounter = new Counter(group.getName(),this.getName(), this.getName());
         while(canRepeat(this.warmUpRequestQueue)) {
             long iterationStartTimeNS = Clock.nsTick();
             this.reset();
 
             Map<String, Timer> customTimers = buildCustomTimers();
+            Map<String, Histogram> functionHistograms = buildCustomHistograms();
 
-            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters).
+            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters, functionHistograms).
                     updateParameters(this.groupParams).
                     updateParameters(this.threadResources).
                     setMyThread(this);
@@ -288,7 +288,6 @@ public class SequentialFunctionExecutor extends Thread {
         }
     }
 
-
     private void initializeUserFunctions() {
         callFunctionOnUserClass("init");
     }
@@ -301,7 +300,7 @@ public class SequentialFunctionExecutor extends Thread {
         for(int functionNo = 0; functionNo < this.groupFunctions.size(); functionNo++) {
             GroupFunction groupFunction =   this.groupFunctions.get(functionNo);
 
-            FunctionContext functionContext = new FunctionContext(null, null).
+            FunctionContext functionContext = new FunctionContext(null, null, null).
                     updateParameters(this.groupParams).
                     updateParameters(this.threadResources);
 
@@ -322,16 +321,29 @@ public class SequentialFunctionExecutor extends Thread {
     private Map<String, Timer> buildFunctionTimers() {
         Map<String, Timer> timersMap = new HashMap<String, Timer>();
         for(GroupFunction gp : this.groupFunctions) {
-            timersMap.put(gp.getFunctionalityName(), new Timer("", gp.getFunctionalityName()));
+            timersMap.put(gp.getFunctionalityName(), new Timer(group.getName(), gp.getFunctionalityName(),gp.getFunctionalityName()));
         }
         return timersMap;
     }
 
     private Map<String, Timer> buildCustomTimers() {
         Map<String, Timer> timersMap = new HashMap<String, Timer>();
-        for(String timer : this.customTimerNames)
-            timersMap.put(timer, new Timer("", timer));
+        for(GroupFunction groupFunction : group.getFunctions()) {
+            for(String customTimerName : groupFunction.getCustomTimers()) {
+                timersMap.put(customTimerName, new Timer(group.getName(), groupFunction.getFunctionalityName(), customTimerName));
+            }
+        }
         return timersMap;
+    }
+
+    private Map<String, Histogram> buildCustomHistograms() {
+        Map<String, Histogram> histogramMap = new HashMap<String, Histogram>();
+        for(GroupFunction groupFunction : group.getFunctions()) {
+            for(String customHistogramName : groupFunction.getCustomHistograms()) {
+                histogramMap.put(customHistogramName, new Histogram(group.getName(), groupFunction.getFunctionalityName(), customHistogramName));
+            }
+        }
+        return histogramMap;
     }
 
     /**
@@ -348,8 +360,7 @@ public class SequentialFunctionExecutor extends Thread {
         logger.debug("Going to Sleep for "+timeToSleepMS +" ms");
         synchronized (this) {
             try {
-                Thread.sleep(timeToSleepMS);
-                this.totalSleepTimeMS += timeToSleepMS;
+                Clock.sleep(timeToSleepMS);
             } catch (InterruptedException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
