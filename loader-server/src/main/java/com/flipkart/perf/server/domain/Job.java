@@ -279,6 +279,7 @@ public class Job {
         CounterCompoundThread.instance().removeJob(jobId);
         CounterThroughputThread.instance().removeJob(jobId);
         TimerComputationThread.instance().removeJob(jobId);
+        HistogramComputationThread.instance().removeJob(jobId);
         GroupConfConsolidationThread.instance().removeJob(jobId);
 
         // Remove from Running Jobs File
@@ -335,6 +336,7 @@ public class Job {
             CounterCompoundThread.instance().addJob(jobId);
             CounterThroughputThread.instance().addJob(jobId);
             TimerComputationThread.instance().addJob(jobId);
+            HistogramComputationThread.instance().addJob(jobId);
             GroupConfConsolidationThread.instance().addJob(jobId);
 
             persist();
