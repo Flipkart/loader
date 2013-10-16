@@ -342,8 +342,19 @@ public class DeployResourcesResource {
                     method = ClassHelper.getMethod(performanceFunction , "outputParameters", new Class[]{}, customClassLoader);
                     functionInfo.setOutputParameters((LinkedHashMap<String, FunctionParameter>) method.invoke(object, new Object[]{}));
 
-                    discoveredUserFunctions.put(performanceFunction, functionInfo);
+                    // Discover Custom timers for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "customTimers", new Class[]{}, customClassLoader);
+                    functionInfo.setCustomTimers((List<String>) method.invoke(object, new Object[]{}));
 
+                    // Discover Custom Counters for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "customCounters", new Class[]{}, customClassLoader);
+                    functionInfo.setCustomCounters((List<String>) method.invoke(object, new Object[]{}));
+
+                    // Discover Custom Histograms for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "customHistograms", new Class[]{}, customClassLoader);
+                    functionInfo.setCustomHistograms((List<String>) method.invoke(object, new Object[]{}));
+
+                    discoveredUserFunctions.put(performanceFunction, functionInfo);
                 }
             }
         }
