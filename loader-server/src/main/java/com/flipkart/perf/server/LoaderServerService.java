@@ -48,6 +48,7 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         CounterCompoundThread.initialize(configuration.getJobFSConfig(), 10000).start();
         CounterThroughputThread.initialize(configuration.getJobFSConfig(), 10000).start();
         TimerComputationThread.initialize(configuration.getJobFSConfig(), 10000).start();
+        HistogramComputationThread.initialize(configuration.getJobFSConfig(), 10000).start();
         GroupConfConsolidationThread.initialize(configuration.getJobFSConfig(), 10000).start();
         DeploymentHelper.initialize(configuration.getAgentConfig(),
                 configuration.getResourceStorageFSConfig());
