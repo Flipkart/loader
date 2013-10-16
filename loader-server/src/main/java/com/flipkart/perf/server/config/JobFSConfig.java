@@ -17,8 +17,10 @@ public class JobFSConfig {
     private String runJobsFile;
     private String jobStatsPath;
     private String jobGroupStatsPath;
-    private String jobGroupTimersStatsPath;
-    private String jobGroupCountersStatsPath;
+    private String jobFunctionStatsPath;
+    private String jobFunctionTimersStatsPath;
+    private String jobFunctionCountersStatsPath;
+    private String jobFunctionHistogramStatsPath;
     private String jobMetricStatsFile;
     private String jobMonitoringStatsPath;
     private String jobResourceMonitoringFile;
@@ -145,12 +147,11 @@ public class JobFSConfig {
         this.jobStatsPath = jobStatsPath;
     }
 
-
-
-    public String getJobFunctionStatsFile(String jobId, String groupName, String metricType, String metricName, String agentIp) {
+    public String getJobFunctionStatsFile(String jobId, String groupName, String functionName, String metricType, String metricName, String agentIp) {
         return jobMetricStatsFile.
                 replace("{jobId}", jobId).
                 replace("{groupName}", groupName).
+                replace("{functionName}", functionName).
                 replace("{metricType}", metricType).
                 replace("{metricName}", metricName).
                 replace("{agentIp}", agentIp);
@@ -197,24 +198,48 @@ public class JobFSConfig {
                 replace("{groupName}", groupName);
     }
 
-    public String getJobGroupTimersStatsPath(String jobId, String groupName) {
-        return jobGroupTimersStatsPath.
+    public String getJobFunctionStatsPath(String jobId, String groupName, String functionName) {
+        return jobFunctionStatsPath.
                 replace("{jobId}", jobId).
-                replace("{groupName}", groupName);
+                replace("{groupName}", groupName).
+                replace("{functionName}", functionName);
     }
 
-    public void setJobGroupTimersStatsPath(String jobGroupTimersStatsPath) {
-        this.jobGroupTimersStatsPath = jobGroupTimersStatsPath;
+    public void setJobFunctionStatsPath(String jobFunctionStatsPath) {
+        this.jobFunctionStatsPath = jobFunctionStatsPath;
     }
 
-    public String getJobGroupCountersStatsPath(String jobId, String groupName) {
-        return jobGroupCountersStatsPath.
+    public String getJobFunctionTimersStatsPath(String jobId, String groupName, String functionName) {
+        return jobFunctionTimersStatsPath.
                 replace("{jobId}", jobId).
-                replace("{groupName}", groupName);
+                replace("{groupName}", groupName).
+                replace("{functionName}", functionName);
     }
 
-    public void setJobGroupCountersStatsPath(String jobGroupCountersStatsPath) {
-        this.jobGroupCountersStatsPath = jobGroupCountersStatsPath;
+    public void setJobFunctionTimersStatsPath(String jobFunctionTimersStatsPath) {
+        this.jobFunctionTimersStatsPath = jobFunctionTimersStatsPath;
+    }
+
+    public String getJobFunctionCountersStatsPath(String jobId, String groupName, String functionName) {
+        return jobFunctionCountersStatsPath.
+                replace("{jobId}", jobId).
+                replace("{groupName}", groupName).
+                replace("{functionName}", functionName);
+    }
+
+    public void setJobFunctionCountersStatsPath(String jobFunctionCountersStatsPath) {
+        this.jobFunctionCountersStatsPath = jobFunctionCountersStatsPath;
+    }
+
+    public String getJobFunctionHistogramStatsPath(String jobId, String groupName, String functionName) {
+        return jobFunctionHistogramStatsPath.
+                replace("{jobId}", jobId).
+                replace("{groupName}", groupName).
+                replace("{functionName}", functionName);
+    }
+
+    public void setJobFunctionHistogramStatsPath(String jobFunctionHistogramStatsPath) {
+        this.jobFunctionHistogramStatsPath = jobFunctionHistogramStatsPath;
     }
 }
 
