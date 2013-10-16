@@ -20,6 +20,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.flipkart.perf.common.util.FileHelper;
+import com.flipkart.perf.server.domain.PerformanceRun;
 import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -142,6 +143,21 @@ public class JobResource {
     @Timed
     public Job getJob(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
         return jobExistsOrException(jobId);
+    }
+
+    /**
+     * Get Performance Run Schema used for the job
+     * @param jobId
+     * @return
+     * @throws IOException
+     * @throws ExecutionException
+     */
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{jobId}/run")
+    @GET
+    @Timed
+    public PerformanceRun getPerformanceRun(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
+        return jobExistsOrException(jobId).getPerformanceRun();
     }
 
     /**
