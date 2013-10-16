@@ -10,7 +10,7 @@ public class JobFSConfig {
     private String runsPath;
     private String runPath;
     private String runFile;
-    private String jobRunNameFile;
+    private String jobRunFile;
     private String jobsPath;
     private String jobPath;
     private String jobStatusFile;
@@ -71,12 +71,12 @@ public class JobFSConfig {
         this.runFile = runFile;
     }
 
-    public String getJobRunNameFile(String jobId) {
-        return jobRunNameFile.replace("{jobId}", jobId);
+    public String getJobRunFile(String jobId) {
+        return jobRunFile.replace("{jobId}", jobId);
     }
 
-    public void setJobRunNameFile(String jobRunNameFile) {
-        this.jobRunNameFile = jobRunNameFile;
+    public void setJobRunFile(String jobRunFile) {
+        this.jobRunFile = jobRunFile;
     }
 
     public String getRunsPath() {

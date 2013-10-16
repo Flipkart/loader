@@ -30,7 +30,7 @@ jobFSConfig:
   runFile: "/var/log/loader-server/runs/{runName}/run.json"
   runJobsFile: "/var/log/loader-server/runs/{runName}/jobs.txt"
   jobsPath: "/var/log/loader-server/jobs"
-  jobRunNameFile: "/var/log/loader-server/jobs/{jobId}/runName.txt"
+  jobRunFile: "/var/log/loader-server/jobs/{jobId}/run.json"
   jobPath: "/var/log/loader-server/jobs/{jobId}"
   jobStatusFile: "/var/log/loader-server/jobs/{jobId}/status.json"
   jobStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats"

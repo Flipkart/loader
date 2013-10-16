@@ -62,7 +62,7 @@ public class JobDispatcherThread extends Thread{
             try {
                 List<LoaderAgent> freeAgents = AgentsCache.freeAgents();
 
-                PerformanceRun performanceRun = JobStatsHelper.instance().getPerformanceRun(job.getRunName());
+                PerformanceRun performanceRun = job.getPerformanceRun();
                 if(freeAgents.size() >= performanceRun.agentsNeeded()) {
                     job = jobRequestQueue.remove();
                     job.start(freeAgents);
