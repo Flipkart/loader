@@ -25,6 +25,7 @@ public class PerformanceRun {
     private List<LoadPart> loadParts;
     private List<OnDemandMetricCollection> onDemandMetricCollections;
     private List<MetricCollection> metricCollections;
+    private String description = "";
 
     public String getRunName() {
         return runName;
@@ -114,6 +115,14 @@ public class PerformanceRun {
     public PerformanceRun setTeam(String team) {
         this.team = team;
         return this;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public static PerformanceRun runExistsOrException(String runName) throws IOException {
