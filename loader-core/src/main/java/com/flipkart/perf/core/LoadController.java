@@ -34,12 +34,15 @@ public class LoadController extends Thread{
         this.groupMap   =   load.groupMap();
         logger.info(jobId+" Number of groups : "+this.groupMap.size());
 
+        attachSetupGroup(load.getSetupGroup());
+        attachTearDownGroup(load.getSetupGroup());
         validateCyclicDependency(); //Seems to be becoming expensive
 
         for(Group group : this.groupMap.values()) {
             this.addGroup(group);
         }
     }
+
 
     /**
      * Creating Group Dependency and Group Controller for given group
@@ -51,6 +54,30 @@ public class LoadController extends Thread{
         GroupController groupController =   new GroupController(this.jobId, group);
         groupDependency.put(group.getName(), group.getDependOnGroups());
         groupControllersMap.put(group.getName(), groupController);
+    }
+
+    /**
+     * Simply mark all groups dependent on this group
+     * @param setupGroup
+     */
+    private void attachSetupGroup(Group setupGroup) {
+        if(setupGroup != null) {
+            for(Group group : this.groupMap.values()) {
+                group.dependsOn(setupGroup.getName());
+            }
+        }
+    }
+
+    /**
+     * Simply mark teardown group dependent on all groups
+     * @param tearDownGroup
+     */
+    private void attachTearDownGroup(Group tearDownGroup) {
+        if(tearDownGroup != null) {
+            for(Group group : this.groupMap.values()) {
+                tearDownGroup.dependsOn(group.getName());
+            }
+        }
     }
 
     /**
