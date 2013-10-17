@@ -21,7 +21,9 @@ import java.util.Map;
  */
 public class Load {
     private String logLevel = "INFO";
+    private Group setupGroup;
     private List<Group> groups;
+    private Group tearDownGroup;
     private static Logger logger = LoggerFactory.getLogger(Load.class);
 
     public Load() {
@@ -113,5 +115,21 @@ public class Load {
 
     public void setLogLevel(String logLevel) {
         this.logLevel = logLevel;
+    }
+
+    public Group getSetupGroup() {
+        return setupGroup;
+    }
+
+    public void setSetupGroup(Group setupGroup) {
+        this.setupGroup = setupGroup;
+    }
+
+    public Group getTearDownGroup() {
+        return tearDownGroup;
+    }
+
+    public void setTearDownGroup(Group tearDownGroup) {
+        this.tearDownGroup = tearDownGroup;
     }
 }
