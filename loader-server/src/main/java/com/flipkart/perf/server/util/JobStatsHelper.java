@@ -155,7 +155,7 @@ public class JobStatsHelper {
      */
     public List<GroupStatsMeta> getJobMetricsStatsMeta(String jobId) throws ExecutionException, IOException {
         Job job = JobsCache.getJob(jobId);
-        PerformanceRun performanceRun = job.getPerformanceRun();
+        PerformanceRun performanceRun = job.performanceRun();
         Set<Group> allGroups = new LinkedHashSet<Group>();
         for(LoadPart loadPart : performanceRun.getLoadParts()) {
             allGroups.addAll(loadPart.getLoad().getGroups());

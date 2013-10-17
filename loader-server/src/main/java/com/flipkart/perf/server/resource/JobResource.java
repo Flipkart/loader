@@ -157,7 +157,7 @@ public class JobResource {
     @GET
     @Timed
     public PerformanceRun getPerformanceRun(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
-        return jobExistsOrException(jobId).getPerformanceRun();
+        return jobExistsOrException(jobId).performanceRun();
     }
 
     /**
