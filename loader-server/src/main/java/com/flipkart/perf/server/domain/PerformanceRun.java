@@ -1,8 +1,7 @@
 package com.flipkart.perf.server.domain;
 
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,6 +11,8 @@ import com.flipkart.perf.server.config.JobFSConfig;
 import com.flipkart.perf.server.config.LoaderServerConfiguration;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
 import com.flipkart.perf.server.util.ResponseBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.WebApplicationException;
 
@@ -26,7 +27,7 @@ public class PerformanceRun {
     private List<OnDemandMetricCollection> onDemandMetricCollections;
     private List<MetricCollection> metricCollections;
     private String description = "";
-
+    private static Logger logger = LoggerFactory.getLogger(PerformanceRun.class);
     public String getRunName() {
         return runName;
     }
@@ -133,7 +134,33 @@ public class PerformanceRun {
                 readValue(new File(LoaderServerConfiguration.instance().getJobFSConfig().getRunFile(runName)), PerformanceRun.class);
     }
 
-    public void delete() throws IOException {
+    public void delete(boolean deleteJobs) throws IOException {
+        if(deleteJobs) {
+            File runJobsFile = new File(LoaderServerConfiguration.instance().getJobFSConfig().getRunJobsFile(this.runName));
+            if(runJobsFile.exists())  {
+                BufferedReader jobReader = null;
+                try {
+                    jobReader = new BufferedReader(new InputStreamReader(new FileInputStream(runJobsFile)));
+                    String runJob;
+                    while((runJob = jobReader.readLine()) != null) {
+                        if(!runJob.trim().equals("")) {
+                            File jobPath = new File(LoaderServerConfiguration.instance().getJobFSConfig().getJobPath(runJob));
+                            if(jobPath.exists()) {
+                                FileHelper.remove(jobPath.getAbsolutePath());
+                            }
+                        }
+                    }
+                }
+                catch (IOException e) {
+                    logger.error("Error while deleting Job details for run "+this.runName,e);
+                } finally {
+                    if(jobReader != null)
+                        jobReader.close();
+                }
+            }
+        }
+
+
         FileHelper.remove(LoaderServerConfiguration.instance().getJobFSConfig().getRunPath(runName));
         BusinessUnit businessUnit = BusinessUnit.build(this.getBusinessUnit());
         businessUnit.getTeam(this.team).getRuns().remove(this.runName);

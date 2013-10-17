@@ -3,7 +3,6 @@ package com.flipkart.perf.server.daemon;
 import com.flipkart.perf.common.util.Clock;
 import com.flipkart.perf.server.domain.LoadPart;
 import com.flipkart.perf.server.util.AgentHelper;
-import com.sun.corba.se.impl.logging.ORBUtilSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.flipkart.perf.server.cache.AgentsCache;
