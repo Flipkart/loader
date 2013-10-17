@@ -19,7 +19,6 @@ import java.util.concurrent.ExecutionException;
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.domain.Load;
 import com.flipkart.perf.server.util.ResponseBuilder;
-import com.sun.jersey.spi.container.WebApplication;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -315,7 +314,7 @@ public class Job {
 
         try {
             String runFile = configuration.getJobFSConfig().getRunFile(this.runName);
-            PerformanceRun performanceRun = this.getPerformanceRun();
+            PerformanceRun performanceRun = this.performanceRun();
 
             // Raising request to monitoring agents to start collecting metrics from on demand resource collectors
             raiseOnDemandResourceRequest(performanceRun.getOnDemandMetricCollections());
@@ -573,7 +572,8 @@ public class Job {
                 true);
     }
 
-    public PerformanceRun getPerformanceRun() {
+    @JsonIgnore
+    public PerformanceRun performanceRun() {
         try {
             if(new File(configuration.getJobFSConfig().getJobRunFile(jobId)).exists()) {
                 return ObjectMapperUtil.instance().

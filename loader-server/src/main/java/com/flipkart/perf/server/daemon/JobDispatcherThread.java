@@ -1,17 +1,18 @@
 package com.flipkart.perf.server.daemon;
 
 import com.flipkart.perf.common.util.Clock;
+import com.flipkart.perf.server.domain.LoadPart;
+import com.flipkart.perf.server.util.AgentHelper;
+import com.sun.corba.se.impl.logging.ORBUtilSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.flipkart.perf.server.cache.AgentsCache;
 import com.flipkart.perf.server.domain.Job;
 import com.flipkart.perf.server.domain.LoaderAgent;
 import com.flipkart.perf.server.domain.PerformanceRun;
-import com.flipkart.perf.server.util.JobStatsHelper;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -61,11 +62,45 @@ public class JobDispatcherThread extends Thread{
             //Check if required number of agents are free
             try {
                 List<LoaderAgent> freeAgents = AgentsCache.freeAgents();
+                PerformanceRun performanceRun = job.performanceRun();
 
-                PerformanceRun performanceRun = job.getPerformanceRun();
                 if(freeAgents.size() >= performanceRun.agentsNeeded()) {
-                    job = jobRequestQueue.remove();
-                    job.start(freeAgents);
+
+                    // Check if free agents match the tags from incoming jobs
+                    boolean hasMatchingAgents = true;
+
+                    List<LoaderAgent> matchingAgents = new ArrayList<LoaderAgent>();
+                    for(LoadPart lp : performanceRun.getLoadParts()) {
+                        LoaderAgent matchingAgent = null;
+                        for(LoaderAgent la : freeAgents) {
+                            if(matchingAgents.contains(la))
+                                continue;
+
+                            // Pickup an agent which is free and has your tags or pick up an agent which has no tags
+                            if(la.getTags().containsAll(lp.getAgentTags()) || la.getTags().size() == 0) {
+                                matchingAgent = la;
+                                matchingAgents.add(matchingAgent);
+                            }
+                        }
+                        if(matchingAgent == null) {
+                            hasMatchingAgents = false;
+                            break;
+                        }
+                    }
+
+                    if(hasMatchingAgents) {
+                        logger.info("Checking if selected free agents are reachable or not");
+                        for(LoaderAgent matchingAgent : matchingAgents){
+                            AgentHelper.refreshAgentInfo(matchingAgent);
+                            if(!matchingAgent.getStatus().equals(LoaderAgent.LoaderAgentStatus.FREE)) {
+                                logger.warn("Agent " + matchingAgent.getIp() + " was found to be free but is in " + matchingAgent.getStatus() + " state");
+                                break;
+                            }
+                        }
+
+                        job = jobRequestQueue.remove();
+                        job.start(matchingAgents);
+                    }
                 }
             } catch (IOException e) {
                 logger.error("", e);
