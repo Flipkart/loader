@@ -314,6 +314,7 @@ public class SequentialFunctionExecutor extends Thread {
                 m.invoke(classObject, new Object[]{functionContext});
 
             } catch (Exception e) {
+                logger.error("Error while executing method "+methodName, e);
                 throw new RuntimeException(e);
             }
         }
