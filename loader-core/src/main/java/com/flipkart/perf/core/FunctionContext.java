@@ -8,9 +8,9 @@ import com.flipkart.perf.common.util.Timer;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,9 +36,12 @@ public class FunctionContext {
     private static Map<String, String> inputFileResources;
     private static final Pattern variablePattern;
 
+    private static Map<String, Object> inMemoryVariables;
+
     static {
         inputFileResources = FSConfig.inputFileResources();
         variablePattern = Pattern.compile(".*\\$\\{(.+)\\}.*");
+        inMemoryVariables = new LinkedHashMap<String, Object>();
     }
 
     public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters) {
@@ -327,18 +330,27 @@ public class FunctionContext {
         this.time = -1;
     }
 
-    public static void main(String[] args) throws IOException {
-        Map<String,String> map = new HashMap<String, String>();
-        map.put("one", "1");
-        map.put("two", "2");
-        map.put("three", "3");
-        System.out.println(map);
-        System.out.println(map.get("one"));
+    private <T,E> Map<T,E> buildSharedMap(String mapName, Class<T> k, Class<E> v) {
+        if(!inMemoryVariables.containsKey(mapName))
+            inMemoryVariables.put(mapName, Collections.synchronizedMap(new TreeMap<T,E>()));
+        return (Map<T, E>) inMemoryVariables.get(mapName);
+    }
 
+    private <T> List<T> buildSharedList(String listName, Class<T> c) {
+        if(!inMemoryVariables.containsKey(listName))
+            inMemoryVariables.put(listName, Collections.synchronizedList(new Vector<T>()));
+        return (List<T>) inMemoryVariables.get(listName);
+    }
 
-        FunctionContext context = new FunctionContext(null, null);
-        context.addParameter("map", "{\"one\" : \"1\"}");
-        System.out.println(context.getParameterAsMap("map").get("one"));
+    private <T> Queue<T> buildSharedQueue(String queueName, Class<T> c) {
+        if(!inMemoryVariables.containsKey(queueName))
+            inMemoryVariables.put(queueName,Collections.synchronizedCollection(new LinkedBlockingDeque<T>()));
+        return (Queue<T>) inMemoryVariables.get(queueName);
+    }
 
+    private <T> Stack<T> buildSharedStack(String stackName, Class<T> c) {
+        if(!inMemoryVariables.containsKey(stackName))
+            inMemoryVariables.put(stackName,Collections.synchronizedList(new Stack<T>()));
+        return (Stack<T>) inMemoryVariables.get(stackName);
     }
 }
