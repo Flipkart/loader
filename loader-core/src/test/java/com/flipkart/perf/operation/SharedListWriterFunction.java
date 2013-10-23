@@ -14,7 +14,6 @@ public class SharedListWriterFunction extends PerformanceFunction {
     public static final String SC_LIST_NAME = "test-queue";
     public static final String IP_QUEUE_ELEMENT = "queue-element";
     private List list;
-    private static Integer count = 0;
     @Override
     public void init(FunctionContext context) {
         list = context.getSharedList(SC_LIST_NAME);
@@ -23,11 +22,7 @@ public class SharedListWriterFunction extends PerformanceFunction {
     @Override
     public void execute(FunctionContext context) throws Exception {
         String element = context.getParameterAsString(IP_QUEUE_ELEMENT) ;
-        synchronized (count) {
-            element += count;
-            count++;
-            logger.info("Counter : "+count);
-        }
+        logger.info("Adding Element :"+element);
         synchronized (list) {
             list.add(element);
         }
