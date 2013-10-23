@@ -3,18 +3,15 @@ package com.flipkart.perf.domain;
 import ch.qos.logback.classic.Level;
 import com.flipkart.perf.controller.JobController;
 import com.flipkart.perf.core.LoadController;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import com.strategicgains.restexpress.Format;
 import com.strategicgains.restexpress.RestExpress;
 import com.strategicgains.restexpress.response.ResponseProcessor;
-import org.apache.commons.cli.CommandLine;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Top Level Bean which is used to create Load configuration
@@ -24,6 +21,7 @@ public class Load {
     private Group setupGroup;
     private List<Group> groups;
     private Group tearDownGroup;
+
     private static Logger logger = LoggerFactory.getLogger(Load.class);
 
     public Load() {
