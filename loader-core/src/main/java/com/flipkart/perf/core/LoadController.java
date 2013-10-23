@@ -1,6 +1,8 @@
 package com.flipkart.perf.core;
 
 import com.flipkart.perf.common.util.ClassHelper;
+import com.flipkart.perf.datagenerator.DataGenerator;
+import com.flipkart.perf.datagenerator.DataGeneratorInfo;
 import com.flipkart.perf.domain.Group;
 import com.flipkart.perf.domain.GroupFunction;
 import com.flipkart.perf.domain.Load;
@@ -53,7 +55,13 @@ public class LoadController extends Thread{
             }
         }
 
-        FunctionContext.initialize(sharedDataInfoMap);
+        Map<String, DataGenerator> globalDataGenerators = new HashMap<String, DataGenerator>();
+        Map<String, DataGeneratorInfo> dataGeneratorInfoMap = load.getDataGenerators();
+        for(String dataGeneratorName : dataGeneratorInfoMap.keySet())  {
+            globalDataGenerators.put(dataGeneratorName,DataGenerator.buildDataGenerator(dataGeneratorInfoMap.get(dataGeneratorName)));
+        }
+
+        FunctionContext.initialize(sharedDataInfoMap, globalDataGenerators);
     }
 
 

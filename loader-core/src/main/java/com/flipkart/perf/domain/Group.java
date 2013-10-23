@@ -1,9 +1,8 @@
 package com.flipkart.perf.domain;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.flipkart.perf.datagenerator.DataGeneratorInfo;
+
+import java.util.*;
 
 public class Group {
 
@@ -28,6 +27,7 @@ public class Group {
     private List<Map<String,Object>> threadResources ;
     private List<String> customTimers;
     private List<String> customCounters;
+    private Map<String, DataGeneratorInfo> dataGenerators;
 
     public Group(){
         this.functions = new ArrayList<GroupFunction>();
@@ -44,6 +44,7 @@ public class Group {
         this.warmUpRepeats = -1;
         this.customTimers = new ArrayList<String>();
         this.customCounters = new ArrayList<String>();
+        this.dataGenerators = new HashMap<String, DataGeneratorInfo>();
     }
 
     public Group (String name) {
@@ -241,4 +242,19 @@ public class Group {
         System.out.println(group.duration);
         System.out.println(group.throughput);
     }
+
+    public Map<String, DataGeneratorInfo> getDataGenerators() {
+        return dataGenerators;
+    }
+
+    public Group setDataGenerators(Map<String, DataGeneratorInfo> dataGenerators) {
+        this.dataGenerators = dataGenerators;
+        return this;
+    }
+
+    public Group addDataGenerator(DataGeneratorInfo dataGeneratorInfo) {
+        this.dataGenerators.put(dataGeneratorInfo.getGeneratorName(), dataGeneratorInfo);
+        return this;
+    }
+
 }

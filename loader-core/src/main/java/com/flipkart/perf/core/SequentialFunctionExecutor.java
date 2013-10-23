@@ -1,6 +1,7 @@
 package com.flipkart.perf.core;
 
 import com.flipkart.perf.common.constant.MathConstant;
+import com.flipkart.perf.datagenerator.DataGenerator;
 import com.flipkart.perf.domain.GroupFunction;
 import com.flipkart.perf.common.util.ClassHelper;
 import com.flipkart.perf.common.util.Clock;
@@ -44,6 +45,7 @@ public class SequentialFunctionExecutor extends Thread {
     private long accumulatedSleepIntervalNS; // When This accumulated Sleep Interval Goes above 1 ms then sleep for near by ms value
     private long totalSleepTimeMS = 0;
     private int threadStartDelay;
+    private final Map<String, DataGenerator> groupDataGenerators;
 
     public SequentialFunctionExecutor(String threadExecutorName,
                                       List<GroupFunction> groupFunctions,
@@ -55,7 +57,8 @@ public class SequentialFunctionExecutor extends Thread {
                                       List<String> customTimerNames,
                                       GroupStatsQueue groupStatsQueue,
                                       List<String> ignoreDumpFunctions,
-                                      float throughput) {
+                                      float throughput,
+                                      Map<String, DataGenerator> groupDataGenerators) {
 
         super(threadExecutorName);
         this.throughput = throughput;
@@ -72,6 +75,7 @@ public class SequentialFunctionExecutor extends Thread {
         this.customCounters = customCounters;
         this.customTimerNames = customTimerNames;
         this.threadResources = new HashMap<String, Object>();
+        this.groupDataGenerators = groupDataGenerators;
         this.fExecutors = buildFunctionExecutors();
     }
 
@@ -148,7 +152,7 @@ public class SequentialFunctionExecutor extends Thread {
             Map<String, Timer> customTimers = buildCustomTimers();
             Map<String, Timer> functionTimers = buildFunctionTimers();
 
-            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters).
+            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters, this.groupDataGenerators).
                     updateParameters(this.groupParams).
                     updateParameters(this.threadResources).
                     setMyThread(this);
@@ -224,7 +228,7 @@ public class SequentialFunctionExecutor extends Thread {
 
             Map<String, Timer> customTimers = buildCustomTimers();
 
-            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters).
+            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters, this.groupDataGenerators).
                     updateParameters(this.groupParams).
                     updateParameters(this.threadResources).
                     setMyThread(this);
@@ -301,7 +305,7 @@ public class SequentialFunctionExecutor extends Thread {
         for(int functionNo = 0; functionNo < this.groupFunctions.size(); functionNo++) {
             GroupFunction groupFunction =   this.groupFunctions.get(functionNo);
 
-            FunctionContext functionContext = new FunctionContext(null, null).
+            FunctionContext functionContext = new FunctionContext(null, null, this.groupDataGenerators).
                     updateParameters(this.groupParams).
                     updateParameters(this.threadResources);
 

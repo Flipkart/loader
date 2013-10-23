@@ -5,6 +5,7 @@ import com.flipkart.perf.common.jackson.ObjectMapperUtil;
 import com.flipkart.perf.common.util.Clock;
 import com.flipkart.perf.common.util.Counter;
 import com.flipkart.perf.common.util.Timer;
+import com.flipkart.perf.datagenerator.DataGenerator;
 import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -28,6 +29,9 @@ public class FunctionContext {
     private Map<String, Counter> counters;
     private Map<String, Timer> timers;
     private Map<String, Object> passOnParameters; // Will be populated by User in function and would be passed further
+    private Map<String, DataGenerator> groupDataGenerators;
+    private static Map<String, DataGenerator> globalDataGenerators;
+
     private boolean skipFurtherFunctions = false;
     private FailureType failureType;
     private String failureMessage;
@@ -43,7 +47,8 @@ public class FunctionContext {
         variablePattern = Pattern.compile(".*\\$\\{(.+)\\}.*");
     }
 
-    public static void initialize(LinkedHashMap<String, SharedDataInfo> sharedDataInfoMap) {
+    public static void initialize(LinkedHashMap<String, SharedDataInfo> sharedDataInfoMap,
+                                  Map<String, DataGenerator> globalDataGenerators) {
         inputFileResources = FSConfig.inputFileResources();
         inMemoryVariables = new LinkedHashMap<String, Object>();
         for(String sharedDataName : sharedDataInfoMap.keySet()) {
@@ -62,13 +67,17 @@ public class FunctionContext {
                 }
             }
         }
+
+        FunctionContext.globalDataGenerators = globalDataGenerators;
     }
 
-    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters) {
+    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters,
+                           Map<String, DataGenerator> groupDataGenerators) {
         this.functionParameters = new HashMap<String, Object>();
         this.timers = functionTimers;
         this.counters = functionCounters;
         this.passOnParameters = new HashMap<String, Object>();
+        this.groupDataGenerators = groupDataGenerators;
     }
 
     public File getResourceAsFile(String resourceName) {
@@ -102,6 +111,14 @@ public class FunctionContext {
 
                 if(replacementValue == null)
                     replacementValue = passOnParameters.get(varName);
+
+                if(replacementValue == null && groupDataGenerators.containsKey(varName)) {
+                    replacementValue = groupDataGenerators.get(varName).next();
+                }
+
+                if(replacementValue == null && globalDataGenerators.containsKey(varName)) {
+                    replacementValue = globalDataGenerators.get(varName).next();
+                }
 
                 if(replacementValue == null)
                     replacementValue = "null";

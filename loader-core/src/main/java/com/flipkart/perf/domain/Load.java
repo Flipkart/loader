@@ -3,6 +3,7 @@ package com.flipkart.perf.domain;
 import ch.qos.logback.classic.Level;
 import com.flipkart.perf.controller.JobController;
 import com.flipkart.perf.core.LoadController;
+import com.flipkart.perf.datagenerator.DataGeneratorInfo;
 import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import com.strategicgains.restexpress.Format;
 import com.strategicgains.restexpress.RestExpress;
@@ -23,9 +24,11 @@ public class Load {
     private Group tearDownGroup;
 
     private static Logger logger = LoggerFactory.getLogger(Load.class);
+    private Map<String, DataGeneratorInfo> dataGenerators;
 
     public Load() {
         this.groups = new ArrayList<Group>();
+        this.dataGenerators = new LinkedHashMap<String, DataGeneratorInfo>();
     }
 
     /**
@@ -129,5 +132,19 @@ public class Load {
 
     public void setTearDownGroup(Group tearDownGroup) {
         this.tearDownGroup = tearDownGroup;
+    }
+
+    public Map<String, DataGeneratorInfo> getDataGenerators() {
+        return dataGenerators;
+    }
+
+    public Load setDataGenerators(Map<String, DataGeneratorInfo> dataGenerators) {
+        this.dataGenerators = dataGenerators;
+        return this;
+    }
+
+    public Load addDataGenerator(DataGeneratorInfo dataGeneratorInfo) {
+        this.dataGenerators.put(dataGeneratorInfo.getGeneratorName(), dataGeneratorInfo);
+        return this;
     }
 }
