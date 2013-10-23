@@ -5,12 +5,14 @@ import com.flipkart.perf.common.jackson.ObjectMapperUtil;
 import com.flipkart.perf.common.util.Clock;
 import com.flipkart.perf.common.util.Counter;
 import com.flipkart.perf.common.util.Timer;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.SynchronousQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,13 +37,31 @@ public class FunctionContext {
 
     private static Map<String, String> inputFileResources;
     private static final Pattern variablePattern;
-
     private static Map<String, Object> inMemoryVariables;
 
     static {
-        inputFileResources = FSConfig.inputFileResources();
         variablePattern = Pattern.compile(".*\\$\\{(.+)\\}.*");
+    }
+
+    public static void initialize(LinkedHashMap<String, SharedDataInfo> sharedDataInfoMap) {
+        inputFileResources = FSConfig.inputFileResources();
         inMemoryVariables = new LinkedHashMap<String, Object>();
+        for(String sharedDataName : sharedDataInfoMap.keySet()) {
+            SharedDataInfo sharedDataInfo = sharedDataInfoMap.get(sharedDataName); {
+                switch (sharedDataInfo.getSharedDataType()) {
+                    case LIST:
+                        inMemoryVariables.put(sharedDataName, buildList(sharedDataInfo.getSharedDataValueType().get(0)));
+                        break;
+                    case MAP:
+                        inMemoryVariables.put(sharedDataName, buildMap(sharedDataInfo.getSharedDataValueType().get(0),
+                                sharedDataInfo.getSharedDataValueType().get(1)));
+                        break;
+                    case SET:
+                        inMemoryVariables.put(sharedDataName, buildSet(sharedDataInfo.getSharedDataValueType().get(0)));
+                        break;
+                }
+            }
+        }
     }
 
     public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters) {
@@ -330,27 +350,46 @@ public class FunctionContext {
         this.time = -1;
     }
 
-    private <T,E> Map<T,E> buildSharedMap(String mapName, Class<T> k, Class<E> v) {
-        if(!inMemoryVariables.containsKey(mapName))
-            inMemoryVariables.put(mapName, Collections.synchronizedMap(new TreeMap<T,E>()));
-        return (Map<T, E>) inMemoryVariables.get(mapName);
+    private static <T> List<T> buildList(Class<T> c) {
+        return Collections.synchronizedList(new LinkedList<T>());
     }
 
-    private <T> List<T> buildSharedList(String listName, Class<T> c) {
-        if(!inMemoryVariables.containsKey(listName))
-            inMemoryVariables.put(listName, Collections.synchronizedList(new Vector<T>()));
-        return (List<T>) inMemoryVariables.get(listName);
+    private static <T,E> Map<T,E> buildMap(Class<T> k, Class<E> v) {
+        return Collections.synchronizedMap(new TreeMap<T,E>());
     }
 
-    private <T> Queue<T> buildSharedQueue(String queueName, Class<T> c) {
-        if(!inMemoryVariables.containsKey(queueName))
-            inMemoryVariables.put(queueName,Collections.synchronizedCollection(new LinkedBlockingDeque<T>()));
-        return (Queue<T>) inMemoryVariables.get(queueName);
+    private static <T> Set<T> buildSet(Class<T> c) {
+        return Collections.synchronizedSet(new LinkedHashSet<T>());
     }
 
-    private <T> Stack<T> buildSharedStack(String stackName, Class<T> c) {
-        if(!inMemoryVariables.containsKey(stackName))
-            inMemoryVariables.put(stackName,Collections.synchronizedList(new Stack<T>()));
-        return (Stack<T>) inMemoryVariables.get(stackName);
+    public static List getSharedList(String scListName) {
+        throwIfSharedDataDoesNotExists(scListName);
+        return (List) inMemoryVariables.get(scListName);
     }
+
+    public static Map getSharedMap(String scMapName) {
+        throwIfSharedDataDoesNotExists(scMapName);
+        return (Map) inMemoryVariables.get(scMapName);
+    }
+
+    public static Queue getSharedQueue(String scQueueName) {
+        throwIfSharedDataDoesNotExists(scQueueName);
+        return (Queue) inMemoryVariables.get(scQueueName);
+    }
+
+    private static void throwIfSharedDataDoesNotExists(String sharedDataName) {
+        if(!inMemoryVariables.containsKey(sharedDataName))
+        throw new RuntimeException("Shared Data "+sharedDataName+" doesn't exist");
+    }
+
+/*
+    public static void main(String[] args) throws ClassNotFoundException {
+        FunctionContext c = new FunctionContext(null, null);
+        SharedList sl = new SharedList();
+        sl.setSharedDataType(String.class);
+        List<String> l2 = (List<String>) c.buildSharedList("l2", sl.getSharedDataType());
+        l2.add("Hello");
+        System.out.println(l2);
+    }
+*/
 }

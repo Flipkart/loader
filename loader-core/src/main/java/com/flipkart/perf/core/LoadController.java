@@ -1,12 +1,16 @@
 package com.flipkart.perf.core;
 
+import com.flipkart.perf.common.util.ClassHelper;
 import com.flipkart.perf.domain.Group;
+import com.flipkart.perf.domain.GroupFunction;
 import com.flipkart.perf.domain.Load;
 import com.flipkart.perf.common.util.Clock;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -35,12 +39,21 @@ public class LoadController extends Thread{
         logger.info(jobId+" Number of groups : "+this.groupMap.size());
 
         attachSetupGroup(load.getSetupGroup());
-        attachTearDownGroup(load.getSetupGroup());
+        attachTearDownGroup(load.getTearDownGroup());
         validateCyclicDependency(); //Seems to be becoming expensive
 
+        LinkedHashMap<String, SharedDataInfo> sharedDataInfoMap = new LinkedHashMap<String, SharedDataInfo>();
         for(Group group : this.groupMap.values()) {
             this.addGroup(group);
+
+            for(GroupFunction groupFunction : group.getFunctions()) {
+                Object object = ClassHelper.getClassInstance(groupFunction.getFunctionClass(), new Class[]{}, new Object[]{});
+                Method method = ClassHelper.getMethod(groupFunction.getFunctionClass() , "sharedData", new Class[]{});
+                sharedDataInfoMap.putAll((LinkedHashMap<String, SharedDataInfo>) method.invoke(object, new Object[]{}));
+            }
         }
+
+        FunctionContext.initialize(sharedDataInfoMap);
     }
 
 
@@ -138,7 +151,6 @@ public class LoadController extends Thread{
     public void run() {
         logger.info("****"+jobId+" LOAD CONTROLLER STARTED****");
         long startTime = Clock.milliTick();
-
         while(true) {
             ArrayList<GroupController> groupsToRun = new ArrayList<GroupController>();
             int groupsCanNotStartThisTime = 0;
