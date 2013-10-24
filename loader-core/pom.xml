@@ -50,6 +50,17 @@
             <artifactId>RestExpress</artifactId>
             <version>0.9.4</version>
         </dependency>
+<dependency>
+	<groupId>org.apache.commons</groupId>
+	<artifactId>commons-math3</artifactId>
+	<version>3.2</version>
+</dependency>
+ <dependency>
+	<groupId>commons-lang</groupId>
+	<artifactId>commons-lang</artifactId>
+	<version>2.6</version>
+</dependency>
+                       
     </dependencies>
     <build>
         <plugins>

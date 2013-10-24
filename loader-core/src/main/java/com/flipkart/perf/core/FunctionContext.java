@@ -5,12 +5,15 @@ import com.flipkart.perf.common.jackson.ObjectMapperUtil;
 import com.flipkart.perf.common.util.Clock;
 import com.flipkart.perf.common.util.Counter;
 import com.flipkart.perf.common.util.Timer;
+import com.flipkart.perf.datagenerator.DataGenerator;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.SynchronousQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +29,9 @@ public class FunctionContext {
     private Map<String, Counter> counters;
     private Map<String, Timer> timers;
     private Map<String, Object> passOnParameters; // Will be populated by User in function and would be passed further
+    private Map<String, DataGenerator> groupDataGenerators;
+    private static Map<String, DataGenerator> globalDataGenerators;
+
     private boolean skipFurtherFunctions = false;
     private FailureType failureType;
     private String failureMessage;
@@ -35,17 +41,43 @@ public class FunctionContext {
 
     private static Map<String, String> inputFileResources;
     private static final Pattern variablePattern;
+    private static Map<String, Object> inMemoryVariables;
 
     static {
-        inputFileResources = FSConfig.inputFileResources();
         variablePattern = Pattern.compile(".*\\$\\{(.+)\\}.*");
     }
 
-    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters) {
+    public static void initialize(LinkedHashMap<String, SharedDataInfo> sharedDataInfoMap,
+                                  Map<String, DataGenerator> globalDataGenerators) {
+        inputFileResources = FSConfig.inputFileResources();
+        inMemoryVariables = new LinkedHashMap<String, Object>();
+        for(String sharedDataName : sharedDataInfoMap.keySet()) {
+            SharedDataInfo sharedDataInfo = sharedDataInfoMap.get(sharedDataName); {
+                switch (sharedDataInfo.getSharedDataType()) {
+                    case LIST:
+                        inMemoryVariables.put(sharedDataName, buildList(sharedDataInfo.getSharedDataValueType().get(0)));
+                        break;
+                    case MAP:
+                        inMemoryVariables.put(sharedDataName, buildMap(sharedDataInfo.getSharedDataValueType().get(0),
+                                sharedDataInfo.getSharedDataValueType().get(1)));
+                        break;
+                    case SET:
+                        inMemoryVariables.put(sharedDataName, buildSet(sharedDataInfo.getSharedDataValueType().get(0)));
+                        break;
+                }
+            }
+        }
+
+        FunctionContext.globalDataGenerators = globalDataGenerators;
+    }
+
+    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters,
+                           Map<String, DataGenerator> groupDataGenerators) {
         this.functionParameters = new HashMap<String, Object>();
         this.timers = functionTimers;
         this.counters = functionCounters;
         this.passOnParameters = new HashMap<String, Object>();
+        this.groupDataGenerators = groupDataGenerators;
     }
 
     public File getResourceAsFile(String resourceName) {
@@ -79,6 +111,14 @@ public class FunctionContext {
 
                 if(replacementValue == null)
                     replacementValue = passOnParameters.get(varName);
+
+                if(replacementValue == null && groupDataGenerators.containsKey(varName)) {
+                    replacementValue = groupDataGenerators.get(varName).next();
+                }
+
+                if(replacementValue == null && globalDataGenerators.containsKey(varName)) {
+                    replacementValue = globalDataGenerators.get(varName).next();
+                }
 
                 if(replacementValue == null)
                     replacementValue = "null";
@@ -327,18 +367,46 @@ public class FunctionContext {
         this.time = -1;
     }
 
-    public static void main(String[] args) throws IOException {
-        Map<String,String> map = new HashMap<String, String>();
-        map.put("one", "1");
-        map.put("two", "2");
-        map.put("three", "3");
-        System.out.println(map);
-        System.out.println(map.get("one"));
-
-
-        FunctionContext context = new FunctionContext(null, null);
-        context.addParameter("map", "{\"one\" : \"1\"}");
-        System.out.println(context.getParameterAsMap("map").get("one"));
-
+    private static <T> List<T> buildList(Class<T> c) {
+        return Collections.synchronizedList(new LinkedList<T>());
     }
+
+    private static <T,E> Map<T,E> buildMap(Class<T> k, Class<E> v) {
+        return Collections.synchronizedMap(new TreeMap<T,E>());
+    }
+
+    private static <T> Set<T> buildSet(Class<T> c) {
+        return Collections.synchronizedSet(new LinkedHashSet<T>());
+    }
+
+    public static List getSharedList(String scListName) {
+        throwIfSharedDataDoesNotExists(scListName);
+        return (List) inMemoryVariables.get(scListName);
+    }
+
+    public static Map getSharedMap(String scMapName) {
+        throwIfSharedDataDoesNotExists(scMapName);
+        return (Map) inMemoryVariables.get(scMapName);
+    }
+
+    public static Queue getSharedQueue(String scQueueName) {
+        throwIfSharedDataDoesNotExists(scQueueName);
+        return (Queue) inMemoryVariables.get(scQueueName);
+    }
+
+    private static void throwIfSharedDataDoesNotExists(String sharedDataName) {
+        if(!inMemoryVariables.containsKey(sharedDataName))
+        throw new RuntimeException("Shared Data "+sharedDataName+" doesn't exist");
+    }
+
+/*
+    public static void main(String[] args) throws ClassNotFoundException {
+        FunctionContext c = new FunctionContext(null, null);
+        SharedList sl = new SharedList();
+        sl.setSharedDataType(String.class);
+        List<String> l2 = (List<String>) c.buildSharedList("l2", sl.getSharedDataType());
+        l2.add("Hello");
+        System.out.println(l2);
+    }
+*/
 }
