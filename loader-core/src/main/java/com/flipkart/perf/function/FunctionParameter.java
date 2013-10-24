@@ -8,11 +8,15 @@ import java.io.IOException;
  * Class can be used by user/loader-ui to understand
  * what are the required parameters to make a particular function work properly
  */
+enum ParameterType {
+    SCALER, LIST, MAP
+}
 public class FunctionParameter {
     private String name;
     private String description;
     private boolean mandatory;
     private Object defaultValue;
+    private ParameterType type = ParameterType.SCALER;
 
     public String getName() {
         return name;
@@ -47,6 +51,15 @@ public class FunctionParameter {
 
     public FunctionParameter setDefaultValue(Object defaultValue) {
         this.defaultValue = defaultValue;
+        return this;
+    }
+
+    public ParameterType getType() {
+        return type;
+    }
+
+    public FunctionParameter setType(ParameterType type) {
+        this.type = type;
         return this;
     }
 

@@ -6,9 +6,7 @@ import com.flipkart.perf.server.util.ObjectMapperUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -27,14 +25,18 @@ public class LoaderAgent {
     private Map<String,Object> attributes;
     private LoaderAgentStatus status;
     private List<String> runningJobs;
+    private Set<String> tags;
 
-    public LoaderAgent() {}
+    public LoaderAgent() {
+        tags = new LinkedHashSet<String>();
+    }
 
     public LoaderAgent(String ip, Map<String,Object> agentAttributes) {
         this.ip = ip;
         this.attributes = agentAttributes;
         this.status = LoaderAgentStatus.FREE;
         this.runningJobs = new ArrayList<String>();
+        tags = new LinkedHashSet<String>();
     }
 
     public String getIp() {
@@ -77,6 +79,15 @@ public class LoaderAgent {
         synchronized (this.runningJobs) {
             this.runningJobs.add(runningJob);
         }
+        return this;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public LoaderAgent setTags(Set<String> tags) {
+        this.tags = tags;
         return this;
     }
 

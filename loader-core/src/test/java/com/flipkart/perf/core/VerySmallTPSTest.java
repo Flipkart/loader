@@ -24,6 +24,6 @@ public class VerySmallTPSTest {
                                 setFunctionClass(MathAddFunction.class.getCanonicalName()).
                                 setFunctionalityName("List Add").
                                 addParam(MathAddFunction.IP_NUM_JSON_LIST, "[1,2,3,4,5,6,7,8,9,10]")));
-        load.start(""+System.currentTimeMillis());
+        load.start(""+System.currentTimeMillis(), 12345);
     }
 }

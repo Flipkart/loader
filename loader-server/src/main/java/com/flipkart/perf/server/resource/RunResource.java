@@ -8,19 +8,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.flipkart.perf.common.util.FileHelper;
+import com.yammer.dropwizard.jersey.params.BooleanParam;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.flipkart.perf.server.config.JobFSConfig;
@@ -125,10 +118,10 @@ public class RunResource {
     @Path("/{runName}")
     @DELETE
     @Timed
-    public void deleteRun(@PathParam("runName") String runName)
+    public void deleteRun(@PathParam("runName") String runName, @QueryParam("deleteJobs") @DefaultValue("false")BooleanParam deleteJobs)
             throws IOException, ExecutionException, InterruptedException, JobException {
         PerformanceRun run = PerformanceRun.runExistsOrException(runName);
-        run.delete();
+        run.delete(deleteJobs.get());
     }
 
     @Produces(MediaType.APPLICATION_JSON)

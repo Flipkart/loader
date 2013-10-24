@@ -1,6 +1,7 @@
 package com.flipkart.perf.function;
 
 import com.flipkart.perf.core.FunctionContext;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,4 +63,13 @@ abstract public class PerformanceFunction {
     public LinkedHashMap<String, FunctionParameter> outputParameters(){
         return new LinkedHashMap<String, FunctionParameter>();
     }
+
+    /**
+     * Can be used by user to explicitly tell framework about the shared structures its going to use
+     * @return
+     */
+    public LinkedHashMap<String, SharedDataInfo> sharedData(){
+        return new LinkedHashMap<String, SharedDataInfo>();
+    }
+
 }

@@ -26,6 +26,8 @@ public class AgentHelper {
             Map<String, Object> agentRegistrationParams = new LoaderAgentClient(loaderAgent.getIp(),
                     agentConfig.getAgentPort()).registrationInfo();
             loaderAgent.setAttributes(agentRegistrationParams);
+            if(loaderAgent.getStatus() != LoaderAgent.LoaderAgentStatus.BUSY)
+                loaderAgent.setFree();
         } catch (Exception e) {
             loaderAgent.setNotReachable();
             log.error("Error while contacting agent",e);

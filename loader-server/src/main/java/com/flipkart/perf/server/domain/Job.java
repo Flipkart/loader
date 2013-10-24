@@ -11,7 +11,6 @@ import java.util.concurrent.ExecutionException;
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.domain.Load;
 import com.flipkart.perf.server.util.ResponseBuilder;
-import com.sun.jersey.spi.container.WebApplication;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.quartz.JobExecutionContext;
@@ -322,7 +321,7 @@ public  class Job {
 
         try {
             String runFile = configuration.getJobFSConfig().getRunFile(this.runName);
-            PerformanceRun performanceRun = objectMapper.readValue(new File(runFile) , PerformanceRun.class);
+            PerformanceRun performanceRun = this.performanceRun();
 
             // Raising request to monitoring agents to start collecting metrics from on demand resource collectors
             raiseOnDemandResourceRequest(performanceRun.getOnDemandMetricCollections());
@@ -566,21 +565,32 @@ public  class Job {
         String runFile = configuration.getJobFSConfig().getRunFile(this.runName);
         PerformanceRun performanceRun = objectMapper.readValue(new File(runFile) , PerformanceRun.class);
 
-        String runName = performanceRun.getRunName();
-
         // Add file containing run name in job folder
-        String jobRunNameFile = configuration.getJobFSConfig().getJobRunNameFile(jobId);
+        String jobRunNameFile = configuration.getJobFSConfig().getJobRunFile(jobId);
         FileHelper.createFilePath(jobRunNameFile);
-        FileHelper.persistStream(new ByteArrayInputStream(runName.getBytes()),
-                jobRunNameFile,
-                false);
+        objectMapper.defaultPrettyPrintingWriter().writeValue(new File(jobRunNameFile), performanceRun);
 
         // Adding job ids in run folder file
+        String runName = performanceRun.getRunName();
         String runJobsFile = configuration.getJobFSConfig().getRunJobsFile(runName);
         FileHelper.createFilePath(runJobsFile);
         FileHelper.persistStream(new ByteArrayInputStream((jobId + "\n").getBytes()),
                 runJobsFile,
                 true);
+    }
+
+    @JsonIgnore
+    public PerformanceRun performanceRun() {
+        try {
+            if(new File(configuration.getJobFSConfig().getJobRunFile(jobId)).exists()) {
+                return ObjectMapperUtil.instance().
+                        readValue(new File(configuration.getJobFSConfig().getJobRunFile(jobId)), PerformanceRun.class);
+            }
+            return PerformanceRun.runExistsOrException(this.runName);
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        return null;
     }
 
     /**
