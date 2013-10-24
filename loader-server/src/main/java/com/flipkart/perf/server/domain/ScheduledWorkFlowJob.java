@@ -110,7 +110,6 @@ public class ScheduledWorkFlowJob {
 
     public boolean checkCyclicDependency(){
         ArrayList<ScheduledWorkflowEntities> temp = workflow;    //I don't need workFlow so destroying it while checking
-        System.out.println("temp size is : " + temp.size());
         while(!temp.isEmpty()){
             ArrayList<String> runRow = new ArrayList<String>();
             ArrayList<String> blockRow = new ArrayList<String>();
@@ -123,7 +122,6 @@ public class ScheduledWorkFlowJob {
                 }
             }
             temp.removeAll(reqRow);
-            System.out.println("temp size after removal : " + temp.size());
             for(String blockName: blockRow){
                 for(ScheduledWorkflowEntities req: temp){
                     if(req.getDependsOn().contains(blockName)) req.getDependsOn().remove(blockName);
@@ -132,18 +130,16 @@ public class ScheduledWorkFlowJob {
             if(runRow.isEmpty()) return true;
             runMap.add(runRow);
         }
-        System.out.println("Dependency Map is");
-        for(ArrayList<String> wf: runMap){
-            for(String runName: wf){
-                System.out.print(runName + " ->");
-            }
-            System.out.println();
-        }
+//        for(ArrayList<String> wf: runMap){
+//            for(String runName: wf){
+//                System.out.print(runName + " ->");
+//            }
+//            System.out.println();
+//        }
         return false;
     }
 
     public void persistWorkFlowJob() throws IOException {
-        System.out.println("Status file Path : " + configuration.getJobFSConfig().getWorkflowJobStatusPath(this.workFlowId));
         File workFlowStatusFile = new File(configuration.getJobFSConfig().getWorkflowJobStatusPath(this.workFlowId));
         if(!workFlowStatusFile.exists())
             FileHelper.createFilePath(workFlowStatusFile.getAbsolutePath());
