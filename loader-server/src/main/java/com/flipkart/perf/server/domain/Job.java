@@ -14,6 +14,8 @@ import com.flipkart.perf.server.util.ResponseBuilder;
 import com.sun.jersey.spi.container.WebApplication;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +32,13 @@ import com.flipkart.perf.server.util.ObjectMapperUtil;
 
 import javax.ws.rs.WebApplicationException;
 
-public class Job {
+public  class Job {
 
     private static final LoaderServerConfiguration configuration = LoaderServerConfiguration.instance();
     private static final ObjectMapper objectMapper = ObjectMapperUtil.instance();
     private static Logger logger = LoggerFactory.getLogger(Job.class);
+
+   // public abstract void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException;
 
     public static enum JOB_STATUS {
         QUEUED, RUNNING, PAUSED, COMPLETED, KILLED, FAILED_TO_START, ERROR;
