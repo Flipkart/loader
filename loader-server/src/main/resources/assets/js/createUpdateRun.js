@@ -665,6 +665,7 @@ function createRun(){
 				}
 			});
 		});
+		window.runSchema["loadParts"][lpIndex]["agentTags"] = [window.runSchema["businessUnit"] ,window.runSchema["team"]];
 		window.runSchema["loadParts"][lpIndex]["classes"] =  classes;
 	});
 
@@ -750,6 +751,7 @@ function updateRunSchema(){
 				}
 			});
 		});
+		window.runSchema["loadParts"][lpIndex]["agentTags"] = [window.runSchema["businessUnit"] ,window.runSchema["team"]];
 		window.runSchema["loadParts"][lpIndex]["classes"] =  classes;
 	});
 

@@ -50,7 +50,6 @@ public class ScheduledWorkflowJobCreator implements org.quartz.Job {
         JobDataMap jobDataMap = jobExecutionContext.getJobDetail().getJobDataMap();
         ArrayList<ScheduledWorkflowEntities> workflow = null;
         try {
-            System.out.println("this is the string repres : " + jobDataMap.get("workflow").toString());
             ArrayList<HashMap<String,String>> tempWorkflow = mapper.readValue(jobDataMap.get("workflow").toString(), ArrayList.class);
             workflow = new ArrayList<ScheduledWorkflowEntities>();
             for(HashMap<String,String>hm : tempWorkflow){

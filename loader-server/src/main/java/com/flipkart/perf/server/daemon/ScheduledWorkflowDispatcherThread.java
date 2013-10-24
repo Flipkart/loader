@@ -39,7 +39,6 @@ public class ScheduledWorkflowDispatcherThread implements Runnable {
                 }
             }
 
-            System.out.println("Added workflows to runningWorkFlows : " + runningWorkFlows.size());
             try {
                 ArrayList<ScheduledWorkFlowJob> completedWorkflows = new ArrayList<ScheduledWorkFlowJob>();
                 for(ScheduledWorkFlowJob workFlow: runningWorkFlows){
@@ -53,7 +52,6 @@ public class ScheduledWorkflowDispatcherThread implements Runnable {
                     } else {
                         if(allJobsComplete(workFlow.getRunningJobs())){
                             ArrayList<String> runs = workFlow.getRunMap().remove(0);
-                            System.out.println("Run Map size is " + workFlow.getRunMap().size());
                             for(String run: runs){
                                 JobRequest jobRequest = new JobRequest().setRunName(run);
                                 try {
@@ -100,7 +98,6 @@ public class ScheduledWorkflowDispatcherThread implements Runnable {
     }
 
     public void addRunWorkFlow(ScheduledWorkFlowJob r){
-        System.out.println("Adding workflow to queue");
         workflowQueue.add(r);
     }
 
