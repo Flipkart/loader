@@ -27,9 +27,14 @@ public class JobFSConfig {
     private String queuedJobsFile;
     private String jobGroupConfFile;
 
-    private String workflowsPath;
-    private String workflowPath;
-    private String workflowStatusPath;
+    private String workflowJobsPath;
+    private String workflowJobPath;
+    private String workflowJobStatusPath;
+
+    private String scheduledWorkflowsPath;
+    private String scheduledWorkflowPath;
+    private String scheduledWorkflowRunningFile;
+    private String scheduledWorkflowJobsFile;
 
     public String getBusinessUnitsPath() {
         return businessUnitsPath;
@@ -221,30 +226,67 @@ public class JobFSConfig {
         this.jobGroupCountersStatsPath = jobGroupCountersStatsPath;
     }
 
-    public String getWorkflowsPath() {
-        return workflowsPath;
+    public String getWorkflowJobsPath() {
+        return workflowJobsPath;
     }
 
-    public JobFSConfig setWorkflowsPath(String workflowsPath) {
-        this.workflowsPath = workflowsPath;
+    public JobFSConfig setWorkflowJobsPath(String workflowJobsPath) {
+        this.workflowJobsPath = workflowJobsPath;
         return this;
     }
 
-    public String getWorkflowPath(String workflowId) {
-        return workflowPath.replace("{workflowId}",workflowId);
+    public String getWorkflowJobPath(String workflowJobId) {
+        return this.workflowJobPath.replace("{workflowId}", workflowJobId);
     }
 
-    public JobFSConfig setWorkflowPath(String workflowPath) {
-        this.workflowPath = workflowPath;
+    public JobFSConfig setWorkflowJobPath(String workflowJobPath) {
+        this.workflowJobPath = workflowJobPath;
         return this;
     }
 
-    public String getWorkflowStatusPath(String workflowId) {
-        return workflowStatusPath.replace("{workflowId}", workflowId);
+    public String getWorkflowJobStatusPath(String workflowJobId) {
+        return this.workflowJobStatusPath.replace("{workflowId}", workflowJobId);
     }
 
-    public JobFSConfig setWorkflowStatusPath(String workflowStatusPath) {
-        this.workflowStatusPath = workflowStatusPath;
+    public JobFSConfig setWorkflowJobStatusPath(String workflowJobStatusPath) {
+        this.workflowJobStatusPath = workflowJobStatusPath;
+        return this;
+    }
+
+
+    public String getScheduledWorkflowsPath() {
+        return scheduledWorkflowsPath;
+    }
+
+    public JobFSConfig setScheduledWorkflowsPath(String scheduledWorkflowsPath) {
+        this.scheduledWorkflowsPath = scheduledWorkflowsPath;
+        return this;
+    }
+
+    public String getScheduledWorkflowPath(String workflowName) {
+        return this.scheduledWorkflowPath.replace("{workflowName}", workflowName);
+    }
+
+    public JobFSConfig setScheduledWorkflowPath(String scheduledWorkflowPath){
+        this.scheduledWorkflowPath = scheduledWorkflowPath;
+        return this;
+    }
+
+    public String getScheduledWorkflowRunningFile(String workflowName) {
+        return this.scheduledWorkflowRunningFile.replace("{workflowName}", workflowName);
+    }
+
+    public JobFSConfig setScheduledWorkflowRunningFile(String scheduledWorkflowRunningFile) {
+        this.scheduledWorkflowRunningFile = scheduledWorkflowRunningFile;
+        return this;
+    }
+
+    public String getScheduledWorkflowJobsFile(String workflowName) {
+        return this.scheduledWorkflowJobsFile.replace("{workflowName}", workflowName);
+    }
+
+    public JobFSConfig setScheduledWorkflowJobsFile(String scheduledWorkflowJobsFile) {
+        this.scheduledWorkflowJobsFile = scheduledWorkflowJobsFile;
         return this;
     }
 }

@@ -44,6 +44,13 @@ jobFSConfig:
   runningJobsFile: "/var/log/loader-server/jobs/runningJobs"
   queuedJobsFile: "/var/log/loader-server/jobs/queuedJobs"
   jobGroupConfFile: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/realTimeConf/agents/{agentIp}/data.stats"
+  workflowJobsPath: "/var/log/loader-server/workflowJobs"
+  workflowJobPath:  "/var/log/loader-server/workflowJobs/{workflowId}"
+  workflowJobStatusPath: "/var/log/loader-server/workflowJobs/{workflowId}/status.json"
+  scheduledWorkflowsPath: "/var/log/loader-server/workflows"
+  scheduledWorkflowPath: "/var/log/loader-server/workflows/{workflowName}"
+  scheduledWorkflowRunningFile: "/var/log/loader-server/workflows/{workflowName}/runningWorkflowJobs"
+  scheduledWorkflowJobsFile: "/var/log/loader-server/workflows/{workflowName}/workflowJobs"
 
 reportConfigFile: /etc/loader-server/reportConfig.json
 
