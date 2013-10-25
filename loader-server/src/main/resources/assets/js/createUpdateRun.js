@@ -46,6 +46,7 @@ var runSchemaViewModel = function(runSchema){
 		return teams;
 	});
 	self.selectedTeam = ko.observable(runSchema["team"]);
+	self.desc = ko.observable(runSchema["description"]);
 	self.onBuChange = function(){
 		self.selectedBu($("#bu").val());
 	}
@@ -201,6 +202,8 @@ function updateRun(){
 	window.runSchema.runName = $("#runName").val();
 	window.runSchema.businessUnit = $("#bu").val();
 	window.runSchema.team = $("#team").val();
+	window.runSchema["description"]= $("#desc").val();
+	console.log("updated desc", $("#desc").val());
 	createTree(window.runSchema);
 	renderDisplayArea('run',window["runSchema"]);
 }
@@ -208,6 +211,7 @@ function updateRun(){
 function updateRunGrpTeam(){
 	window.runSchema.businessUnit = $("#bu").val();
 	window.runSchema.team = $("#team").val();
+	window.runSchema["description"]= $("#desc").val();
 	createTree(window.runSchema);
 	renderDisplayArea('run',window["runSchema"]);
 }

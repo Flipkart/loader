@@ -58,7 +58,7 @@
 			</thead>
 			<tbody data-bind="foreach: slicedTableRows">
 				<tr>
-				<td data-bind="text: runName"></td>
+				<td><a data-bind="attr: {'href': updateUrl} ,text: runName"></td>
 				<td data-bind="text: groupName"></td>
 				<td data-bind="text: teamName"></td>
 				<td>
