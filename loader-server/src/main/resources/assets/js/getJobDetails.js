@@ -13,7 +13,8 @@ function getQueryParams(sParam){
 function getJobDetails(){
 	var jobUrl = "/loader-server/jobs/" + getQueryParams('jobId');   //replace this with previous one
 	console.log(jobUrl);
-        $.ajax({url: jobUrl,
+        $.ajax({
+        	url: jobUrl,
 			contentType: "application/json", 
 			dataType:"json",
 			type:"GET",
