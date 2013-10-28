@@ -86,7 +86,7 @@ var functionsViewModel = function(functionsList){
 	self.onPkgClick = function(pkg, event){
 		$("#packages .row-fluid").css("background-color","white");
 		$("#packages .row-fluid a").css("color","#0088cc");
-		$(event.target).parent().css("background-color","#81DAF5");
+		$(event.target).parent().css("background-color","#0088cc");
 		$(event.target).css("color","white");
 		self.pkgFuncPair({"selPkgName": pkg["packageName"], 
 			"selFuncName": self.functionsPerPkg()[pkg["packageName"]][0]["functionName"]});
@@ -96,7 +96,7 @@ var functionsViewModel = function(functionsList){
 	self.onFunctionClick = function(func, event){
 		$("#functions .row-fluid").css("background-color","white");
 		$("#functions .row-fluid a").css("color","#0088cc");
-		$(event.target).parent().css("background-color","#81DAF5");
+		$(event.target).parent().css("background-color","#0088cc");
 		$(event.target).css("color","white");
 		self.pkgFuncPair({"selPkgName": self.pkgFuncPair()["selPkgName"], "selFuncName": func["functionName"]});
 	}
