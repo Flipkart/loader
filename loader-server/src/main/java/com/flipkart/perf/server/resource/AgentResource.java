@@ -55,9 +55,8 @@ public class AgentResource {
     @Timed
     synchronized public LoaderAgent addAgent(@Context HttpServletRequest request,
                                              Map registrationParams) throws IOException, ExecutionException, InterruptedException {
-
         AgentsCache.addAgent(new LoaderAgent(request.getRemoteAddr(), registrationParams));
-        return AgentsCache.getAgentInfo(request.getRemoteAddr());
+        return AgentsCache.getAgentInfo(request.getRemoteAddr()).setFree();
     }
 
     @Produces(MediaType.APPLICATION_JSON)

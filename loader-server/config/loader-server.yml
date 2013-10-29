@@ -52,6 +52,11 @@ jobFSConfig:
   scheduledWorkflowRunningFile: "/var/log/loader-server/workflows/{workflowName}/runningWorkflowJobs"
   scheduledWorkflowJobsFile: "/var/log/loader-server/workflows/{workflowName}/workflowJobs"
 
+systemStatsArchivalConfig:
+  archivalEngineClass: "com.flipkart.perf.server.health.metric.RRD4JArchivingEngine"
+  configParams:
+    basePath: "/var/log/loader-server/systemStats"
+
 reportConfigFile: /etc/loader-server/reportConfig.json
 
 dataFixConfig:

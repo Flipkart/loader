@@ -17,6 +17,7 @@ public class LoaderServerConfiguration extends Configuration {
     private MonitoringAgentConfig monitoringAgentConfig;
     private JobFSConfig jobFSConfig;
     private DataFixConfig dataFixConfig;
+    private SystemStatsArchivalConfig systemStatsArchivalConfig;
     private String reportConfigFile;
     private static LoaderServerConfiguration instance;
 
@@ -85,6 +86,22 @@ public class LoaderServerConfiguration extends Configuration {
     public LoaderServerConfiguration setDataFixConfig(DataFixConfig dataFixConfig) {
         this.dataFixConfig = dataFixConfig;
         return this;
+    }
+
+    public SystemStatsArchivalConfig getSystemStatsArchivalConfig() {
+        return systemStatsArchivalConfig;
+    }
+
+    public void setSystemStatsArchivalConfig(SystemStatsArchivalConfig systemStatsArchivalConfig) {
+        this.systemStatsArchivalConfig = systemStatsArchivalConfig;
+    }
+
+    public static LoaderServerConfiguration getInstance() {
+        return instance;
+    }
+
+    public static void setInstance(LoaderServerConfiguration instance) {
+        LoaderServerConfiguration.instance = instance;
     }
 }
 
