@@ -2,6 +2,7 @@ package com.flipkart.perf.server.domain;
 
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.server.config.LoaderServerConfiguration;
+import com.flipkart.perf.server.health.metric.MetricArchiverQueue;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
 
 import java.io.File;
@@ -93,36 +94,40 @@ public class LoaderAgent {
 
     public LoaderAgent setFree() throws IOException {
         this.status = LoaderAgentStatus.FREE;
+        MetricArchiverQueue.offer("agents.free", 1);
         persist();
         return this;
     }
 
     public LoaderAgent setBusy() throws IOException {
         this.status = LoaderAgentStatus.BUSY;
+        MetricArchiverQueue.offer("agents.busy", 1);
         persist();
         return this;
     }
 
     public LoaderAgent setEnabled() throws IOException {
-        this.status = LoaderAgentStatus.FREE;
-        persist();
+        this.setFree();
         return this;
     }
 
     public LoaderAgent setDisabled() throws IOException {
         this.status = LoaderAgentStatus.DISABLED;
+        MetricArchiverQueue.offer("agents.disabled", 1);
         persist();
         return this;
     }
 
     public LoaderAgent setNotReachable() throws IOException {
         this.status = LoaderAgentStatus.NOT_REACHABLE;
+        MetricArchiverQueue.offer("agents.notReachable", 1);
         persist();
         return this;
     }
 
     public LoaderAgent setDRegistered() throws IOException {
         this.status = LoaderAgentStatus.D_REGISTERED;
+        MetricArchiverQueue.offer("agents.dRegistered", 1);
         persist();
         return this;
     }

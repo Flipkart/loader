@@ -45,6 +45,10 @@ public class JMXConnection
         this.server = jmxConnector.getMBeanServerConnection();
     }
 
+    public JMXConnection(MBeanServer server){
+        this.server = server;
+    }
+
     public List<MemoryPoolMXBean> getMemoryPoolMXBeans() throws MalformedObjectNameException, NullPointerException, IOException {
         List<MemoryPoolMXBean> memoryPoolMXBeans = new ArrayList<MemoryPoolMXBean>();
         
@@ -61,7 +65,7 @@ public class JMXConnection
             {
                 ObjectName objName = (ObjectName) iterator.next();
                 // Getting the MX Bean
-                MemoryPoolMXBean p = newPlatformMXBeanProxy(server,objName.getCanonicalName(),MemoryPoolMXBean.class);
+                MemoryPoolMXBean p = newPlatformMXBeanProxy(server, objName.getCanonicalName(),MemoryPoolMXBean.class);
                 memoryPoolMXBeans.add(p);
             }
         }
@@ -140,7 +144,8 @@ public class JMXConnection
     }
 
     public void close() throws IOException {
-        this.jmxConnector.close();
+        if(this.jmxConnector !=null)
+            this.jmxConnector.close();
     }
 
     public MBeanServerConnection getServer() {
