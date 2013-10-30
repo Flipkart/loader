@@ -88,7 +88,7 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
     private MetricArchivingEngine initializeSystemStatsMonitor(SystemStatsArchivalConfig systemStatsArchivalConfig)
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         List<MetricMonitor> metricMonitors = new ArrayList<MetricMonitor>();
-        metricMonitors.add(new JmxMetricMonitor("s").setInterval(30000));
+        metricMonitors.add(new JmxMetricMonitor("server.jmx").setInterval(30000));
         MetricsMonitorThread.startMonitoring(metricMonitors);
         MetricArchivingEngine metricArchivingEngine = MetricArchivingEngine.build(systemStatsArchivalConfig);
         MetricArchivingThread.startMetricArchiving(metricArchivingEngine);

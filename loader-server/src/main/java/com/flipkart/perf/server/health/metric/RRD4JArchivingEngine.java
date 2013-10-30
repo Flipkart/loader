@@ -3,6 +3,7 @@ package com.flipkart.perf.server.health.metric;
 import com.flipkart.perf.common.constant.MathConstant;
 import com.flipkart.perf.common.util.Clock;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
+import org.apache.commons.lang.RandomStringUtils;
 import org.rrd4j.ConsolFun;
 import org.rrd4j.DsType;
 import org.rrd4j.core.*;
@@ -18,14 +19,13 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 
-
 /**
  * Follow https://code.google.com/p/rrd4j/wiki/Tutorial when in doubt
  */
 public class RRD4JArchivingEngine extends MetricArchivingEngine{
-    private RrdDef rrdDef;
     private String rrdBasePath;
     private Map<String, String> metricPathMap;
+    private Map<String, String> metricDataSourceMap;
     private Map<String, RrdDb> metricRddDBMap;
     private static final String RRD_BASE_PATH = "basePath";
 
@@ -33,14 +33,19 @@ public class RRD4JArchivingEngine extends MetricArchivingEngine{
         super(config);
         metricPathMap = new LinkedHashMap<String, String>();
         metricRddDBMap = new LinkedHashMap<String, RrdDb>();
+        metricDataSourceMap = new HashMap<String, String>();
+
         File rrdBasePath = new File(this.rrdBasePath = config.get(RRD_BASE_PATH).toString());
         if(!rrdBasePath.exists())
             rrdBasePath.mkdirs();
 
         for(File metricSourceFile : rrdBasePath.listFiles()) {
             if(metricSourceFile.getName().endsWith(".rrd")) {
-                metricPathMap.put(metricSourceFile.getName().replace(".rrd",""), metricSourceFile.getAbsolutePath());
-                metricRddDBMap.put(metricSourceFile.getName().replace(".rrd",""), new RrdDb(metricSourceFile.getAbsolutePath()));
+                String metricName = metricSourceFile.getName().replace(".rrd","");
+                metricPathMap.put(metricName, metricSourceFile.getAbsolutePath());
+                RrdDb rrdDb = new RrdDb(metricSourceFile.getAbsolutePath());
+                metricRddDBMap.put(metricName, rrdDb);
+                metricDataSourceMap.put(metricName,rrdDb.getRrdDef().getDsDefs()[0].getDsName());
             }
         }
     }
@@ -55,8 +60,12 @@ public class RRD4JArchivingEngine extends MetricArchivingEngine{
         for(ResourceMetric resourceMetric : resourceMetrics) {
             for(Metric metric : resourceMetric.getMetrics()) {
                 if(!metricRddDBMap.containsKey(metric.getName())) {
-                    DsDef dsDef = new DsDef(metric.getName(), DsType.valueOf(metric.getMetricType().toString()), 600, Double.NaN, Double.NaN);
-                    RrdDef rrdDef = new RrdDef(this.rrdBasePath + File.separator + metric.getName() + ".rrd");
+
+                    String newDataSourceNameForMetric = getUniqueRandomDataSourceName();
+                    String metricRRDFilePath = this.rrdBasePath + File.separator + metric.getName() + ".rrd";
+
+                    DsDef dsDef = new DsDef(newDataSourceNameForMetric, DsType.valueOf(metric.getMetricType().toString()), 600, Double.NaN, Double.NaN);
+                    RrdDef rrdDef = new RrdDef(metricRRDFilePath);
                     rrdDef.addDatasource(dsDef);
                     rrdDef.setStartTime((int)((resourceMetric.getAt() - 1000) / MathConstant.THOUSAND));
 
@@ -74,8 +83,10 @@ public class RRD4JArchivingEngine extends MetricArchivingEngine{
                     rrdDef.addArchive(ConsolFun.TOTAL, 0.5, 120, 24 * 30); // archiving for 30 days
                     rrdDef.addArchive(ConsolFun.TOTAL, 0.5, 3600, 30 * 12 * 2); // archiving roughly for 2 years
                     RrdDb rrdDb = new RrdDb(rrdDef);
+
                     metricRddDBMap.put(metric.getName(), rrdDb);
-                    metricPathMap.put(metric.getName(), this.rrdBasePath + File.separator + metric.getName() + ".rrd");
+                    metricPathMap.put(metric.getName(), metricRRDFilePath);
+                    metricDataSourceMap.put(metric.getName(), newDataSourceNameForMetric);
                 }
 
                 RrdDb rrdDb = new RrdDb(metricPathMap.get(metric.getName()));
@@ -84,6 +95,13 @@ public class RRD4JArchivingEngine extends MetricArchivingEngine{
                 rrdDb.close();
             }
         }
+    }
+
+    private String getUniqueRandomDataSourceName() {
+        String uniqueString = RandomStringUtils.randomAlphanumeric(20);
+        while(metricDataSourceMap.values().contains(uniqueString))
+            uniqueString = RandomStringUtils.randomAlphanumeric(20);
+        return uniqueString;
     }
 
     @Override
@@ -103,7 +121,7 @@ public class RRD4JArchivingEngine extends MetricArchivingEngine{
     @Override
     public String fetchMetrics(String metricName, String consolFuc, long startTimeSec, long endTimeSec) throws IOException {
         RrdDb rrdDb = metricRddDBMap.get(metricName);
-        int dataSourceIndex = rrdDb.getDatasource(metricName).getDsIndex();
+        int dataSourceIndex = rrdDb.getDatasource(metricDataSourceMap.get(metricName)).getDsIndex();
         FetchRequest fetchRequest = rrdDb.createFetchRequest(ConsolFun.valueOf(consolFuc), startTimeSec, endTimeSec);
         FetchData fetchData = fetchRequest.fetchData();
         StringBuffer buffer = new StringBuffer();
@@ -121,7 +139,7 @@ public class RRD4JArchivingEngine extends MetricArchivingEngine{
     public InputStream fetchMetricsImage(String metricName, String consolFuc, long startTimeSec, long endTimeSec) throws IOException {
         RrdGraphDef graphDef = new RrdGraphDef();
         graphDef.setTimeSpan(startTimeSec, endTimeSec);
-        graphDef.datasource(metricName, metricPathMap.get(metricName), metricName, ConsolFun.valueOf(consolFuc));
+        graphDef.datasource(metricName, metricPathMap.get(metricName), metricDataSourceMap.get(metricName), ConsolFun.valueOf(consolFuc));
         graphDef.line(metricName, new Color(0xFF, 0, 0), null, 2);
         graphDef.setTitle(metricName);
         String imageFilePath = "/tmp/"+metricName+".ig";

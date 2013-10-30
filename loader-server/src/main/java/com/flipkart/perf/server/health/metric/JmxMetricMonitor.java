@@ -35,10 +35,10 @@ public class JmxMetricMonitor extends MetricMonitor{
         MemoryMXBean memoryMXBean = jmxConnection.getMemoryMXBean();
         MemoryUsage memoryUsage = memoryMXBean.getHeapMemoryUsage();
         ResourceMetric resourceMetric = new ResourceMetric();
-        resourceMetric.addMetrics(this.getName() + ".heap.max", (double) memoryUsage.getMax());
-        resourceMetric.addMetrics(this.getName() + ".heap.committed", (double) memoryUsage.getCommitted());
-        resourceMetric.addMetrics(this.getName() + ".heap.used", (double) memoryUsage.getUsed());
-        resourceMetric.addMetrics(this.getName() + ".heap.percentage", memoryUsage.getUsed() * 100d / memoryUsage.getMax());
+        resourceMetric.addMetrics(this.getName() + ".memory.heap.max", (double) memoryUsage.getMax());
+        resourceMetric.addMetrics(this.getName() + ".memory.heap.committed", (double) memoryUsage.getCommitted());
+        resourceMetric.addMetrics(this.getName() + ".memory.heap.used", (double) memoryUsage.getUsed());
+        resourceMetric.addMetrics(this.getName() + ".memory.heap.percentage", memoryUsage.getUsed() * 100d / memoryUsage.getMax());
 
         // Load Average
         OperatingSystemMXBean osMXBean        = jmxConnection.getOperatingSystemMXBean();
@@ -60,8 +60,8 @@ public class JmxMetricMonitor extends MetricMonitor{
         // GC info
         List<GarbageCollectorMXBean> gcPool	=	jmxConnection.getGCPoolMXBeans();
         for(GarbageCollectorMXBean	gc	:	gcPool) {
-            resourceMetric.addMetrics(this.getName() + ".gc." + gc.getName().substring(0,7) + ".count", (double) gc.getCollectionCount());
-            resourceMetric.addMetrics(this.getName() + ".gc." + gc.getName().substring(0,7) + ".time", (double) gc.getCollectionTime());
+            resourceMetric.addMetrics(this.getName() + ".gc." + gc.getName() + ".count", (double) gc.getCollectionCount());
+            resourceMetric.addMetrics(this.getName() + ".gc." + gc.getName() + ".time", (double) gc.getCollectionTime());
         }
 
         return resourceMetric;
