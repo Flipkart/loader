@@ -9,6 +9,7 @@ package com.flipkart.perf.server.config;
  */
 
 import com.yammer.dropwizard.config.Configuration;
+import nitinka.jmetrics.JMetricConfig;
 
 public class LoaderServerConfiguration extends Configuration {
     private String appName;
@@ -17,7 +18,7 @@ public class LoaderServerConfiguration extends Configuration {
     private MonitoringAgentConfig monitoringAgentConfig;
     private JobFSConfig jobFSConfig;
     private DataFixConfig dataFixConfig;
-    private SystemStatsArchivalConfig systemStatsArchivalConfig;
+    private JMetricConfig jMetricConfig;
     private String reportConfigFile;
     private static LoaderServerConfiguration instance;
 
@@ -88,12 +89,12 @@ public class LoaderServerConfiguration extends Configuration {
         return this;
     }
 
-    public SystemStatsArchivalConfig getSystemStatsArchivalConfig() {
-        return systemStatsArchivalConfig;
+    public JMetricConfig getjMetricConfig() {
+        return jMetricConfig;
     }
 
-    public void setSystemStatsArchivalConfig(SystemStatsArchivalConfig systemStatsArchivalConfig) {
-        this.systemStatsArchivalConfig = systemStatsArchivalConfig;
+    public void setjMetricConfig(JMetricConfig jMetricConfig) {
+        this.jMetricConfig = jMetricConfig;
     }
 
     public static LoaderServerConfiguration getInstance() {
