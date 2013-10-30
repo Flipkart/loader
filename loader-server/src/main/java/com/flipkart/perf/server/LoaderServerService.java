@@ -5,16 +5,16 @@ package com.flipkart.perf.server;
  * USer : nitinka
  */
 
-import com.flipkart.perf.server.config.SystemStatsArchivalConfig;
 import com.flipkart.perf.server.daemon.*;
 import com.flipkart.perf.server.domain.WorkflowScheduler;
 import com.flipkart.perf.server.health.*;
-import com.flipkart.perf.server.health.metric.*;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.FilterBuilder;
+import nitinka.jmetrics.JMetric;
+import nitinka.jmetrics.controller.dropwizard.JMetricController;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import com.flipkart.perf.server.cache.AgentsCache;
 import com.flipkart.perf.server.cache.LibCache;
@@ -24,10 +24,6 @@ import com.flipkart.perf.server.resource.*;
 import com.flipkart.perf.server.util.DeploymentHelper;
 import com.flipkart.perf.server.util.JobStatsHelper;
 import com.flipkart.perf.server.cache.JobsCache;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class LoaderServerService extends Service<LoaderServerConfiguration> {
 
@@ -69,8 +65,10 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         workFlowDispatcher.start();
         WorkflowScheduler.initialize();
 
-        MetricArchivingEngine metricArchivingEngine = initializeSystemStatsMonitor(configuration.getSystemStatsArchivalConfig());
-        environment.addResource(new SystemStatsResource(metricArchivingEngine));
+
+        JMetric.initialize(configuration.getjMetricConfig());
+        environment.addResource(new JMetricController());
+
         environment.addResource(new JobResource(configuration.getAgentConfig(),
                 configuration.getJobFSConfig()));
         environment.addResource(new DeployResourcesResource(configuration.getResourceStorageFSConfig()));
@@ -83,16 +81,6 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         environment.addResource(new WorkflowJobResource());
         environment.addHealthCheck(new CounterCompoundThreadHealthCheck("CounterCompoundThread"));
         environment.addHealthCheck(new TimerComputationThreadHealthCheck("TimerComputationThread"));
-    }
-
-    private MetricArchivingEngine initializeSystemStatsMonitor(SystemStatsArchivalConfig systemStatsArchivalConfig)
-            throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        List<MetricMonitor> metricMonitors = new ArrayList<MetricMonitor>();
-        metricMonitors.add(new JmxMetricMonitor("server.jmx").setInterval(30000));
-        MetricsMonitorThread.startMonitoring(metricMonitors);
-        MetricArchivingEngine metricArchivingEngine = MetricArchivingEngine.build(systemStatsArchivalConfig);
-        MetricArchivingThread.startMetricArchiving(metricArchivingEngine);
-        return metricArchivingEngine;
     }
 
     public static void main(String[] args) throws Exception {

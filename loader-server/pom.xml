@@ -66,6 +66,11 @@
             <artifactId>quartz</artifactId>
             <version>2.1.1</version>
         </dependency>
+        <dependency>
+                <groupId>nitinka.jmetrics</groupId>
+                <artifactId>JMetrics</artifactId>
+                <version>0.1.2</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
