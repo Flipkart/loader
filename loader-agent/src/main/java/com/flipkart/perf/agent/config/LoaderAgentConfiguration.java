@@ -10,6 +10,7 @@ package com.flipkart.perf.agent.config;
 
 import com.yammer.dropwizard.config.Configuration;
 import com.flipkart.perf.agent.util.SystemInfo;
+import nitinka.jmetrics.JMetricConfig;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
@@ -23,6 +24,7 @@ public class LoaderAgentConfiguration extends Configuration {
     private JobStatSyncConfig jobStatSyncConfig;
     private Map registrationParams;
     private static LoaderAgentConfiguration instance;
+    private JMetricConfig jMetricConfig;
 
     public LoaderAgentConfiguration() {
         instance = this;
@@ -98,4 +100,13 @@ public class LoaderAgentConfiguration extends Configuration {
     public void setJobFSConfig(JobFSConfig jobFSConfig) {
         this.jobFSConfig = jobFSConfig;
     }
+
+    public JMetricConfig getjMetricConfig() {
+        return jMetricConfig;
+    }
+
+    public void setjMetricConfig(JMetricConfig jMetricConfig) {
+        this.jMetricConfig = jMetricConfig;
+    }
+
 }

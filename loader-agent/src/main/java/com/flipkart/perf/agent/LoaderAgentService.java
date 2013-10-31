@@ -1,5 +1,7 @@
 package com.flipkart.perf.agent;
 
+import nitinka.jmetrics.JMetric;
+import nitinka.jmetrics.controller.dropwizard.JMetricController;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +52,9 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
 
         JobProcessorThread.initialize(configuration.getJobProcessorConfig(),
                 configuration.getJobFSConfig());
+
+        JMetric.initialize(configuration.getjMetricConfig());
+        environment.addResource(new JMetricController());
 
         environment.addResource(new DeployResourcesResource(configuration.getResourceStorageFSConfig()));
         environment.addResource(new AdminResource(configuration));
