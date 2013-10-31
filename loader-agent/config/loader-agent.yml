@@ -35,6 +35,11 @@ jobStatSyncConfig:
   #Keep Lines Read keeping "15000 Lines per second to push to server" in mind
   # So if sync interval is 15000, linesToSyncInOneGo should be 15000 * 10  = 150000
 
+jMetricConfig:
+  archivalEngineClass: "nitinka.jmetrics.archive.RRD4JArchivingEngine"
+  configParams:
+    basePath: "/var/log/loader-agent/systemStats"
+
 http:
   port: 8888
   adminPort: 8881
@@ -52,3 +57,4 @@ logging:
 
       # Do not display log statements below this threshold to stdout.
     threshold: ALL
+
