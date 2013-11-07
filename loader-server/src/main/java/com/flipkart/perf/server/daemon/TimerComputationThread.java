@@ -12,6 +12,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.flipkart.perf.common.constant.MathConstant;
 import com.flipkart.perf.common.util.Clock;
@@ -35,7 +37,6 @@ import com.yammer.metrics.stats.Snapshot;
 public class TimerComputationThread extends Thread {
 
     private static ObjectMapper objectMapper;
-    private final int checkInterval;
     private final JobFSConfig jobFSConfig;
     private boolean stop = false;
     private List<String> aliveJobs;
@@ -102,9 +103,8 @@ public class TimerComputationThread extends Thread {
         }
     }
 
-    private TimerComputationThread(JobFSConfig jobFSConfig, int checkInterval) {
+    private TimerComputationThread(JobFSConfig jobFSConfig) {
         this.jobFSConfig = jobFSConfig;
-        this.checkInterval = checkInterval;
         this.aliveJobs = new ArrayList<String>();
         this.fileAlreadyReadLinesMap = new HashMap<String, Long>();
         this.fileHistogramMap = new HashMap<String, Histogram>();
@@ -112,9 +112,14 @@ public class TimerComputationThread extends Thread {
         this.fileCachedContentMap = new HashMap<String, List>();
     }
 
-    public static TimerComputationThread initialize(JobFSConfig jobFSConfig, int checkInterval) {
+    public static TimerComputationThread initialize(ScheduledExecutorService scheduledExecutorService, JobFSConfig jobFSConfig, int interval) {
         if(thread == null) {
-            thread = new TimerComputationThread(jobFSConfig, checkInterval);
+            thread = new TimerComputationThread(jobFSConfig);
+            scheduledExecutorService.scheduleWithFixedDelay(thread,
+                    1000,
+                    interval,
+                    TimeUnit.MILLISECONDS);
+
         }
         return thread;
     }
@@ -124,32 +129,15 @@ public class TimerComputationThread extends Thread {
     }
 
     public void run() {
-        while(keepRunning()) {
-            synchronized (this.aliveJobs) {
-                for(String jobId : this.aliveJobs) {
-                    try {
-                        crunchJobTimers(jobId);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                    } catch (IOException e) {
-                        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                    }
+        synchronized (this.aliveJobs) {
+            for(String jobId : this.aliveJobs) {
+                try {
+                    crunchJobTimers(jobId);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                } catch (IOException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 }
-            }
-            checkInterval();
-        }
-    }
-
-    private void checkInterval() {
-        logger.debug("Sleeping for " + this.checkInterval + "ms");
-        int totalInterval = 0;
-        int granularSleep = 200;
-        while(totalInterval < this.checkInterval && !this.stop) {
-            try {
-                Clock.sleep(granularSleep);
-                totalInterval += granularSleep;
-            } catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
         }
     }
@@ -342,14 +330,6 @@ public class TimerComputationThread extends Thread {
         logger.info("Cached Content has data for  :"+(lastLineTimeMS - firstLineTimeMS)+"ms time");
 
         return ((currentTimeMS - firstLineTimeMS) > ((isAgentStats ? 20 : 60) + 30) * MathConstant.THOUSAND) || jobOver(jobId); // Crunch if data is older than 60 + 30 seconds
-    }
-
-    private boolean keepRunning() {
-        return !stop;
-    }
-
-    public void stopIt() {
-        stop = true;
     }
 
     public void addJob(String jobId) {
