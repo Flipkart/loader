@@ -1,5 +1,13 @@
 appName: "Loader Server"
 
+scheduledExecutorConfig:
+  threadPoolSize: 10
+  counterCompoundThreadInterval: 10000
+  counterThroughputThreadInterval: 10000
+  groupConfConsolidationThreadInterval: 10000
+  jobDispatcherThreadInterval: 1000
+  timerComputationThreadInterval: 10000
+
 resourceStorageFSConfig:
   udfLibsPath: "/usr/share/loader-server/libs"
   udfUnDeployedLibsPath: "/usr/share/loader-server/unDeployedLibs"

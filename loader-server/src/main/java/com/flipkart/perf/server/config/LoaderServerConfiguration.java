@@ -13,6 +13,7 @@ import nitinka.jmetrics.JMetricConfig;
 
 public class LoaderServerConfiguration extends Configuration {
     private String appName;
+    private ScheduledExecutorConfig scheduledExecutorConfig;
     private ResourceStorageFSConfig resourceStorageFSConfig;
     private AgentConfig agentConfig;
     private MonitoringAgentConfig monitoringAgentConfig;
@@ -103,6 +104,14 @@ public class LoaderServerConfiguration extends Configuration {
 
     public static void setInstance(LoaderServerConfiguration instance) {
         LoaderServerConfiguration.instance = instance;
+    }
+
+    public ScheduledExecutorConfig getScheduledExecutorConfig() {
+        return scheduledExecutorConfig;
+    }
+
+    public void setScheduledExecutorConfig(ScheduledExecutorConfig scheduledExecutorConfig) {
+        this.scheduledExecutorConfig = scheduledExecutorConfig;
     }
 }
 

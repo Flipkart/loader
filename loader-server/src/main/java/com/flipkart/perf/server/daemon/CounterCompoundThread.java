@@ -1,23 +1,23 @@
 package com.flipkart.perf.server.daemon;
 
 import com.flipkart.perf.common.constant.MathConstant;
-import com.flipkart.perf.common.util.Clock;
 import com.flipkart.perf.common.util.FileHelper;
+import com.flipkart.perf.config.FSConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.flipkart.perf.server.config.JobFSConfig;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Just sum up the counters and write to counter.cumulative
  */
 public class CounterCompoundThread extends Thread {
 
-    private final int checkInterval;
     private final JobFSConfig jobFSConfig;
-    private boolean stop = false;
     private List<String> aliveJobs;
 
     private Map<String,List<String>> fileCachedContentMap; // Cached Content per counter throughput file
@@ -36,7 +36,6 @@ public class CounterCompoundThread extends Thread {
         logger = LoggerFactory.getLogger(CounterCompoundThread.class);
         FILE_EXTENSION = "cumulative";
     }
-
 
     private class CounterStatsInstance {
         private Date time;
@@ -84,18 +83,21 @@ public class CounterCompoundThread extends Thread {
         }
     }
 
-    private CounterCompoundThread(JobFSConfig jobFSConfig, int checkInterval) {
+    private CounterCompoundThread(JobFSConfig jobFSConfig) {
         this.jobFSConfig = jobFSConfig;
-        this.checkInterval = checkInterval;
         this.aliveJobs = new ArrayList<String>();
         this.fileCachedContentMap = new HashMap<String, List<String>>();
         this.fileTouchPointMap = new HashMap<String, FileTouchPoint>();
         this.fileLastCrunchPointMap = new HashMap<String, LastCrunchPoint>();
     }
 
-    public static CounterCompoundThread initialize(JobFSConfig jobFSConfig, int checkInterval) {
+    public static CounterCompoundThread initialize(ScheduledExecutorService scheduledExecutorService, JobFSConfig jobFSConfig, int interval) {
         if(thread == null) {
-            thread = new CounterCompoundThread(jobFSConfig, checkInterval);
+            thread = new CounterCompoundThread(jobFSConfig);
+            scheduledExecutorService.scheduleWithFixedDelay(thread,
+                    1000,
+                    interval,
+                    TimeUnit.MILLISECONDS);
         }
         return thread;
     }
@@ -105,13 +107,14 @@ public class CounterCompoundThread extends Thread {
     }
 
     public void run() {
-        while(keepRunning()) {
+        try {
             synchronized (this.aliveJobs) {
                 for(String jobId : this.aliveJobs) {
                     crunchJobCounters(jobId);
                 }
             }
-            checkInterval();
+        } catch (Exception e) {
+            logger.error("Error while crunching counters", e);
         }
     }
 
@@ -274,29 +277,6 @@ public class CounterCompoundThread extends Thread {
         return lines;
     }
 
-
-    private void checkInterval() {
-        logger.debug("Sleeping for "+this.checkInterval+"ms");
-        int totalInterval = 0;
-        int granularSleep = 200;
-        while(totalInterval < this.checkInterval && !this.stop) {
-            try {
-                Clock.sleep(granularSleep);
-                totalInterval += granularSleep;
-            } catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-        }
-    }
-
-    private boolean keepRunning() {
-        return !stop;
-    }
-
-    public void stopIt() {
-        stop = true;
-    }
-
     synchronized public void addJob(String jobId) {
         this.aliveJobs.add(jobId);
     }
@@ -304,10 +284,5 @@ public class CounterCompoundThread extends Thread {
     synchronized public void removeJob(String jobId) {
         this.aliveJobs.remove(jobId);
         crunchJobCounters(jobId);
-    }
-
-    public static void main(String[] args) {
-        CounterCompoundThread t = new CounterCompoundThread(null, 10);
-        t.crunchJobFileCounter("", new File("/var/log/loader-server/jobs/a09cc4f7-e868-4b2c-ae55-d9e992c2bd46/jobStats/SampleGroup/counters/tmp1"));
     }
 }

@@ -25,10 +25,15 @@ import com.flipkart.perf.server.util.DeploymentHelper;
 import com.flipkart.perf.server.util.JobStatsHelper;
 import com.flipkart.perf.server.cache.JobsCache;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 public class LoaderServerService extends Service<LoaderServerConfiguration> {
 
-	public LoaderServerService() {
-	}
+    private ScheduledExecutorService scheduledExecutorService;
+
+    public LoaderServerService() {
+    }
 	
     @Override
     public void initialize(Bootstrap<LoaderServerConfiguration> bootstrap) {
@@ -38,28 +43,35 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
 
     @Override
     public void run(LoaderServerConfiguration configuration, Environment environment) throws Exception {
+        // Generic Stuff
+        FilterBuilder filterConfig = environment.addFilter(CrossOriginFilter.class, "/*");
+        filterConfig.setInitParam(CrossOriginFilter.PREFLIGHT_MAX_AGE_PARAM, String.valueOf(60*60*24)); // 1 day - jetty-servlet CrossOriginFilter will convert to Int.
+
         environment.addProvider(com.sun.jersey.multipart.impl.MultiPartReaderServerSide.class);
 
         // Do Data Fixes
         new DataFixRunner(configuration.getDataFixConfig()).run();
 
-        // Initialization
+        // Cache Initialization
         JobsCache.initiateCache(configuration.getJobFSConfig());
         LibCache.initialize(configuration.getResourceStorageFSConfig());
-        CounterCompoundThread.initialize(configuration.getJobFSConfig(), 10000).start();
-        CounterThroughputThread.initialize(configuration.getJobFSConfig(), 10000).start();
-        TimerComputationThread.initialize(configuration.getJobFSConfig(), 10000).start();
-        GroupConfConsolidationThread.initialize(configuration.getJobFSConfig(), 10000).start();
-        DeploymentHelper.initialize(configuration.getAgentConfig(),
-                configuration.getResourceStorageFSConfig());
         AgentsCache.initialize(configuration.getAgentConfig());
-
-        FilterBuilder filterConfig = environment.addFilter(CrossOriginFilter.class, "/*");
-        filterConfig.setInitParam(CrossOriginFilter.PREFLIGHT_MAX_AGE_PARAM, String.valueOf(60*60*24)); // 1 day - jetty-servlet CrossOriginFilter will convert to Int.
 
         JobStatsHelper.build(configuration.getJobFSConfig(), configuration.getAgentConfig(), configuration.getMonitoringAgentConfig());
 
-        JobDispatcherThread.initialize();
+        // Start the Scheduled Executor
+        this.scheduledExecutorService = Executors.newScheduledThreadPool(configuration.getScheduledExecutorConfig().getThreadPoolSize());
+        // initialize Daemon Services
+        CounterCompoundThread.initialize(scheduledExecutorService, configuration.getJobFSConfig(), configuration.getScheduledExecutorConfig().getCounterCompoundThreadInterval());
+        CounterThroughputThread.initialize(scheduledExecutorService, configuration.getJobFSConfig(), configuration.getScheduledExecutorConfig().getCounterThroughputThreadInterval());
+        GroupConfConsolidationThread.initialize(scheduledExecutorService, configuration.getJobFSConfig(), configuration.getScheduledExecutorConfig().getGroupConfConsolidationThreadInterval());
+        JobDispatcherThread.initialize(scheduledExecutorService, configuration.getScheduledExecutorConfig().getJobDispatcherThreadInterval());
+        TimerComputationThread.initialize(scheduledExecutorService, configuration.getJobFSConfig(), configuration.getScheduledExecutorConfig().getTimerComputationThreadInterval());
+
+        DeploymentHelper.initialize(configuration.getAgentConfig(),
+                configuration.getResourceStorageFSConfig());
+
+
         ScheduledWorkflowDispatcherThread.initialize();
         Thread workFlowDispatcher = new Thread(ScheduledWorkflowDispatcherThread.getInstance());
         workFlowDispatcher.start();
