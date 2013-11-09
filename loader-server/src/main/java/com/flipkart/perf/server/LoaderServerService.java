@@ -5,10 +5,13 @@ package com.flipkart.perf.server;
  * USer : nitinka
  */
 
+import com.flipkart.perf.server.auth.User;
+import com.flipkart.perf.server.auth.dummy.SimpleAuthenticator;
 import com.flipkart.perf.server.daemon.*;
 import com.flipkart.perf.server.domain.WorkflowScheduler;
 import com.flipkart.perf.server.health.*;
 import com.yammer.dropwizard.Service;
+import com.yammer.dropwizard.auth.basic.BasicAuthProvider;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Environment;
@@ -43,6 +46,9 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
 
     @Override
     public void run(LoaderServerConfiguration configuration, Environment environment) throws Exception {
+        environment.addProvider(new BasicAuthProvider<User>(new SimpleAuthenticator(),
+                "SUPER SECRET STUFF"));
+
         // Generic Stuff
         FilterBuilder filterConfig = environment.addFilter(CrossOriginFilter.class, "/*");
         filterConfig.setInitParam(CrossOriginFilter.PREFLIGHT_MAX_AGE_PARAM, String.valueOf(60*60*24)); // 1 day - jetty-servlet CrossOriginFilter will convert to Int.
@@ -91,6 +97,7 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         environment.addResource(new AdminResource(configuration));
         environment.addResource(new ScheduledWorkflowResource());
         environment.addResource(new WorkflowJobResource());
+        environment.addResource(new SampleAuthenticatedResource());
         environment.addHealthCheck(new CounterCompoundThreadHealthCheck("CounterCompoundThread"));
         environment.addHealthCheck(new TimerComputationThreadHealthCheck("TimerComputationThread"));
     }
