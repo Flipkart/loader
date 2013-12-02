@@ -48,7 +48,18 @@
 		$(function(){
 		  $("#navigation").load('header.html');
 	      ko.applyBindings(new searchJobsListModel());
-	    })
+	      $("#moreText").hide();
+			$(".more").click(function(){
+				var div = $(this).parent().parent();
+				$(div).children("#lessText").show();
+				$(div).children("#moreText").hide();
+			});	
+			$(".less").click(function(){
+				var div = $(this).parent().parent();
+				$(div).children("#moreText").show();
+				$(div).children("#lessText").hide();
+			});
+	    });
 	    $('.dropdown-toggle').dropdown();
 	</script>
 	<!--Navigation bar ends here-->
@@ -115,19 +126,27 @@
 					<th>Start Time</th>
 					<th>End Time</th>
 					<th>Status</th>
+					<th>Remarks</th>
 				</tr>
 			</thead>
 			<tbody data-bind="foreach: jobs">
 				<tr data-bind="attr: { 'class': rowClass }">
-					<td><a data-bind="attr: {'href': jobUrl}, text: jobId"></td>
+					<td><label class="checkbox"><input type="checkbox" data-bind="attr: {'id': jobId}"><a data-bind="attr: {'href': jobUrl}, text: shortJobId"></label></td>
 					<td><a data-bind="attr: {'href': runUrl}, text: runName"></td>
 					<td data-bind="text: startTime"></td>
 					<td data-bind="text: endTime"></td>
 					<td data-bind="text: jobStatus"></td>
+					<td><div><div id="lessText" data-bind="html: lessText"></div><div style="display:none;word-break:break-all" id="moreText" data-bind="html: moreText"></div><div></td>
 				</tr>
 			</tbody>
 		</table>
 		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span2 btn-grp">
+			<button class="btn" onclick="deleteJobs()">Delete Jobs</button>
+		</div>
+		<div class="span4 pull-right">
 			<div id="pager" class="pager">
  				<form>
     				<img src="img/first.png" class="first"/>
@@ -144,6 +163,7 @@
     				</select>
   				</form>
 			</div>
+		</div>
 	</div>
 </body>
 </html>

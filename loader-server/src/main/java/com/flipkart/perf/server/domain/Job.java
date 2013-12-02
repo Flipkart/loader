@@ -5,23 +5,16 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.domain.Load;
 import com.flipkart.perf.server.util.ResponseBuilder;
-import com.sun.jersey.spi.container.WebApplication;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,11 +31,13 @@ import com.flipkart.perf.server.util.ObjectMapperUtil;
 
 import javax.ws.rs.WebApplicationException;
 
-public class Job {
+public  class Job {
 
     private static final LoaderServerConfiguration configuration = LoaderServerConfiguration.instance();
     private static final ObjectMapper objectMapper = ObjectMapperUtil.instance();
     private static Logger logger = LoggerFactory.getLogger(Job.class);
+
+   // public abstract void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException;
 
     public static enum JOB_STATUS {
         QUEUED, RUNNING, PAUSED, COMPLETED, KILLED, FAILED_TO_START, ERROR;
@@ -57,6 +52,17 @@ public class Job {
     private Set<String> monitoringAgents;
     private String remarks = "";
     private String logLevel = "INFO";
+
+    public static Job raiseJobRequest(JobRequest jobRequest) throws IOException {
+        //runExistsOrException(jobRequest.getRunName());
+        Job job = new Job().
+                setJobId(UUID.randomUUID().toString()).
+                setRunName(jobRequest.getRunName());
+
+        job.persistRunInfo();
+        JobDispatcherThread.instance().addJobRequest(job);
+        return job;
+    }
 
     public static class AgentJobStatus {
         private String agentIp;
@@ -316,7 +322,7 @@ public class Job {
 
         try {
             String runFile = configuration.getJobFSConfig().getRunFile(this.runName);
-            PerformanceRun performanceRun = objectMapper.readValue(new File(runFile) , PerformanceRun.class);
+            PerformanceRun performanceRun = this.performanceRun();
 
             // Raising request to monitoring agents to start collecting metrics from on demand resource collectors
             raiseOnDemandResourceRequest(performanceRun.getOnDemandMetricCollections());
@@ -561,21 +567,32 @@ public class Job {
         String runFile = configuration.getJobFSConfig().getRunFile(this.runName);
         PerformanceRun performanceRun = objectMapper.readValue(new File(runFile) , PerformanceRun.class);
 
-        String runName = performanceRun.getRunName();
-
         // Add file containing run name in job folder
-        String jobRunNameFile = configuration.getJobFSConfig().getJobRunNameFile(jobId);
+        String jobRunNameFile = configuration.getJobFSConfig().getJobRunFile(jobId);
         FileHelper.createFilePath(jobRunNameFile);
-        FileHelper.persistStream(new ByteArrayInputStream(runName.getBytes()),
-                jobRunNameFile,
-                false);
+        objectMapper.defaultPrettyPrintingWriter().writeValue(new File(jobRunNameFile), performanceRun);
 
         // Adding job ids in run folder file
+        String runName = performanceRun.getRunName();
         String runJobsFile = configuration.getJobFSConfig().getRunJobsFile(runName);
         FileHelper.createFilePath(runJobsFile);
         FileHelper.persistStream(new ByteArrayInputStream((jobId + "\n").getBytes()),
                 runJobsFile,
                 true);
+    }
+
+    @JsonIgnore
+    public PerformanceRun performanceRun() {
+        try {
+            if(new File(configuration.getJobFSConfig().getJobRunFile(jobId)).exists()) {
+                return ObjectMapperUtil.instance().
+                        readValue(new File(configuration.getJobFSConfig().getJobRunFile(jobId)), PerformanceRun.class);
+            }
+            return PerformanceRun.runExistsOrException(this.runName);
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        return null;
     }
 
     /**

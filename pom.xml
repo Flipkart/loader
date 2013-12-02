@@ -16,6 +16,7 @@
         <module>monitoring-service</module>
         <module>loader-http-operations</module>
         <module>loader-common-operations</module>
+        <module>loader-redis-operations</module>
         <module>sample-app</module>
     </modules>
     <licenses>
