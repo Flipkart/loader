@@ -5,6 +5,7 @@ import com.flipkart.perf.core.FunctionContext;
 import com.flipkart.perf.function.FunctionParameter;
 import com.flipkart.perf.function.PerformanceFunction;
 import com.flipkart.perf.util.TimerContext;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,5 +45,12 @@ public class MathAddFunction extends PerformanceFunction {
                 setMandatory(true).
                 setDescription("List of numbers as json list"));
         return parameters;
+    }
+    
+    @Override
+    public LinkedHashMap<String, SharedDataInfo> sharedData(){
+        LinkedHashMap<String, SharedDataInfo> sharedCollections = new LinkedHashMap<String, SharedDataInfo>();
+        sharedCollections.put("queue1", SharedDataInfo.sharedList("queue1", String.class));
+        return new LinkedHashMap<String, SharedDataInfo>();
     }
 }

@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response;
 import com.flipkart.perf.common.util.ClassHelper;
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.function.FunctionParameter;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.reflections.Reflections;
 import org.reflections.Store;
@@ -353,6 +354,10 @@ public class DeployResourcesResource {
                     // Discover Custom Histograms for the UDF
                     method = ClassHelper.getMethod(performanceFunction , "customHistograms", new Class[]{}, customClassLoader);
                     functionInfo.setCustomHistograms((List<String>) method.invoke(object, new Object[]{}));
+
+                    // Discover Input parameters for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "sharedData", new Class[]{}, customClassLoader);
+                    functionInfo.setSharedData((LinkedHashMap<String, SharedDataInfo>) method.invoke(object, new Object[]{}));
 
                     discoveredUserFunctions.put(performanceFunction, functionInfo);
                 }
