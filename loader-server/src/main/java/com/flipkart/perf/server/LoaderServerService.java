@@ -6,12 +6,12 @@ package com.flipkart.perf.server;
  */
 
 import com.flipkart.perf.server.daemon.*;
+import com.flipkart.perf.server.domain.WorkflowScheduler;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.FilterBuilder;
-import com.yammer.metrics.core.Gauge;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import com.flipkart.perf.server.cache.AgentsCache;
 import com.flipkart.perf.server.cache.LibCache;
@@ -58,7 +58,13 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         filterConfig.setInitParam(CrossOriginFilter.PREFLIGHT_MAX_AGE_PARAM, String.valueOf(60*60*24)); // 1 day - jetty-servlet CrossOriginFilter will convert to Int.
 
         JobStatsHelper.build(configuration.getJobFSConfig(), configuration.getAgentConfig(), configuration.getMonitoringAgentConfig());
+
         JobDispatcherThread.initialize();
+
+        ScheduledWorkflowDispatcherThread.initialize();
+        Thread workFlowDispatcher = new Thread(ScheduledWorkflowDispatcherThread.getInstance());
+        workFlowDispatcher.start();
+        WorkflowScheduler.initialize();
 
         environment.addResource(new JobResource(configuration.getAgentConfig(),
                 configuration.getJobFSConfig()));
@@ -68,6 +74,8 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         environment.addResource(new FunctionResource(configuration.getResourceStorageFSConfig()));
         environment.addResource(new BusinessUnitResource(configuration.getJobFSConfig()));
         environment.addResource(new AdminResource(configuration));
+        environment.addResource(new ScheduledWorkflowResource());
+        environment.addResource(new WorkflowJobResource());
         environment.addHealthCheck(new CounterCompoundThreadHealthCheck("CounterCompoundThread"));
         environment.addHealthCheck(new TimerComputationThreadHealthCheck("TimerComputationThread"));
     }

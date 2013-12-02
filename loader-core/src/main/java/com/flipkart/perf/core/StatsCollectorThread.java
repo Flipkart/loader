@@ -90,11 +90,7 @@ public class StatsCollectorThread extends Thread{
                 this.fileWriterMap.put(filePath, bw);
 
                 // Creating File Writers for Function Counters
-                String[] functionCounters = new String[]{
-                        groupFunction.getFunctionalityName() + "_count",
-                        groupFunction.getFunctionalityName() + "_error",
-                        groupFunction.getFunctionalityName() + "_failure",
-                        groupFunction.getFunctionalityName() + "_skip"};
+                String[] functionCounters = new String[]{"count","error","failure","skip"};
 
                 for(String functionCounter : functionCounters) {
                     filePath = statsBasePath

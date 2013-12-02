@@ -91,6 +91,7 @@ var searchRunsViewModel = function(){
 var searchRunRowViewModel = function(rName, gName, tName){
 	var self = this;
 	self.runName = rName;
+	self.updateUrl = "updaterun.html?&runName=" + rName;
 	self.groupName = gName;
 	self.teamName = tName;
 }

@@ -1,18 +1,18 @@
 package com.flipkart.perf.core;
 
-import com.flipkart.perf.common.util.*;
 import com.flipkart.perf.config.FSConfig;
 import com.flipkart.perf.common.jackson.ObjectMapperUtil;
+import com.flipkart.perf.common.util.Clock;
+import com.flipkart.perf.datagenerator.DataGenerator;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import com.flipkart.perf.util.Counter;
 import com.flipkart.perf.util.Histogram;
-import com.flipkart.perf.util.Timer;
 import com.flipkart.perf.util.TimerContext;
+import com.flipkart.perf.util.Timer;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +29,9 @@ public class FunctionContext {
     private Map<String, Timer> timers;
     private Map<String, Histogram> histograms;
     private Map<String, Object> passOnParameters; // Will be populated by User in function and would be passed further
+    private Map<String, DataGenerator> groupDataGenerators;
+    private static Map<String, DataGenerator> globalDataGenerators;
+
     private boolean skipFurtherFunctions = false;
     private FailureType failureType;
     private String failureMessage;
@@ -38,18 +41,44 @@ public class FunctionContext {
 
     private static Map<String, String> inputFileResources;
     private static final Pattern variablePattern;
+    private static Map<String, Object> inMemoryVariables;
 
     static {
-        inputFileResources = FSConfig.inputFileResources();
         variablePattern = Pattern.compile(".*\\$\\{(.+)\\}.*");
     }
 
-    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters, Map<String, Histogram> functionHistograms) {
+    public static void initialize(LinkedHashMap<String, SharedDataInfo> sharedDataInfoMap,
+                                  Map<String, DataGenerator> globalDataGenerators) {
+        inputFileResources = FSConfig.inputFileResources();
+        inMemoryVariables = new LinkedHashMap<String, Object>();
+        for(String sharedDataName : sharedDataInfoMap.keySet()) {
+            SharedDataInfo sharedDataInfo = sharedDataInfoMap.get(sharedDataName); {
+                switch (sharedDataInfo.getSharedDataType()) {
+                    case LIST:
+                        inMemoryVariables.put(sharedDataName, buildList(sharedDataInfo.getSharedDataValueType().get(0)));
+                        break;
+                    case MAP:
+                        inMemoryVariables.put(sharedDataName, buildMap(sharedDataInfo.getSharedDataValueType().get(0),
+                                sharedDataInfo.getSharedDataValueType().get(1)));
+                        break;
+                    case SET:
+                        inMemoryVariables.put(sharedDataName, buildSet(sharedDataInfo.getSharedDataValueType().get(0)));
+                        break;
+                }
+            }
+        }
+
+        FunctionContext.globalDataGenerators = globalDataGenerators;
+    }
+
+    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters, Map<String, Histogram> functionHistograms,
+                           Map<String, DataGenerator> groupDataGenerators) {
         this.functionParameters = new HashMap<String, Object>();
         this.timers = functionTimers;
         this.counters = functionCounters;
         this.histograms = functionHistograms;
         this.passOnParameters = new HashMap<String, Object>();
+        this.groupDataGenerators = groupDataGenerators;
     }
 
     public File getResourceAsFile(String resourceName) {
@@ -83,6 +112,14 @@ public class FunctionContext {
 
                 if(replacementValue == null)
                     replacementValue = passOnParameters.get(varName);
+
+                if(replacementValue == null && groupDataGenerators.containsKey(varName)) {
+                    replacementValue = groupDataGenerators.get(varName).next();
+                }
+
+                if(replacementValue == null && globalDataGenerators.containsKey(varName)) {
+                    replacementValue = globalDataGenerators.get(varName).next();
+                }
 
                 if(replacementValue == null)
                     replacementValue = "null";
@@ -364,4 +401,37 @@ public class FunctionContext {
         this.startTime = -1;
         this.time = -1;
     }
+
+    private static <T> List<T> buildList(Class<T> c) {
+        return Collections.synchronizedList(new LinkedList<T>());
+    }
+
+    private static <T,E> Map<T,E> buildMap(Class<T> k, Class<E> v) {
+        return Collections.synchronizedMap(new TreeMap<T,E>());
+    }
+
+    private static <T> Set<T> buildSet(Class<T> c) {
+        return Collections.synchronizedSet(new LinkedHashSet<T>());
+    }
+
+    public static List getSharedList(String scListName) {
+        throwIfSharedDataDoesNotExists(scListName);
+        return (List) inMemoryVariables.get(scListName);
+    }
+
+    public static Map getSharedMap(String scMapName) {
+        throwIfSharedDataDoesNotExists(scMapName);
+        return (Map) inMemoryVariables.get(scMapName);
+    }
+
+    public static Queue getSharedQueue(String scQueueName) {
+        throwIfSharedDataDoesNotExists(scQueueName);
+        return (Queue) inMemoryVariables.get(scQueueName);
+    }
+
+    private static void throwIfSharedDataDoesNotExists(String sharedDataName) {
+        if(!inMemoryVariables.containsKey(sharedDataName))
+        throw new RuntimeException("Shared Data "+sharedDataName+" doesn't exist");
+    }
+
 }

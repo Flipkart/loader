@@ -69,11 +69,19 @@
 		  				<p class="span8" data-bind="text: endTime"></p>
 		  			</div>
 		  		</div>
+		  		<div class="row-fluid">
+		  			<div class="span6">
+		  				<label class="span4"><strong>Remarks</strong></label>
+		  				<textarea class="span8" rows="3" id="remarks" data-bind="value: remarks"></textarea>
+		  			</div>
+		  		</div>
 	  		  </fieldset>
 			</form>
 		<!--Buttons(stop job, reports)-->
 		<div class="btn-group pull-left">
   			<button id="stopJob" data-bind="attr: {'class': stopBtnClass}" onClick="stopJob()">Stop</button>
+  			<button id="addRemarks" class="btn" onClick="addRemarks()">Add Remarks</button>
+  			<button id="deleteJob" class="btn"  data-bind="attr: {'class':deleteBtnClass}" onClick="deleteJob()">Delete</button>
   			<button id="generateLogs" class="btn" data-bind="attr: {'class': logsBtnClass}" onClick="generateLogs()">Logs</button>
   			<button id="generateGraphs" class="btn" data-bind="attr: {'class': graphsBtnClass}" onClick="generateGraphs()">Reports</button>
   			<button id="reRun" class="btn" data-bind="attr: {'class': reRunBtnClass}" onClick="reRun()">Rerun</button>
@@ -113,6 +121,29 @@
 	function generateLogs(){
   		var jobId = getQueryParams("jobId");
   		window.location.href="/logs.html?&jobId=" + jobId + "&agents=" + window["jobAgents"].join();
+	}
+
+	function addRemarks(){
+		var remarks = $("#remarks").val();
+		var jobId = getQueryParams("jobId");
+		jobUrl = "loader-server/jobs/" + jobId + "/remarks";
+		$.ajax({
+			url: jobUrl,
+			contentType: "application/json", 
+			dataType:"json",
+			type:"PUT",
+			data: remarks,
+			async:false,
+			success: function(data){
+				window.existingRuns = data;
+			},	
+			error: function(){
+				console.log("Error in getting runs");
+			},
+			complete: function(xhr, status){
+				location.reload();
+			}
+		});
 	}
 </script>
 </html>

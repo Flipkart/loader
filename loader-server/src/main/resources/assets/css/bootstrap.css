@@ -897,7 +897,6 @@ dd {
 }
 
 hr {
-  margin: 20px 0;
   border: 0;
   border-top: 1px solid #eeeeee;
   border-bottom: 1px solid #ffffff;
@@ -5130,7 +5129,6 @@ input[type="submit"].btn.btn-mini {
 }
 
 .pager {
-  margin: 20px 0;
   text-align: left;
   list-style: none;
   *zoom: 1;

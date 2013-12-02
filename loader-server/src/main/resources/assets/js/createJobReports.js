@@ -270,7 +270,7 @@ function hideGraphs(){
 	$("#timerGraphs").hide();
 }
 
-function createMonitoringTree(){
+function createMonitoringTree(monStats){
 	$("#monitoringTree").jstree({
 		"plugins":["themes", "json_data", "checkbox", "ui", "types"],
 		"types":{
@@ -297,7 +297,7 @@ function createMonitoringTree(){
 				"attr":{"id" : "node_graphs", "rel":"monag"},
 				"data" : "MonitoringAgents", 
 				"metadata" : { "name" : "MonitoringAgents", "nodeType" : "monag"},    
-				"children" : getMonitoringChildren()
+				"children" : getMonitoringChildren(monStats)
 			}],
 		"checkbox":{
 			"override_ui":true,
@@ -309,13 +309,13 @@ function createMonitoringTree(){
 		updateStateOnCheck();
 		switch(data.rslt.obj.data("nodeType")){
 			case "agent":
-				plotMonAgentGraphs(data.rslt.obj.data("agentIndex"));
+				//plotMonAgentGraphs(data.rslt.obj.data("agentIndex"));
 				break;
 			case "resource":
-				plotResourceGraphs(data.rslt.obj.data("agentIndex"), data.rslt.obj.data("resourceIndex"));
+				//plotResourceGraphs(data.rslt.obj.data("agentIndex"), data.rslt.obj.data("resourceIndex"));
 				break;
 			case "monag":
-				plotMonitoringGraphs();
+				//plotMonitoringGraphs();
 
 		}
 	}).bind("uncheck_node.jstree", function(event, data){
@@ -323,32 +323,32 @@ function createMonitoringTree(){
 		updateStateOnUnCheck();
 		switch(data.rslt.obj.data("nodeType")){
 			case "agent":
-				hideMonAgentGraphs(data.rslt.obj.data("agentIndex"));
+				//hideMonAgentGraphs(data.rslt.obj.data("agentIndex"));
 				break;
 			case "resource":
-				hideResourceGraphs(data.rslt.obj.data("agentIndex"), data.rslt.obj.data("resourceIndex"));
+				//hideResourceGraphs(data.rslt.obj.data("agentIndex"), data.rslt.obj.data("resourceIndex"));
 				break;
 			case "monag":
-				hideMonitoringGraphs();
+				//hideMonitoringGraphs();
 		}
 	});
 
 	$("#monitoringTree").bind("loaded.jstree", function (event, data) {
         $("#monitoringTree").jstree("open_all");
         //checkTimerNodes();
-        checkMonNodes();
+        //checkMonNodes();
     });
     $("#monitoringTree").bind("refresh.jstree", function (event, data) {
         $("#monitoringTree").jstree("open_all");
         //checkTimerNodes();
-        checkMonNodes();
+        //checkMonNodes();
     });
 }
 
-function getMonitoringChildren(){
-	if(window["monitorResources"]==undefined || window["monitorResources"].length ==0) return undefined;
+function getMonitoringChildren(monStats){
+	if(monStats==undefined || monStats.length ==0) return undefined;
 	var children = [];
-	$.each(window["monitorResources"], function(index, monRes){
+	$.each(monStats, function(index, monRes){
 		children.push({"attr":{"id":"node_"+monRes["agent"].replace(/\./g,"_"), "rel":"agent"}, "metadata":{"nodeType":"agent", "agentIndex":index},"data":monRes["agent"], "children": getResourcesChildren(monRes, index)});
 	});
 	return children;
@@ -376,34 +376,34 @@ function getResourceType(resource){
 
 }
 
-function getMonitoringStats(jobId){
-	var jobId = getQueryParams("jobId");
-	$.ajax({
-		url: "/loader-server/jobs/" + jobId + "/monitoringStats",
-		type: "GET",
-		contentType: "application/json", 
-		dataType:"json",
-		async: false,
-		success: function(monitorResources){
-			window["monitorResources"] = monitorResources;
-			window["monitoringGraphsState"] = [];
-			$.each(monitorResources, function(agentIndex, agent){
-				var resPlot = [];
-				$.each(agent["resources"], function(resIndex, res){
-					resPlot.push(false);
-				});
-				window["monitoringGraphsState"].push(resPlot);
-			});
-			//console.log("monitoringResources:",monitorResources);
-		},
-		error: function(err){
+// function getMonitoringStats(jobId){
+// 	var jobId = getQueryParams("jobId");
+// 	$.ajax({
+// 		url: "/loader-server/jobs/" + jobId + "/monitoringStats",
+// 		type: "GET",
+// 		contentType: "application/json", 
+// 		dataType:"json",
+// 		async: false,
+// 		success: function(monitorResources){
+// 			window["monitorResources"] = monitorResources;
+// 			window["monitoringGraphsState"] = [];
+// 			$.each(monitorResources, function(agentIndex, agent){
+// 				var resPlot = [];
+// 				$.each(agent["resources"], function(resIndex, res){
+// 					resPlot.push(false);
+// 				});
+// 				window["monitoringGraphsState"].push(resPlot);
+// 			});
+// 			//console.log("monitoringResources:",monitorResources);
+// 		},
+// 		error: function(err){
 
-		},
-		complete: function(xhr, status){
-			console.log("Got all the resources being monitored");
-		}
-	});
-}
+// 		},
+// 		complete: function(xhr, status){
+// 			console.log("Got all the resources being monitored");
+// 		}
+// 	});
+// }
 
 function getGraphsData(){
 	var jobId = getQueryParams("jobId");

@@ -3,6 +3,7 @@ package com.flipkart.perf.core;
 import com.flipkart.perf.common.constant.MathConstant;
 import com.flipkart.perf.common.util.*;
 import com.flipkart.perf.domain.Group;
+import com.flipkart.perf.datagenerator.DataGenerator;
 import com.flipkart.perf.domain.GroupFunction;
 import com.flipkart.perf.util.Counter;
 import com.flipkart.perf.util.Histogram;
@@ -44,6 +45,7 @@ public class SequentialFunctionExecutor extends Thread {
     private long forcedDurationPerIterationNS;
     private long accumulatedSleepIntervalNS; // When This accumulated Sleep Interval Goes above 1 ms then sleep for near by ms value
     private int threadStartDelay;
+    private final Map<String, DataGenerator> groupDataGenerators;
 
     public SequentialFunctionExecutor(String threadExecutorName,
                                       Group group,
@@ -52,8 +54,9 @@ public class SequentialFunctionExecutor extends Thread {
                                       Map<String, FunctionCounter> functionCounters,
                                       Map<String, Counter> customCounters,
                                       GroupStatsQueue groupStatsQueue,
-                                      List<String> ignoreDumpFunctions) {
-
+                                      List<String> ignoreDumpFunctions,
+                                      float throughput,
+                                      Map<String, DataGenerator> groupDataGenerators) {
 
         super(threadExecutorName);
         this.group = group;
@@ -70,6 +73,7 @@ public class SequentialFunctionExecutor extends Thread {
         this.functionCounters = functionCounters;
         this.customCounters = customCounters;
         this.threadResources = new HashMap<String, Object>();
+        this.groupDataGenerators = groupDataGenerators;
         this.fExecutors = buildFunctionExecutors();
     }
 
@@ -147,7 +151,7 @@ public class SequentialFunctionExecutor extends Thread {
             Map<String, Timer> functionTimers = buildFunctionTimers();
             Map<String, Histogram> functionHistograms = buildCustomHistograms();
 
-            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters, functionHistograms).
+            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters, functionHistograms, this.groupDataGenerators).
                     updateParameters(this.groupParams).
                     updateParameters(this.threadResources).
                     setMyThread(this);
@@ -224,7 +228,7 @@ public class SequentialFunctionExecutor extends Thread {
             Map<String, Timer> customTimers = buildCustomTimers();
             Map<String, Histogram> functionHistograms = buildCustomHistograms();
 
-            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters, functionHistograms).
+            FunctionContext functionContext = new FunctionContext(customTimers, this.customCounters, functionHistograms, this.groupDataGenerators).
                     updateParameters(this.groupParams).
                     updateParameters(this.threadResources).
                     setMyThread(this);
@@ -300,7 +304,7 @@ public class SequentialFunctionExecutor extends Thread {
         for(int functionNo = 0; functionNo < this.groupFunctions.size(); functionNo++) {
             GroupFunction groupFunction =   this.groupFunctions.get(functionNo);
 
-            FunctionContext functionContext = new FunctionContext(null, null, null).
+            FunctionContext functionContext = new FunctionContext(null, null, null, this.groupDataGenerators).
                     updateParameters(this.groupParams).
                     updateParameters(this.threadResources);
 
@@ -313,6 +317,7 @@ public class SequentialFunctionExecutor extends Thread {
                 m.invoke(classObject, new Object[]{functionContext});
 
             } catch (Exception e) {
+                logger.error("Error while executing method "+methodName, e);
                 throw new RuntimeException(e);
             }
         }
