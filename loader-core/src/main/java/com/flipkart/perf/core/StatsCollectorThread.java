@@ -272,8 +272,9 @@ public class StatsCollectorThread extends Thread{
             BufferedWriter bw = this.statsFileWritersMap.get(counter.getFunctionName() + "." + counter.getCounterName());
             if(bw != null) {
                 synchronized (counter) {
-                    if((Clock.milliTick() - counter.getLastUpdateTimeMS() < (4 * STATS_QUEUE_POLL_INTERVAL))) //  Dumb optimization to avoid writing if counter is not being updated in last 4 dump cycles
-                        writeToFile(bw, counter.getLastUpdateTimeMS() + "," + counter.count() + "\n");
+//                    if((Clock.milliTick() - counter.getLastUpdateTimeMS() < (4 * STATS_QUEUE_POLL_INTERVAL))) //  Dumb optimization to avoid writing if counter is not being updated in last 4 dump cycles
+//                    writeToFile(bw, counter.getLastUpdateTimeMS() + "," + counter.count() + "\n");
+                    writeToFile(bw, Clock.milliTick() + "," + counter.count() + "\n");
                     counter.reset();
                 }
             }
