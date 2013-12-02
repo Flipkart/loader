@@ -198,7 +198,7 @@ public class JobStatsHelper {
      */
     public List<GroupStatsMeta> getJobMetricsStatsMeta(String jobId) throws ExecutionException, IOException {
         Job job = JobsCache.getJob(jobId);
-        PerformanceRun performanceRun = getPerformanceRun(job.getRunName());
+        PerformanceRun performanceRun = job.performanceRun();
         Set<Group> allGroups = new LinkedHashSet<Group>();
         for(LoadPart loadPart : performanceRun.getLoadParts()) {
             allGroups.addAll(loadPart.getLoad().getGroups());
@@ -372,14 +372,5 @@ public class JobStatsHelper {
         Map<String, Object> resourceLastInstance = objectMapper.readValue(new File(statsFile.getAbsolutePath()+".last"), Map.class);
         Map<String, Object> metricValueMap = (Map<String, Object>) resourceLastInstance.get("metrics");
         return metricValueMap.keySet();
-    }
-
-    /**
-     * This function really doesn't belong here. Just added here for the time being.
-     * @param runName
-     * @return
-     */
-    public PerformanceRun getPerformanceRun(String runName) throws IOException {
-        return objectMapper.readValue(new File(jobFSConfig.getRunFile(runName)), PerformanceRun.class);
     }
 }

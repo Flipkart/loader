@@ -1,12 +1,18 @@
 package com.flipkart.perf.core;
 
+import com.flipkart.perf.common.util.ClassHelper;
+import com.flipkart.perf.datagenerator.DataGenerator;
+import com.flipkart.perf.datagenerator.DataGeneratorInfo;
 import com.flipkart.perf.domain.Group;
+import com.flipkart.perf.domain.GroupFunction;
 import com.flipkart.perf.domain.Load;
 import com.flipkart.perf.common.util.Clock;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -34,12 +40,30 @@ public class LoadController extends Thread{
         this.groupMap   =   load.groupMap();
         logger.info(jobId+" Number of groups : "+this.groupMap.size());
 
+        attachSetupGroup(load.getSetupGroup());
+        attachTearDownGroup(load.getTearDownGroup());
         validateCyclicDependency(); //Seems to be becoming expensive
 
+        LinkedHashMap<String, SharedDataInfo> sharedDataInfoMap = new LinkedHashMap<String, SharedDataInfo>();
         for(Group group : this.groupMap.values()) {
             this.addGroup(group);
+
+            for(GroupFunction groupFunction : group.getFunctions()) {
+                Object object = ClassHelper.getClassInstance(groupFunction.getFunctionClass(), new Class[]{}, new Object[]{});
+                Method method = ClassHelper.getMethod(groupFunction.getFunctionClass() , "sharedData", new Class[]{});
+                sharedDataInfoMap.putAll((LinkedHashMap<String, SharedDataInfo>) method.invoke(object, new Object[]{}));
+            }
         }
+
+        Map<String, DataGenerator> globalDataGenerators = new HashMap<String, DataGenerator>();
+        Map<String, DataGeneratorInfo> dataGeneratorInfoMap = load.getDataGenerators();
+        for(String dataGeneratorName : dataGeneratorInfoMap.keySet())  {
+            globalDataGenerators.put(dataGeneratorName,DataGenerator.buildDataGenerator(dataGeneratorInfoMap.get(dataGeneratorName)));
+        }
+
+        FunctionContext.initialize(sharedDataInfoMap, globalDataGenerators);
     }
+
 
     /**
      * Creating Group Dependency and Group Controller for given group
@@ -51,6 +75,30 @@ public class LoadController extends Thread{
         GroupController groupController =   new GroupController(this.jobId, group);
         groupDependency.put(group.getName(), group.getDependOnGroups());
         groupControllersMap.put(group.getName(), groupController);
+    }
+
+    /**
+     * Simply mark all groups dependent on this group
+     * @param setupGroup
+     */
+    private void attachSetupGroup(Group setupGroup) {
+        if(setupGroup != null) {
+            for(Group group : this.groupMap.values()) {
+                group.dependsOn(setupGroup.getName());
+            }
+        }
+    }
+
+    /**
+     * Simply mark teardown group dependent on all groups
+     * @param tearDownGroup
+     */
+    private void attachTearDownGroup(Group tearDownGroup) {
+        if(tearDownGroup != null) {
+            for(Group group : this.groupMap.values()) {
+                tearDownGroup.dependsOn(group.getName());
+            }
+        }
     }
 
     /**
@@ -111,7 +159,6 @@ public class LoadController extends Thread{
     public void run() {
         logger.info("****"+jobId+" LOAD CONTROLLER STARTED****");
         long startTime = Clock.milliTick();
-
         while(true) {
             ArrayList<GroupController> groupsToRun = new ArrayList<GroupController>();
             int groupsCanNotStartThisTime = 0;

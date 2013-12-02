@@ -17,10 +17,14 @@ public class FunctionCounter {
     public FunctionCounter(String groupName,String functionName) {
         this.functionName = functionName;
         this.groupName = groupName;
-        this.count = new Counter(groupName, functionName, this.functionName +"_count");
-        this.failureCounter = new Counter(groupName, functionName, this.functionName +"_failure");
-        this.errorCounter = new Counter(groupName, functionName, this.functionName +"_error");
-        this.skipCounter = new Counter(groupName, functionName, this.functionName +"_skip");
+//        this.count = new Counter(groupName, functionName, this.functionName +"_count");
+//        this.failureCounter = new Counter(groupName, functionName, this.functionName +"_failure");
+//        this.errorCounter = new Counter(groupName, functionName, this.functionName +"_error");
+//        this.skipCounter = new Counter(groupName, functionName, this.functionName +"_skip");
+        this.count = new Counter(groupName, functionName, "count");
+        this.failureCounter = new Counter(groupName, functionName, "failure");
+        this.errorCounter = new Counter(groupName, functionName, "error");
+        this.skipCounter = new Counter(groupName, functionName, "skip");
     }
 
     public FunctionCounter executed(int howMany) {

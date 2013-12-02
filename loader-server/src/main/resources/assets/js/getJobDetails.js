@@ -13,7 +13,8 @@ function getQueryParams(sParam){
 function getJobDetails(){
 	var jobUrl = "/loader-server/jobs/" + getQueryParams('jobId');   //replace this with previous one
 	console.log(jobUrl);
-        $.ajax({url: jobUrl,
+        $.ajax({
+        	url: jobUrl,
 			contentType: "application/json", 
 			dataType:"json",
 			type:"GET",
@@ -91,6 +92,7 @@ function jobDetailViewModel(jobDetails){
 		logBtnCls = "btn",
 		grfBtnClass = "btn",
 		runBtnClass="btn";
+		delBtnClass = "btn"
 	switch(jobDetails["jobStatus"]){
 		case 'RUNNING':
 			labelClass = "label-success",
@@ -99,6 +101,7 @@ function jobDetailViewModel(jobDetails){
 			logBtnCls = "btn";
 			grfBtnClass="btn";
 			runBtnClass="btn disabled";
+			delBtnClass="btn disabled";
 			break;
 		case 'FAILED_TO_START':
 			labelClass = "label-important",
@@ -107,6 +110,7 @@ function jobDetailViewModel(jobDetails){
 			logBtnCls = "btn disabled";
 			grfBtnClass="btn disabled";
 			runBtnClass="btn";
+			delBtnClass="btn";
 			break;
 		case 'QUEUED':
 			labelClass = "label-warning",
@@ -115,6 +119,7 @@ function jobDetailViewModel(jobDetails){
 			logBtnCls = "btn disabled";
 			grfBtnClass="btn disabled";
 			runBtnClass="btn disabled";
+			delBtnClass="btn disabled";
 			break;
 	}
 	var self = this;
@@ -125,9 +130,11 @@ function jobDetailViewModel(jobDetails){
 	self.jobStatus = jobDetails["jobStatus"];
 	self.stopBtnClass = disableClass;
 	self.logsBtnClass = logBtnCls;
+	self.deleteBtnClass = delBtnClass;
 	self.graphsBtnClass = grfBtnClass;
 	self.agents = ko.observableArray(agentList);
 	self.reRunBtnClass = runBtnClass;
+	self.remarks = jobDetails["remarks"];
 	self.runUrl = "/updaterun.html?&runName=" + jobDetails["runName"];
 	console.log("self", self);
 }
@@ -135,7 +142,7 @@ function jobDetailViewModel(jobDetails){
 function stopJob(){
 	var jobId = getQueryParams("jobId");
 	$.ajax({
-    url: "loader-server/jobs/" + jobId + "/kill",
+      url: "loader-server/jobs/" + jobId + "/kill",
       contentType: "application/json", 
       dataType:"json",
       type:"PUT",
@@ -161,4 +168,26 @@ function stopJob(){
 
 function reRun(){
 	executeRun($("#runName").text());
+}
+
+function deleteJob(){
+	var jobId = getQueryParams("jobId");
+	$.ajax({
+		url: "loader-server/jobs/" + jobId,
+      	contentType: "application/json", 
+      	dataType:"json",
+      	type:"DELETE",
+      	complete: function(xhr, status){
+        	if(xhr.status==204) {
+          		window.location.href="/jobsearch.html";
+        	} else {
+          		$("#alertMsg").empty();
+  	        	$("#alertMsg").removeClass("alert-success");
+        		$("#alertMsg").addClass("alert-error");
+        		$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+				$("#alertMsg").append("<h4>Error!!</h4> Job Deletion Failed!!");
+				$("#alertMsg").css("display", "block");
+        	}
+        }
+  	});	
 }

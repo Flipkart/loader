@@ -1,5 +1,7 @@
 package com.flipkart.perf.core;
 
+import com.flipkart.perf.datagenerator.DataGenerator;
+import com.flipkart.perf.datagenerator.DataGeneratorInfo;
 import com.flipkart.perf.domain.Group;
 import com.flipkart.perf.domain.GroupTimer;
 import com.flipkart.perf.domain.GroupFunction;
@@ -31,6 +33,7 @@ public class GroupController {
     private StatsCollectorThread statsCollectorThread;
     private String basePath;
     private final List<String> ignoreDumpFunctions;
+    private final HashMap<String, DataGenerator> groupDataGenerators;
 
     public GroupController(String jobId, Group group) {
         this.basePath = System.getProperty("BASE_PATH","./");
@@ -45,6 +48,14 @@ public class GroupController {
         this.customCounters = buildCustomCounter();
         this.requestQueue = buildRequestQueue();
         this.warmUpRequestQueue = buildWarmUpRequestQueue();
+
+
+        this.groupDataGenerators = new HashMap<String, DataGenerator>();
+        Map<String, DataGeneratorInfo> dataGeneratorInfoMap = group.getDataGenerators();
+        for(String dataGeneratorName : dataGeneratorInfoMap.keySet())  {
+            this.groupDataGenerators.put(dataGeneratorName,DataGenerator.buildDataGenerator(dataGeneratorInfoMap.get(dataGeneratorName)));
+        }
+
     }
 
     private List<String> findIgnoredDumpFunctions() {
@@ -181,7 +192,9 @@ public class GroupController {
                 this.functionCounters,
                 this.customCounters,
                 this.groupStatsQueue,
-                this.ignoreDumpFunctions);
+                this.ignoreDumpFunctions,
+                this.group.getThroughput() / group.getThreads(),
+                this.groupDataGenerators);
     }
 
     /**

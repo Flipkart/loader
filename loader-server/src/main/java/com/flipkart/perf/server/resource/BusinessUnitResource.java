@@ -1,6 +1,7 @@
 package com.flipkart.perf.server.resource;
 
 
+import com.yammer.dropwizard.jersey.params.BooleanParam;
 import com.yammer.metrics.annotation.Timed;
 import org.codehaus.jackson.map.ObjectMapper;
 import com.flipkart.perf.server.config.JobFSConfig;
@@ -162,10 +163,13 @@ public class BusinessUnitResource {
     @Path("/{businessUnit}/teams/{team}/runs/{run}")
     @DELETE
     @Timed
-    public void deleteRun(@PathParam("businessUnit") String businessUnitName, @PathParam("team") String teamName, @PathParam("run") String run) throws IOException {
+    public void deleteRun(@PathParam("businessUnit") String businessUnitName,
+                          @PathParam("team") String teamName,
+                          @PathParam("run") String run,
+                          @QueryParam("deleteJobs") @DefaultValue("false")BooleanParam deleteJobs) throws IOException {
         BusinessUnit businessUnit = BusinessUnit.businessUnitExistsOrException(businessUnitName);
         businessUnit.teamExistOrException(teamName).runExistsOrException(run);
-        PerformanceRun.runExistsOrException(run).delete();
+        PerformanceRun.runExistsOrException(run).delete(deleteJobs.get());
     }
 
 }
