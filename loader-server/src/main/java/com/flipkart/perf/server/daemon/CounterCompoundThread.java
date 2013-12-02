@@ -34,7 +34,7 @@ public class CounterCompoundThread extends Thread {
         CLUB_CRUNCH_DURATION_MS = 10 * MathConstant.THOUSAND;
         CRUNCH_DATA_OLDER_THAN_MS = 30 * MathConstant.THOUSAND;
         logger = LoggerFactory.getLogger(CounterCompoundThread.class);
-        FILE_EXTENSION = "cumulative";
+        FILE_EXTENSION = "stats";
     }
 
 
@@ -119,8 +119,7 @@ public class CounterCompoundThread extends Thread {
         List<File> jobFiles = FileHelper.pathFiles(this.jobFSConfig.getJobPath(jobId), true);
         for(File jobFile : jobFiles) {
             if(jobFile.getAbsolutePath().contains("counter")
-                    && !jobFile.getAbsolutePath().contains(FILE_EXTENSION)
-                    && !jobFile.getAbsolutePath().contains("stats")) {
+                    && !jobFile.getAbsolutePath().contains(FILE_EXTENSION)) {
                 crunchJobFileCounter(jobId, jobFile);
             }
         }
@@ -169,7 +168,7 @@ public class CounterCompoundThread extends Thread {
                         String[] tokens = firstContentLine.split(",");
                         lastCrunchPoint = new LastCrunchPoint(Long.parseLong(tokens[0]),
                                 Long.parseLong(tokens[1]));
-                        bw.write(tokens[0] + ",0\n");
+                        bw.write("{\"time\" :" +tokens[0] + "{\"count\" :0\n");
                         bw.flush();
                     }
 
@@ -196,8 +195,7 @@ public class CounterCompoundThread extends Thread {
                             long totalOpsDoneSoFar = lastCrunchPoint.countSoFar + opsDone;
                             lastCrunchPoint = new LastCrunchPoint(currentContentTimeMS, totalOpsDoneSoFar);
                             this.fileLastCrunchPointMap.put(jobFile.getAbsolutePath(), lastCrunchPoint);
-
-                            bw.write(lastCrunchPoint.time + "," + lastCrunchPoint.countSoFar + "\n");
+                            bw.write("{\"time\" :" +lastCrunchPoint.time + "{\"count\" :"+lastCrunchPoint.countSoFar+"\n");
                             bw.flush();
                             opsDone = 0;
                         }
