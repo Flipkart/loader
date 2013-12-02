@@ -168,7 +168,7 @@ public class CounterCompoundThread extends Thread {
                         String[] tokens = firstContentLine.split(",");
                         lastCrunchPoint = new LastCrunchPoint(Long.parseLong(tokens[0]),
                                 Long.parseLong(tokens[1]));
-                        bw.write("{\"time\" :" +tokens[0] + "{\"count\" :0\n");
+                        bw.write("{\"time\" :" +tokens[0] + ",\"count\" :0}\n");
                         bw.flush();
                     }
 
@@ -195,7 +195,7 @@ public class CounterCompoundThread extends Thread {
                             long totalOpsDoneSoFar = lastCrunchPoint.countSoFar + opsDone;
                             lastCrunchPoint = new LastCrunchPoint(currentContentTimeMS, totalOpsDoneSoFar);
                             this.fileLastCrunchPointMap.put(jobFile.getAbsolutePath(), lastCrunchPoint);
-                            bw.write("{\"time\" :" +lastCrunchPoint.time + "{\"count\" :"+lastCrunchPoint.countSoFar+"\n");
+                            bw.write("{\"time\" :" +lastCrunchPoint.time + ",\"count\" :"+lastCrunchPoint.countSoFar+"}\n");
                             bw.flush();
                             opsDone = 0;
                         }
