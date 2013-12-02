@@ -46,8 +46,10 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
 
     @Override
     public void run(LoaderServerConfiguration configuration, Environment environment) throws Exception {
-        environment.addProvider(new BasicAuthProvider<User>(new SimpleAuthenticator(),
-                "SUPER SECRET STUFF"));
+        // Read more here https://github.com/klauern/ldap-dropwizard-roles
+        // Read more here http://gary-rowe.com/agilestack/2012/10/23/multibit-merchant-implementing-hmac-authentication-in-dropwizard/
+//        environment.addProvider(new BasicAuthProvider<User>(new SimpleAuthenticator(),
+//                "SUPER SECRET STUFF"));
 
         // Generic Stuff
         FilterBuilder filterConfig = environment.addFilter(CrossOriginFilter.class, "/*");
@@ -82,7 +84,6 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         Thread workFlowDispatcher = new Thread(ScheduledWorkflowDispatcherThread.getInstance());
         workFlowDispatcher.start();
         WorkflowScheduler.initialize();
-
 
         JMetric.initialize(configuration.getjMetricConfig());
         environment.addResource(new JMetricController());
