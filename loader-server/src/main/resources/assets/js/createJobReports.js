@@ -742,7 +742,7 @@ var histogramGraphViewModel = function(histogram, functionUrl){
             success: function(histogramStats) {
                 var dataLines = histogramStats.split('\n');
                 self.dataLength(dataLines.length);
-                if(dataLines.length>5){
+                if(dataLines.length>100){
                     self.sliderVisible(true);
                 }
                 for(var i=0;i<dataLines.length;i++){
@@ -800,7 +800,7 @@ var histogramGraphViewModel = function(histogram, functionUrl){
         $.each(charts, function(index, chart){
             var tmpChart = [];
             var startIndex = self.chartIndexes[index].sliderStartIndex;
-            var lastIndex = startIndex + 5> self.dataLength()?self.dataLength():startIndex + 5;
+            var lastIndex = startIndex + 100> self.dataLength()?self.dataLength():startIndex + 100;
             $.each(chart, function(ind, line){
                 tmpChart.push({"key":line["key"],"color":line["color"], "values": line["values"].slice(startIndex, lastIndex)});
             });
@@ -817,10 +817,10 @@ var histogramGraphViewModel = function(histogram, functionUrl){
         self.isVisible(false);
     }
     self.addSlider = function(element){
-        var st = Math.ceil(self.dataLength()/5);
+        var st = Math.ceil(self.dataLength()/100);
         var options={
             min: 0,
-            max: self.dataLength()-5,
+            max: self.dataLength()-100,
             step:st,
             stop: function(event, ui){
                 var k = $(event.target).attr('id');
@@ -836,7 +836,7 @@ var histogramGraphViewModel = function(histogram, functionUrl){
         var charts = self.chartsData[self.selectedAgent()];
         var tmpChart = [];
         var startIndex = self.chartIndexes[k].sliderStartIndex;
-        var lastIndex = startIndex + 5> self.dataLength()?self.dataLength():startIndex + 5;
+        var lastIndex = startIndex + 100> self.dataLength()?self.dataLength():startIndex + 100;
         $.each(charts[k], function(ind, line){
             tmpChart.push({"key":line["key"],"color":line["color"], "values": line["values"].slice(startIndex, lastIndex)});
         });
@@ -872,7 +872,7 @@ var timerGraphViewModel = function(timer, functionUrl) {
             success: function(timerStats) {
                 var dataLines = timerStats.split('\n');
                 self.dataLength(dataLines.length);
-                if(dataLines.length>5){
+                if(dataLines.length>100){
                     self.sliderVisible(true);
                 }
                 for(var i=0;i<dataLines.length;i++){
@@ -931,7 +931,7 @@ var timerGraphViewModel = function(timer, functionUrl) {
         $.each(charts, function(index, chart){
             var tmpChart = [];
             var startIndex = self.chartIndexes[index].sliderStartIndex;
-            var lastIndex = startIndex + 5> self.dataLength()?self.dataLength():startIndex + 5;
+            var lastIndex = startIndex + 100> self.dataLength()?self.dataLength():startIndex + 100;
             $.each(chart, function(ind, line){
                 tmpChart.push({"key":line["key"],"color":line["color"], "values": line["values"].slice(startIndex, lastIndex)});
             });
@@ -948,10 +948,10 @@ var timerGraphViewModel = function(timer, functionUrl) {
         self.isVisible(false);
     }
     self.addSlider = function(element){
-        var st = Math.ceil(self.dataLength()/5);
+        var st = Math.ceil(self.dataLength()/100);
         var options={
             min: 0,
-            max: self.dataLength()-5,
+            max: self.dataLength()-100,
             step:st,
             stop: function(event, ui){
                 var k = $(event.target).attr('id');
@@ -967,7 +967,7 @@ var timerGraphViewModel = function(timer, functionUrl) {
         var charts = self.chartsData[self.selectedAgent()];
         var tmpChart = [];
         var startIndex = self.chartIndexes[k].sliderStartIndex;
-        var lastIndex = startIndex + 5> self.dataLength()?self.dataLength():startIndex + 5;
+        var lastIndex = startIndex + 100> self.dataLength()?self.dataLength():startIndex + 100;
         $.each(charts[k], function(ind, line){
             tmpChart.push({"key":line["key"],"color":line["color"], "values": line["values"].slice(startIndex, lastIndex)});
         });
@@ -993,7 +993,7 @@ var countersGraphViewModel = function(counters, functionUrl){
     self.countersData = {};
     self.showCustomCounters = ko.observable(false);
     self.sliderVisible = ko.computed(function(){
-        if (self.dataLength()>5) return true;
+        if (self.dataLength()>100) return true;
         else return false;
     });
     self.chartIndexes = [{"sliderStartIndex":0},{"sliderStartIndex":0}]
@@ -1046,12 +1046,12 @@ var countersGraphViewModel = function(counters, functionUrl){
         $.each(data, function(key, val){
             if(key=="error" || key=="skip" || key=="failure" || key=="count"){
                 chart1.push({"key":key,"color":colors[col1],"values":val.slice(self.chartIndexes[0]["sliderStartIndex"], 
-                    self.chartIndexes[0]["sliderStartIndex"]+5>self.dataLength()?self.dataLength():self.chartIndexes[0]["sliderStartIndex"]+5)});
+                    self.chartIndexes[0]["sliderStartIndex"]+100>self.dataLength()?self.dataLength():self.chartIndexes[0]["sliderStartIndex"]+100)});
                 col1=col1+1;
                 col1=col1%colors.length;  
             } else {
                 chart2.push({"key":key,"color":colors[col2],"values":val.slice(self.chartIndexes[1]["sliderStartIndex"], 
-                    self.chartIndexes[1]["sliderStartIndex"]+5>self.dataLength()?self.dataLength():self.chartIndexes[1]["sliderStartIndex"]+5)});
+                    self.chartIndexes[1]["sliderStartIndex"]+100>self.dataLength()?self.dataLength():self.chartIndexes[1]["sliderStartIndex"]+100)});
                 col2=col2+1;
                 col2=col2%colors.length;  
             }
@@ -1074,10 +1074,10 @@ var countersGraphViewModel = function(counters, functionUrl){
         self.plot($(event.target, k));
     }
     self.addSlider = function(element){
-        var st = Math.ceil(self.dataLength()/5);
+        var st = Math.ceil(self.dataLength()/100);
         var options={
             min: 0,
-            max: self.dataLength()-5,
+            max: self.dataLength()-100,
             step:st,
             stop: function(event, ui){
                 var k = $(event.target).attr('id');
@@ -1185,7 +1185,7 @@ var resourceGraphsViewModel = function(resource, url){
     self.resourcePlotScheme = window["graphSceme"]["chartResources"][self.resourceName];
     self.dataLength = ko.observable(0);
     self.sliderVisible = ko.computed(function(){
-        if(self.dataLength()>5) return true;
+        if(self.dataLength()>100) return true;
         return false;
     });
     self.isVisible = ko.observable(false);
@@ -1236,7 +1236,7 @@ var resourceGraphsViewModel = function(resource, url){
     };
     self.plot = function(k, currElement){
         var startIndex = self.chartIndexes[k]["sliderStartIndex"];
-        var lastIndex = startIndex + 5>self.dataLength()?self.dataLength():startIndex + 5;
+        var lastIndex = startIndex + 100>self.dataLength()?self.dataLength():startIndex + 100;
         var tmpChart = [];
         $.each(self.resourcePlotScheme["charts"][k]["keysToPlot"], function(index, keyToPlot){
             tmpChart.push({"key":keyToPlot["name"],"values":self.resourceMapsData[k][keyToPlot["key"]].slice(startIndex, lastIndex),"color":keyToPlot["color"]});
@@ -1254,10 +1254,10 @@ var resourceGraphsViewModel = function(resource, url){
         self.plotAll(currElement);
     }
     self.addSlider = function(element){
-        var st = Math.ceil(self.dataLength()/5);
+        var st = Math.ceil(self.dataLength()/100);
         var options={
             min: 0,
-            max: self.dataLength()-5,
+            max: self.dataLength()-100,
             step:st,
             stop: function(event, ui){
                 var k = $(event.target).attr('id');
@@ -1351,7 +1351,7 @@ function updateStateOnCheck(){
     var interval = getQueryParams("interval");
     if(autoRefresh==undefined) autoRefresh = "false";
     if(interval==undefined) interval = "60000";
-    var link = window.location.origin+ "/graphreports2.html" + "?&jobId=" + getQueryParams("jobId")+ "&autoRefresh="+ autoRefresh + "&interval=" + interval + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join() ;
+    var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId")+ "&autoRefresh="+ autoRefresh + "&interval=" + interval + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join() ;
     history.replaceState(null, null, link);
 }
 
@@ -1371,6 +1371,6 @@ function updateStateOnUnCheck(){
     var interval = getQueryParams("interval");
     if(autoRefresh==undefined) autoRefresh = "false";
     if(interval==undefined) interval = "60000";
-    var link = window.location.origin+ "/graphreports2.html" + "?&jobId=" + getQueryParams("jobId")+ "&autoRefresh="+ autoRefresh + "&interval=" + interval  + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join();
+    var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId")+ "&autoRefresh="+ autoRefresh + "&interval=" + interval  + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join();
     history.replaceState(null, null, link);
 }
