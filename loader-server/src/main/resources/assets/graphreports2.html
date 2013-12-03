@@ -58,6 +58,43 @@
 		  getGraphPlotScheme();
 		  getJobStats();
 		  getMonitoringStats();
+		  $("#autoRefresh").change(function(){
+	      	if($("#autoRefresh").is(":checked")){
+	      		var url = window.location.href;
+	      		if(url.indexOf("autoRefresh")!=-1){
+	      			url = url.replace("autoRefresh=false", "autoRefresh=true");
+	      		} else {
+	      			url = url + "&autoRefresh=true&interval=60000";
+	      		}
+	      		history.replaceState(null, null, url);
+	      		location.reload();
+	      	} else {
+				var url = window.location.href;
+	      		url = url.replace("autoRefresh=true", "autoRefresh=false");
+	      		history.replaceState(null, null, url);	
+	      		location.reload();
+	      	}
+	      });
+	      $("#interval").change(function(){
+	      	console.log("inside interval change")
+	      	var url = window.location.href;
+	      	url = url.replace(/interval=\d+/, "interval=" + $("#interval").val());
+	      	history.replaceState(null, null, url);
+	        location.reload();
+	      })
+	      var autoRefresh = getQueryParams("autoRefresh");
+	      if(autoRefresh=="true"){
+	      	var interval = getQueryParams("interval");
+	      	$("#autoRefresh").prop("checked", true);
+	      	$("#interval").removeAttr('disabled');
+	      	$("#interval").val(interval);
+	      	window.clearInterval();
+	      	setInterval(function(){location.reload();}, interval);
+	      } else {
+	      	window.clearInterval();
+	      	$("#autoRefresh").prop("checked", false);
+	      	$("#interval").attr("disabled", "disabled");
+	      }
 		});
 	</script>
 	<div class="row-fluid">
@@ -124,57 +161,93 @@
 								<div class="row-fluid" data-bind="visible: isVisible"> 
 									<div class="counters" data-bind="visible: countersVisible">
 										<div class="counterGraphs" data-bind="foreach: counters">
-											<div class="row-fluid" data-bind="graphsInitialization: isVisible">
-												<h5 class="span6">Counters</span></h5>
-												<div class="span5"><select data-bind="options: availableAgents, value: selectedAgent, event: {'change': onAgentChange}" class="input-large, pull-right"></select></div>
-												<div class="span1 pull-right">
-													<button class="btn" data-bind="click: refresh"><i class="icon-repeat"></i></button>
+											<div class="row-fluid" data-bind="visible: isVisible">
+												<div class="row-fluid" data-bind="graphsInitialization: isVisible">
+													<h5 class="span6">Counters</span></h5>
+													<div class="span5">
+														<select data-bind="options: availableAgents, value: selectedAgent, event: {'change': onAgentChange}" class="input-large, pull-right">
+														</select>
+													</div>
+													<div class="span1 pull-right">
+														<button class="btn" data-bind="click: refresh"><i class="icon-repeat"></i>
+														</button>
+													</div>
+												</div>
+												<div class="row-fluid">
+													<div class="span6">
+														<svg style="height: 350px;min-height:350px"></svg>
+														<div class="span10 offset1">
+															<div data-bind="addCounterSlider: sliderVisible" id="0"></div>
+														</div>
+													</div>
+													<div class="span6" data-bind="visible: showCustomCounters">
+														<svg style="height: 350px;min-height:350px"></svg>
+														<div class="span10 offset1">
+															<div data-bind="addCounterSlider: sliderVisible" id="1"></div>
+														</div>
+													</div>
 												</div>
 											</div>
-											<div class="row-fluid">
-												<div class="span6">
-													<svg style="height: 350px;min-height:350px"></svg>
-													<div class="span10 offset1">
-														<div data-bind="addCounterSlider: sliderVisible" id="0"></div>
+										</div>
+									</div>
+									<div class="histograms" data-bind="visible: histogramsVisible">
+										<div class="histogramsGraphs" data-bind="foreach: histograms">
+											<div class="row-fluid" data-bind="visible: isVisible">
+												<div class="row-fluid" data-bind="graphsInitialization: isVisible">
+													<h5 class="span6"><span data-bind="text: histogramName"></span></h5>
+													<div class="span5"><select data-bind="options: availableAgents, value: selectedAgent, event: {'change': onAgentChange}" class="input-large, pull-right"></select></div>
+													<div class="span1 pull-right">
+														<button class="btn" data-bind="click: refresh"><i class="icon-repeat"></i></button>
 													</div>
 												</div>
-												<div class="span6" data-bind="visible: showCustomCounters">
-													<svg style="height: 350px;min-height:350px"></svg>
-													<div class="span10 offset1">
-														<div data-bind="addCounterSlider: sliderVisible" id="1"></div>
+												<div data-bind="foreach: chartRows">
+												<div class="row-fluid">
+													<div class="span6">
+														<svg style="height: 350px;min-height:350px"></svg>
+														<div class="span10 offset1">
+															<div data-bind="addSlider: $parent.sliderVisible, attr:{'id': $index()*2 }"></div>
+														</div>
 													</div>
+													<div class="span6" data-bind="visible: $parent.totalCharts()> $index()*2+1">
+														<svg style="height: 350px;min-height:350px"></svg>
+														<div class="span10 offset1">
+															<div data-bind="addSlider: $parent.sliderVisible, attr:{'id': $index()*2 + 1}">
+															</div>
+														</div>
+													</div>
+												</div>
 												</div>
 											</div>
 										</div>
 									</div>
 									<div class="timers" data-bind="visible: timersVisible">
 										<div class="timerGraphs" data-bind="foreach: timers">
-											<div class="row-fluid" data-bind="graphsInitialization: isVisible">
-												<h5 class="span6"><span data-bind="text: timerName"></span></h5>
-												<div class="span5"><select data-bind="options: availableAgents, value: selectedAgent, event: {'change': onAgentChange}" class="input-large, pull-right"></select></div>
-												<div class="span1 pull-right">
-													<button class="btn" data-bind="click: refresh"><i class="icon-repeat"></i></button>
-												</div>
-											</div>
-											<div data-bind="foreach: chartRows">
-											<div class="row-fluid">
-												<div class="span6">
-													<svg style="height: 350px;min-height:350px"></svg>
-													<div class="span10 offset1">
-														<div data-bind="addSlider: $parent.sliderVisible, attr:{'id': $index()*2 }"></div>
+											<div class="row-fluid" data-bind="visible: isVisible">
+												<div class="row-fluid" data-bind="graphsInitialization: isVisible">
+													<h5 class="span6"><span data-bind="text: timerName"></span></h5>
+													<div class="span5"><select data-bind="options: availableAgents, value: selectedAgent, event: {'change': onAgentChange}" class="input-large, pull-right"></select></div>
+													<div class="span1 pull-right">
+														<button class="btn" data-bind="click: refresh"><i class="icon-repeat"></i></button>
 													</div>
 												</div>
-												<div class="span6" data-bind="visible: $parent.totalCharts()> $index()*2+1">
-													<svg style="height: 350px;min-height:350px"></svg>
-													<div class="span10 offset1">
-														<div data-bind="addSlider: $parent.sliderVisible, attr:{'id': $index()*2 + 1}"></div>
+												<div data-bind="foreach: chartRows">
+												<div class="row-fluid">
+													<div class="span6">
+														<svg style="height: 350px;min-height:350px"></svg>
+														<div class="span10 offset1">
+															<div data-bind="addSlider: $parent.sliderVisible, attr:{'id': $index()*2 }"></div>
+														</div>
+													</div>
+													<div class="span6" data-bind="visible: $parent.totalCharts()> $index()*2+1">
+														<svg style="height: 350px;min-height:350px"></svg>
+														<div class="span10 offset1">
+															<div data-bind="addSlider: $parent.sliderVisible, attr:{'id': $index()*2 + 1}"></div>
+														</div>
 													</div>
 												</div>
-											</div>
+												</div>
 											</div>
 										</div>
-									</div>
-									<div class="histograms" data-bind="visible: histogramsVisible">
 									</div>
 								</div>
 								<!--adding svgs for counters-->
