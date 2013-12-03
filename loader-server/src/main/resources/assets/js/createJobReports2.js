@@ -199,6 +199,14 @@ function createGroupsTree(jobStats) {
                 model.showFuncCounterGraphs();
                 break;
             case "histograms":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                window.viewModel.isVisible(true);
+                window.viewModel.groups()[groupIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].histogramsVisible(true); 
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex];
+                model.showFuncHistogramGraphs();
                 break;
             case "timer":
                 var groupIndex = data.rslt.obj.data("groupIndex");
@@ -214,6 +222,15 @@ function createGroupsTree(jobStats) {
             case "counter":
                 break;
             case "histogram":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                var histIndex = data.rslt.obj.data("keyIndex");
+                window.viewModel.isVisible(true);
+                window.viewModel.groups()[groupIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].histogramsVisible(true); 
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex].histograms()[histIndex];
+                model.showHistogramGraphs();
                 break;
         }
     }).bind("uncheck_node.jstree", function(event, data) {
@@ -247,10 +264,15 @@ function createGroupsTree(jobStats) {
                 var groupIndex = data.rslt.obj.data("groupIndex");
                 var functionIndex = data.rslt.obj.data("functionIndex");
                 var model = window.viewModel.groups()[groupIndex].functions()[functionIndex];
-                model.showFuncCounterGraphs();
+                model.hideFuncCounterGraphs();
                 //model.countersVisible(false);
                 break;
             case "histograms":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex];
+                //model.timersVisible(false);
+                model.hideFuncHistogramGraphs();
                 break;
             case "timer":
                 var groupIndex = data.rslt.obj.data("groupIndex");
@@ -263,6 +285,12 @@ function createGroupsTree(jobStats) {
             case "counter":
                 break;
             case "histogram":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                var hisIndex = data.rslt.obj.data("keyIndex");
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex].histograms()[hisIndex];
+                //model.isVisible(false);
+                model.hideHistogramGraphs();
                 break;
 
         }
@@ -629,10 +657,17 @@ var functionGraphViewModel = function(func, groupUrl) {
         });
         return timers;
     }
-   
+    self.getHistograms = function(){
+        var histos = [];
+        if(func["metrics"]["histograms"]==undefined) return histos;
+        $.each(func["metrics"]["histograms"], function(index, histo){
+            histos.push(new histogramGraphViewModel(histo, functionUrl));
+        });
+        return histos;
+    }
     self.timers = ko.observableArray(self.getTimers());
     self.counters = ko.observableArray([new countersGraphViewModel(func["metrics"]["counters"], functionUrl)]);
-    self.histograms = ko.observableArray();
+    self.histograms = ko.observableArray(self.getHistograms());
     self.isVisible = ko.observable(false);
     self.timersVisible = ko.observable(false);
     self.countersVisible = ko.observable(false);
@@ -641,11 +676,13 @@ var functionGraphViewModel = function(func, groupUrl) {
         self.isVisible(true);
         self.showFuncTimersGraphs();
         self.showFuncCounterGraphs();
+        self.showFuncHistogramGraphs();
     }
     self.hideFuncGraphs = function(){
         self.isVisible(false);
         self.hideFuncTimersGraphs();
         self.hideFuncCounterGraphs();
+        self.hideFuncHistogramGraphs();
     }
     self.showFuncTimersGraphs = function(){
         self.timersVisible(true);
@@ -672,8 +709,155 @@ var functionGraphViewModel = function(func, groupUrl) {
         var counters = self.counters();
         counters[0].hideCounterGraphs();
     }
+    self.showFuncHistogramGraphs = function(){
+        self.histogramsVisible(true);
+        var histos = self.histograms();
+        $.each(histos, function(index, h){
+            h.showHistogramGraphs();
+        });
+    }
+    self.hideFuncHistogramGraphs = function(){
+        self.histogramsVisible(false);
+        var histos = self.histograms();
+        $.each(histos, function(index, h){
+            h.hideHistogramGraphs();
+        });
+    }
 }
+var histogramGraphViewModel = function(histogram, functionUrl){
+    var self = this;
+    self.histogramName = "Histogram-" + histogram["name"];
+    self.availableAgents = ko.observableArray(histogram["agents"]);
+    self.selectedAgent = ko.observable("combined");
+    self.dataAvailable = ko.observable(false);
+    self.histogramUrl = ko.computed(function(){
+        return functionUrl + "/histograms/" + histogram["name"] + "/agents/" + self.selectedAgent();
+    });
+    var chartScheme = window["graphSceme"]["chartResources"]["histogram"]["charts"];
+    self.chartRows = ko.observableArray(new Array(Math.floor((chartScheme.length + 1) / 2)));
+    self.isVisible = ko.observable(false);
+    self.chartsData = {};
+    self.dataLength = ko.observable(0);
+    self.totalCharts = ko.observable(chartScheme.length);
+    self.sliderVisible = ko.observable(false);
+    self.fetchAndParse = function() {
+        var timeSeries = {};
+        $.ajax({
+            url: self.histogramUrl(),
+            type: "GET",
+            contentType: "application/json",
+            async: false,
+            success: function(histogramStats) {
+                var dataLines = histogramStats.split('\n');
+                self.dataLength(dataLines.length);
+                if(dataLines.length>5){
+                    self.sliderVisible(true);
+                }
+                for(var i=0;i<dataLines.length;i++){
+                    if (dataLines[i]=="") continue;
+                    var lineJson = $.parseJSON(dataLines[i]);
+                    $.each(lineJson, function(key, value) {
+                        if(key != "time"){
+                            if (timeSeries[key] == undefined) timeSeries[key] = new Array();
+                            timeSeries[key].push({x: new Date(lineJson["time"]), y: value});
+                        }
+                    });
+                }
+            },
+            error: function() {
+            },
+            complete: function() {
+            }
+        });
+        return timeSeries;
+    }
+    self.createIndexesMap = function(){
+        var map = [];
+        for(var i=0;i<chartScheme.length;i++) map.push({"sliderStartIndex": 0});
+        return map;
+    }
+    self.chartIndexes = self.createIndexesMap();
+    
+    self.hide = function() {
+        $(this).hide();
+    }
+    self.onAgentChange = function(data, event) {
+        var agent = self.selectedAgent();
+        if (self.chartsData[agent] == undefined) {
+            self.chartsData[agent] = divideInCharts(self.fetchAndParse(),window["graphSceme"]["chartResources"]["histogram"]["charts"]);
+        }
+        self.plot($(event.target));
+    }
+    self.refresh = function(data, event) {
+        var agent = self.selectedAgent();
+        $.each(self.chartsData, function(k,v){
+            self.chartsData[k] = undefined;
+        });
+        self.chartsData[agent] = divideInCharts(self.fetchAndParse(),window["graphSceme"]["chartResources"]["histogram"]["charts"]);
+        self.plot($(event.target)[0]);
+    }
+    self.initializeGraphs = function(currElement){
+        var agent = self.selectedAgent();
+        self.chartsData[agent] = divideInCharts(self.fetchAndParse(),window["graphSceme"]["chartResources"]["histogram"]["charts"]);
+        console.log("data", self.chartsData[agent]);
+        console.log("values for first chart",self.chartsData[agent][0][0]["values"]);
+        self.plot(currElement);
+    }
+    self.plot = function(currElement){
+        var chartScheme = window["graphSceme"]["chartResources"]["histogram"]["charts"];
+        var charts = self.chartsData[self.selectedAgent()];
+        console.log("in plot data", charts);
+        var tmpCharts = [];
+        $.each(charts, function(index, chart){
+            var tmpChart = [];
+            var startIndex = self.chartIndexes[index].sliderStartIndex;
+            var lastIndex = startIndex + 5> self.dataLength()?self.dataLength():startIndex + 5;
+            $.each(chart, function(ind, line){
+                tmpChart.push({"key":line["key"],"color":line["color"], "values": line["values"].slice(startIndex, lastIndex)});
+            });
+            tmpCharts.push(tmpChart);
+        }); 
+        $.each(tmpCharts, function(index, tmpChart){
+            plotGraph(tmpChart, $($(currElement).parents(".histogramsGraphs")[0]).find("svg")[index], chartScheme[index]["xLegend"], chartScheme[index]["yLegend"]);
+        });  
+        console.log("my tmpCharts", tmpCharts);
+        console.log("my original charts", charts);     
+    }
+    self.showHistogramGraphs = function(){
+        self.isVisible(true);
+    }
+    self.hideHistogramGraphs = function(){
+        self.isVisible(false);
+    }
+    self.addSlider = function(element){
+        var st = Math.ceil(self.dataLength()/5);
+        var options={
+            min: 0,
+            max: self.dataLength()-5,
+            step:st,
+            stop: function(event, ui){
+                var k = $(event.target).attr('id');
+                self.chartIndexes[k].sliderStartIndex=ui.value;
+                self.updatePlot(k, event);
+            }
+        }
+        $(element).slider(options);
+    }
 
+    self.updatePlot = function(k, event){
+        var chartScheme = window["graphSceme"]["chartResources"]["histogram"]["charts"];
+        var charts = self.chartsData[self.selectedAgent()];
+        var tmpChart = [];
+        var startIndex = self.chartIndexes[k].sliderStartIndex;
+        var lastIndex = startIndex + 5> self.dataLength()?self.dataLength():startIndex + 5;
+        $.each(charts[k], function(ind, line){
+            tmpChart.push({"key":line["key"],"color":line["color"], "values": line["values"].slice(startIndex, lastIndex)});
+        });
+        var currElement = $(event.target)[0];
+        plotGraph(tmpChart, $($(currElement).parents(".histogramsGraphs")[0]).find("svg")[k], chartScheme[k]["xLegend"], chartScheme[k]["yLegend"]);
+    }
+
+}
 var timerGraphViewModel = function(timer, functionUrl) {
     var self = this;
     self.timerName = "Timer-" + timer["name"];
@@ -948,12 +1132,14 @@ function divideInCharts(data, chartScheme) {
         $.each(keysToPlot, function(ind, k){
             var ke = k["key"];
             var tmp = data[ke];
-            var tmpJson = { 
-                "values": tmp,
-                "key": k["name"],
-                "color": k["color"]
+            if(tmp!=undefined){
+                var tmpJson = { 
+                    "values": tmp,
+                    "key": k["name"],
+                    "color": k["color"]
+                }
+                linesToPlot.push(tmpJson);
             }
-            linesToPlot.push(tmpJson);
          });
         timeSeriesData.push(linesToPlot);
     });
