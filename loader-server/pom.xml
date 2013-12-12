@@ -19,6 +19,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+<repositories>
+    <repository>
+        <id>nitinka.mvn.repo</id>
+        <url>https://github.com/nitinka/mvn-repo/raw/master</url>
+        <!-- use snapshot version -->
+        <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+        </snapshots>
+    </repository>
+</repositories>
+
     <dependencies>
         <dependency>
             <groupId>ch.qos.logback</groupId>
