@@ -130,7 +130,7 @@
 						<label class="span2">Run Name</label>
 						<input id="runName" type="text" class="span4" data-bind="value: runName"/>
 						<div class="span12">
-							<div class="span6">
+							<div class="span6" data-bind="getGroups: isVisible">
 								<label class="span4">Business Unit</label>
 								<select id="bu" class="span8" data-bind="options: businessUnit, value: selectedBu, event: {change: onBuChange}"></select>
 							</div>
