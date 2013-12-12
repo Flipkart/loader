@@ -39,7 +39,7 @@ public class HttpGet extends PerformanceFunction implements Constants {
         Response response = HttpRequestHelper.executeRequest(context, requestBuilder);
 
         if(HttpResponseHelper.successfulRequest(context, response)) {
-            context.updateHistogram("Content-Length", response.getResponseBodyAsBytes().length);
+            context.updateHistogram("body-size", response.getResponseBody().length());
             HttpResponseHelper.passOnResponse(context, response);
         }
     }
@@ -74,7 +74,7 @@ public class HttpGet extends PerformanceFunction implements Constants {
 
     @Override
     public List<String> customHistograms() {
-        return Arrays.asList(new String[]{"Content-Length"});
+        return Arrays.asList(new String[]{"body-size"});
     }
 }
 
