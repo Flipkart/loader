@@ -49,7 +49,7 @@ public class ClassHelper {
         Method method   =   null;
         Class actionClassObj;
         actionClassObj      =   Class.forName(className);
-        method              =   actionClassObj.getDeclaredMethod(functionName, paramTypes);
+        method              =   actionClassObj.getMethod(functionName, paramTypes);
         return method;
     }
 
