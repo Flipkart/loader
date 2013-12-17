@@ -249,9 +249,13 @@ var loadPartViewModel =  function(){
 	self.tearDownGroup = ko.observable(tearDown);
 	self.isVisible = ko.observable(false);
 	self.nodeId = "node_" + self.createdAt;
-	self.dataGenAccordionId = "dataGenAccordionId_" + self.createdAt;
-	self.dataGenId = "dataGenId_" + self.createdAt;
+	self.dataGenAccordionId = "lpDataGenAccordionId_" + self.createdAt;
+	self.dataGenId = "lpDataGenId_" + self.createdAt;
 	self.dataGenIdHref = "#" + self.dataGenId;
+
+	// self.tearDataGenAccordionId = "tearDataGenAccordionId_" + self.createdAt;
+	// self.tearDataGenId = "tearDataGenId_" + self.createdAt;
+	// self.tearDataGenIdHref = "#" + self.tearDataGenId;
 	self.groupsName = ko.computed(function(){
 		var gNames = [];
 		$.each(self.groups(), function(gIndex, grp){
@@ -1351,7 +1355,7 @@ function checkValidity(runJson){
 	var colNames = [];
 	$.each(runJson["onDemandMetricCollections"], function(iindex, agent){
 		var colNames = [];
-		$.each(collector["collectors"], function(index, collector){
+		$.each(agent["collectors"], function(index, collector){
 			if(colNames.indexOf(collector["name"])!=-1){
 				return {"isValid": false, "alertMessage":"You have two collectors with same name for agent " + agent["agent"] + ", You will loose data for one."}
 			}
