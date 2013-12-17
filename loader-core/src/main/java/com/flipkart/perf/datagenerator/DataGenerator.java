@@ -22,7 +22,7 @@ public abstract class DataGenerator {
                 return new RandomNumber(Integer.parseInt(info.getInputDetails().get("maxValue").toString()));
 
             case RANDOM_SELECTION:
-                return new RandomSelection((String[])info.getInputDetails().get("maxValue"));
+                return new RandomSelection((String[])info.getInputDetails().get("selectionSet"));
 
             case RANDOM_STRING:
                 return new RandomString(RandomString.RandomStringType.valueOf(info.getInputDetails().get("type").toString()),
