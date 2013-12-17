@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Its an abstraction queues that allow add and set operations on circularly changing queues.
- * It provides optimization where writer and reader will never be using the same queue and hence less synchronization
+ * Its an abstraction over queues that allow add and set operations on circularly changing queues.
+ * It provides optimization where writer and reader(drainer) will never be using the same queue and hence less synchronization
  */
 final public class GroupStatsQueue {
     private LinkedBlockingQueue<GroupStatsInstance> groupWriteQueue;
@@ -43,7 +43,7 @@ final public class GroupStatsQueue {
     }
 
     public void swapQueues() {
-        logger.debug("Swapping Queue");
+        logger.debug("Swapping Stats Queue");
         if(oppositeQueue) {
             this.groupWriteQueueLink = this.groupReadQueue;
             this.groupReadQueueLink = this.groupWriteQueue;

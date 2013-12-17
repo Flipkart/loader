@@ -101,12 +101,20 @@ public class JobStatsHelper {
         private String name;
         private List<String> agents;
 
+        public MetricStatsMeta() {
+            agents = new ArrayList<String>();
+        }
+
         public List<String> getAgents() {
             return agents;
         }
 
         public void setAgents(List<String> agents) {
             this.agents = agents;
+        }
+
+        public void addAgent(String agent) {
+            this.agents.add(agent);
         }
 
         public String getName() {
@@ -120,8 +128,12 @@ public class JobStatsHelper {
 
     public static class GroupStatsMeta {
         private String groupName;
-        private List<MetricStatsMeta> timers;
-        private List<MetricStatsMeta> counters;
+        private Map<String, FunctionStatsMeta> functions;
+
+        public GroupStatsMeta(String groupName) {
+            this.groupName = groupName;
+            this.functions = new LinkedHashMap<String, FunctionStatsMeta>();
+        }
 
         public String getGroupName() {
             return groupName;
@@ -131,20 +143,51 @@ public class JobStatsHelper {
             this.groupName = groupName;
         }
 
-        public List<MetricStatsMeta> getTimers() {
-            return timers;
+        public Map<String, FunctionStatsMeta> getFunctions() {
+            return functions;
         }
 
-        public void setTimers(List<MetricStatsMeta> timers) {
-            this.timers = timers;
+        public void setFunctions(Map<String, FunctionStatsMeta> functions) {
+            this.functions = functions;
         }
 
-        public List<MetricStatsMeta> getCounters() {
-            return counters;
+        public void addFunction(FunctionStatsMeta functionStatsMeta) {
+            this.functions.put(functionStatsMeta.functionName, functionStatsMeta);
+        }
+    }
+
+    private static class FunctionStatsMeta {
+        private String functionName;
+        private Map<String, List<MetricStatsMeta>> metrics;
+
+        private FunctionStatsMeta(String functionName) {
+            this.functionName = functionName;
+            metrics = new LinkedHashMap<String, List<MetricStatsMeta>>();
         }
 
-        public void setCounters(List<MetricStatsMeta> counters) {
-            this.counters = counters;
+        public String getFunctionName() {
+            return functionName;
+        }
+
+        public void setFunctionName(String functionName) {
+            this.functionName = functionName;
+        }
+
+        public Map<String, List<MetricStatsMeta>> getMetrics() {
+            return metrics;
+        }
+
+        public void setMetrics(Map<String, List<MetricStatsMeta>> metrics) {
+            this.metrics = metrics;
+        }
+
+        public void addMetric(String metricType, MetricStatsMeta metric) {
+            List<MetricStatsMeta> metricList = metrics.get(metricType);
+            if(metricList == null)
+                metricList = new ArrayList<MetricStatsMeta>();
+
+            metricList.add(metric);
+            metrics.put(metricType, metricList);
         }
     }
 
@@ -161,98 +204,50 @@ public class JobStatsHelper {
             allGroups.addAll(loadPart.getLoad().getGroups());
         }
 
-        List<GroupStatsMeta> groups = new ArrayList<GroupStatsMeta>();
+        List<GroupStatsMeta> groupStatsList = new ArrayList<GroupStatsMeta>();
 
         for(Group group : allGroups) {
             File groupPath = new File(jobFSConfig.getJobGroupStatsPath(jobId, group.getName()));
             if(groupPath.exists()) {
-                GroupStatsMeta groupStatsMeta = new GroupStatsMeta();
-                groupStatsMeta.setGroupName(groupPath.getName());
+                GroupStatsMeta groupStatsMeta = new GroupStatsMeta(group.getName());
                 boolean groupHasStats = false;
-
-                List<MetricStatsMeta> groupTimers = new LinkedList<MetricStatsMeta>();
-                List<MetricStatsMeta> groupCounters = new LinkedList<MetricStatsMeta>();
 
                 for(GroupFunction groupFunction : group.getFunctions()) {
                     if(groupFunction.isDumpData()) {
                         String functionName = groupFunction.getFunctionalityName();
+                        FunctionStatsMeta functionStatsMeta = new FunctionStatsMeta(functionName);
 
-                        // Fetch Timers
-                        File timersPath = new File(jobFSConfig.getJobGroupTimersStatsPath(jobId, group.getName()));
-                        if(timersPath.exists()) {
-                            for(File timerPath : timersPath.listFiles()) {
-                                if(functionName.equals(timerPath.getName())) {
-                                    // I am using timer name here as function name
+                        File functionPath = new File(jobFSConfig.getJobFunctionStatsPath(jobId, group.getName(), functionName));
+                        if(functionPath.exists()) {
+                            for(File metricTypePath : functionPath.listFiles()) {
+                                for(File metricPath : metricTypePath.listFiles()) {
                                     MetricStatsMeta metricStatsMeta = new MetricStatsMeta();
-                                    metricStatsMeta.setName(timerPath.getName());
-
-                                    File agentsPath = new File(timerPath.getAbsoluteFile() + File.separator + "agents");
-
-                                    List<String> allAgents = Arrays.asList(agentsPath.list());
-                                    List<String> agentsHavingData = new ArrayList<String>();
-
-                                    for(String agent : allAgents) {
+                                    metricStatsMeta.setName(metricPath.getName());
+                                    File agentsPath = new File(metricPath.getAbsoluteFile() + File.separator + "agents");
+                                    for(File agentPath : agentsPath.listFiles()) {
                                         if(new File(jobFSConfig.getJobFunctionStatsFile(jobId,
                                                 groupPath.getName(),
-                                                "timers",
-                                                timerPath.getName(),
-                                                agent)).exists()) {
-                                            agentsHavingData.add(agent);
+                                                groupFunction.getFunctionalityName(),
+                                                metricTypePath.getName(),
+                                                metricPath.getName(),
+                                                agentPath.getName())).exists()) {
+                                            metricStatsMeta.addAgent(agentPath.getName());
                                             groupHasStats = true;
                                         }
                                     }
-
-                                    metricStatsMeta.setAgents(agentsHavingData);
-                                    groupTimers.add(metricStatsMeta);
-
+                                    functionStatsMeta.addMetric(metricTypePath.getName(), metricStatsMeta);
                                 }
                             }
                         }
 
-                        // Fetch Counters
-                        File countersPath = new File(jobFSConfig.getJobGroupCountersStatsPath(jobId, group.getName()));
-                        if(countersPath.exists()) {
-                            for(File counterPath : countersPath.listFiles()) {
-                                if(counterPath.getName().equals(functionName + "_count")
-                                        || counterPath.getName().equals(functionName + "_error")
-                                        || counterPath.getName().equals(functionName + "_failure")
-                                        || counterPath.getName().equals(functionName + "_skip")) {
-                                    // I am using counter name here as function name
-                                    MetricStatsMeta metricStatsMeta = new MetricStatsMeta();
-                                    metricStatsMeta.setName(counterPath.getName());
-
-                                    File agentsPath = new File(counterPath.getAbsoluteFile() + File.separator + "agents");
-
-                                    List<String> allAgents = Arrays.asList(agentsPath.list());
-                                    List<String> agentsHavingData = new ArrayList<String>();
-
-                                    for(String agent : allAgents) {
-                                        if(new File(jobFSConfig.getJobFunctionStatsFile(jobId,
-                                                groupPath.getName(),
-                                                "counters",
-                                                counterPath.getName(),
-                                                agent)).exists()) {
-                                            agentsHavingData.add(agent);
-                                            groupHasStats = true;
-                                        }
-                                    }
-
-                                    metricStatsMeta.setAgents(agentsHavingData);
-                                    groupCounters.add(metricStatsMeta);
-
-                                }
-                            }
-                        }
-
+                        groupStatsMeta.addFunction(functionStatsMeta);
                     }
                 }
-                groupStatsMeta.setTimers(groupTimers);
-                groupStatsMeta.setCounters(groupCounters);
                 if(groupHasStats)
-                    groups.add(groupStatsMeta);
+                    groupStatsList.add(groupStatsMeta);
             }
         }
-        return groups;
+        return groupStatsList;
     }
 
     /**
@@ -283,8 +278,8 @@ public class JobStatsHelper {
      * @return
      * @throws FileNotFoundException
      */
-    public InputStream getJobMetricStats(String jobId, String groupName, String metricType, String metricName, String agent, boolean last) throws FileNotFoundException {
-        File statsFile = new File(jobFSConfig.getJobFunctionStatsFile(jobId, groupName, metricType, metricName, agent));
+    public InputStream getJobMetricStats(String jobId, String groupName, String functionName, String metricType, String metricName, String agent, boolean last) throws FileNotFoundException {
+        File statsFile = new File(jobFSConfig.getJobFunctionStatsFile(jobId, groupName, functionName, metricType, metricName, agent));
         logger.info(statsFile.getAbsolutePath());
         if(!statsFile.exists())
             throw new WebApplicationException(ResponseBuilder.response(Response.Status.NOT_FOUND, String.format("Stats for %s %s Not computed yet",metricType,metricName)));

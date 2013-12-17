@@ -1,4 +1,6 @@
-package com.flipkart.perf.common.util;
+package com.flipkart.perf.util;
+
+import com.flipkart.perf.common.util.Clock;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,6 +19,8 @@ public class TimerContext {
     }
 
     public long stop() {
+        if(timer == null)
+            return -1;
         long timeInNS = Clock.nsTick() - this.startTime;
         this.timer.add(timeInNS);
         return timeInNS;

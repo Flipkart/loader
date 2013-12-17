@@ -1,8 +1,10 @@
 package com.flipkart.perf.operation;
 
+import com.flipkart.perf.common.util.Clock;
 import com.flipkart.perf.core.FunctionContext;
 import com.flipkart.perf.function.FunctionParameter;
 import com.flipkart.perf.function.PerformanceFunction;
+import com.flipkart.perf.util.TimerContext;
 import com.flipkart.perf.inmemorydata.SharedDataInfo;
 
 import java.util.LinkedHashMap;
@@ -23,9 +25,14 @@ public class MathAddFunction extends PerformanceFunction {
     public void execute(FunctionContext context) throws Exception {
         List numList = context.getParameterAsList(IP_NUM_JSON_LIST);
         double  sum = 0.0;
+        TimerContext c = context.startTimer("sleepTimer");
+        Clock.sleep(1000);
         for(Object num : numList) {
             sum += Double.parseDouble(num.toString());
+            context.incrementCounter("numbers");
         }
+        context.updateHistogram("sum", sum);
+        c.stop();
         logger.info("Sum of "+numList +" : "+sum);
     }
 

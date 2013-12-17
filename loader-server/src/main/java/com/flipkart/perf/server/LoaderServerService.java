@@ -70,8 +70,10 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         // Start the Scheduled Executor
         this.scheduledExecutorService = Executors.newScheduledThreadPool(configuration.getScheduledExecutorConfig().getThreadPoolSize());
         // initialize Daemon Services
+
+        HistogramComputationThread.initialize(configuration.getJobFSConfig(), 10000).start();
         CounterCompoundThread.initialize(scheduledExecutorService, configuration.getJobFSConfig(), configuration.getScheduledExecutorConfig().getCounterCompoundThreadInterval());
-        CounterThroughputThread.initialize(scheduledExecutorService, configuration.getJobFSConfig(), configuration.getScheduledExecutorConfig().getCounterThroughputThreadInterval());
+//        CounterThroughputThread.initialize(scheduledExecutorService, configuration.getJobFSConfig(), configuration.getScheduledExecutorConfig().getCounterThroughputThreadInterval());
         GroupConfConsolidationThread.initialize(scheduledExecutorService, configuration.getJobFSConfig(), configuration.getScheduledExecutorConfig().getGroupConfConsolidationThreadInterval());
         JobDispatcherThread.initialize(scheduledExecutorService, configuration.getScheduledExecutorConfig().getJobDispatcherThreadInterval());
         TimerComputationThread.initialize(scheduledExecutorService, configuration.getJobFSConfig(), configuration.getScheduledExecutorConfig().getTimerComputationThreadInterval());

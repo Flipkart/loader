@@ -3,17 +3,16 @@ package com.flipkart.perf.core;
 import com.flipkart.perf.config.FSConfig;
 import com.flipkart.perf.common.jackson.ObjectMapperUtil;
 import com.flipkart.perf.common.util.Clock;
-import com.flipkart.perf.common.util.Counter;
-import com.flipkart.perf.common.util.Timer;
 import com.flipkart.perf.datagenerator.DataGenerator;
 import com.flipkart.perf.inmemorydata.SharedDataInfo;
+import com.flipkart.perf.util.Counter;
+import com.flipkart.perf.util.Histogram;
+import com.flipkart.perf.util.TimerContext;
+import com.flipkart.perf.util.Timer;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.SynchronousQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +27,7 @@ public class FunctionContext {
     private Map<String, Object> functionParameters;
     private Map<String, Counter> counters;
     private Map<String, Timer> timers;
+    private Map<String, Histogram> histograms;
     private Map<String, Object> passOnParameters; // Will be populated by User in function and would be passed further
     private Map<String, DataGenerator> groupDataGenerators;
     private static Map<String, DataGenerator> globalDataGenerators;
@@ -71,11 +71,12 @@ public class FunctionContext {
         FunctionContext.globalDataGenerators = globalDataGenerators;
     }
 
-    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters,
+    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters, Map<String, Histogram> functionHistograms,
                            Map<String, DataGenerator> groupDataGenerators) {
         this.functionParameters = new HashMap<String, Object>();
         this.timers = functionTimers;
         this.counters = functionCounters;
+        this.histograms = functionHistograms;
         this.passOnParameters = new HashMap<String, Object>();
         this.groupDataGenerators = groupDataGenerators;
     }
@@ -272,15 +273,49 @@ public class FunctionContext {
         return this;
     }
 
-    public Timer getFunctionTimer(String timerName) {
-        return this.timers.get(timerName);
+    public TimerContext startTimer(String timerName) {
+        Timer timer = this.timers.get(timerName);
+        TimerContext context;
+        if(timer == null)
+            context = new TimerContext(null);
+        else
+            context = timer.startTimer();
+        return context;
     }
 
-    public Counter getFunctionCounter(String counterName) {
+    public FunctionContext updateHistogram(String histogramName, double value) {
+        Histogram histogram = this.histograms.get(histogramName);
+        if(histogram != null)
+            histogram.addValue(value);
+        return this;
+    }
+
+    public FunctionContext incrementCounter(String counterName) {
         Counter counter = this.counters.get(counterName);
-        if(counter == null)
-            throw new RuntimeException("Counter "+counterName+" doesn't exist");
-        return counter;
+        if(counter != null)
+            counter.increment();
+        return this;
+    }
+
+    public FunctionContext incrementCounter(String counterName, int by) {
+        Counter counter = this.counters.get(counterName);
+        if(counter != null)
+            counter.increment(by);
+        return this;
+    }
+
+    public FunctionContext decrementCounter(String counterName) {
+        Counter counter = this.counters.get(counterName);
+        if(counter != null)
+            counter.decrement();
+        return this;
+    }
+
+    public FunctionContext decrementCounter(String counterName, int by) {
+        Counter counter = this.counters.get(counterName);
+        if(counter != null)
+            counter.decrement(by);
+        return this;
     }
 
     public FunctionContext updateParameters(Map<String, Object> params) {
@@ -399,14 +434,4 @@ public class FunctionContext {
         throw new RuntimeException("Shared Data "+sharedDataName+" doesn't exist");
     }
 
-/*
-    public static void main(String[] args) throws ClassNotFoundException {
-        FunctionContext c = new FunctionContext(null, null);
-        SharedList sl = new SharedList();
-        sl.setSharedDataType(String.class);
-        List<String> l2 = (List<String>) c.buildSharedList("l2", sl.getSharedDataType());
-        l2.add("Hello");
-        System.out.println(l2);
-    }
-*/
 }

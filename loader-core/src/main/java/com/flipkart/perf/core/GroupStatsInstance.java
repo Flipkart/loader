@@ -1,6 +1,7 @@
 package com.flipkart.perf.core;
 
-import com.flipkart.perf.common.util.Timer;
+import com.flipkart.perf.util.Histogram;
+import com.flipkart.perf.util.Timer;
 
 import java.util.*;
 
@@ -9,11 +10,13 @@ import java.util.*;
  */
 public class GroupStatsInstance {
     private Map<String, Timer> customTimers;
-    private Map<String, Timer> functionTimers; // Map of Function end timestamp and execution time taken
+    private Map<String, Timer> functionTimers; // Map of Function and (timestamp and execution time taken)
+    private final Map<String, Histogram> functionHistograms;
 
-    public GroupStatsInstance(Map<String, Timer> customTimers, Map<String,Timer> functionTimers) {
+    public GroupStatsInstance(Map<String, Timer> customTimers, Map<String, Timer> functionTimers, Map<String, Histogram> functionHistograms) {
         this.customTimers = customTimers;
         this.functionTimers = functionTimers;
+        this.functionHistograms = functionHistograms;
     }
 
     public Map<String, Timer> getCustomTimers() {
@@ -29,9 +32,7 @@ public class GroupStatsInstance {
         return functionTimers;
     }
 
-    @Override
-    public String toString() {
-        return "Timers :" + this.customTimers +"\n"
-                + "Function Execution Times :" + this.functionTimers + "\n";
+    public Map<String, Histogram> getFunctionHistograms() {
+        return functionHistograms;
     }
 }
