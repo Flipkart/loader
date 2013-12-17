@@ -488,9 +488,12 @@
 										<div class="accordion-inner">
 											<div class="row-fluid" data-bind="foreach: availableParameters().inputParameters">
 												<div class="row-fluid">
-													<div class="row-fluid">
+													<div class="row-fluid thumbnail">
 														<div class="span3">
-															<label data-bind="text: key"></label>
+															<label class="span10" data-bind="text: key"></label>
+															<div class="span2" data-bind="if: showButton">
+																<a class="btn btn-mini pull-right" data-bind="click: addElement"><i class="icon-plus"></i></a>
+															</div>
 														</div>
 														<div class="span9">
 															<div data-bind="if: isScalar">
@@ -501,15 +504,17 @@
 															<div data-bind="if: isHashMap">
 																<div data-bind="foreach: mapValue">
 																	<div class="row-fluid">
-																		<input type="text" data-bind="value: name">
-																		<input type="text" data-bind="value: keyValue">
+																		<input class="span5" type="text" data-bind="value: name">
+																		<input class="span5" type="text" data-bind="value: keyValue">
+																		<a class="btn btn-mini" data-bind="click: $parent.removeFromMap"><i class="icon-minus"></i></a>
 																	</div>
 																</div>
 															</div>
 															<div data-bind="if: isList">
 																<div data-bind="foreach: listValue">
 																	<div class="row-fluid">
-																		<input type="text" data-bind="value: keyValue">
+																		<input class="span6" type="text" data-bind="value: keyValue">
+																		<a class="btn btn-mini" data-bind="click: $parent.removeFromList"><i class="icon-minus"></i></a>
 																	</div>
 																</div>
 															</div>
@@ -1048,9 +1053,11 @@
 										<div class="accordion-inner">
 											<div class="row-fluid" data-bind="foreach: availableParameters().inputParameters">
 												<div class="row-fluid thumbnail">
-													<div class="span3 leftBlock">
+													<div class="span3">
 														<label class="span10" data-bind="text: key"></label>
-														<button class="btn span2" data-bind="if: showButton, click: addElement">+</button>
+														<div class="span2" data-bind="if: showButton">
+															<a class="btn btn-mini pull-right" data-bind="click: addElement"><i class="icon-plus"></i></a>
+														</div>
 													</div>
 													<div class="span9">
 														<div data-bind="if: isScalar">
@@ -1059,20 +1066,22 @@
 															</div>
 														</div>
 														<div data-bind="if: isHashMap">
-															<div data-bind="foreach: mapValue">
-																<div class="row-fluid">
-																	<input type="text" data-bind="value: name">
-																	<input type="text" data-bind="value: keyValue">
+																<div data-bind="foreach: mapValue">
+																	<div class="row-fluid">
+																		<input class="span5" type="text" data-bind="value: name">
+																		<input class="span5" type="text" data-bind="value: keyValue">
+																		<a class="btn btn-mini" data-bind="click: $parent.removeFromMap"><i class="icon-minus"></i></a>
+																	</div>
 																</div>
 															</div>
-														</div>
-														<div data-bind="if: isList">
-															<div data-bind="foreach: listValue">
-																<div class="row-fluid">
-																	<input type="text" data-bind="value: keyValue">
+															<div data-bind="if: isList">
+																<div data-bind="foreach: listValue">
+																	<div class="row-fluid">
+																		<input class="span6" type="text" data-bind="value: keyValue">
+																		<a class="btn btn-mini" data-bind="click: $parent.removeFromList"><i class="icon-minus"></i></a>
+																	</div>
 																</div>
 															</div>
-														</div>
 													</div>
 												</div>
 											</div>
