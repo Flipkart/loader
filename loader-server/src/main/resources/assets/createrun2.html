@@ -396,9 +396,17 @@
                                 							</div>
                                 						</div>
                                 						<div class="row-fluid" data-bind="if: isRandomSelection">
-                                							<div class="span6">
-                                								<label class="span4">Maximum Value</label>
-                                								<input type="text" data-bind="value: maxValue">
+                                							<div class="row-fluid">
+                                								<button class="btn" data-bind="click: addToSelectionList">Add To List</button>	
+                                							</div>
+                                							<br/>
+                                							<div class="row-fluid" data-bind="foreach: selectionList">
+                                								<div class="row-fluid">
+	                                								<div class="span6">
+	                                									<input type="text" data-bind="value: listValue">
+		                                								<a class="btn btn-mini" data-bind="click: $parent.removeFromDisInfoList"><i class="icon-minus"></i></a>
+	                                								</div>
+                                								</div>
                                 							</div>
                                 						</div>
                                 						<div class="row-fluid" data-bind="if: isRandomString">
@@ -948,9 +956,17 @@
                                 							</div>
                                 						</div>
                                 						<div class="row-fluid" data-bind="if: isRandomSelection">
-                                							<div class="span6">
-                                								<label class="span4">Maximum Value</label>
-                                								<input type="text" data-bind="value: maxValue">
+                                							<div class="row-fluid">
+                                								<button class="btn" data-bind="click: addToSelectionList">Add To List</button>	
+                                							</div>
+                                							<br/>
+                                							<div class="row-fluid" data-bind="foreach: selectionList">
+                                								<div class="row-fluid">
+	                                								<div class="span6">
+	                                									<input type="text" data-bind="value: listValue">
+		                                								<a class="btn btn-mini" data-bind="click: $parent.removeFromDisInfoList"><i class="icon-minus"></i></a>
+	                                								</div>
+                                								</div>
                                 							</div>
                                 						</div>
                                 						<div class="row-fluid" data-bind="if: isRandomString">
