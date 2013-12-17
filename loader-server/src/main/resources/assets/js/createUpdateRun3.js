@@ -465,10 +465,26 @@ var inputParamViewModel = function(inputParam){
 	self.removeFromList = function(elem){
 		self.listValue.remove(elem);
 	}
+	self.returnList = function(){
+		var paramList = self.getList();
+		var result = [];
+		$.each(paramList, function(index, elem){
+			result.push(elem.keyValue());
+		});
+		return result;
+	}
+	self.returnMap = function(){
+		var mapList = self.getMap();
+		var result = {};
+		$.each(mapList, function(ind, elem){
+			result[elem.name()] = elem.keyValue();
+		});
+		return result;
+	}
 	self.val = function(){
 		if(self.isScalar) return self.getScalar();
-		if(self.isList) return self.getList();
-		if(self.isHashMap) return self.getMap();
+		if(self.isList) return self.returnList();
+		if(self.isHashMap) return self.returnMap();
 	}
 }
 
