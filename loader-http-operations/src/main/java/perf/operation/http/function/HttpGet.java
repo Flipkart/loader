@@ -1,5 +1,6 @@
 package perf.operation.http.function;
 
+import com.flipkart.perf.util.TimerContext;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.flipkart.perf.core.FunctionContext;
@@ -12,6 +13,7 @@ import perf.operation.http.util.HttpResponseHelper;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+
 /**
  * Does Http Get Operation
  */
@@ -37,6 +39,7 @@ public class HttpGet extends PerformanceFunction implements Constants {
         Response response = HttpRequestHelper.executeRequest(context, requestBuilder);
 
         if(HttpResponseHelper.successfulRequest(context, response)) {
+            context.updateHistogram("body-size", response.getResponseBody().length());
             HttpResponseHelper.passOnResponse(context, response);
         }
     }
@@ -67,6 +70,11 @@ public class HttpGet extends PerformanceFunction implements Constants {
                 "This Performance function is useful in doing Http Get Operation",
                 "Time out for request is 120seconds"
         });
+    }
+
+    @Override
+    public List<String> customHistograms() {
+        return Arrays.asList(new String[]{"body-size"});
     }
 }
 

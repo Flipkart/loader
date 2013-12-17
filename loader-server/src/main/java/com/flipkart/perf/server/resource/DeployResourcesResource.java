@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response;
 import com.flipkart.perf.common.util.ClassHelper;
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.function.FunctionParameter;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.reflections.Reflections;
 import org.reflections.Store;
@@ -342,8 +343,23 @@ public class DeployResourcesResource {
                     method = ClassHelper.getMethod(performanceFunction , "outputParameters", new Class[]{}, customClassLoader);
                     functionInfo.setOutputParameters((LinkedHashMap<String, FunctionParameter>) method.invoke(object, new Object[]{}));
 
-                    discoveredUserFunctions.put(performanceFunction, functionInfo);
+                    // Discover Custom timers for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "customTimers", new Class[]{}, customClassLoader);
+                    functionInfo.setCustomTimers((List<String>) method.invoke(object, new Object[]{}));
 
+                    // Discover Custom Counters for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "customCounters", new Class[]{}, customClassLoader);
+                    functionInfo.setCustomCounters((List<String>) method.invoke(object, new Object[]{}));
+
+                    // Discover Custom Histograms for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "customHistograms", new Class[]{}, customClassLoader);
+                    functionInfo.setCustomHistograms((List<String>) method.invoke(object, new Object[]{}));
+
+                    // Discover Input parameters for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "sharedData", new Class[]{}, customClassLoader);
+                    functionInfo.setSharedData((LinkedHashMap<String, SharedDataInfo>) method.invoke(object, new Object[]{}));
+
+                    discoveredUserFunctions.put(performanceFunction, functionInfo);
                 }
             }
         }

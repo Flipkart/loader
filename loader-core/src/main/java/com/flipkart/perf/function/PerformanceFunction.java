@@ -5,6 +5,7 @@ import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -64,6 +65,17 @@ abstract public class PerformanceFunction {
         return new LinkedHashMap<String, FunctionParameter>();
     }
 
+    public List<String> customCounters() {
+        return new ArrayList<String>();
+    }
+
+    public List<String> customHistograms() {
+        return new ArrayList<String>();
+    }
+
+    public List<String> customTimers() {
+        return new ArrayList<String>();
+    }
     /**
      * Can be used by user to explicitly tell framework about the shared structures its going to use
      * @return
@@ -71,5 +83,4 @@ abstract public class PerformanceFunction {
     public LinkedHashMap<String, SharedDataInfo> sharedData(){
         return new LinkedHashMap<String, SharedDataInfo>();
     }
-
 }

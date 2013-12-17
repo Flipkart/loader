@@ -56,7 +56,7 @@ public class ClassHelper {
     public static Method getMethod(String className, String functionName, Class[] paramTypes, ClassLoader customClassLoader) throws ClassNotFoundException, SecurityException, NoSuchMethodException {
         Method method   =   null;
         Class actionClassObj;
-        actionClassObj      = Class.forName(className, false, customClassLoader);
+        actionClassObj      =   Class.forName(className, false, customClassLoader);
         method              =   actionClassObj.getMethod(functionName, paramTypes);
         return method;
     }

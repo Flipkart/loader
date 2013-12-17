@@ -171,25 +171,6 @@ public class Group {
         return this;
     }
 
-
-    public Group addFunctionTimer(String timerName) {
-        this.customTimers.add(timerName);
-        return this;
-    }
-
-    public List<String> getCustomTimers() {
-        return customTimers;
-    }
-
-    public List<String> getCustomCounters() {
-        return customCounters;
-    }
-
-    public Group addFunctionCounter(String counterName) {
-        this.customCounters.add(counterName);
-        return this;
-    }
-
     void validate() {
         // No Threads
         if(this.threads < 1) {
