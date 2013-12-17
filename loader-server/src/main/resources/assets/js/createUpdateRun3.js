@@ -465,6 +465,11 @@ var inputParamViewModel = function(inputParam){
 	self.removeFromList = function(elem){
 		self.listValue.remove(elem);
 	}
+	self.val = function(){
+		if(self.isScalar) return self.getScalar();
+		if(self.isList) return self.getList();
+		if(self.isHashMap) return self.getMap();
+	}
 }
 
 var dataGeneratorViewModel = function(){
@@ -665,7 +670,7 @@ function createJsonFromView(){
 				fun["params"] = {};
 				if(func.availableParameters().inputParameters!=undefined){
 					$.each(func.availableParameters().inputParameters(), function(paramIndex, param){
-						//fun["params"][param.key] = param.val();
+						fun["params"][param.key] = param.val();
 					});
 				}
 				fun["customTimers"] = func.selectedCustomTimers();
@@ -808,8 +813,6 @@ function getDataGeneratorsJson(dataGenModelList){
 }
 
 function createTree(){ 
-	////console.log(data);
-	//var data = createJsonFromView(window.viewModel);
 	var model = window.viewModel;
 	$("#runTree").jstree({
 			"json_data" : {
@@ -1252,7 +1255,7 @@ function createRun(){
 	var result = checkValidity(runJson);
 	var isValid = result["isValid"];
 	var alertMsg = result["alertMessage"];
-	if (isValid){
+	if (!isValid){
 		$("#alertMsg").empty();
   	    $("#alertMsg").removeClass("alert-success");
         $("#alertMsg").addClass("alert-error");
