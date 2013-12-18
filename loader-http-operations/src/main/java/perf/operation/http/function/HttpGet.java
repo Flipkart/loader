@@ -1,6 +1,5 @@
 package perf.operation.http.function;
 
-import com.flipkart.perf.util.TimerContext;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.flipkart.perf.core.FunctionContext;
@@ -17,10 +16,7 @@ import java.util.List;
 /**
  * Does Http Get Operation
  */
-/*
-    Example docs to follow :
-    - http://jfarcand.wordpress.com/2010/12/21/going-asynchronous-using-asynchttpclient-the-basic/
- */
+
 public class HttpGet extends PerformanceFunction implements Constants {
     private AsyncHttpClient asyncHttpClient;
 

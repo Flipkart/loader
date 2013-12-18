@@ -8,10 +8,11 @@ import java.io.IOException;
  * Class can be used by user/loader-ui to understand
  * what are the required parameters to make a particular function work properly
  */
-enum ParameterType {
-    SCALER, LIST, MAP
-}
 public class FunctionParameter {
+    public static enum ParameterType {
+        SCALER, LIST, MAP
+    }
+
     private String name;
     private String description;
     private boolean mandatory;
