@@ -186,7 +186,7 @@ var runJsonViewModel = function(){
 	self.loadPartsVisible = ko.observable(false);
 	self.monAgentsVisible = ko.observable(false);
 	self.availableBus = window.existingBus;
-	self.nodeId = "node_ " + new Date().getTime();
+	self.nodeId = "node_" + (new Date().getTime() + Math.floor(Math.random()*1000));
 	self.availableTeams = ko.computed(function(){
 		return window.existingTeams[self.selectedBu()];
 	});
@@ -226,12 +226,12 @@ var runJsonViewModel = function(){
 var loadPartViewModel =  function(){
 	var self = this;
 	self.loadPartName = ko.observable("loadPart");
-	self.createdAt = "" + new Date().getTime();
-	self.accordionId = "accordionId_" + self.createdAt;
-	self.inputResourcesSelectId = "inputResourcesSelectId_" + self.createdAt;
+	self.createdAt = "" + (new Date().getTime() + Math.floor(Math.random()*1000));
+	self.accordionId = "inputResAccordionId_" + self.createdAt;
+	self.inputResourcesSelectId = "inputResSelectId_" + self.createdAt;
 	self.inputResourcesSelectIdHref = "#" + self.inputResourcesSelectId;
 	self.agents = ko.observable(1);
-	self.availableInputResources = window.availableInputResources;
+	self.availableInputResources = ko.observableArray(window.availableInputResources);
 	self.dataGenerators = ko.observableArray([]);
 	self.useInputResources = ko.observableArray([]);
 	self.groups = ko.observableArray([]);
@@ -288,7 +288,7 @@ var loadPartViewModel =  function(){
 
 var groupViewModel = function(){
 	var self = this;
-	self.createdAt = "" + new Date().getTime();
+	self.createdAt = "" + (new Date().getTime() + Math.floor(Math.random()*1000));
 	self.groupName = ko.observable("Group_" + self.createdAt.substring(self.createdAt.length-3));
 	self.groupStartDelay = ko.observable(-1);
 	self.threadStartDelay = ko.observable(-1);
@@ -362,7 +362,7 @@ var timerViewModel = function(){
 
 var functionViewModel = function(){
 	var self = this;
-	self.createdAt = "" + new Date().getTime();
+	self.createdAt = "" + (new Date().getTime() + Math.floor(Math.random()*1000));
 	self.functionName = ko.observable("PerformanceFunction_" + self.createdAt.substring(self.createdAt.length-3));
 	self.accordionId = "accordionId_" +  self.createdAt;
 	self.InputParameterId = "InputParameterId" + self.createdAt;
@@ -554,7 +554,7 @@ var dataGeneratorViewModel = function(){
 
 var monitoringViewModel = function(){
 	var self = this;
-	self.createdAt = "" + new Date().getTime();
+	self.createdAt = "" + (new Date().getTime() + Math.floor(Math.random()*1000));
 	self.agent = ko.observable("scm-perf-db1.corp.flipkart.com");
 	self.availableResources = ko.computed(function(){
 		var result =[];
@@ -668,7 +668,10 @@ function createJsonFromView(){
 			lp["agentTags"] = [model.selectedBu(), model.selectedTeam()];
 		var load = {};
 		load["logLevel"] = lpart.logLevel();
-		load["setupGroup"] = getGroupJson(lpart.setupGroup(), lp);
+		if(lpart.setupGroup().functions().length==0)
+			load["setupGroup"] = null;
+		else
+			load["setupGroup"] = getGroupJson(lpart.setupGroup(), lp);
 		load["groups"] = [];
 		$.each(lpart.groups(), function(grpIndex, grp){
 			var gr={};
@@ -689,7 +692,7 @@ function createJsonFromView(){
 				fun["params"] = {};
 				if(func.availableParameters().inputParameters!=undefined){
 					$.each(func.availableParameters().inputParameters(), function(paramIndex, param){
-						fun["params"][param.key] = param.val();
+						fun["params"]["\"" + param.key + "\""] = param.val();
 					});
 				}
 				fun["customTimers"] = func.selectedCustomTimers();
@@ -705,7 +708,10 @@ function createJsonFromView(){
 			gr["dataGenerators"] = getDataGeneratorsJson(grp.dataGenerators());
 			load["groups"].push(gr);
 		});
-		load["tearDownGroup"] = getGroupJson(lpart.tearDownGroup(), lp);
+		if(lpart.tearDownGroup().functions().length==0)
+			load["tearDownGroup"] = null;
+		else
+			load["tearDownGroup"] = getGroupJson(lpart.tearDownGroup(), lp);
 		load["dataGenerators"] = getDataGeneratorsJson(lpart.dataGenerators());
 		lp["load"] = load;
 		runJson["loadParts"].push(lp);
@@ -1413,10 +1419,12 @@ function getRunSchema(){
       	type:"GET",
       	processData:false,
       	data: JSON.stringify(runJson),
+      	async: false,
       	success: function(data){
-      		ko.applyBindings(createViewFromJson(data));
+      		runJson = data;
       	}
     });
+    ko.applyBindings(createViewFromJson(runJson));
 }
 
 function createViewFromJson(runJson){
@@ -1431,8 +1439,8 @@ function createViewFromJson(runJson){
 		loadPartModel.agents(lPart["agents"]);
 		loadPartModel.useInputResources(lPart["inputFileResources"]);
 		loadPartModel.logLevel(lPart["load"]["logLevel"]);
-		loadPartModel.setupGroup(createGroupModel(lPart["load"]["setupGroup"]));
-		loadPartModel.tearDownGroup(createGroupModel(lPart["load"]["tearDownGroup"]));
+		loadPartModel.setupGroup(createGroupModel(lPart["load"]["setupGroup"], "setup"));
+		loadPartModel.tearDownGroup(createGroupModel(lPart["load"]["tearDownGroup"], "tearDown"));
 		$.each(lPart["load"]["groups"], function(grpIndex, grp){
 			loadPartModel.groups.push(createGroupModel(grp));
 		});
@@ -1449,8 +1457,15 @@ function createViewFromJson(runJson){
 	
 }
 
-function createGroupModel(grp){
+function createGroupModel(grp, type){
 	var grpModel = new groupViewModel();
+	if(grp==null) {
+		if(type=="setup") 
+			grpModel.groupName("Setup");
+		if(type=="tearDown")
+			grpModel.groupName("TearDown");
+		return grpModel
+	}
 	grpModel.groupName(grp["name"]);
 	grpModel.groupStartDelay(grp["groupStartDelay"]);
 	grpModel.threadStartDelay(grp["threadStartDelay"]);
