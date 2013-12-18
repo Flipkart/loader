@@ -180,14 +180,11 @@ var runJsonViewModel = function(){
 	var self=this;
 	self.runName = ko.observable("RunSchema");
 	self.selectedBu = ko.observable("Sample");
-	//self.team = ko.observable("Sample");
 	self.desc = ko.observable("New RunSchema");
 	self.loadPart = ko.observableArray([]);
 	self.isVisible = ko.observable(false);
 	self.loadPartsVisible = ko.observable(false);
 	self.monAgentsVisible = ko.observable(false);
-	//self.alertVisible = ko.observable(false);
-	//self.alertMessage = "";
 	self.availableBus = window.existingBus;
 	self.nodeId = "node_ " + new Date().getTime();
 	self.availableTeams = ko.computed(function(){
@@ -208,6 +205,7 @@ var runJsonViewModel = function(){
 		self.loadPart.remove(lp);
 		self.isVisible(true);
 		createTree();
+
 		selectNode(self.nodeId);
 	}
 	self.addMonitoringAgent = function(){
@@ -467,6 +465,9 @@ var inputParamViewModel = function(inputParam){
 	self.removeFromList = function(elem){
 		self.listValue.remove(elem);
 	}
+	self.returnScalar = function(){
+		return self.scalarValue();
+	}
 	self.returnList = function(){
 		var paramList = self.listValue();
 		var result = [];
@@ -484,7 +485,7 @@ var inputParamViewModel = function(inputParam){
 		return result;
 	}
 	self.val = function(){
-		if(self.isScalar) return self.getScalar();
+		if(self.isScalar) return self.returnScalar();
 		if(self.isList) return self.returnList();
 		if(self.isHashMap) return self.returnMap();
 	}
@@ -1550,3 +1551,75 @@ function getCollectorType(klass, collectors){
 	console.log("returning", cls);
 	return nme;
 }
+
+function updateRun(){
+	// if(window.selectedView=='json'){
+	// 	window.runSchema = $.parseJSON($("#runJson").val());
+	// }
+	var runJson = createJsonFromView();
+	var result = checkValidity(runJson);
+	var isValid = result["isValid"];
+	var alertMsg = result["alertMessage"];
+	if (!isValid){
+		$("#alertMsg").empty();
+  	    $("#alertMsg").removeClass("alert-success");
+        $("#alertMsg").addClass("alert-error");
+        $("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
+		$("#alertMsg").append("<h4>Error!!</h4> " +  alertMsg);
+		$("#alertMsg").css("display", "block");
+		return;
+	}
+	//window.runSchema["classes"] = classes;
+	//console.log("sending", JSON.stringify(runJson));
+	$.ajax({
+		url:"loader-server/runs/" + getQueryParams("runName"),
+		contentType: "application/json", 
+      	type:"PUT",
+      	processData:false,
+      	data: JSON.stringify(runJson),
+      	success: function(data){
+      		//console.log(data);
+      	},
+      	error: function(err){
+      		//console.log(err);
+      	},
+      	complete: function(xhr, status){
+      		//console.log("COMPLETE",xhr);
+      		$("#success").empty();
+      		switch (xhr.status){
+      			case 204:
+      				$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-error");
+        		 	$("#alertMsg").addClass("alert-success");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"goToUpdate()\">&times;</button>");
+					$("#alertMsg").append("<h4>Success!!</h4> Run Updated successfully!!");
+					$("#alertMsg").css("display", "block");
+					setTimeout(function(){goToUpdate();},5000);
+					break;
+				case 409:
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Run name conflict!!");
+					$("#alertMsg").css("display", "block");
+					break;
+				case 400:
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Invalid options!!");
+					$("#alertMsg").css("display", "block");
+				default :
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Run creation failed!!");
+					$("#alertMsg").css("display", "block");
+			 }
+      	}
+	})
+}
+
