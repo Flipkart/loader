@@ -1,6 +1,7 @@
 package com.flipkart.perf.domain;
 
 import ch.qos.logback.classic.Level;
+import com.flipkart.perf.common.jackson.ObjectMapperUtil;
 import com.flipkart.perf.controller.JobController;
 import com.flipkart.perf.core.LoadController;
 import com.flipkart.perf.datagenerator.DataGeneratorInfo;
@@ -8,10 +9,13 @@ import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import com.strategicgains.restexpress.Format;
 import com.strategicgains.restexpress.RestExpress;
 import com.strategicgains.restexpress.response.ResponseProcessor;
+import org.codehaus.jackson.JsonParseException;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -146,5 +150,10 @@ public class Load {
     public Load addDataGenerator(DataGeneratorInfo dataGeneratorInfo) {
         this.dataGenerators.put(dataGeneratorInfo.getGeneratorName(), dataGeneratorInfo);
         return this;
+    }
+
+    public static void main(String[] args) throws Exception {
+        Load load = ObjectMapperUtil.instance().readValue(new File("/tmp/1387349662547"), Load.class);
+        load.start(System.currentTimeMillis()+"", 4567);
     }
 }

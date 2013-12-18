@@ -83,6 +83,12 @@ public class LoadController extends Thread{
      */
     private void attachSetupGroup(Group setupGroup) {
         if(setupGroup != null) {
+            if(setupGroup.getRepeats() <=0 && setupGroup.getDuration() <= 0)
+                return;
+            if(setupGroup.getFunctions().size() == 0)
+                return;
+
+            this.groupMap.put(setupGroup.getName(), setupGroup);
             for(Group group : this.groupMap.values()) {
                 group.dependsOn(setupGroup.getName());
             }
@@ -95,6 +101,12 @@ public class LoadController extends Thread{
      */
     private void attachTearDownGroup(Group tearDownGroup) {
         if(tearDownGroup != null) {
+            if(tearDownGroup.getRepeats() <=0 && tearDownGroup.getDuration() <= 0)
+                return;
+            if(tearDownGroup.getFunctions().size() == 0)
+                return;
+
+            this.groupMap.put(tearDownGroup.getName(), tearDownGroup);
             for(Group group : this.groupMap.values()) {
                 tearDownGroup.dependsOn(group.getName());
             }
@@ -104,9 +116,9 @@ public class LoadController extends Thread{
     /**
      * Validate cyclic dependencies in the group
      */
-    private void validateCyclicDependency() {
+    private void validateCyclicDependency() throws Exception {
         for(String group : groupMap.keySet()) {
-            String dependencyGraph  =   getDependencyGraph(group);
+            String dependencyGraph = validateCyclicDependency(group, this.groupMap.get(group).getDependOnGroups(), group);
             logger.info(jobId+" Dependency graph for '"+group+"' is '"+dependencyGraph+"'");
             String[] dependencies   =   dependencyGraph.split("->");
             if(dependencies.length > 1)
@@ -141,16 +153,6 @@ public class LoadController extends Thread{
             }
         }
         return dependencyFlow;
-    }
-
-    private String getDependencyGraph(String group) {
-        String dependencyGraph  = group;
-        try {
-            dependencyGraph = validateCyclicDependency(group, this.groupMap.get(group).getDependOnGroups(), dependencyGraph);
-        } catch (Exception e) {
-            dependencyGraph = e.getLocalizedMessage();
-        }
-        return dependencyGraph;
     }
 
     /**

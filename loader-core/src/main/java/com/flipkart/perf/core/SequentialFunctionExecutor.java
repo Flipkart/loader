@@ -138,7 +138,7 @@ public class SequentialFunctionExecutor extends Thread {
                 try {
                     Clock.sleep(PAUSE_CHECK_DELAY);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    logger.info("", e);
                 }
                 continue;
             }
@@ -201,7 +201,7 @@ public class SequentialFunctionExecutor extends Thread {
                     }
 
                 } catch (Exception e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    logger.error("",e);
                     throw new RuntimeException(e);
                 }
             }
@@ -264,7 +264,7 @@ public class SequentialFunctionExecutor extends Thread {
                     }
 
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("",e);
                     throw new RuntimeException(e);
                 }
             }
@@ -284,11 +284,13 @@ public class SequentialFunctionExecutor extends Thread {
     }
 
     private void threadStartDelay() {
-        try {
-            logger.info("Sleeping for Thread start Delay :"+threadStartDelay);
-            Clock.sleep(this.threadStartDelay);
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        if(threadStartDelay > 0) {
+            try {
+                logger.info("Sleeping for Thread start Delay :"+threadStartDelay);
+                Clock.sleep(this.threadStartDelay);
+            } catch (InterruptedException e) {
+                logger.error("", e);
+            }
         }
     }
 
@@ -367,7 +369,7 @@ public class SequentialFunctionExecutor extends Thread {
             try {
                 Clock.sleep(timeToSleepMS);
             } catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                logger.error("", e);
             }
         }
         logger.debug("Coming out of sleep");
