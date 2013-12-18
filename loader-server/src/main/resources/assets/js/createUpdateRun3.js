@@ -258,9 +258,11 @@ var loadPartViewModel =  function(){
 	// self.tearDataGenIdHref = "#" + self.tearDataGenId;
 	self.groupsName = ko.computed(function(){
 		var gNames = [];
-		$.each(self.groups(), function(gIndex, grp){
-			gNames.push(grp.groupName);
-		});
+		if(self.groups()!=undefined){
+			$.each(self.groups(), function(gIndex, grp){
+				if(grp!=undefined)gNames.push(grp.groupName());
+			});
+		}
 		return gNames;
 	}); 
 	self.addGroup = function(){
@@ -466,7 +468,7 @@ var inputParamViewModel = function(inputParam){
 		self.listValue.remove(elem);
 	}
 	self.returnList = function(){
-		var paramList = self.getList();
+		var paramList = self.listValue();
 		var result = [];
 		$.each(paramList, function(index, elem){
 			result.push(elem.keyValue());
@@ -474,7 +476,7 @@ var inputParamViewModel = function(inputParam){
 		return result;
 	}
 	self.returnMap = function(){
-		var mapList = self.getMap();
+		var mapList = self.mapValue();
 		var result = {};
 		$.each(mapList, function(ind, elem){
 			result[elem.name()] = elem.keyValue();
@@ -589,7 +591,7 @@ var monitoringViewModel = function(){
 	self.addOnDemandCollector = function(){
 		console.log(self.availableOnDemandCollectors);
 		console.log(self.availableOnDemandCollectors());
-		self.onDemandCollectors.push(new OnDemandCollector(self.agent(), self.availableOnDemandCollectors()));
+		self.onDemandCollectors.push(new OnDemandCollector(self.availableOnDemandCollectors()));
 	}
 	self.removeOnDemandCollector = function(collector){
 		self.onDemandCollectors.remove(collector);
@@ -603,7 +605,7 @@ var monitoringViewModel = function(){
 	self.monitorResourcesHref = "#" + self.monitorResourcesId;
 }
 
-var OnDemandCollector = function(agent, collectors){
+var OnDemandCollector = function(collectors){
 	console.log("collectors", collectors);
 	var self = this;
 	self.colName = ko.observable("Collector");
@@ -1243,18 +1245,20 @@ function getFunctionList(model, loadPartIndex, groupIndex){
 }
 
 function getFunctionListForFixedGroup(model, loadPartIndex, type){
-	var functionName = [];
+	var funcName = [];
 	var functions = model.functions();
 	if(functions.length==0) return undefined;
 	for(var i=0;i<functions.length;i++){
-		functionName[i] = {
+		console.log(functions[i]);
+		console.log(functions[i].functionName);
+		funcName[i] = {
 			"attr": {"id": functions[i].nodeId, "rel": "function"},
 			"type": type,
 			"metadata": {"nodeType": type, "loadPartIndex":loadPartIndex, "functionIndex":i}, 
 			"data": functions[i].functionName()
 		}
 	}
-	return functionName;
+	return funcName;
 }
 
 function selectNode(node){
@@ -1384,7 +1388,7 @@ function checkValidity(runJson){
 }
 
 function goToUpdate(){
-	window.location = "/updaterun.html?&runName=" + window.runSchema.runName;
+	window.location = "/updaterun2.html?&runName=" + window.viewModel.runName();
 }
 
 function getQueryParams(sParam) {
@@ -1409,10 +1413,140 @@ function getRunSchema(){
       	processData:false,
       	data: JSON.stringify(runJson),
       	success: function(data){
-      		runJson=data;
+      		ko.applyBindings(createViewFromJson(data));
       	}
     });
-    return runJson;
 }
 
+function createViewFromJson(runJson){
+	var runViewModel = new runJsonViewModel();
+	runViewModel.runName(runJson["runName"]);
+	runViewModel.selectedBu(runJson["businessUnit"]);
+	runViewModel.desc(runJson["description"]);
+	runViewModel.isVisible(true);
+	$.each(runJson["loadParts"], function(lPartIndex, lPart){
+		var loadPartModel = new loadPartViewModel();
+		loadPartModel.loadPartName(lPart["name"]);
+		loadPartModel.agents(lPart["agents"]);
+		loadPartModel.useInputResources(lPart["inputFileResources"]);
+		loadPartModel.logLevel(lPart["load"]["logLevel"]);
+		loadPartModel.setupGroup(createGroupModel(lPart["load"]["setupGroup"]));
+		loadPartModel.tearDownGroup(createGroupModel(lPart["load"]["tearDownGroup"]));
+		$.each(lPart["load"]["groups"], function(grpIndex, grp){
+			loadPartModel.groups.push(createGroupModel(grp));
+		});
+		$.each(lPart["load"]["dataGenerators"], function(key, dataGen){
+			loadPartModel.dataGenerators.push(createDatagenModel(dataGen));
+		});
+		runViewModel.loadPart.push(loadPartModel);
+	});
+	$.each(runJson["metricCollections"], function(metricIndex, metricCollector){
+		runViewModel.metricCollections.push(createMonitoringAgentModel(metricCollector, runJson["onDemandMetricCollections"]));
+	});
+	window.viewModel = runViewModel;
+	return runViewModel;
+	
+}
 
+function createGroupModel(grp){
+	var grpModel = new groupViewModel();
+	grpModel.groupName(grp["name"]);
+	grpModel.groupStartDelay(grp["groupStartDelay"]);
+	grpModel.threadStartDelay(grp["threadStartDelay"]);
+	grpModel.throughput(grp["throughput"]);
+	grpModel.repeats(grp["repeats"]);
+	grpModel.duration(grp["duration"]);
+	grpModel.threads(grp["threads"]);
+	grpModel.warmUpRepeats(grp["warmUpRepeats"]);
+	grpModel.dependsOn(grp["dependOnGroups"]);
+	$.each(grp["functions"], function(funIndex, func){
+		grpModel.functions.push(createFunctionModel(func));
+	});
+	$.each(grp["timers"], function(timerIndex, timer){
+		grpModel.timers.push(createTimerModel(timer));
+	});
+	$.each(grp["dataGenerators"], function(key, dataGen){
+		grpModel.dataGenerators.push(createDatagenModel(dataGen));
+	});
+	return grpModel;
+}
+
+function createFunctionModel(func){
+	var funcModel = new functionViewModel();
+	funcModel.functionName(func["functionalityName"]);
+	funcModel.selectedFunction(func["functionClass"]);
+	funcModel.dumpData(func["dumpData"]);
+	funcModel.selectedHistograms(func["customHistograms"]);
+	funcModel.selectedCustomTimers(func["customTimers"]);
+	funcModel.selectedCustomCounters(func["customCounters"]);
+	return funcModel;
+}
+
+function createTimerModel(timer){
+	var timerModel = new timerViewModel();
+	timerModel.timerName(timer["name"]);
+	timerModel.threads(timer["threads"]);
+	timerModel.throughput(timer["throughput"]);
+	timerModel.duration(timer["duration"]);
+	return timerModel;
+}
+
+function createDatagenModel(dataGen){
+	var dataGenModel = new dataGeneratorViewModel();
+	dataGenModel.generatorName(dataGen["generatorName"]);
+	dataGenModel.generatorType(dataGen["generatorType"]);
+	switch(dataGen["generatorType"]){
+	case "COUNTER":
+		dataGenModel.startValue(dataGen["inputDetails"]["startValue"]);
+		dataGenModel.jump(dataGen["inputDetails"]["jump"]);
+		break;
+	case "FIXED_VALUE":
+		dataGenModel.startValue(dataGen["inputDetails"]["startValue"]);
+		break;
+	case "RANDOM_NUMBER":
+		dataGenModel.maxValue(dataGen["inputDetails"]["maxValue"]);
+		break;
+	case "RANDOM_SELECTION":
+		dataGenModel.selectionList(dataGen["inputDetails"]["selectionSet"]);
+		break;
+	case "RANDOM_STRING":
+		dataGenModel.stringType(dataGen["inputDetails"]["type"]);
+		dataGenModel.stringLength(dataGen["inputDetails"]["length"]);
+		dataGenModel.closedString(dataGen["inputDetails"]["closedString"]);
+		break;
+	case "RANDOM_DISTRIBUTION":
+		$.each(dataGen["inputDetails"]["distributionInfoList"], function(index, elem){
+			dataGenModel.distributionInfoList.push({"start":ko.observable(elem["start"]),"end":ko.observable(elem["end"]),"value":ko.observable(elem["value"])})
+		});
+	}
+	return dataGenModel;
+}
+
+function createMonitoringAgentModel(metricCollector, onDemandCollectors){
+	var monitoringModel = new monitoringViewModel();
+	monitoringModel.agent(metricCollector["agent"]);
+	monitoringModel.selectedResources(metricCollector["collectionInfo"]["resources"]);
+	$.each(onDemandCollectors, function(odIndex, odCollector){
+		if(odCollector["agent"]==metricCollector["agent"]){
+			$.each(odCollector["collectors"], function(index, collector){
+				var odColModel = new OnDemandCollector(monitoringModel.availableOnDemandCollectors());
+				odColModel.colName = collector["name"];
+				odColModel.selectedCollector = getCollectorType(collector["klass"], monitoringModel.availableOnDemandCollectors());
+				odColModel.interval = collector["interval"];
+				monitoringModel.onDemandCollectors.push(odColModel);
+			});
+		}
+	});
+	return monitoringModel;
+}
+
+function getCollectorType(klass, collectors){
+	var nme = "";
+	$.each(collectors, function(index, collector){
+		if(klass==collector["name"]){
+			nme = collector["name"];
+		} 
+	});
+	console.log("returning", cls);
+	return nme;
+}
