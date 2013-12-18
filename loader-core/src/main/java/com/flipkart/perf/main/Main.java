@@ -48,18 +48,12 @@ public class Main {
 
         try {
             CommandLine line = parser.parse(options, args);
-            if(line.hasOption('h')) {
-                help();
-                return;
-            }
-
             System.setProperty("BASE_PATH", statsFolder(line));
             buildLoader(jobJsonFile(line)).
                     start(jobId(line), httpPort(line));
         }
         catch (Exception e) {
             logger.error("Error while building loader instance",e);
-            help();
         }
     }
 
@@ -81,14 +75,8 @@ public class Main {
 
     private static String jobJsonFile(CommandLine line) {
         if(!line.hasOption('f')) {
-            help();
             System.exit(1);
         }
         return line.getOptionValue('f');
-    }
-
-    private static void help() {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("Main", options );
     }
 }
