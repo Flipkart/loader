@@ -1,6 +1,6 @@
 ko.bindingHandlers.multiSelect = {
 	init: function(element, valueAccessor, allBindingAccessor, viewModel){
-		//console.log("calling multiSelect");
+		console.log("calling multiSelect on", element);
 		var selabHdr = "<div class='custom-header'><label><strong>Available Groups</strong></label>";
 		var selcnHdr = "<div class='custom-header'><label><strong>Depends On Groups</strong></label>";
 		switch($(element).attr('id')){
@@ -30,8 +30,12 @@ ko.bindingHandlers.multiSelect = {
 			selectionHeader: selcnHdr
 		});
 	},
-	update:function(element, valueAccessor, allBindingAccessor, viewModel){
-		$(element).multiSelect('refresh');
+	update: function(element, valueAccessor, allBindingAccessor, viewModel){
+		var value = valueAccessor();
+        var valueUnWrapperd = ko.unwrap(value);
+        //if(valueUnWrapperd){
+			$(element).multiSelect('refresh');
+		//}
 	}
 }
 ko.bindingHandlers.combobox = {
@@ -70,8 +74,21 @@ ko.bindingHandlers.refreshTree = {
 	}
 }
 
+ko.bindingHandlers.multiSel = {
+	init: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext){
+		var value = valueAccessor();
+        var valueUnWrapperd = ko.unwrap(value);
+		console.log("initialized");
+	},
+	update: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext){
+		var value = valueAccessor();
+        var valueUnWrapperd = ko.unwrap(value);
+		console.log("update");
+	}
+}
+
 ko.bindingHandlers.getGroups = {
-	 init:function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext){
+	init:function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext){
 	 	var parent = bindingContext.$parent;
 	 	var groupNames = [];
 	 	$.each(parent.groups(), function(index, grp){
@@ -90,6 +107,7 @@ ko.bindingHandlers.getGroups = {
 		//}
 	},
 	update: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext){
+		console.log("refreshing group");
 		var parent = bindingContext.$parent;
 		var groupNames = [];
 		$.each(parent.groups(), function(index, grp){
@@ -251,9 +269,6 @@ var loadPartViewModel =  function(){
 	self.dataGenId = "lpDataGenId_" + self.createdAt;
 	self.dataGenIdHref = "#" + self.dataGenId;
 
-	// self.tearDataGenAccordionId = "tearDataGenAccordionId_" + self.createdAt;
-	// self.tearDataGenId = "tearDataGenId_" + self.createdAt;
-	// self.tearDataGenIdHref = "#" + self.tearDataGenId;
 	self.groupsName = ko.computed(function(){
 		var gNames = [];
 		if(self.groups()!=undefined){
@@ -365,7 +380,7 @@ var functionViewModel = function(){
 	self.createdAt = "" + (new Date().getTime() + Math.floor(Math.random()*1000));
 	self.functionName = ko.observable("PerformanceFunction_" + self.createdAt.substring(self.createdAt.length-3));
 	self.accordionId = "accordionId_" +  self.createdAt;
-	self.InputParameterId = "InputParameterId" + self.createdAt;
+	self.InputParameterId = "InputParameterId_" + self.createdAt;
 	self.InputParameterIdHref = "#" + self.InputParameterId;
 	self.histAccordionId = "histAccordionId_" + self.createdAt;
 	self.histId = "histId_" + self.createdAt;
@@ -422,7 +437,7 @@ var inputParamViewModel = function(inputParam){
 	self.isList = inputParam["type"]=="LIST"?true:false;
 	self.showButton = ko.computed(function(){
 		return !self.isScalar;
-	})
+	});
 	self.getScalar = function(){
 		if(!self.isScalar) return "";
 		if(inputParam["defaultValue"]==null || inputParam["defaultValue"]==undefined) return "";
@@ -434,7 +449,7 @@ var inputParamViewModel = function(inputParam){
 		var params = [];
 		$.each(list, function(index, param){
 			params.push({"keyValue": ko.observable(param)});
-		})
+		});
 		return params;
 	}
 	self.getMap = function(){
@@ -1532,7 +1547,7 @@ function createDatagenModel(dataGen){
 		break;
 	case "RANDOM_DISTRIBUTION":
 		$.each(dataGen["inputDetails"]["distributionInfoList"], function(index, elem){
-			dataGenModel.distributionInfoList.push({"start":ko.observable(elem["start"]),"end":ko.observable(elem["end"]),"value":ko.observable(elem["value"])})
+			dataGenModel.distributionInfoList.push({"start":ko.observable(elem["start"]),"end":ko.observable(elem["end"]),"val":ko.observable(elem["value"])})
 		});
 	}
 	return dataGenModel;
