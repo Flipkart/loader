@@ -707,7 +707,7 @@ function createJsonFromView(){
 				fun["params"] = {};
 				if(func.availableParameters().inputParameters!=undefined){
 					$.each(func.availableParameters().inputParameters(), function(paramIndex, param){
-						fun["params"]["\"" + param.key + "\""] = param.val();
+						fun["params"][param.key] = param.val();
 					});
 				}
 				fun["customTimers"] = func.selectedCustomTimers();
@@ -1432,8 +1432,6 @@ function getRunSchema(){
 		url:"loader-server/runs/" + runName,
 		contentType: "application/json", 
       	type:"GET",
-      	processData:false,
-      	data: JSON.stringify(runJson),
       	async: false,
       	success: function(data){
       		runJson = data;
@@ -1510,6 +1508,29 @@ function createFunctionModel(func){
 	funcModel.selectedHistograms(func["customHistograms"]);
 	funcModel.selectedCustomTimers(func["customTimers"]);
 	funcModel.selectedCustomCounters(func["customCounters"]);
+	console.log("availableParameters",funcModel.availableParameters().inputParameters());
+	console.log("params", func["params"]);
+	$.each(funcModel.availableParameters().inputParameters(), function(index, inputParam){
+		console.log("fixing",inputParam.key);
+		if(inputParam.isScalar){
+			inputParam.scalarValue(func["params"][inputParam.key]);
+		} else {
+			if(inputParam.isList){
+				var list = [];
+				console.log(inputParam.key,"->" ,func["params"][inputParam.key]);
+				$.each(func["params"][inputParam.key], function(keyIndex, param){
+					list.push({"keyValue": ko.observable(param)});
+				});
+				inputParam.listValue(list);
+			} else {
+				var mapList = [];
+				$.each(func["params"][inputParam.key], function(k,v){
+					mapList.push({"name":ko.observable(k), "keyValue":ko.observable(v)});
+				});
+				inputParam.mapValue(mapList);
+			}
+		} 
+	});
 	return funcModel;
 }
 
