@@ -55,6 +55,7 @@
 			window.viewModel = new runJsonViewModel();
 			ko.applyBindings(window.viewModel);
 			createTree();
+			selectNode(window.viewModel.nodeId);
 		});
 	</script>
 	<!--Navigation Bar-->
@@ -107,7 +108,7 @@
 					</div>
 					<div class="row-fluid">
 						<label class="span2">Description</label>
-						<textarea rows="3" class="span6" data-bind="value: desc"></textarea>
+						<textarea rows="3" class="span10" data-bind="value: desc"></textarea>
 					</div>
 					<div class="row-fluid btn-group">
 	 					<button class="btn" data-bind="click: addLoadPart">Add Loadpart</button>
