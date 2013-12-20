@@ -114,7 +114,7 @@ public class FunctionContext {
         String valueString = value.toString();
 
         if(!(value instanceof String)) {
-            valueString = mapper.writeValueAsString(value);
+            valueString = mapper.writeValueAsString(value).replace("\\\"","");
         }
 
         Matcher matcher = variablePattern.matcher(valueString);
@@ -224,14 +224,18 @@ public class FunctionContext {
         if(value != null) {
             if(value instanceof Map)
                 return (Map) value;
-            else if( value instanceof String){
+            else if(value instanceof String){
                 return mapper.readValue(value.toString().replace("'", "\""), Map.class);
             }
             else {
                 return mapper.readValue(mapper.writeValueAsBytes(value), Map.class);
             }
         }
-        return null;
+        else {
+            value = defaultValue;
+        }
+
+        return value == null ? null : (Map) value;
     }
 
     public List getParameterAsList(String parameterName) throws IOException {
@@ -250,8 +254,11 @@ public class FunctionContext {
                 return mapper.readValue(mapper.writeValueAsBytes(value), List.class);
             }
         }
+        else {
+            value = defaultValue;
+        }
 
-        return null;
+        return value == null ? null : (List) value;
     }
 
     /**
@@ -471,6 +478,16 @@ public class FunctionContext {
     private static void throwIfSharedDataDoesNotExists(String sharedDataName) {
         if(!inMemoryVariables.containsKey(sharedDataName))
         throw new RuntimeException("Shared Data "+sharedDataName+" doesn't exist");
+    }
+
+    public static void main(String[] args) {
+        String s = "\\\"Hello\\\"";
+        String s1 = s.replace("\\\"","\"");
+        System.out.println(s);
+        System.out.println(s1);
+        System.out.println("A");
+
+
     }
 
 }
