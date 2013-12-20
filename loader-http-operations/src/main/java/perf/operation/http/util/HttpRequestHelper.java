@@ -91,7 +91,7 @@ public class HttpRequestHelper {
                 Integer.parseInt(proxyInfoMap.get("port").toString())));
     }
 
-    public static void setFollowRedirects(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) {
+    public static void setFollowRedirects(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) throws IOException {
         requestBuilder.setFollowRedirects(context.getParameterAsBoolean(Constants.IP_FOLLOW_REDIRECTS).booleanValue());
     }
 
@@ -116,7 +116,7 @@ public class HttpRequestHelper {
      * @param requestBuilder
      */
     public static void addRequestBody(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder)
-            throws FileNotFoundException {
+            throws IOException {
         Object bodyStringObj = context.getParameter(Constants.IP_BODY_STRING);
         if(bodyStringObj != null) {
             requestBuilder.setBody(bodyStringObj.toString());
@@ -142,7 +142,7 @@ public class HttpRequestHelper {
      * @param context
      * @param requestBuilder
      */
-    public static void setCharacterEncoding(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) {
+    public static void setCharacterEncoding(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) throws IOException {
         requestBuilder.setBodyEncoding(context.getParameterAsString(Constants.IP_BODY_ENCODING, "UTF-8"));
     }
 
