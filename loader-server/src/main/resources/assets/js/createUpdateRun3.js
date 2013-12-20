@@ -570,7 +570,7 @@ var dataGeneratorViewModel = function(){
 var monitoringViewModel = function(){
 	var self = this;
 	self.createdAt = "" + (new Date().getTime() + Math.floor(Math.random()*1000));
-	self.agent = ko.observable("scm-perf-db1.corp.flipkart.com");
+	self.agent = ko.observable("127.0.0.1");
 	self.availableResources = ko.computed(function(){
 		var result =[];
 		$.ajax({
