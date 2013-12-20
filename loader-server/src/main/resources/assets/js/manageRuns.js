@@ -115,16 +115,17 @@ function deleteRun(runName){
         $("#alertMsg").removeClass("alert-error");
         $("#alertMsg").addClass("alert-success");
         $("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"reload()\">&times;</button>");
-		$("#alertMsg").append("<h4>Success!!</h4> Run deleted successfully!!");
-		$("#alertMsg").css("display", "block");
+		    $("#alertMsg").append("<h4>Success!!</h4> Run deleted successfully!!");
+	     	$("#alertMsg").css("display", "block");
+        setTimeout(reload(),3000);
       } else {
-		console.log("Run deletion failed!!");  
-		$("#alertMsg").empty();
-		$("#alertMsg").removeClass("alert-success");
-		$("#alertMsg").addClass("alert-error");
-		$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>");
-		$("#alertMsg").append("<h4>Error!!</h4> Run Deletion failed!!");
-		$("#alertMsg").css("display", "block");      
+		    console.log("Run deletion failed!!");  
+    		$("#alertMsg").empty();
+    		$("#alertMsg").removeClass("alert-success");
+    		$("#alertMsg").addClass("alert-error");
+    		$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>");
+    		$("#alertMsg").append("<h4>Error!!</h4> Run Deletion failed!!");
+    		$("#alertMsg").css("display", "block");      
       }
     }
   })

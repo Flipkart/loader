@@ -495,7 +495,7 @@ var inputParamViewModel = function(inputParam){
 		var mapList = self.mapValue();
 		var result = {};
 		$.each(mapList, function(ind, elem){
-			result[elem.name()] = elem.keyValue();
+			result["\"" + elem.name() + "\""] = elem.keyValue();
 		});
 		return result;
 	}
