@@ -308,9 +308,8 @@ public class SequentialFunctionExecutor extends Thread {
 
             FunctionContext functionContext = new FunctionContext(null, null, null, this.groupDataGenerators).
                     updateParameters(this.groupParams).
-                    updateParameters(this.threadResources);
-
-            functionContext.updateParameters(groupFunction.getParams());
+                    updateParameters(this.threadResources).
+                    updateParameters(groupFunction.getParams());
 
             SyncFunctionExecutor fe = this.fExecutors.get(functionNo);
             Object classObject = fe.getClassObject();
