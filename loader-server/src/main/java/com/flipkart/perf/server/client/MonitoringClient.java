@@ -39,6 +39,7 @@ public class MonitoringClient {
     private static final String RESOURCE_ON_DEMAND_RESOURCES_REQUEST = "/monitoring-service/onDemandResources/requests/{requestId}";
     private static final String RESOURCE_PUBLISH_RESOURCE_REQUESTS = "/monitoring-service/publishResourcesRequests";
     private static final String RESOURCE_PUBLISH_RESOURCE_REQUEST = "/monitoring-service/publishResourcesRequests/{requestId}";
+    private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
 
     public MonitoringClient(String host, int port) {
         this.host = host;
@@ -75,8 +76,7 @@ public class MonitoringClient {
         Future<Response> r = b.execute();
         r.get();
         if(r.get().getStatusCode() == 200) {
-            ObjectMapper mapper = ObjectMapperUtil.instance();
-            resources = mapper.readValue(r.get().getResponseBody(), List.class);
+            resources = objectMapper.readValue(r.get().getResponseBody(), List.class);
         }
         else {
             log.error("Get on "+RESOURCE_RESOURCES);
@@ -108,8 +108,7 @@ public class MonitoringClient {
         Future<Response> r = b.execute();
         r.get();
         if(r.get().getStatusCode() == 200) {
-            ObjectMapper mapper = new ObjectMapper();
-            resources = mapper.readValue(r.get().getResponseBody(), Map.class);
+            resources = objectMapper.readValue(r.get().getResponseBody(), Map.class);
         }
         else {
             log.error("Get on "+RESOURCE_RESOURCE.
@@ -132,8 +131,7 @@ public class MonitoringClient {
         Future<Response> r = b.execute();
         r.get();
         if(r.get().getStatusCode() == 200) {
-            ObjectMapper mapper = new ObjectMapper();
-            resources = mapper.readValue(r.get().getResponseBody(), List.class);
+            resources = objectMapper.readValue(r.get().getResponseBody(), List.class);
         }
         else {
             log.error("Get on "+RESOURCE_ON_DEMAND_RESOURCES);
@@ -157,8 +155,7 @@ public class MonitoringClient {
         Future<Response> r = b.execute();
         r.get();
         if(r.get().getStatusCode() == 200) {
-            ObjectMapper mapper = new ObjectMapper();
-            resourceInfo = mapper.readValue(r.get().getResponseBody(), Map.class);
+            resourceInfo = objectMapper.readValue(r.get().getResponseBody(), Map.class);
         }
         else {
             log.error("Get on "+RESOURCE_ON_DEMAND_RESOURCE);
@@ -170,14 +167,13 @@ public class MonitoringClient {
     }
 
     public void raiseOnDemandResourceRequest(OnDemandCollectorRequest request) throws IOException, ExecutionException, InterruptedException {
-        ObjectMapper mapper = new ObjectMapper();
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 preparePost("http://"+this.getHost()+":" +
                         this.getPort() +
                         RESOURCE_ON_DEMAND_RESOURCES_REQUESTS).
                 setHeader("Content-Type", MediaType.APPLICATION_JSON).
-                setBody(mapper.writeValueAsBytes(request));
+                setBody(objectMapper.writeValueAsBytes(request));
 
         Future<Response> r = b.execute();
         r.get();
@@ -188,7 +184,6 @@ public class MonitoringClient {
     }
 
     public void deleteOnDemandResourceRequest(String requestId) throws IOException, ExecutionException, InterruptedException {
-        ObjectMapper mapper = new ObjectMapper();
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 prepareDelete("http://" + this.getHost() + ":" +
@@ -207,15 +202,13 @@ public class MonitoringClient {
     }
 
     public void raiseMetricPublishRequest(MetricPublisherRequest request) throws IOException, ExecutionException, InterruptedException {
-        log.info(ObjectMapperUtil.instance().writeValueAsString(request));
-        ObjectMapper mapper = new ObjectMapper();
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 preparePost("http://"+this.getHost()+":" +
                         this.getPort() +
                         RESOURCE_PUBLISH_RESOURCE_REQUESTS).
                 setHeader("Content-Type", MediaType.APPLICATION_JSON).
-                setBody(mapper.writeValueAsBytes(request));
+                setBody(objectMapper.writeValueAsBytes(request));
 
         Future<Response> r = b.execute();
         r.get();

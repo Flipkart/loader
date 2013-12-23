@@ -17,7 +17,6 @@ import java.util.*;
  */
 @Path("/resources")
 public class CollectorResource {
-    private static Logger log = LoggerFactory.getLogger(CollectorResource.class);
     private static List<String> ignoreSubResourceList = Arrays.asList(new String[]{"cpu.cpu"});
 
     /**
