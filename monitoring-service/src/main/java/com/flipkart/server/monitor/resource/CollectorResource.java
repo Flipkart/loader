@@ -48,6 +48,21 @@ public class CollectorResource {
         return resourceCollectionInstances;
     }
 
+    /**
+     * Mostly used to delete resources that were created as on demand resources
+     * Resources can be comma separated resources
+     */
+    @Path("/{resources}")
+    @DELETE
+    @Timed
+    @Produces(MediaType.APPLICATION_JSON)
+    synchronized public void deleteResource(@PathParam("resources") String resourcesStr) throws IOException, InterruptedException {
+        String[] resources = resourcesStr.split(",");
+        for(String resource : resources) {
+            ResourceCache.removeResource(resource);
+        }
+    }
+
     @POST
     @Timed
     synchronized public void addMetric(String metricFromCollector) throws IOException, InterruptedException {
