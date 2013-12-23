@@ -7,8 +7,6 @@ function executeRun(runName){
 		contentType:"application/json",
 		data: jobData,
 		success: function(data){
-			console.log("Job Submitted");
-			console.log();
 			window.jobId = data["jobId"];
 			},
 		error: function(){
