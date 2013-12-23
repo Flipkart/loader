@@ -1,5 +1,7 @@
 package com.flipkart.perf.datagenerator;
 
+import com.flipkart.perf.common.util.CollectionHelper;
+
 import java.util.List;
 
 public abstract class DataGenerator {
@@ -22,7 +24,7 @@ public abstract class DataGenerator {
                 return new RandomNumber(Integer.parseInt(info.getInputDetails().get("maxValue").toString()));
 
             case RANDOM_SELECTION:
-                return new RandomSelection((String[])info.getInputDetails().get("selectionSet"));
+                return new RandomSelection(((List)info.getInputDetails().get("selectionSet")).toArray());
 
             case RANDOM_STRING:
                 return new RandomString(RandomString.RandomStringType.valueOf(info.getInputDetails().get("type").toString()),
@@ -30,8 +32,7 @@ public abstract class DataGenerator {
                         info.getInputDetails().get("closedString").toString());
 
             case RANDOM_DISTRIBUTION:
-                return new RandomDistribution((List<RandomDistribution.DistributionInfo>) info.getInputDetails().get("distributionInfoList"));
-
+                return new RandomDistribution(CollectionHelper.transformList((List) info.getInputDetails().get("distributionInfoList"), RandomDistribution.DistributionInfo.class));
             default:
                 throw new RuntimeException("Don't know how to create Data Generator of Type "+info.getGeneratorType());
         }

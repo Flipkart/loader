@@ -59,8 +59,9 @@ public class RandomDistribution extends DataGenerator{
 
     @Override
     public String next() {
+        int randomValue = random.nextInt(maxValue) + 1;
         for(DistributionInfo di : distributionInfoMap)
-            if(di.include(random.nextInt(maxValue) + 1))
+            if(di.include(randomValue))
                 return di.getValue();
         return null;
     }
