@@ -608,8 +608,6 @@ var monitoringViewModel = function(){
 	});
 	self.onDemandCollectors = ko.observableArray([]);
 	self.addOnDemandCollector = function(){
-		console.log(self.availableOnDemandCollectors);
-		console.log(self.availableOnDemandCollectors());
 		self.onDemandCollectors.push(new OnDemandCollector(self.availableOnDemandCollectors()));
 	}
 	self.removeOnDemandCollector = function(collector){
@@ -1580,7 +1578,11 @@ function createDatagenModel(dataGen){
 function createMonitoringAgentModel(metricCollector, onDemandCollectors){
 	var monitoringModel = new monitoringViewModel();
 	monitoringModel.agent(metricCollector["agent"]);
-	monitoringModel.selectedResources(metricCollector["collectionInfo"]["resources"]);
+	var selectedRes = [];
+	$.each(metricCollector["collectionInfo"]["resources"], function(resIndex, res){
+		if(monitoringModel.availableResources().indexOf(res)!=-1) selectedRes.push(res);
+	})
+	monitoringModel.selectedResources(selectedRes);
 	$.each(onDemandCollectors, function(odIndex, odCollector){
 		if(odCollector["agent"]==metricCollector["agent"]){
 			$.each(odCollector["collectors"], function(index, collector){
