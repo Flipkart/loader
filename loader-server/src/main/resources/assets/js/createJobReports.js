@@ -1219,7 +1219,13 @@ var resourceGraphsViewModel = function(resource, url){
                 $.each(self.resourcePlotScheme["charts"], function(index, plot){
                     var tmpData = {};
                     $.each(plot["keysToPlot"], function(i,k){
-                        tmpData[k["key"]] = self.resourceData[k["key"]];
+                        var pat = new RegExp(k["key"]);
+                        $.each(self.resourceData, function(resKey, resData){
+                            if(pat.test(resKey)){
+                                tmpData[resKey] = self.resourceData[resKey];
+                            }
+                        });
+                        //tmpData[k["key"]] = self.resourceData[k["key"]];
                     });
                     self.resourceMapsData.push(tmpData);
                 });
