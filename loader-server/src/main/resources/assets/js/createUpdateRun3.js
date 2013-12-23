@@ -1585,9 +1585,9 @@ function createMonitoringAgentModel(metricCollector, onDemandCollectors){
 		if(odCollector["agent"]==metricCollector["agent"]){
 			$.each(odCollector["collectors"], function(index, collector){
 				var odColModel = new OnDemandCollector(monitoringModel.availableOnDemandCollectors());
-				odColModel.colName = collector["name"];
-				odColModel.selectedCollector = getCollectorType(collector["klass"], monitoringModel.availableOnDemandCollectors());
-				odColModel.interval = collector["interval"];
+				odColModel.colName(collector["name"]);
+				odColModel.selectedCollector(getCollectorType(collector["klass"], monitoringModel.availableOnDemandCollectors()));
+				odColModel.interval(collector["interval"]);
 				monitoringModel.onDemandCollectors.push(odColModel);
 			});
 		}
@@ -1676,3 +1676,6 @@ function updateRun(){
 	})
 }
 
+function execRun(){
+	executeRun(window.viewModel.runName());
+}
