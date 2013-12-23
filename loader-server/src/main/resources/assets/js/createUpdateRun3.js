@@ -1563,7 +1563,11 @@ function createDatagenModel(dataGen){
 		dataGenModel.maxValue(dataGen["inputDetails"]["maxValue"]);
 		break;
 	case "RANDOM_SELECTION":
-		dataGenModel.selectionList(dataGen["inputDetails"]["selectionSet"]);
+		var selectionList = [];
+		$.each(dataGen["inputDetails"]["selectionSet"], function(index, selection){
+			selectionList.push({"listValue": ko.observable(selection)});
+		})
+		dataGenModel.selectionList(selectionList);
 		break;
 	case "RANDOM_STRING":
 		dataGenModel.stringType(dataGen["inputDetails"]["type"]);
