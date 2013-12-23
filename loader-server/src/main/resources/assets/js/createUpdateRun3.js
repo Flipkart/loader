@@ -834,7 +834,10 @@ function getDataGeneratorsJson(dataGenModelList){
 				modelJson["inputDetails"]["maxValue"] = model.maxValue();
 				break;
 			case "RANDOM_SELECTION":
-				modelJson["inputDetails"]["maxValue"] = model.maxValue();
+				modelJson["inputDetails"]["selectionSet"] = [];
+				$.each(model.selectionList(), function(index, elem){
+					modelJson["inputDetails"]["selectionSet"].push(elem["listValue"]);
+				});
 				break;
 			case "RANDOM_STRING":
 				modelJson["inputDetails"]["type"] = model.stringType();
