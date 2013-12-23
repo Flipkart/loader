@@ -10,15 +10,15 @@ import java.util.Random;
  * To change this template use File | Settings | File Templates.
  */
 public class RandomSelection extends DataGenerator{
-    private final String[] selectionSet;
+    private final Object[] selectionSet;
     private static final Random random = new Random();
 
-    public RandomSelection(final String[] selectionSet) {
+    public RandomSelection(final Object[] selectionSet) {
         this.selectionSet = selectionSet;
     }
 
     @Override
     public String next() {
-        return selectionSet[random.nextInt(selectionSet.length)];
+        return selectionSet[random.nextInt(selectionSet.length)].toString();
     }
 }
