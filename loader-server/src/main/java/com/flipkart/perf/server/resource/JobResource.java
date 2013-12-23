@@ -306,7 +306,13 @@ public class JobResource {
                                    @PathParam("jobId") String jobId,
                                    Map<String, List<ResourceCollectionInstance>> resourcesCollectionInstances)
             throws IOException, InterruptedException, ExecutionException {
-        jobExistsOrException(jobId);
+        Job job = jobExistsOrException(jobId);
+
+        if(job.isCompleted()) {
+            logger.warn("Job "+jobId+" is already completed. Monitoring stats will not be persisted. Issuing request to monitoring service to stop sending");
+            job.stopMonitoring();
+            throw new WebApplicationException(ResponseBuilder.badRequest("Job "+jobId+" is already completed"));
+        }
 
         Map<String,ResourceCollectionInstance> resourcesLastInstance = jobLastResourceMetricInstanceMap.get(jobId);
 
