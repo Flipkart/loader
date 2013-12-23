@@ -9,7 +9,10 @@ import com.flipkart.perf.util.Counter;
 import com.flipkart.perf.util.Histogram;
 import com.flipkart.perf.util.TimerContext;
 import com.flipkart.perf.util.Timer;
+import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
@@ -42,9 +45,12 @@ public class FunctionContext {
     private static Map<String, String> inputFileResources;
     private static final Pattern variablePattern;
     private static Map<String, Object> inMemoryVariables;
+    private static Logger logger = LoggerFactory.getLogger(FunctionContext.class);
 
     static {
-        variablePattern = Pattern.compile(".*\\$\\{(.+)\\}.*");
+        variablePattern = Pattern.compile(".*\\$\\{(.+?)\\}.*");
+        inputFileResources = new HashMap<String, String>();
+        inMemoryVariables = new HashMap<String, Object>();
     }
 
     public static void initialize(LinkedHashMap<String, SharedDataInfo> sharedDataInfoMap,
@@ -71,7 +77,9 @@ public class FunctionContext {
         FunctionContext.globalDataGenerators = globalDataGenerators;
     }
 
-    public FunctionContext(Map<String,Timer> functionTimers, Map<String,Counter> functionCounters, Map<String, Histogram> functionHistograms,
+    public FunctionContext(Map<String,Timer> functionTimers,
+                           Map<String,Counter> functionCounters,
+                           Map<String, Histogram> functionHistograms,
                            Map<String, DataGenerator> groupDataGenerators) {
         this.functionParameters = new HashMap<String, Object>();
         this.timers = functionTimers;
@@ -95,104 +103,114 @@ public class FunctionContext {
         return null;
     }
 
-    public Object getParameter(String parameterName) {
+    public Object getParameter(String parameterName) throws IOException {
         Object value = passOnParameters.get(parameterName);
         if(value == null)
             value = functionParameters.get(parameterName);
 
-        // Resolve variable parameters
-        if(value instanceof String) {
-            String valueString = value.toString();
-            Matcher matcher = variablePattern.matcher(valueString);
-            while(matcher.matches()) {
-                String varName = matcher.group(1);
-                Object replacementValue = inputFileResources.get(varName);
-                if(replacementValue == null)
-                    replacementValue = functionParameters.get(varName);
+        if(value == null)
+            return value;
 
-                if(replacementValue == null)
-                    replacementValue = passOnParameters.get(varName);
+        String valueString = value.toString();
 
-                if(replacementValue == null && groupDataGenerators.containsKey(varName)) {
-                    replacementValue = groupDataGenerators.get(varName).next();
-                }
-
-                if(replacementValue == null && globalDataGenerators.containsKey(varName)) {
-                    replacementValue = globalDataGenerators.get(varName).next();
-                }
-
-                if(replacementValue == null)
-                    replacementValue = "null";
-
-                valueString = valueString.replace("${"+varName+"}", replacementValue.toString());
-                matcher = variablePattern.matcher(valueString);
-            }
-            value = valueString;
+        if(!(value instanceof String)) {
+            valueString = mapper.writeValueAsString(value).replace("\\\"","");
         }
 
+        Matcher matcher = variablePattern.matcher(valueString);
+        while(matcher.matches()) {
+            String varName = matcher.group(1);
+            Object replacementValue = inputFileResources.get(varName);
+            if(replacementValue == null)
+                replacementValue = functionParameters.get(varName);
+
+            if(replacementValue == null)
+                replacementValue = passOnParameters.get(varName);
+
+            if(replacementValue == null && groupDataGenerators.containsKey(varName)) {
+                replacementValue = groupDataGenerators.get(varName).next();
+            }
+
+            if(replacementValue == null && globalDataGenerators.containsKey(varName)) {
+                replacementValue = globalDataGenerators.get(varName).next();
+            }
+
+            if(replacementValue == null)
+                replacementValue = "null";
+
+            valueString = valueString.replace("${"+varName+"}", replacementValue.toString());
+            matcher = variablePattern.matcher(valueString);
+        }
+
+        if(value instanceof String)
+            value = valueString;
+        else
+            value = mapper.readValue(valueString, value.getClass());
+
+        logger.debug("Variable '"+parameterName+"' : '"+String.valueOf(value)+"'");
         return value;
     }
 
-    public String getParameterAsString(String parameterName) {
+    public String getParameterAsString(String parameterName) throws IOException {
         return getParameterAsString(parameterName, null);
     }
 
-    public String getParameterAsString(String parameterName, String defaultValue) {
+    public String getParameterAsString(String parameterName, String defaultValue) throws IOException {
         Object value = getParameter(parameterName);
         return value == null ? defaultValue : value.toString();
     }
 
-    public Integer getParameterAsInteger(String parameterName) {
+    public Integer getParameterAsInteger(String parameterName) throws IOException {
         return getParameterAsInteger(parameterName, null);
     }
 
-    public Integer getParameterAsInteger(String parameterName, Integer defaultValue) {
+    public Integer getParameterAsInteger(String parameterName, Integer defaultValue) throws IOException {
         Object value = getParameter(parameterName);
         return value == null ? defaultValue : Integer.parseInt(value.toString());
     }
 
-    public Long getParameterAsLong(String parameterName) {
+    public Long getParameterAsLong(String parameterName) throws IOException {
         return  getParameterAsLong(parameterName, null);
     }
 
-    public Long getParameterAsLong(String parameterName, Long defaultValue) {
+    public Long getParameterAsLong(String parameterName, Long defaultValue) throws IOException {
         Object value = getParameter(parameterName);
         return value == null ? defaultValue : Long.parseLong(value.toString());
     }
 
-    public Float getParameterAsFloat(String parameterName) {
+    public Float getParameterAsFloat(String parameterName) throws IOException {
         return getParameterAsFloat(parameterName, null);
     }
 
-    public Float getParameterAsFloat(String parameterName, Float defaultValue) {
+    public Float getParameterAsFloat(String parameterName, Float defaultValue) throws IOException {
         Object value = getParameter(parameterName);
         return value == null ? defaultValue : Float.parseFloat(value.toString());
     }
 
-    public Double getParameterAsDouble(String parameterName) {
+    public Double getParameterAsDouble(String parameterName) throws IOException {
         return getParameterAsDouble(parameterName, null);
     }
 
-    public Double getParameterAsDouble(String parameterName, Double defaultValue) {
+    public Double getParameterAsDouble(String parameterName, Double defaultValue) throws IOException {
         Object value = getParameter(parameterName);
         return value == null ? defaultValue : Double.parseDouble(value.toString());
     }
 
-    public Boolean getParameterAsBoolean(String parameterName) {
+    public Boolean getParameterAsBoolean(String parameterName) throws IOException {
         return getParameterAsBoolean(parameterName, false);
     }
 
-    public Boolean getParameterAsBoolean(String parameterName, Boolean defaultValue) {
+    public Boolean getParameterAsBoolean(String parameterName, Boolean defaultValue) throws IOException {
         Object value = getParameter(parameterName);
         return value == null ? defaultValue : Boolean.parseBoolean(value.toString());
     }
 
-    public File getParameterAsFile(String parameterName) {
+    public File getParameterAsFile(String parameterName) throws IOException {
         Object value = getParameter(parameterName);
         return value == null ? null : new File(value.toString());
     }
 
-    public InputStream getParameterAsInputStream(String parameterName) throws FileNotFoundException {
+    public InputStream getParameterAsInputStream(String parameterName) throws IOException {
         Object value = getParameter(parameterName);
         return value == null ? null : new FileInputStream(value.toString());
     }
@@ -203,7 +221,21 @@ public class FunctionContext {
 
     public Map getParameterAsMap(String parameterName, Map defaultValue) throws IOException {
         Object value = getParameter(parameterName);
-        return value == null ? defaultValue : mapper.readValue(value.toString().replace("'", "\""), Map.class);
+        if(value != null) {
+            if(value instanceof Map)
+                return (Map) value;
+            else if(value instanceof String){
+                return mapper.readValue(value.toString().replace("'", "\""), Map.class);
+            }
+            else {
+                return mapper.readValue(mapper.writeValueAsBytes(value), Map.class);
+            }
+        }
+        else {
+            value = defaultValue;
+        }
+
+        return value == null ? null : (Map) value;
     }
 
     public List getParameterAsList(String parameterName) throws IOException {
@@ -212,7 +244,21 @@ public class FunctionContext {
 
     public List getParameterAsList(String parameterName, List defaultValue) throws IOException {
         Object value = getParameter(parameterName);
-        return value == null ? defaultValue : mapper.readValue(value.toString(), List.class);
+        if(value != null) {
+            if(value instanceof List)
+                return (List) value;
+            else if( value instanceof String){
+                return mapper.readValue(value.toString(), List.class);
+            }
+            else {
+                return mapper.readValue(mapper.writeValueAsBytes(value), List.class);
+            }
+        }
+        else {
+            value = defaultValue;
+        }
+
+        return value == null ? null : (List) value;
     }
 
     /**
@@ -432,6 +478,16 @@ public class FunctionContext {
     private static void throwIfSharedDataDoesNotExists(String sharedDataName) {
         if(!inMemoryVariables.containsKey(sharedDataName))
         throw new RuntimeException("Shared Data "+sharedDataName+" doesn't exist");
+    }
+
+    public static void main(String[] args) {
+        String s = "\\\"Hello\\\"";
+        String s1 = s.replace("\\\"","\"");
+        System.out.println(s);
+        System.out.println(s1);
+        System.out.println("A");
+
+
     }
 
 }

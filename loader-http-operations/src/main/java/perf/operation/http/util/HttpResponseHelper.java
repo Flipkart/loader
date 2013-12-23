@@ -9,7 +9,7 @@ import java.io.IOException;
 import static com.flipkart.perf.core.FunctionContext.FailureType.FUNCTIONAL_FAILURE;
 
 public class HttpResponseHelper {
-    public static boolean successfulRequest(FunctionContext context, Response response) {
+    public static boolean successfulRequest(FunctionContext context, Response response) throws IOException {
         boolean success = (response.getStatusCode() == context.getParameterAsInteger(Constants.IP_EXPECTED_STATUS_CODE));
         if(!success) {
             context.failed(FUNCTIONAL_FAILURE,"Status code "+response.getStatusCode());
