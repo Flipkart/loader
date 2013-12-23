@@ -582,7 +582,7 @@ var monitoringViewModel = function(){
 	      		result = result.concat(data);
 	      	},
 	      	error: function(err){
-	      		self.availableResources([]);
+	      		console.log("error in getting resources");
 	      	}
 		});
 		return result;
@@ -599,6 +599,9 @@ var monitoringViewModel = function(){
 	      	success: function(data){
 	      		console.log("returning", data);
 	      		result = result.concat(data);	
+	      	},
+	      	error: function(){
+	      		console.log("error in getting resources");
 	      	}
 		});
 		return result;
@@ -1595,11 +1598,10 @@ function createMonitoringAgentModel(metricCollector, onDemandCollectors){
 function getCollectorType(klass, collectors){
 	var nme = "";
 	$.each(collectors, function(index, collector){
-		if(klass==collector["name"]){
+		if(klass==collector["klass"]){
 			nme = collector["name"];
 		} 
 	});
-	console.log("returning", cls);
 	return nme;
 }
 
