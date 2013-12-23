@@ -1225,7 +1225,6 @@ var resourceGraphsViewModel = function(resource, url){
                                 tmpData[resKey] = self.resourceData[resKey];
                             }
                         });
-                        //tmpData[k["key"]] = self.resourceData[k["key"]];
                     });
                     self.resourceMapsData.push(tmpData);
                 });
