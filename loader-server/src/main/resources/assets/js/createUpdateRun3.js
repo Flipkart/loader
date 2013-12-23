@@ -1528,7 +1528,7 @@ function createFunctionModel(func){
 			} else {
 				var mapList = [];
 				$.each(func["params"][inputParam.key], function(k,v){
-					mapList.push({"name":ko.observable(k), "keyValue":ko.observable(v)});
+					mapList.push({"name":ko.observable(k.replace(/"/g,"")), "keyValue":ko.observable(v)});
 				});
 				inputParam.mapValue(mapList);
 			}
