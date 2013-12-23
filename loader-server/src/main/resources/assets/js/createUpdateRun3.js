@@ -836,7 +836,7 @@ function getDataGeneratorsJson(dataGenModelList){
 			case "RANDOM_SELECTION":
 				modelJson["inputDetails"]["selectionSet"] = [];
 				$.each(model.selectionList(), function(index, elem){
-					modelJson["inputDetails"]["selectionSet"].push(elem["listValue"]);
+					modelJson["inputDetails"]["selectionSet"].push(elem.listValue());
 				});
 				break;
 			case "RANDOM_STRING":
