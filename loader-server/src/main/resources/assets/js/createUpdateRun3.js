@@ -1588,6 +1588,9 @@ function createMonitoringAgentModel(metricCollector, onDemandCollectors){
 				odColModel.colName(collector["name"]);
 				odColModel.selectedCollector(getCollectorType(collector["klass"], monitoringModel.availableOnDemandCollectors()));
 				odColModel.interval(collector["interval"]);
+				$.each(odColModel.collectorParameters(), function(pIndex, param){
+					param.paramValue(collector["params"][param.paramKey]);
+				});
 				monitoringModel.onDemandCollectors.push(odColModel);
 			});
 		}
