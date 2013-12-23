@@ -88,10 +88,10 @@ public class LoadController extends Thread{
             if(setupGroup.getFunctions().size() == 0)
                 return;
 
-            this.groupMap.put(setupGroup.getName(), setupGroup);
             for(Group group : this.groupMap.values()) {
                 group.dependsOn(setupGroup.getName());
             }
+            this.groupMap.put(setupGroup.getName(), setupGroup);
         }
     }
 
@@ -106,10 +106,10 @@ public class LoadController extends Thread{
             if(tearDownGroup.getFunctions().size() == 0)
                 return;
 
-            this.groupMap.put(tearDownGroup.getName(), tearDownGroup);
             for(Group group : this.groupMap.values()) {
                 tearDownGroup.dependsOn(group.getName());
             }
+            this.groupMap.put(tearDownGroup.getName(), tearDownGroup);
         }
     }
 
@@ -142,7 +142,7 @@ public class LoadController extends Thread{
                         throw new RuntimeException(dependencyFlow);
                     // Following code will check first level dependency
                     if(this.groupMap.get(depGroup).getDependOnGroups().contains(depGroup)){
-                        throw new RuntimeException(dependencyFlow+" -> "+depGroup);
+                        throw new RuntimeException("Group Dependency Flow '" +dependencyFlow+" -> "+depGroup + "' is Cyclic");
                     }
                 }
                 // Following Code will help in checking transitive dependency
