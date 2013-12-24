@@ -1,5 +1,6 @@
 package com.flipkart.perf.datagenerator;
 
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -10,15 +11,15 @@ import java.util.Random;
  * To change this template use File | Settings | File Templates.
  */
 public class RandomSelection extends DataGenerator{
-    private final Object[] selectionSet;
+    private final List selectionSet;
     private static final Random random = new Random();
 
-    public RandomSelection(final Object[] selectionSet) {
-        this.selectionSet = selectionSet;
+    public RandomSelection(final List selectionList) {
+        this.selectionSet = selectionList;
     }
 
     @Override
     public String next() {
-        return selectionSet[random.nextInt(selectionSet.length)].toString();
+        return selectionSet.get(random.nextInt(selectionSet.size())).toString();
     }
 }

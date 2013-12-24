@@ -2,6 +2,7 @@ package com.flipkart.perf.datagenerator;
 
 import com.flipkart.perf.common.util.CollectionHelper;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public abstract class DataGenerator {
@@ -11,11 +12,12 @@ public abstract class DataGenerator {
     public static DataGenerator buildDataGenerator(DataGeneratorInfo info) {
         switch (info.getGeneratorType()) {
             case COUNTER:
-                return new Counter(Integer.parseInt(info.getInputDetails().get("startValue").toString()),
-                        Integer.parseInt(info.getInputDetails().get("jump").toString()));
+                return new Counter(Long.parseLong(info.getInputDetails().get("startValue").toString()),
+                        Integer.parseInt(info.getInputDetails().get("jump").toString()),
+                        Long.parseLong(info.getInputDetails().get("maxValue").toString()));
 
             case FIXED_VALUE:
-                return new FixedValue(info.getInputDetails().get("startValue").toString());
+                return new FixedValue(info.getInputDetails().get("value").toString());
 
             case RANDOM_FLOAT:
                 return new RandomFloat();
@@ -24,7 +26,13 @@ public abstract class DataGenerator {
                 return new RandomNumber(Integer.parseInt(info.getInputDetails().get("maxValue").toString()));
 
             case RANDOM_SELECTION:
-                return new RandomSelection(((List)info.getInputDetails().get("selectionSet")).toArray());
+                return new RandomSelection(((List)info.getInputDetails().get("selectionSet")));
+
+            case CYCLIC_SELECTION:
+                return new CyclicSelection(((List)info.getInputDetails().get("selectionSet")));
+
+            case USE_AND_REMOVE:
+                return new UseAndRemove((LinkedList) info.getInputDetails().get("selectionSet"));
 
             case RANDOM_STRING:
                 return new RandomString(RandomString.RandomStringType.valueOf(info.getInputDetails().get("type").toString()),

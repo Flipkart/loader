@@ -96,7 +96,7 @@ public class TestFunctionContext {
 
     @Test
     public void testGetVariableAsStringWithGroupCounterGenerator() throws IOException {
-        DataGenerator generator = new Counter(0,1);
+        DataGenerator generator = new Counter(0,1,100);
         Map<String, DataGenerator> dataGenerators = new HashMap<String, DataGenerator>();
         dataGenerators.put("Counter", generator);
 
@@ -112,7 +112,7 @@ public class TestFunctionContext {
 
     @Test
     public void testGetVariableAsMapWithGroupCounterGenerator() throws IOException {
-        DataGenerator generator = new Counter(0,1);
+        DataGenerator generator = new Counter(0,1,100);
         Map<String, DataGenerator> dataGenerators = new HashMap<String, DataGenerator>();
         dataGenerators.put("Counter", generator);
 
@@ -128,7 +128,7 @@ public class TestFunctionContext {
 
     @Test
     public void testGetVariableAsListWithGroupCounterGenerator() throws IOException {
-        DataGenerator generator = new Counter(0,1);
+        DataGenerator generator = new Counter(0,1,100);
         Map<String, DataGenerator> dataGenerators = new HashMap<String, DataGenerator>();
         dataGenerators.put("Counter", generator);
 
@@ -144,7 +144,7 @@ public class TestFunctionContext {
 
     @Test
     public void testGetVariableAsIntegerWithGroupCounter() throws IOException {
-        DataGenerator generator = new Counter(0,1);
+        DataGenerator generator = new Counter(0,1,100);
         Map<String, DataGenerator> dataGenerators = new HashMap<String, DataGenerator>();
         dataGenerators.put("Counter", generator);
 
