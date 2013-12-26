@@ -92,6 +92,7 @@ function createScheduledWorkflowJson(){
 	workflow["workflow"] = createWorkflow();
 	return workflow;
 }
+
 function createScheduledWorkflow(){
     var workflow = createScheduledWorkflowJson();
 	$.ajax({
@@ -108,7 +109,32 @@ function createScheduledWorkflow(){
 			console.log("Error");
 		},
 		complete: function(xhr, status){
-			console.log(xhr,status);
+			switch(xhr.status){
+				case 204:
+      				$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-error");
+        		 	$("#alertMsg").addClass("alert-success");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"goToUpdate()\">&times;</button>");
+					$("#alertMsg").append("<h4>Success!!</h4> Workflow Created successfully!!");
+					$("#alertMsg").css("display", "block");
+					setTimeout(function(){goToUpdate();},3000);
+					break;
+				case 409:
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Workflow name conflict!!");
+					$("#alertMsg").css("display", "block");
+					break;
+				default :
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Workflow creation failed!!");
+					$("#alertMsg").css("display", "block");		
+			}
 		}
 	});
 }
@@ -379,7 +405,24 @@ function updateScheduledWorkflow(){
 			console.log("Error");
 		},
 		complete: function(xhr, status){
-			console.log(xhr,status);
+			switch(xhr.status){
+				case 200:
+      				$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-error");
+        		 	$("#alertMsg").addClass("alert-success");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"goToUpdate()\">&times;</button>");
+					$("#alertMsg").append("<h4>Success!!</h4> Workflow Updated successfully!!");
+					$("#alertMsg").css("display", "block");
+					setTimeout(function(){goToUpdate();},5000);
+					break;
+				default :
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Workflow update failed!!");
+					$("#alertMsg").css("display", "block");		
+			}
 		}
 	});
 }
@@ -419,12 +462,53 @@ function getAllBusinessUnits(){
 	return bu;
 }
 
+function executeWorkflow(){
+	var workflowName = getQueryParams("workflowName");
+	$.ajax({
+		url: "/loader-server/scheduledWorkFlows/" + workflowName + "/execute",
+		contentType: "application/json", 
+		dataType:"json",
+		type:"POST",
+		async: false,
+		data: "",
+		success: function(msg){
+			console.log(msg);
+		},
+		error: function(err){
+			console.log("Error");
+		},
+		complete: function(xhr, status){
+			switch(xhr.status){
+				case 200:
+      				$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-error");
+        		 	$("#alertMsg").addClass("alert-success");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"goToUpdate()\">&times;</button>");
+					$("#alertMsg").append("<h4>Success!!</h4> Workflow Executed successfully, Redirecting to running jobs page!!");
+					$("#alertMsg").css("display", "block");
+					setTimeout(function(){
+						window.location="jobs.html";
+					},3000);
+					break;
+				default :
+					$("#alertMsg").empty();
+  	                $("#alertMsg").removeClass("alert-success");
+        		 	$("#alertMsg").addClass("alert-error");
+        			$("#alertMsg").append("<button type=\"button\" class=\"close\" data-dismiss=\"alert\" onClick=\"returnToPage()\">&times;</button>");
+					$("#alertMsg").append("<h4>Error!!</h4> Workflow Execution failed!!");
+					$("#alertMsg").css("display", "block");		
+			}
+		}
+	});	
+}
 
+function goToUpdate(){
+	window.location = "/updatescheduledworkflow.html?&workflowName=" + $("#workflowName").val();
+}
 
-
-
-
-
+function returnToPage(){
+	location.reload();
+}
 
 
 

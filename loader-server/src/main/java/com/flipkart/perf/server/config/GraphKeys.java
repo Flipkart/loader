@@ -11,6 +11,7 @@ public class GraphKeys {
     private String key;
     private String name;
     private String color;
+    private boolean isRegex;
 
     public GraphKeys(){
 
@@ -37,5 +38,13 @@ public class GraphKeys {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public boolean getIsRegex() {
+        return isRegex;
+    }
+
+    public void setIsRegex(boolean isRegex) {
+        this.isRegex = isRegex;
     }
 }

@@ -12,6 +12,7 @@
 		.navbar .header-border {
 			border-bottom:4px solid #E47911;
 		}
+		textarea { resize:none; }
 	</style>
 </head>
 <body>
@@ -61,7 +62,6 @@
 	  		    <div class="row-fluid">
 		  			<div class="span8">
 	  				<label class="span3"><strong>Run Name</strong></label>
-<!-- 	  				<p class="span9" id="runName" data-bind="text: runName"></p> -->	  			
 						<a class="span9" id="runName" data-bind="attr: {'href': runUrl}, text: runName"></a>
 					</div>
 		  			<div class="span4">
@@ -80,14 +80,13 @@
 		<!--Buttons(stop job, reports)-->
 		<div class="btn-group pull-left">
   			<button id="stopJob" data-bind="attr: {'class': stopBtnClass}" onClick="stopJob()">Stop</button>
-  			<button id="addRemarks" class="btn" onClick="addRemarks()">Add Remarks</button>
   			<button id="deleteJob" class="btn"  data-bind="attr: {'class':deleteBtnClass}" onClick="deleteJob()">Delete</button>
   			<button id="generateLogs" class="btn" data-bind="attr: {'class': logsBtnClass}" onClick="generateLogs()">Logs</button>
   			<button id="generateGraphs" class="btn" data-bind="attr: {'class': graphsBtnClass}" onClick="generateGraphs()">Reports</button>
   			<button id="reRun" class="btn" data-bind="attr: {'class': reRunBtnClass}" onClick="reRun()">Rerun</button>
 		</div>
 		<br/>
-		<hr>
+		<br/>
 		<!--List of agents used for the job-->
 		<table id="jobAgents" class="table table-bordered">
 			<caption class="text-left"><strong>Agents Used</strong></caption>
@@ -121,29 +120,6 @@
 	function generateLogs(){
   		var jobId = getQueryParams("jobId");
   		window.location.href="/logs.html?&jobId=" + jobId + "&agents=" + window["jobAgents"].join();
-	}
-
-	function addRemarks(){
-		var remarks = $("#remarks").val();
-		var jobId = getQueryParams("jobId");
-		jobUrl = "loader-server/jobs/" + jobId + "/remarks";
-		$.ajax({
-			url: jobUrl,
-			contentType: "application/json", 
-			dataType:"json",
-			type:"PUT",
-			data: remarks,
-			async:false,
-			success: function(data){
-				window.existingRuns = data;
-			},	
-			error: function(){
-				console.log("Error in getting runs");
-			},
-			complete: function(xhr, status){
-				location.reload();
-			}
-		});
 	}
 </script>
 </html>

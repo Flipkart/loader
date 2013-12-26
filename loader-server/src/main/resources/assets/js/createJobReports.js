@@ -1219,15 +1219,20 @@ var resourceGraphsViewModel = function(resource, url){
                 $.each(self.resourcePlotScheme["charts"], function(index, plot){
                     var tmpData = {};
                     $.each(plot["keysToPlot"], function(i,k){
-                        var pat = new RegExp(k["key"]);
-                        $.each(self.resourceData, function(resKey, resData){
-                            if(pat.test(resKey)){
-                                tmpData[resKey] = self.resourceData[resKey];
-                            }
-                        });
+                        if(k["isRegex"]){
+                            var pat = new RegExp(k["key"], "i");
+                            $.each(self.resourceData, function(resKey, valList){
+                                if(pat.test(resKey)){
+                                    tmpData[resKey] = self.resourceData[resKey];
+                                }
+                            });
+                        } else {
+                            tmpData[k["key"]] = self.resourceData[k["key"]];
+                        }
                     });
                     self.resourceMapsData.push(tmpData);
                 });
+                console.log("this is resMapData",self.resourceMapsData);
             },
             error: function() {
             },
@@ -1244,7 +1249,16 @@ var resourceGraphsViewModel = function(resource, url){
         var lastIndex = startIndex + 100>self.dataLength()?self.dataLength():startIndex + 100;
         var tmpChart = [];
         $.each(self.resourcePlotScheme["charts"][k]["keysToPlot"], function(index, keyToPlot){
-            tmpChart.push({"key":keyToPlot["name"],"values":self.resourceMapsData[k][keyToPlot["key"]].slice(startIndex, lastIndex),"color":keyToPlot["color"]});
+            if(!keyToPlot["isRegex"]){
+                tmpChart.push({"key":keyToPlot["name"],"values":self.resourceMapsData[k][keyToPlot["key"]].slice(startIndex, lastIndex),"color":keyToPlot["color"]});
+            } else {
+                var pat = new RegExp(keyToPlot["key"],"i");
+                $.each(self.resourceMapsData[k], function(resKey, listVal){
+                    if(pat.test(resKey)){
+                        tmpChart.push({"key":resKey,"values":listVal.slice(startIndex, lastIndex),"color":getRandomColor()});
+                    }
+                });
+            }
         });
         plotGraph(tmpChart, $($(currElement).parents(".resourceGraphs")[0]).find("svg")[k], 
             self.resourcePlotScheme["charts"][k]["xLegend"], self.resourcePlotScheme["charts"][k]["yLegend"],".2s");
@@ -1378,4 +1392,9 @@ function updateStateOnUnCheck(){
     if(interval==undefined) interval = "60000";
     var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId")+ "&autoRefresh="+ autoRefresh + "&interval=" + interval  + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join();
     history.replaceState(null, null, link);
+}
+
+function getRandomColor(){
+    var colors = ["#ff7f0e", "#1f77b4", "#2ca02c", "#d62728", "#DF01D7", "#08088A", "#FF0000"];
+    return colors[Math.floor((Math.random()*6))];
 }
