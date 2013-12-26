@@ -105,7 +105,7 @@ function deleteJobs(){
 	var allDeleted = true;
 	$("#jobsList input:checked").each(function(){
 		var jobId = this.id;
-		var jobUrl = "/loader-server/job/" + jobId;
+		var jobUrl = "/loader-server/jobs/" + jobId;
 		$.ajax({
 			url: jobUrl,
       		contentType: "application/json", 

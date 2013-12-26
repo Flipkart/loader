@@ -42,6 +42,7 @@
 			.rightBlock{
 				border-left: 1px solid #C2BCBC;
 			}
+			textarea { resize:none; }
 	</style>
 </head>
 <body>
@@ -237,18 +238,26 @@
                                 						<h6>Input Details</h6>
                                 					</div>
                                 					<div class="row-fluid" data-bind="if: isCounter">
-                                						<div class="span6">
-                                							<label class="span4">Start Value</label>
-                                							<input type="text" data-bind="value: startValue">
-                                						</div>
-                                						<div class="span5">
-                                							<label class="span4">Jump</label>
-                                							<input type="text" data-bind="value: jump">
-                                						</div>
+                                						<div class="row-fluid">
+	                                							<div class="span6">
+	                                								<label class="span4">Start Value</label>
+	                                								<input type="text" data-bind="value: startValue">
+	                                							</div>
+	                                							<div class="span5">
+	                                								<label class="span4">Max Value</label>
+	                                								<input type="text" data-bind="value: maxValue">
+	                                							</div>
+                                							</div>
+                                							<div class="row-fluid">
+                                								<div class="span6">
+	                                								<label class="span4">Jump</label>
+	                                								<input type="text" data-bind="value: jump">
+	                                							</div>
+                                							</div>
                                 					</div>
                                 					<div class="row-fluid" data-bind="if: isFixedValue">
                                 						<div class="span6">
-                                							<label class="span4">Start Value</label>
+                                							<label class="span4">Value</label>
                                 							<input type="text" data-bind="value: startValue">
                                 						</div>
                                 					</div>
@@ -290,6 +299,34 @@
                                 							</div>
                                 						</div>
                                 					</div>
+                                					<div class="row-fluid" data-bind="if: isCyclicSelection">
+                                							<div class="row-fluid">
+                                								<button class="btn" data-bind="click: addToSelectionList">Add To List</button>	
+                                							</div>
+                                							<br/>
+                                							<div class="row-fluid" data-bind="foreach: selectionList">
+                                								<div class="row-fluid">
+	                                								<div class="span6">
+	                                									<input type="text" data-bind="value: listValue">
+		                                								<a class="btn btn-mini" data-bind="click: $parent.removeFromDisInfoList"><i class="icon-minus"></i></a>
+	                                								</div>
+                                								</div>
+                                							</div>
+                                						</div>
+                                						<div class="row-fluid" data-bind="if: isUseAndRemove">
+                                							<div class="row-fluid">
+                                								<button class="btn" data-bind="click: addToSelectionList">Add To List</button>	
+                                							</div>
+                                							<br/>
+                                							<div class="row-fluid" data-bind="foreach: selectionList">
+                                								<div class="row-fluid">
+	                                								<div class="span6">
+	                                									<input type="text" data-bind="value: listValue">
+		                                								<a class="btn btn-mini" data-bind="click: $parent.removeFromDisInfoList"><i class="icon-minus"></i></a>
+	                                								</div>
+                                								</div>
+                                							</div>
+                                						</div>
                                 					<div class="row-fluid" data-bind="if: isRandomDistribution">
                                 						<div class="row-fluid">
                                 							<button class="btn" data-bind="click: addtoDisInfoList">Add Distribution Map</button>	
@@ -400,18 +437,26 @@
                                 							<h6>Input Details</h6>
                                 						</div>
                                 						<div class="row-fluid" data-bind="if: isCounter">
-                                							<div class="span6">
-                                								<label class="span4">Start Value</label>
-                                								<input type="text" data-bind="value: startValue">
+                                							<div class="row-fluid">
+	                                							<div class="span6">
+	                                								<label class="span4">Start Value</label>
+	                                								<input type="text" data-bind="value: startValue">
+	                                							</div>
+	                                							<div class="span5">
+	                                								<label class="span4">Max Value</label>
+	                                								<input type="text" data-bind="value: maxValue">
+	                                							</div>
                                 							</div>
-                                							<div class="span5">
-                                								<label class="span4">Jump</label>
-                                								<input type="text" data-bind="value: jump">
+                                							<div class="row-fluid">
+                                								<div class="span6">
+	                                								<label class="span4">Jump</label>
+	                                								<input type="text" data-bind="value: jump">
+	                                							</div>
                                 							</div>
                                 						</div>
                                 						<div class="row-fluid" data-bind="if: isFixedValue">
                                 							<div class="span6">
-                                								<label class="span4">Start Value</label>
+                                								<label class="span4">Value</label>
                                 								<input type="text" data-bind="value: startValue">
                                 							</div>
                                 						</div>
@@ -450,6 +495,34 @@
                                 								<div class="span6">
                                 									<label class="span4">Closed String</label>
                                 									<input type="text" data-bind="value: closedString">
+                                								</div>
+                                							</div>
+                                						</div>
+                                						<div class="row-fluid" data-bind="if: isCyclicSelection">
+                                							<div class="row-fluid">
+                                								<button class="btn" data-bind="click: addToSelectionList">Add To List</button>	
+                                							</div>
+                                							<br/>
+                                							<div class="row-fluid" data-bind="foreach: selectionList">
+                                								<div class="row-fluid">
+	                                								<div class="span6">
+	                                									<input type="text" data-bind="value: listValue">
+		                                								<a class="btn btn-mini" data-bind="click: $parent.removeFromDisInfoList"><i class="icon-minus"></i></a>
+	                                								</div>
+                                								</div>
+                                							</div>
+                                						</div>
+                                						<div class="row-fluid" data-bind="if: isUseAndRemove">
+                                							<div class="row-fluid">
+                                								<button class="btn" data-bind="click: addToSelectionList">Add To List</button>	
+                                							</div>
+                                							<br/>
+                                							<div class="row-fluid" data-bind="foreach: selectionList">
+                                								<div class="row-fluid">
+	                                								<div class="span6">
+	                                									<input type="text" data-bind="value: listValue">
+		                                								<a class="btn btn-mini" data-bind="click: $parent.removeFromDisInfoList"><i class="icon-minus"></i></a>
+	                                								</div>
                                 								</div>
                                 							</div>
                                 						</div>
@@ -651,18 +724,26 @@
                                 							<h6>Input Details</h6>
                                 						</div>
                                 						<div class="row-fluid" data-bind="if: isCounter">
-                                							<div class="span6">
-                                								<label class="span4">Start Value</label>
-                                								<input type="text" data-bind="value: startValue">
+                                							<div class="row-fluid">
+	                                							<div class="span6">
+	                                								<label class="span4">Start Value</label>
+	                                								<input type="text" data-bind="value: startValue">
+	                                							</div>
+	                                							<div class="span5">
+	                                								<label class="span4">Max Value</label>
+	                                								<input type="text" data-bind="value: maxValue">
+	                                							</div>
                                 							</div>
-                                							<div class="span5">
-                                								<label class="span4">Jump</label>
-                                								<input type="text" data-bind="value: jump">
+                                							<div class="row-fluid">
+                                								<div class="span6">
+	                                								<label class="span4">Jump</label>
+	                                								<input type="text" data-bind="value: jump">
+	                                							</div>
                                 							</div>
                                 						</div>
                                 						<div class="row-fluid" data-bind="if: isFixedValue">
                                 							<div class="span6">
-                                								<label class="span4">Start Value</label>
+                                								<label class="span4">Value</label>
                                 								<input type="text" data-bind="value: startValue">
                                 							</div>
                                 						</div>
@@ -701,6 +782,34 @@
                                 								<div class="span6">
                                 									<label class="span4">Closed String</label>
                                 									<input type="text" data-bind="value: closedString">
+                                								</div>
+                                							</div>
+                                						</div>
+                                						<div class="row-fluid" data-bind="if: isCyclicSelection">
+                                							<div class="row-fluid">
+                                								<button class="btn" data-bind="click: addToSelectionList">Add To List</button>	
+                                							</div>
+                                							<br/>
+                                							<div class="row-fluid" data-bind="foreach: selectionList">
+                                								<div class="row-fluid">
+	                                								<div class="span6">
+	                                									<input type="text" data-bind="value: listValue">
+		                                								<a class="btn btn-mini" data-bind="click: $parent.removeFromDisInfoList"><i class="icon-minus"></i></a>
+	                                								</div>
+                                								</div>
+                                							</div>
+                                						</div>
+                                						<div class="row-fluid" data-bind="if: isUseAndRemove">
+                                							<div class="row-fluid">
+                                								<button class="btn" data-bind="click: addToSelectionList">Add To List</button>	
+                                							</div>
+                                							<br/>
+                                							<div class="row-fluid" data-bind="foreach: selectionList">
+                                								<div class="row-fluid">
+	                                								<div class="span6">
+	                                									<input type="text" data-bind="value: listValue">
+		                                								<a class="btn btn-mini" data-bind="click: $parent.removeFromDisInfoList"><i class="icon-minus"></i></a>
+	                                								</div>
                                 								</div>
                                 							</div>
                                 						</div>
@@ -965,18 +1074,26 @@
                                 							<h6>Input Details</h6>
                                 						</div>
                                 						<div class="row-fluid" data-bind="if: isCounter">
-                                							<div class="span6">
-                                								<label class="span4">Start Value</label>
-                                								<input type="text" data-bind="value: startValue">
+                                							<div class="row-fluid">
+	                                							<div class="span6">
+	                                								<label class="span4">Start Value</label>
+	                                								<input type="text" data-bind="value: startValue">
+	                                							</div>
+	                                							<div class="span5">
+	                                								<label class="span4">Max Value</label>
+	                                								<input type="text" data-bind="value: maxValue">
+	                                							</div>
                                 							</div>
-                                							<div class="span5">
-                                								<label class="span4">Jump</label>
-                                								<input type="text" data-bind="value: jump">
+                                							<div class="row-fluid">
+                                								<div class="span6">
+	                                								<label class="span4">Jump</label>
+	                                								<input type="text" data-bind="value: jump">
+	                                							</div>
                                 							</div>
                                 						</div>
                                 						<div class="row-fluid" data-bind="if: isFixedValue">
                                 							<div class="span6">
-                                								<label class="span4">Start Value</label>
+                                								<label class="span4">Value</label>
                                 								<input type="text" data-bind="value: startValue">
                                 							</div>
                                 						</div>
@@ -1015,6 +1132,34 @@
                                 								<div class="span6">
                                 									<label class="span4">Closed String</label>
                                 									<input type="text" data-bind="value: closedString">
+                                								</div>
+                                							</div>
+                                						</div>
+                                						<div class="row-fluid" data-bind="if: isCyclicSelection">
+                                							<div class="row-fluid">
+                                								<button class="btn" data-bind="click: addToSelectionList">Add To List</button>	
+                                							</div>
+                                							<br/>
+                                							<div class="row-fluid" data-bind="foreach: selectionList">
+                                								<div class="row-fluid">
+	                                								<div class="span6">
+	                                									<input type="text" data-bind="value: listValue">
+		                                								<a class="btn btn-mini" data-bind="click: $parent.removeFromDisInfoList"><i class="icon-minus"></i></a>
+	                                								</div>
+                                								</div>
+                                							</div>
+                                						</div>
+                                						<div class="row-fluid" data-bind="if: isUseAndRemove">
+                                							<div class="row-fluid">
+                                								<button class="btn" data-bind="click: addToSelectionList">Add To List</button>	
+                                							</div>
+                                							<br/>
+                                							<div class="row-fluid" data-bind="foreach: selectionList">
+                                								<div class="row-fluid">
+	                                								<div class="span6">
+	                                									<input type="text" data-bind="value: listValue">
+		                                								<a class="btn btn-mini" data-bind="click: $parent.removeFromDisInfoList"><i class="icon-minus"></i></a>
+	                                								</div>
                                 								</div>
                                 							</div>
                                 						</div>
@@ -1169,7 +1314,10 @@
 												</div>
 												<div class="span6">
 													<label class="span4">Interval</label>
-													<input type="text" data-bind="value: interval">
+													<div class="input-append">
+														<input type="text" data-bind="value: interval">
+														<span class="add-on">Sec</span>
+													</div>
 												</div>
 											</div>
 											<div class="row-fluid" data-bind="visible: isDefault">

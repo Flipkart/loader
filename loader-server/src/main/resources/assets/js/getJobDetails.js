@@ -20,7 +20,29 @@ function getJobDetails(){
 			type:"GET",
 			success: function(data){
 				console.log("creating the view");
-				ko.applyBindings(new jobDetailViewModel(data));
+				window.viewModel = new jobDetailViewModel(data);
+				window.viewModel.remarks.subscribe(function(remarks){
+				var jobId = getQueryParams("jobId");
+				jobUrl = "loader-server/jobs/" + jobId + "/remarks";
+					$.ajax({
+						url: jobUrl,
+						contentType: "application/json", 
+						dataType:"json",
+						type:"PUT",
+						data: remarks,
+						async:false,
+						success: function(data){
+							window.existingRuns = data;
+						},	
+						error: function(){
+							console.log("Error in getting runs");
+						},
+						complete: function(xhr, status){
+							//location.reload();
+						}
+					});
+				});
+				ko.applyBindings(window.viewModel);
 			},
 			error: function(e){
 				console.log("Error");
@@ -31,7 +53,7 @@ function getJobDetails(){
 		});
 }
 
-function jobDetailViewModel(jobDetails){
+var jobDetailViewModel = function(jobDetails){
 	var agentList = [];
 	window["jobAgents"] = [];
 	$.each(jobDetails["agentsJobStatus"], function(k,v){
@@ -134,7 +156,7 @@ function jobDetailViewModel(jobDetails){
 	self.graphsBtnClass = grfBtnClass;
 	self.agents = ko.observableArray(agentList);
 	self.reRunBtnClass = runBtnClass;
-	self.remarks = jobDetails["remarks"];
+	self.remarks = ko.observable(jobDetails["remarks"]);
 	self.runUrl = "/updaterun.html?&runName=" + jobDetails["runName"];
 	console.log("self", self);
 }

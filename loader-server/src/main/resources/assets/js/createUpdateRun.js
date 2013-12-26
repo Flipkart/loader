@@ -510,7 +510,7 @@ var dataGeneratorViewModel = function(){
 	var self = this;
 	self.generatorName = ko.observable("Data Generator");
 	self.generatorType = ko.observable("Choose Type");
-	var types = ["Choose Type","COUNTER", "FIXED_VALUE", "RANDOM_FLOAT", "RANDOM_NUMBER", "RANDOM_SELECTION", "RANDOM_STRING", "RANDOM_DISTRIBUTION"];
+	var types = ["Choose Type","COUNTER", "FIXED_VALUE", "RANDOM_FLOAT", "RANDOM_NUMBER", "RANDOM_SELECTION", "RANDOM_STRING", "RANDOM_DISTRIBUTION", "CYCLIC_SELECTION", "USE_AND_REMOVE"];
 	self.availableGeneratorTypes = ko.observableArray(types);
 	self.isDefault = ko.computed(function(){
 		if(self.generatorType()=="Choose Type" || self.generatorType()== "RANDOM_FLOAT") return false;
@@ -542,6 +542,14 @@ var dataGeneratorViewModel = function(){
 	});
 	self.isRandomDistribution = ko.computed(function(){
 		if(self.generatorType()=="RANDOM_DISTRIBUTION") return true;
+		return false;
+	});
+	self.isCyclicSelection = ko.computed(function(){
+		if(self.generatorType()=="CYCLIC_SELECTION") return true;
+		return false;
+	});
+	self.isUseAndRemove = ko.computed(function(){
+		if(self.generatorType()=="USE_AND_REMOVE") return true;
 		return false;
 	});
 	self.startValue = ko.observable(0);
@@ -824,9 +832,10 @@ function getDataGeneratorsJson(dataGenModelList){
 			case "COUNTER":
 				modelJson["inputDetails"]["startValue"] = model.startValue();
 				modelJson["inputDetails"]["jump"] = model.jump();
+				modelJson["inputDetails"]["maxValue"] = model.maxValue();
 				break;
 			case "FIXED_VALUE":
-				modelJson["inputDetails"]["startValue"] = model.startValue();
+				modelJson["inputDetails"]["value"] = model.startValue();
 				break;
 			case "RANDOM_FLOAT":
 				break;
@@ -834,6 +843,18 @@ function getDataGeneratorsJson(dataGenModelList){
 				modelJson["inputDetails"]["maxValue"] = model.maxValue();
 				break;
 			case "RANDOM_SELECTION":
+				modelJson["inputDetails"]["selectionSet"] = [];
+				$.each(model.selectionList(), function(index, elem){
+					modelJson["inputDetails"]["selectionSet"].push(elem.listValue());
+				});
+				break;
+			case "USE_AND_REMOVE":
+				modelJson["inputDetails"]["selectionSet"] = [];
+				$.each(model.selectionList(), function(index, elem){
+					modelJson["inputDetails"]["selectionSet"].push(elem.listValue());
+				});
+				break;
+			case "CYCLIC_SELECTION":
 				modelJson["inputDetails"]["selectionSet"] = [];
 				$.each(model.selectionList(), function(index, elem){
 					modelJson["inputDetails"]["selectionSet"].push(elem.listValue());
@@ -1557,14 +1578,29 @@ function createDatagenModel(dataGen){
 	case "COUNTER":
 		dataGenModel.startValue(dataGen["inputDetails"]["startValue"]);
 		dataGenModel.jump(dataGen["inputDetails"]["jump"]);
+		dataGenModel.maxValue(dataGen["inputDetails"]["maxValue"]);
 		break;
 	case "FIXED_VALUE":
-		dataGenModel.startValue(dataGen["inputDetails"]["startValue"]);
+		dataGenModel.startValue(dataGen["inputDetails"]["value"]);
 		break;
 	case "RANDOM_NUMBER":
 		dataGenModel.maxValue(dataGen["inputDetails"]["maxValue"]);
 		break;
 	case "RANDOM_SELECTION":
+		var selectionList = [];
+		$.each(dataGen["inputDetails"]["selectionSet"], function(index, selection){
+			selectionList.push({"listValue": ko.observable(selection)});
+		})
+		dataGenModel.selectionList(selectionList);
+		break;
+	case "USE_AND_REMOVE":
+		var selectionList = [];
+		$.each(dataGen["inputDetails"]["selectionSet"], function(index, selection){
+			selectionList.push({"listValue": ko.observable(selection)});
+		})
+		dataGenModel.selectionList(selectionList);
+		break;
+	case "CYCLIC_SELECTION":
 		var selectionList = [];
 		$.each(dataGen["inputDetails"]["selectionSet"], function(index, selection){
 			selectionList.push({"listValue": ko.observable(selection)});
@@ -1693,5 +1729,5 @@ function updateRun(){
 }
 
 function execRun(){
-	executeRun(window.viewModel.runName());
+	executeRun(getQueryParams("runName"));
 }
