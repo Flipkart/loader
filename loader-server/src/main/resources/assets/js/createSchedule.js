@@ -142,7 +142,8 @@ function createScheduledWorkflow(){
 function addBlock(){
 	var runName = $("#runName").val();
 	var blockId = runName + new Date().getTime();
-	var blockName = "Block_" + new Date();
+	var blockName = "Block_" + window.count;
+	window.count = window.count + 1;
 	var div = "<div class=\"w\" id=\"" + blockId + "\"><div class=\"edit\" style=\"word-wrap:break-word\">" + blockName + "</div><div class=\"ep\"></div><div class=\"cross\"></div></div>";	
 	$(".grid").append(div);
 	window.numberOfBlocks = window.numberOfBlocks + 1;
