@@ -36,9 +36,19 @@
 		.grid {
 			height:250px;
 			background-color: white;
+			border-width: 2px;
+			border-color: black;
 		}
 		.blockAdd {
-			background-color: #f2f2f2;
+			background-color: darkgray;
+		}
+		.blockAddInner {
+			margin-left:50px;
+			margin-top:8px;
+		}
+		.grid-info {
+			border-width: 1px;
+			border-color: black;
 		}
 	</style>
 </head>
@@ -49,6 +59,7 @@
 		$(function(){
 		  $("#navigation").load('header.html');
 		  $('.dropdown-toggle').dropdown();
+		  window.count=1;
 	    });
 	</script>
 <!--breadcrumbs make it dynamic-->
@@ -61,8 +72,8 @@
 		<div id="alertMsg" class="alert" style="display: none">
 		</div>
 	</div>
-	<div class="row-fluid">
-		<div class="span12 blockAdd">
+	<div class="row-fluid blockAdd">
+		<div class="row-fluid blockAddInner">
 			<div class="span4">
 				<label class="span4">Business Unit</label>
 				<select id="businessUnit" class="span7" data-bind="options: bus, value: selectedBu">
@@ -89,7 +100,7 @@
 			<div class="w" id="startBlock">Start<div class="ep"></div></div>
 		</div>
 	</div>
-<div class="row-fluid">
+<div class="row-fluid grid-info">
 	<div class="well" id="schedulerInfo">
 		<form>
 			<legend>Scheduler Info</legend>
@@ -156,7 +167,7 @@
 			</div>
 		</div>
 		<div class="row-fluid">
-			<div class="btn-group pull-right">
+			<div class="btn-group">
 				<button id="create" class="btn" onClick="createScheduledWorkflow()">Create</button>
 			</div>
 		</div>
