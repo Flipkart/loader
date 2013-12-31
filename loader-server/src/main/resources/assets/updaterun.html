@@ -74,6 +74,15 @@
 				$("#JSON").show();
 				window.selectedView = 'json';
 			});
+			initializationDone();
+			window.onbeforeunload = function(){
+				console.log("changes made", window.viewModel.hasChanged());
+				if(window.viewModel.hasChanged()){
+					console.log("changes made");
+					return "You have unsaved changes, If you move away you will loose your changes.";
+				}
+				return null;
+			}
 		});
 	</script>
 	<!--Navigation Bar-->
@@ -1367,5 +1376,18 @@
 	</div>
 	<br/>
 	<br/>
+	<div id="moveAway" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="moveAway" aria-hidden="true">
+		<div class="modal-header">
+    		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    		    <h3>Delete Run</h3>
+  		</div>
+  		<div class="modal-body">
+    		<p>Are you sure, you want to delete the run??</p>
+  		</div>
+  		<div class="modal-footer">
+    		<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    		<button id="delRunButt" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Yes</button>
+  		</div>
+	</div>
 </body>
 </html>
