@@ -1,6 +1,5 @@
 ko.bindingHandlers.multiSelect = {
 	init: function(element, valueAccessor, allBindingAccessor, viewModel){
-		console.log("calling multiSelect on", element);
 		var selabHdr = "<div class='custom-header'><label><strong>Available Groups</strong></label>";
 		var selcnHdr = "<div class='custom-header'><label><strong>Depends On Groups</strong></label>";
 		switch($(element).attr('id')){
@@ -40,7 +39,6 @@ ko.bindingHandlers.multiSelect = {
 }
 ko.bindingHandlers.combobox = {
 	init: function(element, valueAccessor, allBindingAccessor, viewModel){
-		//console.log("initializing combobox");
 		var value = valueAccessor();
         var valueUnWrapperd = ko.unwrap(value);
         if(valueUnWrapperd) $(element).combobox();	
@@ -65,7 +63,6 @@ ko.bindingHandlers.combobox = {
 
 ko.bindingHandlers.refreshTree = {
 	update: function(element, valueAccessor, allBindingAccessor, viewModel){
-		//console.log("updating tree");
 		createTree();
 		if(window.currentModel!=undefined) 
 			selectNode(window.currentModel.nodeId);
@@ -78,12 +75,10 @@ ko.bindingHandlers.multiSel = {
 	init: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext){
 		var value = valueAccessor();
         var valueUnWrapperd = ko.unwrap(value);
-		console.log("initialized");
 	},
 	update: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext){
 		var value = valueAccessor();
         var valueUnWrapperd = ko.unwrap(value);
-		console.log("update");
 	}
 }
 
@@ -107,7 +102,6 @@ ko.bindingHandlers.getGroups = {
 		//}
 	},
 	update: function(element, valueAccessor, allBindingAccessor, viewModel, bindingContext){
-		console.log("refreshing group");
 		var parent = bindingContext.$parent;
 		var groupNames = [];
 		$.each(parent.groups(), function(index, grp){
@@ -132,10 +126,8 @@ function getInputResourceFiles(){
 	        	window.availableInputResources = data;
 	      	},
 	      	error: function(e){
-	        	//console.log("Error");
 	      	},
 	      	complete: function(xhr, status){
-	        	//console.log(status);
 	      	}
     	});
 }
@@ -151,10 +143,8 @@ function getAllFunctionClasses(){
 	        window.availableFunctions = window.availableFunctions.concat(data);
 	    },
 	    error: function(e){
-	        //console.log("Error");
 	    },
 	    complete: function(xhr, status){
-	        //console.log(status);
 	    }
     });
 }
@@ -180,7 +170,6 @@ function getBusinessUnits(){
 			});
 		},
 		error: function(){
-			//console.log("Error in getting businessUnits");
 		},
 		complete: function(xhr, status){
 			switch(xhr.status){
@@ -189,7 +178,6 @@ function getBusinessUnits(){
 				default :
 					window.existingBus = [];
 			}
-			////console.log(window.existingBus,window.existingTeams);
 		}
 	});
 }
@@ -230,7 +218,6 @@ var runJsonViewModel = function(){
 		var monModel = new monitoringViewModel();
 		self.metricCollections.push(monModel);
 		createTree();
-		console.log("selecting", monModel.nodeId);
 		selectNode(monModel.nodeId);
 	}
 
@@ -238,6 +225,36 @@ var runJsonViewModel = function(){
 		self.metricCollections.remove(monAg);
 		createTree();
 		selectNode(self.nodeId);
+	}
+	self.isInitialized = false;
+	self.isDirty = ko.computed(function(){
+		console.log("called");
+		self.runName();
+		self.selectedBu();
+		self.desc();
+		self.loadPart();
+		self.selectedTeam();
+		if(!self.isInitialized){
+			//self.isInitialized = true;
+			return false;
+		}
+		return true;
+	});
+	self.hasChanged = function(){
+		if(self.isDirty()) return true;
+		var lpChanged = false;
+		$.each(self.loadPart(), function(lIndex, loadPart){
+			if(loadPart.hasChanged()){ 
+				console.log(lIndex + " has changed")
+				lpChanged = true; 
+			}
+		});
+		if(lpChanged) return true;
+		var mcChanged = false;
+		$.each(self.metricCollections(), function(mIndex, metricCol){
+			if(metricCol.hasChanged()){ mcChanged = true};
+		});
+		return mcChanged;
 	}
 }
 
@@ -282,9 +299,7 @@ var loadPartViewModel =  function(){
 		var grpModel = new groupViewModel();
 		self.groups.push(grpModel);
 		createTree();
-		console.log("done wit tree creating");
 		selectNode(grpModel.nodeId);
-		console.log("done with selecting node");
 	}
 	self.deleteGroup = function(gp){
 		self.groups.remove(gp);
@@ -298,6 +313,38 @@ var loadPartViewModel =  function(){
 	}
 	self.deleteDataGenerator = function(dg){
 		self.dataGenerators.remove(dg);
+	}
+	self.isInitialized = false;
+	self.isDirty = ko.computed(function(){
+		console.log("called lp");
+		self.loadPartName();
+		self.agents();
+		self.dataGenerators();
+		self.useInputResources();
+		self.groups();
+		self.logLevel();
+		self.setupGroup();
+		self.tearDownGroup();
+		if(!self.isInitialized){
+			//self.isInitialized = true;
+			return false;
+		}
+		return true;
+	});
+	self.hasChanged = function(){
+		if(self.isDirty()) return true;
+		if(self.setupGroup().hasChanged()) return true;
+		if(self.tearDownGroup().hasChanged()) return true;
+		var grpChanged = false;
+		$.each(self.groups(), function(gIndex, grp){
+			if(grp.hasChanged()){ grpChanged=true; }
+		});
+		if(grpChanged) return true;
+		var dataGenChanged = false;
+		$.each(self.dataGenerators(), function(dIndex, dataGen){
+			if(dataGen.hasChanged()) { dataGenChanged = true;}
+		});
+		return dataGenChanged;
 	}
 }
 
@@ -364,6 +411,47 @@ var groupViewModel = function(){
 	self.deleteDataGenerator = function(dg){
 		self.dataGenerators.remove(dg);
 	}
+	self.isInitialized = false;
+	self.isDirty = ko.computed(function(){
+		console.log("updated group");
+		self.groupName();
+		self.groupStartDelay();
+		self.threadStartDelay();
+		self.throughput();
+		self.repeats();
+		self.duration();
+		self.warmUpRepeats();
+		self.dependsOn();
+		self.threads();
+		self.functions();
+		self.dataGenerators();
+		self.params();
+		self.timers();
+		self.threadResources();
+		if(!self.isInitialized){
+			//self.isInitialized = true;
+			return false;
+		}
+		return true;
+	});
+	self.hasChanged = function(){
+		if(self.isDirty()) return true;
+		var funcChanged = false;
+		$.each(self.functions(), function(fIndex, func){
+			if(func.hasChanged()) funcChanged=true;
+		});
+		if(funcChanged) return true;
+		var dataGenChanged = false;
+		$.each(self.dataGenerators(), function(dIndex, dataGen){
+			if(dataGen.hasChanged()) {console.log("datagen changed");dataGenChanged =true;}
+		});
+		if(dataGenChanged) return true;
+		var timerChanged = false;
+		$.each(self.timers(), function(tIndex, timer){
+			if(timer.hasChanged()) timerChanged= true;
+		});
+		return timerChanged;
+	}
 }
 
 
@@ -373,6 +461,21 @@ var timerViewModel = function(){
 	self.threads = ko.observable(1);
 	self.throughput = ko.observable(-1);
 	self.duration = ko.observable(-1);
+	self.isInitialized = false;
+	self.isDirty=ko.computed(function(){
+		self.timerName();
+		self.threads();
+		self.duration();
+		self.throughput();
+		if(!self.isInitialized){
+			//self.isInitialized = true;
+			return false;
+		}
+		return true;
+	});
+	self.hasChanged = function(){
+		return self.isDirty();
+	}
 }
 
 var functionViewModel = function(){
@@ -419,7 +522,6 @@ var functionViewModel = function(){
 				params["customTimers"] = ko.observableArray(data[0]["customTimers"]);
       		},
       		error: function(e){
-        		//console.log("Error");
       		}
     	});
     	return params;
@@ -427,6 +529,28 @@ var functionViewModel = function(){
 	self.selectedHistograms = ko.observableArray([]);
 	self.selectedCustomTimers = ko.observableArray([]);
 	self.selectedCustomCounters = ko.observableArray([]);
+	self.isInitialized = false;
+	self.isDirty = ko.computed(function(){
+		self.functionName();
+		self.selectedFunction();
+		self.dumpData();
+		self.selectedHistograms();
+		self.selectedCustomTimers();
+		self.selectedCustomCounters();
+		if(!self.isInitialized){
+			//self.isInitialized = true;
+			return false;
+		}
+		return true;
+	});
+	self.hasChanged = function(){
+		if(self.isDirty()) return true;
+		var paramChanged = false;
+		$.each(self.availableParameters().inputParameters(), function(pIndex, inputParam){
+			if(inputParam.hasChanged()) paramChanged= true;
+		});
+		return paramChanged;
+	}
 }
 
 var inputParamViewModel = function(inputParam){
@@ -504,6 +628,20 @@ var inputParamViewModel = function(inputParam){
 		if(self.isList) return self.returnList();
 		if(self.isHashMap) return self.returnMap();
 	}
+	self.isInitialized = false;
+	self.isDirty = ko.computed(function(){
+		self.scalarValue();
+		self.listValue();
+		self.mapValue();
+		if(!self.isInitialized){
+			//self.isInitialized = true;
+			return false;
+		}
+		return true;
+	});
+	self.hasChanged = function(){
+		if(self.isDirty()) return true;
+	}
 }
 
 var dataGeneratorViewModel = function(){
@@ -573,6 +711,28 @@ var dataGeneratorViewModel = function(){
 	self.removeFromSelectionList = function(elem){
 		self.selectionList.remove(elem);
 	}
+	self.isInitialized = false;
+	self.isDirty = ko.computed(function(){
+		console.log("updated datagen")
+		self.generatorName();
+		self.generatorType();
+		self.startValue();
+		self.maxValue();
+		self.jump();
+		self.stringType();
+		self.stringLength();
+		self.closedString();
+		self.distributionInfoList();
+		self.selectionList();
+		if(!self.isInitialized){
+			//self.isInitialized = true;
+			return false;
+		}
+		return true;
+	});
+	self.hasChanged = function(){
+		if(self.isDirty()) return true; 
+	}
 }
 
 var monitoringViewModel = function(){
@@ -590,7 +750,6 @@ var monitoringViewModel = function(){
 	      		result = result.concat(data);
 	      	},
 	      	error: function(err){
-	      		console.log("error in getting resources");
 	      	}
 		});
 		return result;
@@ -605,11 +764,9 @@ var monitoringViewModel = function(){
 	      	"type":"GET",
 	      	"async":false,
 	      	success: function(data){
-	      		console.log("returning", data);
 	      		result = result.concat(data);	
 	      	},
 	      	error: function(){
-	      		console.log("error in getting resources");
 	      	}
 		});
 		return result;
@@ -628,10 +785,27 @@ var monitoringViewModel = function(){
 	self.defaultResourcesId = "defaultResourcesId_" + self.createdAt;
 	self.monitorResourcesId = "monitorResourcesId_" + self.createdAt;
 	self.monitorResourcesHref = "#" + self.monitorResourcesId;
+	self.isDirty = ko.computed(function(){
+		self.agent();
+		self.onDemandCollectors();
+		self.selectedResources();
+		if(!self.isInitialized){
+			//self.isInitialized = true;
+			return false;
+		}
+		return true;
+	});
+	self.hasChanged = function(){
+		if(self.isDirty()) return true;
+		var odColChanged = false;
+		$.each(self.onDemandCollectors(), function(oIndex, odCol){
+			if(odCol.hasChanged()) odColChanged=true;
+		});
+		return odColChanged;
+	}
 }
 
 var OnDemandCollector = function(collectors){
-	console.log("collectors", collectors);
 	var self = this;
 	self.colName = ko.observable("Collector");
 	self.availableCollectors = collectors;
@@ -665,10 +839,24 @@ var OnDemandCollector = function(collectors){
 				cls = collector["klass"];
 			} 
 		});
-		console.log("returning", cls);
 		return cls;
 	});
 	self.interval = ko.observable(20);
+	self.isInitialized = false;
+	self.isDirty = ko.computed(function(){
+		self.colName();
+		self.selectedCollector();
+		self.interval();
+		if(!self.isInitialized){
+			//self.isInitialized = true;
+			return false;
+		}
+		return true;
+	});
+	self.hasChanged = function(){
+		if(self.isDirty()) return true;
+		return false;
+	}
 }
 
 
@@ -755,7 +943,6 @@ function createJsonFromView(){
 		collcs["agent"] = collector.agent();
 		collcs["collectors"] = []
 		$.each(collector.onDemandCollectors(), function(odIndex, odCollector){
-			console.log("odCollector is", odCollector.monClass());
 			var onDemandCol = {};
 			onDemandCol["name"]=odCollector.colName();
 			onDemandCol["klass"]=odCollector.monClass();
@@ -770,7 +957,6 @@ function createJsonFromView(){
 		runJson["onDemandMetricCollections"].push(collcs);
 		runJson["metricCollections"].push(monAg);
 	});
-	//console.log("runJson", runJson);
 	return runJson;
 }
 
@@ -891,8 +1077,6 @@ function createTree(){
 			},
 			"contextmenu" :{
 				"items": function(data){
-					console.log(data);
-					console.log($(data[0]).data('nodeType'));
 					var defaultVal = {
 						"rename": false,
 						"delete": false,
@@ -1255,7 +1439,6 @@ function getLoadParts(model){
 		});
 		loadPartsName[k]={"attr" :{"id": loadParts[k].nodeId, "rel":"loadPart"}, "data": loadParts[k].loadPartName(), "metadata" : {"nodeType":"loadPart", "loadPartIndex": k}, "children": grps};
 	}
-	//console.log("loadpartsname:", loadPartsName);
 	return loadPartsName;
 }
 
@@ -1276,7 +1459,6 @@ function getGroupList(model, loadPartIndex){
 	for(var i=0;i<groups.length;i++){
 		groupName[i]={ "attr":{"id": groups[i].nodeId, "rel":"group"},"data": groups[i].groupName(), "metadata" :{"nodeType":"group", "loadPartIndex": loadPartIndex, "groupIndex": i} ,"children" : getFunctionList(groups[i], loadPartIndex ,i)};
 	}
-	//console.log("returning from getGroupList");
 	return groupName;
 }
 
@@ -1287,7 +1469,6 @@ function getFunctionList(model, loadPartIndex, groupIndex){
 	for(var i=0;i<functions.length; i++){
 		functionName[i]={"attr":{"id":functions[i].nodeId, "rel":"function"}, "type":"function","metadata": {"nodeType":"function", "loadPartIndex":loadPartIndex, "groupIndex": groupIndex, "functionIndex":i}, "data": functions[i].functionName()};
 	}
-	//console.log("returning from getFunctionList");
 	return functionName;
 }
 
@@ -1296,8 +1477,6 @@ function getFunctionListForFixedGroup(model, loadPartIndex, type){
 	var functions = model.functions();
 	if(functions.length==0) return undefined;
 	for(var i=0;i<functions.length;i++){
-		console.log(functions[i]);
-		console.log(functions[i].functionName);
 		funcName[i] = {
 			"attr": {"id": functions[i].nodeId, "rel": "function"},
 			"type": type,
@@ -1333,8 +1512,6 @@ function createRun(){
 		$("#alertMsg").css("display", "block");
 		return;
 	}
-	//window.runSchema["classes"] = classes;
-	//console.log("sending", JSON.stringify(runJson));
 	$.ajax({
 		url:"loader-server/runs",
 		contentType: "application/json", 
@@ -1342,13 +1519,10 @@ function createRun(){
       	processData:false,
       	data: JSON.stringify(runJson),
       	success: function(data){
-      		//console.log(data);
       	},
       	error: function(err){
-      		//console.log(err);
       	},
       	complete: function(xhr, status){
-      		//console.log("COMPLETE",xhr);
       		$("#success").empty();
       		switch (xhr.status){
       			case 201:
@@ -1535,16 +1709,12 @@ function createFunctionModel(func){
 	funcModel.selectedHistograms(func["customHistograms"]);
 	funcModel.selectedCustomTimers(func["customTimers"]);
 	funcModel.selectedCustomCounters(func["customCounters"]);
-	console.log("availableParameters",funcModel.availableParameters().inputParameters());
-	console.log("params", func["params"]);
 	$.each(funcModel.availableParameters().inputParameters(), function(index, inputParam){
-		console.log("fixing",inputParam.key);
 		if(inputParam.isScalar){
 			inputParam.scalarValue(func["params"][inputParam.key]);
 		} else {
 			if(inputParam.isList){
 				var list = [];
-				console.log(inputParam.key,"->" ,func["params"][inputParam.key]);
 				$.each(func["params"][inputParam.key], function(keyIndex, param){
 					list.push({"keyValue": ko.observable(param)});
 				});
@@ -1674,8 +1844,6 @@ function updateRun(){
 		$("#alertMsg").css("display", "block");
 		return;
 	}
-	//window.runSchema["classes"] = classes;
-	//console.log("sending", JSON.stringify(runJson));
 	$.ajax({
 		url:"loader-server/runs/" + getQueryParams("runName"),
 		contentType: "application/json", 
@@ -1683,13 +1851,10 @@ function updateRun(){
       	processData:false,
       	data: JSON.stringify(runJson),
       	success: function(data){
-      		//console.log(data);
       	},
       	error: function(err){
-      		//console.log(err);
       	},
       	complete: function(xhr, status){
-      		//console.log("COMPLETE",xhr);
       		$("#success").empty();
       		switch (xhr.status){
       			case 204:
@@ -1730,4 +1895,50 @@ function updateRun(){
 
 function execRun(){
 	executeRun(getQueryParams("runName"));
+}
+
+function initializationDone(){
+	var model = window.viewModel;
+	window.viewModel.isInitialized = true;
+	$.each(window.viewModel.loadPart(), function(index, lPart){
+		lPart.isInitialized = true;
+		$.each(lPart.groups(), function(index, grp){
+			grp.isInitialized = true;
+			$.each(grp.functions(), function(index, func){
+				func.isInitialized = true;
+				$.each(func.availableParameters().inputParameters(), function(pIndex, inputParam){
+					inputParam.isInitialized=true;
+				});
+			});
+			$.each(grp.dataGenerators(), function(dIndex, dataGen){
+				dataGen.isInitialized = true;
+			});
+			$.each(grp.timers(), function(tIndex, timer){
+				timer.isInitialized = true;
+			});
+		});
+		$.each(lPart.dataGenerators(), function(dIndex, dataGen){
+			dataGen.isInitialized = true;
+		});
+		lPart.setupGroup().isInitialized = true;
+		$.each(lPart.setupGroup().functions(), function(index, func){
+			func.isInitialized = true;
+		});
+		$.each(lPart.setupGroup().dataGenerators(), function(index, dataGen){
+			dataGen.isInitialized = true;
+		});
+		lPart.tearDownGroup.isInitialized = true;
+		$.each(lPart.tearDownGroup().functions(), function(index, func){
+			func.isInitialized = true;
+		});
+		$.each(lPart.tearDownGroup().dataGenerators(), function(index, dataGen){
+			dataGen.isInitialized = true;
+		});
+	});
+	$.each(model.metricCollections(), function(index, metricCollector){
+		metricCollector.isInitialized = true;
+		$.each(metricCollector.onDemandCollectors(), function(oIndex, odCol){
+			odCol.isInitialized = true;
+		});
+	});
 }
