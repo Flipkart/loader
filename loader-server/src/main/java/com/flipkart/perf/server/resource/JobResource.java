@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.server.domain.PerformanceRun;
+import com.flipkart.perf.server.exception.InvalidJobStateException;
 import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -172,7 +173,11 @@ public class JobResource {
     @DELETE
     @Timed
     public void deleteJob(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
-        jobExistsOrException(jobId).delete();
+        try {
+            jobExistsOrException(jobId).delete();
+        } catch (InvalidJobStateException e) {
+            throw new WebApplicationException(ResponseBuilder.badRequest(e.getLocalizedMessage()));
+        }
     }
 
     /**

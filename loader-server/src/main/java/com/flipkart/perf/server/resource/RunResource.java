@@ -118,10 +118,10 @@ public class RunResource {
     @Path("/{runName}")
     @DELETE
     @Timed
-    public void deleteRun(@PathParam("runName") String runName, @QueryParam("deleteJobs") @DefaultValue("false")BooleanParam deleteJobs)
+    public void deleteRun(@PathParam("runName") String runName)
             throws IOException, ExecutionException, InterruptedException, JobException {
         PerformanceRun run = PerformanceRun.runExistsOrException(runName);
-        run.delete(deleteJobs.get());
+        run.delete();
     }
 
     @Produces(MediaType.APPLICATION_JSON)
