@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/bootstrap-datetimepicker.min.js"></script>
+	<script type='text/javascript' src="js/jquery.ui.touch-punch.min.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script src="js/lib/jsBezier-0.6.js"></script>        
+	<script src="js/lib/jsplumb-geom-0.1.js"></script>
+	<script src="js/src/util.js"></script>
+	<script src="js/src/dom-adapter.js"></script>        
+	<script src="js/src/jsPlumb.js"></script>
+	<script src="js/src/endpoint.js"></script>                
+	<script src="js/src/connection.js"></script>
+	<script src="js/src/anchors.js"></script>        
+	<script src="js/src/defaults.js"></script>
+	<script src="js/src/connectors-bezier.js"></script>
+	<script src="js/src/connectors-statemachine.js"></script>
+	<script src="js/src/connectors-flowchart.js"></script>
+	<script src="js/src/renderers-svg.js"></script>
+	<script src="js/src/renderers-canvas.js"></script>
+	<script src="js/src/renderers-vml.js"></script>
+	<script src="js/src/jquery.jsPlumb.js"></script>
+	<script type="text/javascript" src="js/createSchedule.js"></script>
+	<script type="text/javascript" src="js/jeditable.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap-datetimepicker.min.css">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="css/jsPlumbBlocks.css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+		.grid {
+			height:250px;
+			background-color: white;
+			border-width: 2px;
+			border-color: black;
+		}
+		.blockAdd {
+			background-color: darkgray;
+		}
+		.blockAddInner {
+			margin-left:50px;
+			margin-top:8px;
+		}
+		.grid-info {
+			border-width: 1px;
+			border-color: black;
+		}
+	</style>
+</head>
+<body>
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+		  $('.dropdown-toggle').dropdown();
+		  window.count=1;
+	    });
+	</script>
+<!--breadcrumbs make it dynamic-->
+	<ul class="breadcrumb">
+  		<li><a href="index.htm">Home</a> <span class="divider">/</span></li>
+  		<li><a href="searchrun.html">Runs</a> <span class="divider">/</span></li>
+	</ul>
+<!--breadcrumbs end-->
+	<div id="alertBox">
+		<div id="alertMsg" class="alert" style="display: none">
+		</div>
+	</div>
+	<div class="row-fluid blockAdd">
+		<div class="row-fluid blockAddInner">
+			<div class="span4">
+				<label class="span4">Business Unit</label>
+				<select id="businessUnit" class="span7" data-bind="options: bus, value: selectedBu">
+				</select>
+			</div>
+			<div class="span3">
+				<label class="span4">Team</label>
+				<select id="team" class="span7" data-bind="options: teams, value: selectedTeam">
+				</select>
+			</div>
+			<div class="span3">
+				<label class="span4">Run Name</label>
+				<select id="runName" class="span7" data-bind="options: runs">
+				</select>
+			</div>
+  			<div class="span2 btn-group">
+                <button id="addBlock" class="btn" onClick="addBlock()">Add</button>
+  			</div>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span12 well grid" id="grid">
+			<div id="render"></div>
+			<div class="w" id="startBlock">Start<div class="ep"></div></div>
+		</div>
+	</div>
+	<div class="row-fluid grid-info">
+		<div class="well" id="schedulerInfo">
+			<form>
+				<legend>Scheduler Info</legend>
+			</form>
+			<div class="row-fluid" id="schedule">
+				<div class="span6">
+					<label class="span4">Workflow Name</label>
+					<input type="text" id="workflowName" class="input-large" data-bind="value:workflowName" disabled="disabled">
+				</div>
+			</div> 	
+			<div class="row-fluid">
+				<div class="span6">
+					<label class="span4">Scheduler Type</label>
+					<select id="schedulerType" data-bind="value: schedulerType, event : {change: onChangeSchedulerType}">
+						<option value="CRON" selected="true">Cron Scheduler</option>
+						<option value="SIMPLE">Simple Scheduler</option>
+					</select>
+				</div>
+				<div class="span6" id="cronExpDiv">
+					<label class="span4">Cron Expression</label>
+					<input type="text" id="cronExp" class="input-large" data-bind="value: cronExpression, disable: disableCronExp">
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span6">
+					<div class="row-fluid">
+						<div class="span4 btn-group" data-toggle="buttons-radio">
+							<button data-toggle="button" class="btn" data-bind="css: startNowClass" onClick="hideStartTimeDateTimePicker()">Start Now</button>
+							<button data-toggle="button" class="btn" data-bind="css: startAtClass" onClick="showStartTimeDateTimePicker()">Start At</button>
+						</div>
+						<div id="datetimepicker1" class="input-append date">
+							<input data-format="dd/MM/yyyy hh:mm:ss" class="input-large" type="text" id="startTime" placeholder="pick a start time" data-bind="value: startAt, disable: startNow">
+							<span class="add-on">
+								<i data-time-icon="icon-time" data-date-icon="icon-calendar" data-bind="disable: startNow">
+	      						</i>
+	    					</span>
+	  					</div>
+					</div>
+				</div>
+				<div class="span6">
+					<div class="row-fluid">
+						<div class="span4 btn-group" data-toggle="buttons-radio">
+							<button data-toggle="button" class="btn" data-bind="css: runForEverClass" onClick="hideEndTimeDateTimePicker()">Run Forever</button>
+							<button data-toggle="button" class="btn active" data-bind="css: endAtClass" onClick="showEndTimeDateTimePicker()">End At</button>
+						</div>
+						<div id="datetimepicker2" class="input-append date">
+							<input data-format="dd/MM/yyyy hh:mm:ss" class="input-large" type="text" id="endTime" placeholder="pick an end time" data-bind="value:endAt,disable: runForEver">
+							<span class="add-on">
+								<i data-time-icon="icon-time" data-date-icon="icon-calendar" data-bind="disable: runForEver">
+	      						</i>
+	    					</span>
+	  					</div>
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span6">
+					<label class="span4">Interval</label>
+					<input class="input-large" type="text" id="interval" data-bind="value: interval" placeholder="Interval between jobs in ms.">
+				</div>
+				<div class="span6">
+					<label class="span4">Repeats</label>
+					<input class="input-large" type="text" id="repeats" data-bind="value: repeats, disable: runForEver" placeholder="Repeats">
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="btn-group">
+					<button id="create" class="btn" onClick="updateScheduledWorkflow()">Update</button>
+					<button id="create" class="btn" onClick="executeWorkflow()">Execute</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+	$(function(){
+		var dispModel = new schedulerInfoModel();
+		window.scheduler = {};
+		ko.applyBindings(dispModel, $("#schedulerInfo")[0]);
+		ko.applyBindings(new runModel(), $(".blockAdd")[0]);
+		createWorkflowDiagram(dispModel.workflowDetails()["workflow"]);
+		$('#datetimepicker1').datetimepicker({
+     		language: 'en-US'
+   	 	});
+   	 	$('#datetimepicker2').datetimepicker({
+      		language: 'en-US'
+    	});
+
+    	$(".grid").click(function(e){
+    		console.log(e,$(this));
+    		if($(window.scheduler["selectedBlock"])!=undefined){ 
+    			$(window.scheduler["selectedBlock"]).css('background-color','white');
+    		}
+    		window.scheduler["selectedBlock"]=undefined;
+    	});
+
+	});
+	function showStartTimeDateTimePicker(){
+		$("#startTime").removeAttr("disabled");
+		$("#startTime").fadeTo(0, 1);
+		window.startNow = false;
+	}
+	function hideStartTimeDateTimePicker(){
+		$("#startTime").attr("disabled", "disabled");
+		$("#startTime").fadeTo(0, 0.7);
+		window.startNow = true;
+	}
+	function showEndTimeDateTimePicker(){
+		$("#endTime").removeAttr("disabled");
+		$("#endTime").fadeTo(0, 1);
+		window.runForever = false;
+	}
+	function hideEndTimeDateTimePicker(){
+		$("#endTime").attr("disabled", "disabled");
+		$("#endTime").fadeTo(0, 0.7);
+		window.runForever = true;
+	}
+	</script>
+</body>
+</html>

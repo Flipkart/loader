@@ -233,4 +233,28 @@ public class FileHelper {
     public static void close(BufferedReader br) throws IOException {
         br.close();
     }
+
+    public static void deleteRecursively(File file){
+        if(!file.exists()) throw new RuntimeException("Can't delete, " + file.getAbsolutePath() + " doesn't exists!");
+        delete(file);
+    }
+
+    private static void delete(File file){
+        if(file.isDirectory()){
+            if(file.list().length==0){
+                file.delete();
+            }else{
+                String files[] = file.list();
+                for (String temp : files) {
+                    File fileDelete = new File(file, temp);
+                    delete(fileDelete);
+                }
+                if(file.list().length==0){
+                    file.delete();
+                }
+            }
+        }else{
+            file.delete();
+        }
+    }
 }

@@ -15,7 +15,7 @@ resourceStorageFSConfig:
 
 jobProcessorConfig:
   maxJobs: 1
-  jobCLIFormat: "java -Xms500m -Xmx{MAX_HEAP_MB}m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port={jmxPort} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -cp {classpath} com.flipkart.perf.main.Main -f {jobJson} -j {jobId} -s /var/log/loader-agent/jobs/ > /var/log/loader-agent/jobs/{jobId}/log"
+  jobCLIFormat: "java -Xms500m -Xmx{MAX_HEAP_MB}m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port={jmxPort} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -cp {classpath} com.flipkart.perf.main.Main -f {jobJson} -j {jobId} -p {httpPort} -s /var/log/loader-agent/jobs/ > /var/log/loader-agent/jobs/{jobId}/log"
   pendingJobCheckInterval: 5000
   healthCheckInterval: 10000
   memoryUsageThreshold: 80
@@ -35,6 +35,11 @@ jobStatSyncConfig:
   #Keep Lines Read keeping "15000 Lines per second to push to server" in mind
   # So if sync interval is 15000, linesToSyncInOneGo should be 15000 * 10  = 150000
 
+jMetricConfig:
+  archivalEngineClass: "nitinka.jmetrics.archive.RRD4JArchivingEngine"
+  configParams:
+    basePath: "/var/log/loader-agent/systemStats"
+
 http:
   port: 8888
   adminPort: 8881
@@ -52,3 +57,4 @@ logging:
 
       # Do not display log statements below this threshold to stdout.
     threshold: ALL
+

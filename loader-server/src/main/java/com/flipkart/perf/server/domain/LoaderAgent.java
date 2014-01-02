@@ -3,12 +3,11 @@ package com.flipkart.perf.server.domain;
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.server.config.LoaderServerConfiguration;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
+import nitinka.jmetrics.JMetric;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -27,14 +26,18 @@ public class LoaderAgent {
     private Map<String,Object> attributes;
     private LoaderAgentStatus status;
     private List<String> runningJobs;
+    private Set<String> tags;
 
-    public LoaderAgent() {}
+    public LoaderAgent() {
+        tags = new LinkedHashSet<String>();
+    }
 
     public LoaderAgent(String ip, Map<String,Object> agentAttributes) {
         this.ip = ip;
         this.attributes = agentAttributes;
         this.status = LoaderAgentStatus.FREE;
         this.runningJobs = new ArrayList<String>();
+        tags = new LinkedHashSet<String>();
     }
 
     public String getIp() {
@@ -80,38 +83,51 @@ public class LoaderAgent {
         return this;
     }
 
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public LoaderAgent setTags(Set<String> tags) {
+        this.tags = tags;
+        return this;
+    }
+
     public LoaderAgent setFree() throws IOException {
         this.status = LoaderAgentStatus.FREE;
+        JMetric.offerMetric("agents.free", 1);
         persist();
         return this;
     }
 
     public LoaderAgent setBusy() throws IOException {
         this.status = LoaderAgentStatus.BUSY;
+        JMetric.offerMetric("agents.busy", 1);
         persist();
         return this;
     }
 
     public LoaderAgent setEnabled() throws IOException {
-        this.status = LoaderAgentStatus.FREE;
-        persist();
+        this.setFree();
         return this;
     }
 
     public LoaderAgent setDisabled() throws IOException {
         this.status = LoaderAgentStatus.DISABLED;
+        JMetric.offerMetric("agents.disabled", 1);
         persist();
         return this;
     }
 
     public LoaderAgent setNotReachable() throws IOException {
         this.status = LoaderAgentStatus.NOT_REACHABLE;
+        JMetric.offerMetric("agents.notReachable", 1);
         persist();
         return this;
     }
 
     public LoaderAgent setDRegistered() throws IOException {
         this.status = LoaderAgentStatus.D_REGISTERED;
+        JMetric.offerMetric("agents.dRegistered", 1);
         persist();
         return this;
     }

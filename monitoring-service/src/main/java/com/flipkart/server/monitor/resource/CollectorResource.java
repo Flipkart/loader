@@ -17,7 +17,6 @@ import java.util.*;
  */
 @Path("/resources")
 public class CollectorResource {
-    private static Logger log = LoggerFactory.getLogger(CollectorResource.class);
     private static List<String> ignoreSubResourceList = Arrays.asList(new String[]{"cpu.cpu"});
 
     /**
@@ -46,6 +45,21 @@ public class CollectorResource {
             resourceCollectionInstances.put(resource, ResourceCache.getStats(resource, count.get()));
         }
         return resourceCollectionInstances;
+    }
+
+    /**
+     * Mostly used to delete resources that were created as on demand resources
+     * Resources can be comma separated resources
+     */
+    @Path("/{resources}")
+    @DELETE
+    @Timed
+    @Produces(MediaType.APPLICATION_JSON)
+    synchronized public void deleteResource(@PathParam("resources") String resourcesStr) throws IOException, InterruptedException {
+        String[] resources = resourcesStr.split(",");
+        for(String resource : resources) {
+            ResourceCache.removeResource(resource);
+        }
     }
 
     @POST

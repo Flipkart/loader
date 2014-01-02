@@ -32,9 +32,11 @@ public class JobRunnerThread extends Thread{
         this.running = true;
         try {
             this.agentJob.setJmxPort(SocketHelper.getFreePort(10000, 10010));
+            this.agentJob.setHttpPort(SocketHelper.getFreePort(this.agentJob.getJmxPort()+1, 10010));
             agentJob.setJobCmd(
                     agentJob.getJobCmd().
                             replace("{jmxPort}", String.valueOf(agentJob.getJmxPort())).
+                            replace("{httpPort}", String.valueOf(agentJob.getHttpPort())).
                             replace("{jobId}", agentJob.getJobId()));
 
             FileHelper.createFilePath(jobFSConfig.getJobLogFile(agentJob.getJobId()));
@@ -54,8 +56,7 @@ public class JobRunnerThread extends Thread{
                 this.agentJob.errored();
 
         } catch (Exception e) {
-            logger.error("" +
-                    "",e);
+            logger.error("Error While Running/Monitoring the job",e);
         } finally {
             logger.info("Job :"+ agentJob.getJobId() +" Ended");
             this.running = false;

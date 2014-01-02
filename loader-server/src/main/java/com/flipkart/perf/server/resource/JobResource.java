@@ -15,20 +15,12 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.flipkart.perf.common.util.FileHelper;
+import com.flipkart.perf.server.domain.PerformanceRun;
 import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -97,7 +89,7 @@ public class JobResource {
         }
         objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(jobFSConfig.getRunningJobsFile()), runningJobs);
     }
-                                             //To change body of created methods use File | Settings | File Templates.
+    //To change body of created methods use File | Settings | File Templates.
     /**
      Following call simulates html form post call, where somebody uploads a file to server
      curl -X POST -d @file-containing-runName http://localhost:9999/loader-server/jobs --header "Content-Type:application/json"
@@ -113,7 +105,8 @@ public class JobResource {
     @POST
     @Timed
     public Job submitJob(JobRequest jobRequest) throws IOException {
-        return raiseJobRequest(jobRequest);
+        runExistsOrException(jobRequest.getRunName()); 
+   			return raiseJobRequest(jobRequest);
     }
 
     /**
@@ -154,6 +147,35 @@ public class JobResource {
     }
 
     /**
+     * Get Performance Run Schema used for the job
+     * @param jobId
+     * @return
+     * @throws IOException
+     * @throws ExecutionException
+     */
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{jobId}/run")
+    @GET
+    @Timed
+    public PerformanceRun getPerformanceRun(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
+        return jobExistsOrException(jobId).performanceRun();
+    }
+
+    /**
+     * Delte Job Details
+     * @param jobId
+     * @return
+     * @throws IOException
+     */
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{jobId}")
+    @DELETE
+    @Timed
+    public void deleteJob(@PathParam("jobId") String jobId) throws IOException, ExecutionException {
+        jobExistsOrException(jobId).delete();
+    }
+
+    /**
      * Search Job based on runName, jobId and job status
      * By default it would search all running jobs only (And its little slow)
      * @param searchRunName
@@ -165,8 +187,8 @@ public class JobResource {
     @GET
     @Timed
     public List<Job> getJobs(@QueryParam("runName") @DefaultValue("") String searchRunName,
-                                        @QueryParam("jobId") @DefaultValue("") String searchJobId,
-                                        @QueryParam("jobStatus") @DefaultValue("RUNNING,QUEUED")String searchJobStatus) throws IOException, ExecutionException {
+                             @QueryParam("jobId") @DefaultValue("") String searchJobId,
+                             @QueryParam("jobStatus") @DefaultValue("RUNNING,QUEUED")String searchJobStatus) throws IOException, ExecutionException {
         return Job.searchJobs(searchJobId, searchRunName, Arrays.asList(searchJobStatus.split(",")));
     }
 
@@ -182,8 +204,8 @@ public class JobResource {
     @PUT
     @Timed
     synchronized public void jobHealthStats(@Context HttpServletRequest request,
-                                      @PathParam("jobId") String jobId,
-                                      String jobHealthStatus)
+                                            @PathParam("jobId") String jobId,
+                                            String jobHealthStatus)
             throws IOException, InterruptedException, ExecutionException {
         Job job = jobExistsOrException(jobId);
         job.getAgentsJobStatus().
@@ -253,18 +275,19 @@ public class JobResource {
      * @param jobId
      * @return
      */
-    @Path("/{jobId}/jobStats/groups/{groupName}/{metricType}/{metricName}/agents/{agent}")
+    @Path("/{jobId}/jobStats/groups/{groupName}/functions/{functionName}/{metricType}/{metricName}/agents/{agent}")
     @GET
     @Timed
     @Produces(MediaType.TEXT_PLAIN)
     public InputStream getJobMetricStats(@PathParam("jobId") String jobId,
-                                                    @PathParam("groupName") String groupName,
-                                                    @PathParam("metricType") String metricType,
-                                                    @PathParam("metricName") String metricName,
-                                                    @PathParam("agent") String agent,
-                                                    @QueryParam("last") @DefaultValue("false") BooleanParam last) throws IOException, ExecutionException {
+                                         @PathParam("groupName") String groupName,
+                                         @PathParam("functionName") String functionName,
+                                         @PathParam("metricType") String metricType,
+                                         @PathParam("metricName") String metricName,
+                                         @PathParam("agent") String agent,
+                                         @QueryParam("last") @DefaultValue("false") BooleanParam last) throws IOException, ExecutionException {
         jobExistsOrException(jobId);
-        return jobStatsHelper.getJobMetricStats(jobId, groupName, metricType, metricName, agent, last.get());
+        return jobStatsHelper.getJobMetricStats(jobId, groupName, functionName, metricType, metricName, agent, last.get());
     }
 
     /**
@@ -280,10 +303,16 @@ public class JobResource {
     @POST
     @Timed
     public void jobMonitoringStats(@Context HttpServletRequest request,
-                                      @PathParam("jobId") String jobId,
-                                      Map<String, List<ResourceCollectionInstance>> resourcesCollectionInstances)
+                                   @PathParam("jobId") String jobId,
+                                   Map<String, List<ResourceCollectionInstance>> resourcesCollectionInstances)
             throws IOException, InterruptedException, ExecutionException {
-        jobExistsOrException(jobId);
+        Job job = jobExistsOrException(jobId);
+
+        if(job.isCompleted()) {
+            logger.warn("Job "+jobId+" is already completed. Monitoring stats will not be persisted. Issuing request to monitoring service to stop sending");
+            job.stopMonitoring();
+            throw new WebApplicationException(ResponseBuilder.badRequest("Job "+jobId+" is already completed"));
+        }
 
         Map<String,ResourceCollectionInstance> resourcesLastInstance = jobLastResourceMetricInstanceMap.get(jobId);
 
@@ -348,7 +377,7 @@ public class JobResource {
     public InputStream getJobMonitoringResourceStats(@PathParam("jobId") String jobId,
                                                      @PathParam("agent") String agent,
                                                      @PathParam("resourceName") String resourceName,
-                                                    @QueryParam("last") @DefaultValue("false") BooleanParam last) throws IOException, ExecutionException {
+                                                     @QueryParam("last") @DefaultValue("false") BooleanParam last) throws IOException, ExecutionException {
         jobExistsOrException(jobId);
         return jobStatsHelper.getJobMonitoringResourceStats(jobId, agent, resourceName, last.get());
     }
@@ -402,7 +431,7 @@ public class JobResource {
         else if(jobStatus.equals("KILLED"))
             job.jobKilledInAgent(request.getRemoteAddr());
         else if(jobStatus.equals("ERROR"))
-                    job.jobErrorInAgent(request.getRemoteAddr());
+            job.jobErrorInAgent(request.getRemoteAddr());
 
     }
 
@@ -454,7 +483,6 @@ public class JobResource {
     }
 
     private Job raiseJobRequest(JobRequest jobRequest) throws IOException {
-        runExistsOrException(jobRequest.getRunName());
         Job job = new Job().
                 setJobId(UUID.randomUUID().toString()).
                 setRunName(jobRequest.getRunName());

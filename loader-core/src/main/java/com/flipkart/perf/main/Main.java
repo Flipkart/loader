@@ -1,9 +1,15 @@
 package com.flipkart.perf.main;
 
+import ch.qos.logback.classic.Level;
+import com.flipkart.perf.controller.JobController;
 import com.flipkart.perf.domain.Load;
 import com.flipkart.perf.common.jackson.ObjectMapperUtil;
+import com.strategicgains.restexpress.Format;
+import com.strategicgains.restexpress.RestExpress;
+import com.strategicgains.restexpress.response.ResponseProcessor;
 import org.apache.commons.cli.*;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +35,7 @@ public class Main {
 
         options.addOption(new Option("j", "jobId", true, "Unique Job Id. By default it would be Random UUID"));
         options.addOption(new Option("s", "statsFolder", true, "Path where stats will be stored. Default is /var/log/loader/"));
+        options.addOption(new Option("p", "httpPort", true, "Http Port to control the job"));
     }
 
     /**
@@ -41,19 +48,17 @@ public class Main {
 
         try {
             CommandLine line = parser.parse(options, args);
-            if(line.hasOption('h')) {
-                help();
-                return;
-            }
-
             System.setProperty("BASE_PATH", statsFolder(line));
             buildLoader(jobJsonFile(line)).
-                    start(jobId(line));
+                    start(jobId(line), httpPort(line));
         }
         catch (Exception e) {
             logger.error("Error while building loader instance",e);
-            help();
         }
+    }
+
+    private static int httpPort(CommandLine line) {
+        return Integer.parseInt(line.getOptionValue("p"));
     }
 
     private static Load buildLoader(String jobJsonFile) throws IOException {
@@ -65,19 +70,13 @@ public class Main {
     }
 
     private static String statsFolder(CommandLine line) {
-        return line.getOptionValue('s',"./");
+        return line.getOptionValue('s',"/tmp/");
     }
 
     private static String jobJsonFile(CommandLine line) {
         if(!line.hasOption('f')) {
-            help();
             System.exit(1);
         }
         return line.getOptionValue('f');
-    }
-
-    private static void help() {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("Main", options );
     }
 }

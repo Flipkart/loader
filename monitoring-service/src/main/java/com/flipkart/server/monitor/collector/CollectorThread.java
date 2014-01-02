@@ -77,13 +77,13 @@ public class CollectorThread extends Thread{
     public void startCollector(BaseCollector collector) {
         synchronized (this.collectors){
             this.collectors.put(collector.getName(), collector);
-        };
+        }
     }
 
     public void stopCollector(BaseCollector collector) {
         synchronized (this.collectors){
             this.collectors.remove(collector.getName());
             ResourceCache.removeResource(collector.getName());
-        };
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.flipkart.perf.agent.resource;
 
+import com.flipkart.perf.agent.util.AgentJobHelper;
 import com.flipkart.perf.common.jackson.ObjectMapperUtil;
 import com.flipkart.perf.common.util.FileHelper;
 import com.sun.jersey.multipart.FormDataParam;
@@ -68,7 +69,7 @@ public class JobResource {
     @GET
     @Timed
     public AgentJob getJob(@PathParam("jobId") String jobId) throws IOException, InterruptedException {
-        return jobExistsOrException(jobId);
+        return AgentJobHelper.jobExistsOrException(jobId);
     }
 
     @GET
@@ -84,7 +85,7 @@ public class JobResource {
     @PUT
     @Timed
     public AgentJob kill(@PathParam("jobId") String jobId) throws IOException, InterruptedException, ExecutionException {
-        AgentJob agentJob = jobExistsOrException(jobId);
+        AgentJob agentJob = AgentJobHelper.jobExistsOrException(jobId);
         return agentJob.kill();
     }
 
@@ -96,7 +97,7 @@ public class JobResource {
                       @QueryParam("lines") @DefaultValue("100") IntParam lines,
                       @QueryParam("grep") @DefaultValue("") String grepExp)
             throws IOException, InterruptedException {
-        jobExistsOrException(jobId);
+        AgentJobHelper.jobExistsOrException(jobId);
         String jobLogFile = jobFSconfig.getJobLogFile(jobId);
         if(new File(jobLogFile).exists()) {
 
@@ -130,13 +131,5 @@ public class JobResource {
             }
         }
         return new ByteArrayInputStream("".getBytes());
-    }
-
-    private AgentJob jobExistsOrException(String jobId) throws IOException {
-        File jobFile = new File(jobFSconfig.getJobFile(jobId));
-        if(!jobFile.exists())
-            throw new WebApplicationException(ResponseBuilder.jobNotFound(jobId));
-        return ObjectMapperUtil.instance().readValue(jobFile, AgentJob.class);
-
     }
 }

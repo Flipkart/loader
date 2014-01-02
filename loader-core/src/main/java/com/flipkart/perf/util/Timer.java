@@ -1,7 +1,7 @@
-package com.flipkart.perf.common.util;
+package com.flipkart.perf.util;
+import com.flipkart.perf.common.util.TimeInstance;
 
 import java.util.*;
-
 
 /**
  * Allow you to capture time details of various functions.
@@ -11,11 +11,13 @@ import java.util.*;
 public class Timer{
     private String timerName;
     private final String groupName;
+    private final String functionName;
     private List<TimeInstance> timeList;
 
-    public Timer(String groupName, String timerName) {
+    public Timer(String groupName, String functionName, String timerName) {
         this.timerName = timerName;
         this.groupName = groupName;
+        this.functionName = functionName;
         this.timeList = new LinkedList<TimeInstance>();
     }
 
@@ -29,6 +31,10 @@ public class Timer{
 
     public String getGroupName() {
         return groupName;
+    }
+
+    public String getFunctionName() {
+        return functionName;
     }
 
     public List getTimeList() {

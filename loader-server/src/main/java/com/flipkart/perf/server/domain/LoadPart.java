@@ -2,7 +2,9 @@ package com.flipkart.perf.server.domain;
 
 import com.flipkart.perf.domain.Load;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a Performance LoadPart in a Performance Run
@@ -13,6 +15,11 @@ public class LoadPart {
     private List<String> classes;
     private List<String> inputFileResources = new ArrayList<String>();
     private Load load;
+    private Set<String> agentTags;
+
+    public LoadPart() {
+        agentTags = new LinkedHashSet<String>();
+    }
 
     public String getName() {
         return name;
@@ -57,5 +64,13 @@ public class LoadPart {
     public LoadPart setInputFileResources(List<String> inputFileResources) {
         this.inputFileResources = inputFileResources;
         return this;
+    }
+
+    public Set<String> getAgentTags() {
+        return agentTags;
+    }
+
+    public void setAgentTags(Set<String> agentTags) {
+        this.agentTags = agentTags;
     }
 }

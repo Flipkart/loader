@@ -5,19 +5,13 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.domain.Load;
+import com.flipkart.perf.server.util.ResponseBuilder;
+import nitinka.jmetrics.JMetric;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -34,11 +28,15 @@ import com.flipkart.perf.server.util.DeploymentHelper;
 import com.flipkart.perf.server.cache.JobsCache;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
 
-public class Job {
+import javax.ws.rs.WebApplicationException;
+
+public  class Job {
 
     private static final LoaderServerConfiguration configuration = LoaderServerConfiguration.instance();
     private static final ObjectMapper objectMapper = ObjectMapperUtil.instance();
     private static Logger logger = LoggerFactory.getLogger(Job.class);
+
+   // public abstract void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException;
 
     public static enum JOB_STATUS {
         QUEUED, RUNNING, PAUSED, COMPLETED, KILLED, FAILED_TO_START, ERROR;
@@ -52,6 +50,18 @@ public class Job {
     private Map<String,AgentJobStatus> agentsJobStatus = new HashMap<String, AgentJobStatus>();
     private Set<String> monitoringAgents;
     private String remarks = "";
+    private String logLevel = "INFO";
+
+    public static Job raiseJobRequest(JobRequest jobRequest) throws IOException {
+        //runExistsOrException(jobRequest.getRunName());
+        Job job = new Job().
+                setJobId(UUID.randomUUID().toString()).
+                setRunName(jobRequest.getRunName());
+
+        job.persistRunInfo();
+        JobDispatcherThread.instance().addJobRequest(job);
+        return job;
+    }
 
     public static class AgentJobStatus {
         private String agentIp;
@@ -166,8 +176,8 @@ public class Job {
         return agentsJobStatus;
     }
 
-    public Job setAgentsJobStatus(Map<String, AgentJobStatus> agentsJobStatus) {	
-    		this.agentsJobStatus = agentsJobStatus;
+    public Job setAgentsJobStatus(Map<String, AgentJobStatus> agentsJobStatus) {
+        this.agentsJobStatus = agentsJobStatus;
         return this;
     }
 
@@ -232,6 +242,7 @@ public class Job {
      */
     public void queued() throws IOException {
         this.jobStatus = JOB_STATUS.QUEUED;
+        JMetric.offerMetric("server.jobs.queued", 1);
 
         // Adding to Queued Jobs File
         List<String> queuedJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getQueuedJobsFile()), List.class);
@@ -249,6 +260,7 @@ public class Job {
      */
     public void started() throws IOException {
         this.jobStatus = JOB_STATUS.RUNNING;
+        JMetric.offerMetric("server.jobs.running",1);
 
         // Add to Running Jobs file
         List<String> runningJobs = objectMapper.readValue(new File(configuration.getJobFSConfig().getRunningJobsFile()), List.class);
@@ -270,10 +282,12 @@ public class Job {
      */
     private void ended() throws IOException, ExecutionException, InterruptedException {
         this.endTime = new Date();
+        JMetric.offerMetric("server.jobs.ended",1);
         this.stopMonitoring();
         CounterCompoundThread.instance().removeJob(jobId);
-        CounterThroughputThread.instance().removeJob(jobId);
+//        CounterThroughputThread.instance().removeJob(jobId);
         TimerComputationThread.instance().removeJob(jobId);
+        HistogramComputationThread.instance().removeJob(jobId);
         GroupConfConsolidationThread.instance().removeJob(jobId);
 
         // Remove from Running Jobs File
@@ -286,6 +300,7 @@ public class Job {
 
     public void killed() throws InterruptedException, ExecutionException, IOException {
         this.jobStatus = JOB_STATUS.KILLED;
+        JMetric.offerMetric("server.jobs.killed",1);
         ended();
     }
 
@@ -297,6 +312,7 @@ public class Job {
      */
     public void failedToStart(String reason) throws IOException {
         this.jobStatus = JOB_STATUS.FAILED_TO_START;
+        JMetric.offerMetric("server.jobs.failedToStart",1);
         this.failedToStartReason = reason;
         this.endTime = new Date();
         this.persist();
@@ -310,7 +326,7 @@ public class Job {
 
         try {
             String runFile = configuration.getJobFSConfig().getRunFile(this.runName);
-            PerformanceRun performanceRun = objectMapper.readValue(new File(runFile) , PerformanceRun.class);
+            PerformanceRun performanceRun = this.performanceRun();
 
             // Raising request to monitoring agents to start collecting metrics from on demand resource collectors
             raiseOnDemandResourceRequest(performanceRun.getOnDemandMetricCollections());
@@ -328,8 +344,9 @@ public class Job {
             submitJobToAgents(performanceRun.getLoadParts(), agentsToUse);
 
             CounterCompoundThread.instance().addJob(jobId);
-            CounterThroughputThread.instance().addJob(jobId);
+//            CounterThroughputThread.instance().addJob(jobId);
             TimerComputationThread.instance().addJob(jobId);
+            HistogramComputationThread.instance().addJob(jobId);
             GroupConfConsolidationThread.instance().addJob(jobId);
 
             persist();
@@ -502,10 +519,10 @@ public class Job {
                     logger.info("Killing Job '"+jobId+"' in agent '"+agent+"'");
                     try {
                         new LoaderAgentClient(agent, configuration.getAgentConfig().getAgentPort()).killJob(this.jobId);
-                    } catch (Exception e) {
-                        logger.error("", e);
-                    } finally {
                         this.jobKilledInAgent(agent);
+                    } catch (Exception e) {
+                        logger.error("Error while killing job at agent "+agent, e);
+                        throw new WebApplicationException(ResponseBuilder.internalServerError(e));
                     }
                 }
             }
@@ -534,7 +551,9 @@ public class Job {
     @JsonIgnore
     public boolean isCompleted() {
         return this.getJobStatus().equals(Job.JOB_STATUS.COMPLETED) ||
-                        this.getJobStatus().equals(Job.JOB_STATUS.KILLED);
+                this.getJobStatus().equals(Job.JOB_STATUS.KILLED) ||
+                this.getJobStatus().equals(JOB_STATUS.ERROR)||
+                this.getJobStatus().equals(JOB_STATUS.FAILED_TO_START);
     }
 
     /**
@@ -552,21 +571,32 @@ public class Job {
         String runFile = configuration.getJobFSConfig().getRunFile(this.runName);
         PerformanceRun performanceRun = objectMapper.readValue(new File(runFile) , PerformanceRun.class);
 
-        String runName = performanceRun.getRunName();
-
         // Add file containing run name in job folder
-        String jobRunNameFile = configuration.getJobFSConfig().getJobRunNameFile(jobId);
+        String jobRunNameFile = configuration.getJobFSConfig().getJobRunFile(jobId);
         FileHelper.createFilePath(jobRunNameFile);
-        FileHelper.persistStream(new ByteArrayInputStream(runName.getBytes()),
-                jobRunNameFile,
-                false);
+        objectMapper.defaultPrettyPrintingWriter().writeValue(new File(jobRunNameFile), performanceRun);
 
         // Adding job ids in run folder file
+        String runName = performanceRun.getRunName();
         String runJobsFile = configuration.getJobFSConfig().getRunJobsFile(runName);
         FileHelper.createFilePath(runJobsFile);
         FileHelper.persistStream(new ByteArrayInputStream((jobId + "\n").getBytes()),
                 runJobsFile,
                 true);
+    }
+
+    @JsonIgnore
+    public PerformanceRun performanceRun() {
+        try {
+            if(new File(configuration.getJobFSConfig().getJobRunFile(jobId)).exists()) {
+                return ObjectMapperUtil.instance().
+                        readValue(new File(configuration.getJobFSConfig().getJobRunFile(jobId)), PerformanceRun.class);
+            }
+            return PerformanceRun.runExistsOrException(this.runName);
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        return null;
     }
 
     /**
@@ -622,10 +652,10 @@ public class Job {
 
     public List<AgentJobStatus> aliveAgents() {
         List<AgentJobStatus> aliveAgents = new ArrayList<AgentJobStatus>();
-            for(AgentJobStatus agent : this.agentsJobStatus.values()) {
-                if(agent.getJob_status() == JOB_STATUS.RUNNING)
-                    aliveAgents.add(agent);
-            }
+        for(AgentJobStatus agent : this.agentsJobStatus.values()) {
+            if(agent.getJob_status() == JOB_STATUS.RUNNING)
+                aliveAgents.add(agent);
+        }
         return aliveAgents;
     }
 
@@ -654,5 +684,23 @@ public class Job {
 
     public void setFailedToStartReason(String failedToStartReason) {
         this.failedToStartReason = failedToStartReason;
+    }
+
+    public String getLogLevel() {
+        return logLevel;
+    }
+
+    public void setLogLevel(String logLevel) {
+        this.logLevel = logLevel;
+    }
+
+    public void delete() {
+        if(this.isCompleted()) {
+            FileHelper.remove(configuration.getJobFSConfig().getJobPath(this.jobId));
+            JobsCache.removeJob(this.jobId);
+        }
+        else {
+            throw new WebApplicationException(ResponseBuilder.badRequest("Job id "+this.jobId+" not completed yet"));
+        }
     }
 }

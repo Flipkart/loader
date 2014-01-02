@@ -27,6 +27,15 @@ public class ClassHelper {
         return  obj;
     }
 
+    public static <T> T getClassInstance(String className,Class[] paramTypes, Object[] params, Class<T> c) throws ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        Object  obj =   null;
+        Class actionClassObj;
+        actionClassObj      =   Class.forName(className);
+        Constructor cons    =   actionClassObj.getConstructor(paramTypes);
+        obj                 =   cons.newInstance(params);
+        return (T) obj;
+    }
+
     public static Object getClassInstance(String className,Class[] paramTypes, Object[] params, ClassLoader customClassLoader) throws ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
         Object  obj =   null;
         Class actionClassObj;
@@ -40,14 +49,14 @@ public class ClassHelper {
         Method method   =   null;
         Class actionClassObj;
         actionClassObj      =   Class.forName(className);
-        method              =   actionClassObj.getDeclaredMethod(functionName, paramTypes);
+        method              =   actionClassObj.getMethod(functionName, paramTypes);
         return method;
     }
 
     public static Method getMethod(String className, String functionName, Class[] paramTypes, ClassLoader customClassLoader) throws ClassNotFoundException, SecurityException, NoSuchMethodException {
         Method method   =   null;
         Class actionClassObj;
-        actionClassObj      = Class.forName(className, false, customClassLoader);
+        actionClassObj      =   Class.forName(className, false, customClassLoader);
         method              =   actionClassObj.getMethod(functionName, paramTypes);
         return method;
     }

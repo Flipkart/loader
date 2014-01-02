@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response;
 import com.flipkart.perf.common.util.ClassHelper;
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.function.FunctionParameter;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.reflections.Reflections;
 import org.reflections.Store;
@@ -29,6 +30,8 @@ import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import com.yammer.metrics.annotation.Timed;
 import com.flipkart.perf.server.util.ResponseBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -39,6 +42,7 @@ public class DeployResourcesResource {
     private ResourceStorageFSConfig resourceStorageFSConfig;
     private LibCache libCache;
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
+    private static Logger logger = LoggerFactory.getLogger(DeployResourcesResource.class);
 
     public DeployResourcesResource(ResourceStorageFSConfig resourceStorageFSConfig) throws MalformedURLException {
         this.resourceStorageFSConfig = resourceStorageFSConfig;
@@ -52,18 +56,8 @@ public class DeployResourcesResource {
             try {
                 deployUDF(new FileInputStream(unDeployedUDFLib), unDeployedUDFLib.getName());
                 unDeployedUDFLib.delete();
-            } catch (IOException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (InstantiationException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (Exception e) {
+                logger.error("Exception in deploying undeployed UDFs", e);
             }
         }
     }
@@ -349,10 +343,25 @@ public class DeployResourcesResource {
                     method = ClassHelper.getMethod(performanceFunction , "outputParameters", new Class[]{}, customClassLoader);
                     functionInfo.setOutputParameters((LinkedHashMap<String, FunctionParameter>) method.invoke(object, new Object[]{}));
 
-                    discoveredUserFunctions.put(performanceFunction, functionInfo);
+                    // Discover Custom timers for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "customTimers", new Class[]{}, customClassLoader);
+                    functionInfo.setCustomTimers((List<String>) method.invoke(object, new Object[]{}));
 
+                    // Discover Custom Counters for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "customCounters", new Class[]{}, customClassLoader);
+                    functionInfo.setCustomCounters((List<String>) method.invoke(object, new Object[]{}));
+
+                    // Discover Custom Histograms for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "customHistograms", new Class[]{}, customClassLoader);
+                    functionInfo.setCustomHistograms((List<String>) method.invoke(object, new Object[]{}));
+
+                    // Discover Input parameters for the UDF
+                    method = ClassHelper.getMethod(performanceFunction , "sharedData", new Class[]{}, customClassLoader);
+                    functionInfo.setSharedData((LinkedHashMap<String, SharedDataInfo>) method.invoke(object, new Object[]{}));
+
+                    discoveredUserFunctions.put(performanceFunction, functionInfo);
                 }
-           }
+            }
         }
         return discoveredUserFunctions;
     }

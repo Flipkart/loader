@@ -1,663 +1,1400 @@
-var graphReports = function(){
-	var self = this;
-	self.createGroupArray = function(){
-		var grpList = [];
-		$.each(window["groups"], function(grpIndex,group){
-			//console.log("group", group);
-			if(group["timers"]!=null && typeof(group["timers"])!= 'undefined'){
-				//console.log("group[\"timers\"]", group["timers"]);
-				var timers = [];
-				$.each(group["timers"], function(timerIndex, timer){
-					timers.push({"timerName":timer["name"], "chartName1":"chart-"+grpIndex+"-"+timerIndex + "-1",
-						"chartName2":"chart-"+grpIndex+"-"+timerIndex + "-2", "timerDivId":"timer-" + grpIndex + "-" + timerIndex, 
-						"sliderName1":"slider-" + grpIndex+"-"+timerIndex + "-1", "sliderName2":"slider-" + grpIndex+"-"+timerIndex + "-2",
-						"countId":"count-" + grpIndex+"-"+timerIndex, "skipId":"skip-" + grpIndex+"-"+timerIndex, "errorId":"error-" + grpIndex+"-"+timerIndex,
-						"failureId":"failure-" + grpIndex+"-"+timerIndex});
-				});
-				grpList.push({"groupName":group["groupName"], "timers":timers, "groupDivId":"group-" + grpIndex});
-			}
-		});
-		return grpList;
-	}
-	self.createMonAgentsArray = function(){
-		var monList = [];
-		$.each(window["monitorResources"], function(monIndex, monResource){
-			var monAgent = {};
-			monAgent["agent"]=monResource["agent"];
-			monAgent["monAgentDivId"] = "agent-" + monIndex;
-			monAgent["resources"] = [];
-			$.each(monResource["resources"], function(resIndex, resource){
-				var type = getResourceType(resource);
-				var noOfCharts = window["graphSceme"]["chartResources"][type]["charts"].length;
-				noOfCharts = noOfCharts%2==0?noOfCharts:noOfCharts+1;
-				var charts = [];
-				for(var k=0;k<noOfCharts;){
-					var sliderName1 = "slider-" + monAgent["agent"] + "-" + resource + "-" + k;
-					var chartName1 = "agent-" + monAgent["agent"] + "-" + resource + "-" + k++;
-					var sliderName2 = "slider-" + monAgent["agent"] + "-" + resource + "-" + k;
-					var chartName2 = "agent-" + monAgent["agent"] + "-" + resource + "-" + k++;
-					chartName1 = chartName1.replace(/\./g,"_");
-					chartName2 = chartName2.replace(/\./g,"_");
-					sliderName1 = sliderName1.replace(/\./g,"_");
-					sliderName2 = sliderName2.replace(/\./g,"_");
-					charts.push({"chartName1": chartName1,"chartName2": chartName2, "sliderName1":sliderName1, "sliderName2": sliderName2});
-				}
-				monAgent["resources"].push({"resourceName":resource, "charts":charts, "resourceDivId":"resource-" + monIndex + "-" + resIndex});
-			});
-			monList.push(monAgent);
-		});
-		return monList;
-	}
-	self.jobGroups = ko.observableArray(self.createGroupArray());
-	self.monAgents = ko.observableArray(self.createMonAgentsArray());
-}
-
-function getJobStats(){
-	var jobId = getQueryParams("jobId");
-	$.ajax({
-		url: "/loader-server/jobs/" + jobId + "/jobStats",
-		type: "GET",
-		contentType: "application/json",
-		async: false,
-		success: function(jobStats){
-							console.log("jobStats",jobStats);
-			window["groups"] = jobStats;
-			window["stats"] = new Array();
-			window["groupsURLS"] = [];
-			window["graphsState"] = [];
-			$.each(jobStats, function(index, group){
-				var groupUrls = {};
-				var groupGraphsState = {};
-				var timers = group["timers"];
-				if( typeof(timers) != 'undefined' && timers != null){
-					groupUrls["timerUrls"]=[];
-					groupGraphsState["timerGraphsState"]=[];
-					groupUrls["counterUrls"]=[];
-					$.each(timers, function(timerIndex, timer){
-						groupGraphsState["timerGraphsState"].push(false);
-						groupUrls["timerUrls"].push("/loader-server/jobs/" + jobId + "/jobStats/groups/" + group["groupName"] + "/timers/" + timer["name"] + "/agents/combined");
-						groupUrls["counterUrls"].push({ "count":"/loader-server/jobs/" + jobId + "/jobStats/groups/" + group["groupName"] + "/counters/" + timer["name"] + "_count/agents/combined?last=true",
-														"error":"/loader-server/jobs/" + jobId + "/jobStats/groups/" + group["groupName"] + "/counters/" + timer["name"] + "_error/agents/combined?last=true",
-														"skip":"/loader-server/jobs/" + jobId + "/jobStats/groups/" + group["groupName"] + "/counters/" + timer["name"] + "_skip/agents/combined?last=true",
-														"failure":"/loader-server/jobs/" + jobId + "/jobStats/groups/" + group["groupName"] + "/counters/" + timer["name"] + "_failure/agents/combined?last=true"});
-					});
-					window["groupsURLS"].push(groupUrls);
-					window["graphsState"].push(groupGraphsState);
-					window["stats"][index]=new Array();
-				}
-			});
-			console.log("window[\"groupsURLS\"]", window["groupsURLS"]);
-		},
-		error: function(){
-
-		},
-		complete: function(){
-
-		}
-	});
-}
-
-function getGraphPlotScheme(){
-  $.ajax({
-    url: "/loader-server/admin/config/report/job",
-    type: "GET",
-    contentType: "application/json",
-    dataType:"json",
-    async: false,
-    success: function(scheme){
-      window["graphSceme"] = scheme;
-    },
-    error: function(err){
-
-    },
-    complete: function(xhr, status){
-      console.log("Got the plotting scheme");
+ko.bindingHandlers.graphsInitialization = {
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext){
+        var value = valueAccessor();
+        var valueUnWrapperd = ko.unwrap(value);
+        if(valueUnWrapperd) {
+            viewModel.initializeGraphs($(element));
+        }
     }
-  });
 }
 
-function getQueryParams(sParam){
-	var queryString = window.location.search.substring(2);
-	var queryParams = queryString.split('&');
-	for (var i = 0; i < queryParams.length; i++){
+ko.bindingHandlers.addSlider = {
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext){
+        var value = valueAccessor();
+        var valueUnWrapperd = ko.unwrap(value);
+        if(valueUnWrapperd){
+            bindingContext.$parent.addSlider(element);
+        }
+    }
+}
+
+ko.bindingHandlers.addCounterSlider = {
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext){
+        var value = valueAccessor();
+        var valueUnWrapperd = ko.unwrap(value);
+        if(valueUnWrapperd){
+            bindingContext.$data.addSlider(element);
+        }
+    }
+}
+
+function getQueryParams(sParam) {
+    var queryString = window.location.search.substring(2);
+    var queryParams = queryString.split('&');
+    for (var i = 0; i < queryParams.length; i++) {
         var sParameterName = queryParams[i].split('=');
-		//console.log(sParameterName[0]);
-        if (sParameterName[0] == sParam){
-				//console.log('matched');
+        if (sParameterName[0] == sParam) {
             return sParameterName[1];
         }
     }
     return undefined;
 }
 
-function createGroupTree(){
-	$("#timerTree").jstree({
-		"plugins":["themes", "json_data", "checkbox", "ui", "types"],
-		"types": {
-			"types":{
-				"graphs": {
-					"icon": {
-						"image":"../img/graphs.png"
-					},
-				},
-				"group": {
-					"icon":{
-						"image":"../img/group.png"
-					}
-				},
-				"timer": {
-					"icon":{
-						"image":"../img/function.png"
-					}
-				}
-			}
-		},
-		"json_data":{
-			"data":[{
-				"attr":{"id" : "node_graphs", "rel":"graphs"},
-				"data" : "Graphs", 
-				"metadata" : { "name" : "Graphs", "nodeType" : "graphs", "id" : "node_graphs"},    
-				"children" : getGraphsChildren()
-			}],
-		"checkbox":{
-			"override_ui":true,
-		},
-		"progressive_render" : true,
-		}
-	}).bind("check_node.jstree", function(event, data){
-		updateStateOnCheck();
-		switch(data.rslt.obj.data("nodeType")){
-			case "graphs":
-				plotGraphs();
-				break;
-			case "group":
-				plotGroupGraphs(data.rslt.obj.data("groupIndex"));
-				break;
-			case "timer":
-				plotTimerGraph(data.rslt.obj.data("groupIndex"), data.rslt.obj.data("timerIndex"));
-				break;
-		}
-	}).bind("uncheck_node.jstree", function(event, data){
-		console.log("You unchecked ", event, data);
-		updateStateOnUnCheck();
-		switch(data.rslt.obj.data("nodeType")){
-			case "graphs":
-				hideGraphs();
-				break;
-			case "group":
-				hideGroupGraphs(data.rslt.obj.data("groupIndex"));
-				break;
-			case "timer":
-				hideTimerGraph(data.rslt.obj.data("groupIndex"), data.rslt.obj.data("timerIndex"));
-				break;
-		}
-	});
-	$("#timerTree").bind("loaded.jstree", function (event, data) {
+function getJobStats() {
+    var jobId = getQueryParams("jobId");
+    $.ajax({
+        url: "/loader-server/jobs/" + jobId + "/jobStats",
+        type: "GET",
+        contentType: "application/json",
+        async: false,
+        success: function(jobStats) {
+            window.viewModel = new groupsGraphViewModel(jobStats);
+            ko.applyBindings(window.viewModel, $("#groupGraphs")[0]);
+            createGroupsTree(jobStats);
+        },
+        error: function() {
+
+        },
+        complete: function() {
+        }
+    });
+}
+
+function getMonitoringStats(){
+    var jobId = getQueryParams("jobId");
+    $.ajax({
+        url: "/loader-server/jobs/" + jobId + "/monitoringStats",
+        type: "GET",
+        contentType: "application/json",
+        async: false,
+        success: function(monStats) {
+            window.monViewModel = new monitorGraphsViewModel(monStats);
+            ko.applyBindings(window.monViewModel, $("#monGraphs")[0]);
+            //createGroupsTree(jobStats);
+            createMonitoringTree(monStats);
+        },
+        error: function() {
+
+        },
+        complete: function() {
+        }
+    });
+}
+
+function createGroupsTree(jobStats) {
+    $("#timerTree").jstree({
+        "plugins": ["themes", "json_data", "checkbox", "ui", "types"],
+        "types": {
+            "types": {
+                "graphs": {
+                    "icon": {
+                        "image": "../img/graphs.png"
+                    },
+                },
+                "group": {
+                    "icon": {
+                        "image": "../img/group.png"
+                    }
+                },
+                "function": {
+                    "icon": {
+                        "image": "../img/group.png"
+                    }
+                },
+                "timers": {
+                    "icon": {
+                        "image": "../img/group.png"
+                    }
+                },
+                "counters": {
+                    "icon": {
+                        "image": "../img/group.png"
+                    }
+                },
+                "histograms": {
+                    "icon": {
+                        "image": "../img/group.png"
+                    }
+                },
+                "timer": {
+                    "icon": {
+                        "image": "../img/function.png"
+                    }
+                },
+                "counter": {
+                    "icon": {
+                        "image": "../img/group.png"
+                    }
+                },
+                "histogram": {
+                    "icon": {
+                        "image": "../img/group.png"
+                    }
+                }
+            }
+        },
+        "json_data": {
+            "data": [{
+                "attr": {
+                    "id": "node_graphs",
+                    "rel": "graphs"
+                },
+                "data": "Graphs",
+                "metadata": {
+                    "name": "Graphs",
+                    "nodeType": "graphs",
+                    "id": "node_graphs"
+                },
+                "children": getGraphsChildren(jobStats)
+            }],
+            "checkbox": {
+                "override_ui": true,
+            },
+            "progressive_render": true,
+        }
+    }).bind("check_node.jstree", function(event, data) {
+        updateStateOnCheck();
+        switch (data.rslt.obj.data("nodeType")) {
+            case "graphs":
+                window.viewModel.showGraphs();
+                break;
+            case "group":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var model = window.viewModel.groups()[groupIndex];
+                window.viewModel.isVisible(true);
+                model.showGroupGraphs();
+                break;
+            case "function":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                window.viewModel.isVisible(true);
+                window.viewModel.groups()[groupIndex].isVisible(true);
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex];
+                model.showFuncGraphs();
+                break;
+            case "timers":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                window.viewModel.isVisible(true);
+                window.viewModel.groups()[groupIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].timersVisible(true); 
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex];
+                model.showFuncTimersGraphs();
+                break;
+            case "counters":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                window.viewModel.isVisible(true);
+                window.viewModel.groups()[groupIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].countersVisible(true); 
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex];
+                model.showFuncCounterGraphs();
+                break;
+            case "histograms":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                window.viewModel.isVisible(true);
+                window.viewModel.groups()[groupIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].histogramsVisible(true); 
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex];
+                model.showFuncHistogramGraphs();
+                break;
+            case "timer":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                var timerIndex = data.rslt.obj.data("keyIndex");
+                window.viewModel.isVisible(true);
+                window.viewModel.groups()[groupIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].timersVisible(true); 
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex].timers()[timerIndex];
+                model.showTimerGraphs();
+                break;
+            case "counter":
+                break;
+            case "histogram":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                var histIndex = data.rslt.obj.data("keyIndex");
+                window.viewModel.isVisible(true);
+                window.viewModel.groups()[groupIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].isVisible(true);
+                window.viewModel.groups()[groupIndex].functions()[functionIndex].histogramsVisible(true); 
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex].histograms()[histIndex];
+                model.showHistogramGraphs();
+                break;
+        }
+    }).bind("uncheck_node.jstree", function(event, data) {
+        updateStateOnUnCheck();
+        switch (data.rslt.obj.data("nodeType")) {
+            case "graphs":
+                //window.viewModel.isVisible(false);
+                window.viewModel.hideGraphs();
+                break;
+            case "group":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var model = window.viewModel.groups()[groupIndex];
+                model.hideGroupGraphs();
+                //model.isVisible(false);
+                break;
+            case "function":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex];
+                model.hideFuncGraphs();
+                //model.isVisible(false);
+                break;
+            case "timers":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex];
+                //model.timersVisible(false);
+                model.hideFuncTimersGraphs();
+                break;
+            case "counters":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex];
+                model.hideFuncCounterGraphs();
+                //model.countersVisible(false);
+                break;
+            case "histograms":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex];
+                //model.timersVisible(false);
+                model.hideFuncHistogramGraphs();
+                break;
+            case "timer":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                var timerIndex = data.rslt.obj.data("keyIndex");
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex].timers()[timerIndex];
+                //model.isVisible(false);
+                model.hideTimerGraphs();
+                break;
+            case "counter":
+                break;
+            case "histogram":
+                var groupIndex = data.rslt.obj.data("groupIndex");
+                var functionIndex = data.rslt.obj.data("functionIndex");
+                var hisIndex = data.rslt.obj.data("keyIndex");
+                var model = window.viewModel.groups()[groupIndex].functions()[functionIndex].histograms()[hisIndex];
+                //model.isVisible(false);
+                model.hideHistogramGraphs();
+                break;
+
+        }
+    });
+    $("#timerTree").bind("loaded.jstree", function(event, data) {
         $("#timerTree").jstree("open_all");
         checkTimerNodes();
         //$.jstree._reference("#timerTree").check_node("#node_"+window["groups"][0]["groupName"]);  
     });
-    $("#timerTree").bind("refresh.jstree", function (event, data) {
+    $("#timerTree").bind("refresh.jstree", function(event, data) {
         $("#timerTree").jstree("open_all");
         checkTimerNodes();
         //$.jstree._reference('#timerTree').check_node("#node_"+window["groups"][0]["groupName"]);  
     });
 }
 
-function getGraphsChildren(){
-	if(window["groups"]==undefined || window["groups"].length==0) return undefined;
-	var children = []
-	$.each(window["groups"], function(index, group){
-		children.push({"attr":{"id":"node_" + group["groupName"],"rel":"group"}, "metadata":{ "nodeType":"group", "groupIndex":index, "id":"node_" + group["groupName"]},"data": group["groupName"], "children": getTimersChildren(group["timers"], index)});
-	});
-	return children;
-}
-
-function getTimersChildren(timers, groupIndex){
-	if(timers==null || timers.length == 0) return undefined;
-	var children = []
-	$.each(timers, function(index, timer){
-		children.push({"attr":{"id":"node_" + window["groups"][groupIndex]["groupName"]+ "_" +timer["name"], "rel":"timer"},"metadata":{"nodeType":"timer", "groupIndex":groupIndex, "timerIndex": index, "id":"node_" + window["groups"][groupIndex]["groupName"]+ "_" +timer["name"]},"data": timer["name"]});
-	})
-	return children;
-}
-
-function plotTimerGraph(groupIndex, timerIndex){
-	$("#timerGraphs").show();
-	$("#group-" + groupIndex).show();
-	if(!window["graphsState"][groupIndex][timerIndex]){
-		returnTimerGraphs(window["groupsURLS"][groupIndex]["timerUrls"][timerIndex], groupIndex, timerIndex, 0, 0);
-		window["graphsState"][groupIndex][timerIndex]=true;
-	} 
-	var divId = "#timer-"+groupIndex + "-" + timerIndex;
-	$(divId).show();
-}
-
-function plotGroupGraphs(groupIndex){
-	$("#timerGraphs").show();
-	$("#group-" + groupIndex).show();
-	$.each(window["groups"][groupIndex]["timers"], function(timerIndex, timer){
-		plotTimerGraph(groupIndex, timerIndex);
-	});
-}
-
-function plotGraphs() {
-	$("#timerGraphs").show();
-	$.each(window["groups"], function(groupIndex, group){
-		plotGroupGraphs(groupIndex);
-	})
-}
-
-function hideTimerGraph(groupIndex, timerIndex){
-	var divId = "#timer-"+groupIndex + "-" + timerIndex;
-	$(divId).hide();
-}
-
-function hideGroupGraphs(groupIndex){
-	if(window["groups"][groupIndex]["timers"]!=null){
-		$.each(window["groups"][groupIndex]["timers"], function(timerIndex, timer){
-			hideTimerGraph(groupIndex, timerIndex);
-		});
-	}
-	var divId = "#group-" + groupIndex;
-	$(divId).hide();
-}
-
-function hideGraphs(){
-	$.each(window["groups"], function(groupIndex, group){
-		hideGroupGraphs(groupIndex);
-	})
-	$("#timerGraphs").hide();
-}
-
-function createMonitoringTree(){
-	$("#monitoringTree").jstree({
-		"plugins":["themes", "json_data", "checkbox", "ui", "types"],
-		"types":{
-			"types":{
-				"monag": {
-					"icon": {
-						"image":"../img/monagents.png"
-					},
-				},
-				"agent": {
-					"icon":{
-						"image":"../img/metriccol.png"
-					}
-				},
-				"resource": {
-					"icon":{
-						"image":"../img/timer.png"
-					}
-				}
-			}
-		},
-		"json_data":{
-			"data":[{
-				"attr":{"id" : "node_graphs", "rel":"monag"},
-				"data" : "MonitoringAgents", 
-				"metadata" : { "name" : "MonitoringAgents", "nodeType" : "monag"},    
-				"children" : getMonitoringChildren()
-			}],
-		"checkbox":{
-			"override_ui":true,
-		},
-		"progressive_render" : true,
-		}
-	}).bind("check_node.jstree", function(event, data){
-		console.log("You checked ", event, data);
-		updateStateOnCheck();
-		switch(data.rslt.obj.data("nodeType")){
-			case "agent":
-				plotMonAgentGraphs(data.rslt.obj.data("agentIndex"));
-				break;
-			case "resource":
-				plotResourceGraphs(data.rslt.obj.data("agentIndex"), data.rslt.obj.data("resourceIndex"));
-				break;
-			case "monag":
-				plotMonitoringGraphs();
-
-		}
-	}).bind("uncheck_node.jstree", function(event, data){
-		console.log("You unchecked ", event, data);
-		updateStateOnUnCheck();
-		switch(data.rslt.obj.data("nodeType")){
-			case "agent":
-				hideMonAgentGraphs(data.rslt.obj.data("agentIndex"));
-				break;
-			case "resource":
-				hideResourceGraphs(data.rslt.obj.data("agentIndex"), data.rslt.obj.data("resourceIndex"));
-				break;
-			case "monag":
-				hideMonitoringGraphs();
-		}
-	});
-
-	$("#monitoringTree").bind("loaded.jstree", function (event, data) {
-        $("#monitoringTree").jstree("open_all");
-        //checkTimerNodes();
-        checkMonNodes();
+function getGraphsChildren(jobStats) {
+    if (jobStats == undefined || jobStats.length == 0) return undefined;
+    var children = []
+    $.each(jobStats, function(index, group) {
+        children.push({
+            "attr": {
+                "id": "node_" + group["groupName"],
+                "rel": "group"
+            },
+            "metadata": {
+                "nodeType": "group",
+                "groupIndex": index,
+                "id": "node_" + group["groupName"]
+            },
+            "data": group["groupName"],
+            "children": getGroupChildren(group["functions"], index)
+        });
     });
-    $("#monitoringTree").bind("refresh.jstree", function (event, data) {
-        $("#monitoringTree").jstree("open_all");
-        //checkTimerNodes();
-        checkMonNodes();
+    return children;
+}
+
+function getGroupChildren(groupStats, groupIndex) {
+    if (groupStats == undefined) return undefined;
+    var children = [];
+    var count = 0;
+    $.each(groupStats, function(key, val) {
+        children.push({
+            "attr": {
+                "id": "node_" + val["functionName"]+ "_" + groupIndex,
+                "rel": "function"
+            },
+            "metadata": {
+                "nodeType": "function",
+                "groupIndex": groupIndex,
+                "functionIndex": count,
+            },
+            "data": val["functionName"],
+            "children": getFunctionChildren(val["metrics"], groupIndex, count)
+        });
+        count=count+1;
+    });
+    return children;
+}
+
+function getFunctionChildren(functionStats, groupIndex, functionIndex) {
+    if (functionStats == undefined) return undefined;
+    var children = [];
+    var metricIndex = 0;
+    $.each(functionStats, function(key, val) {
+        children.push({
+            "attr": {
+                "id": "node_" + key + "_" + groupIndex + "_" + functionIndex,
+                "rel": key
+            },
+            "metadata": {
+                "nodeType": key,
+                "groupIndex":groupIndex,
+                "functionIndex": functionIndex,
+                "metricIndex":metricIndex
+            },
+            "data": key,
+            "children": getMetricsChildren(val, getMetricType(key), groupIndex, functionIndex, metricIndex)
+        });
+        metricIndex = metricIndex +1;
+    });
+    return children;
+}
+
+function getMetricsChildren(metricStats, type, groupIndex, functionIndex, metricIndex) {
+    if (metricStats == undefined) return undefined;
+    var children = [];
+    if (type == "counter") {
+        return undefined;
+    }
+    $.each(metricStats, function(index, metric) {
+            children.push({
+                "attr": {
+                    "id": "node_" + metric["name"]+ "_" + groupIndex + "_" + functionIndex,
+                    "rel": type
+                },
+                "metadata": {
+                    "nodeType": type,
+                    "groupIndex":groupIndex,
+                    "functionIndex":functionIndex,
+                    "metricIndex":metricIndex,
+                    "keyIndex":index
+                },
+                "data": metric["name"]
+            });
+    });
+    return children;
+}
+
+function getMetricType(parentType) {
+    switch (parentType) {
+        case "counters":
+            return "counter";
+        case "histograms":
+            return "histogram";
+        case "timers":
+            return "timer";
+    }
+}
+
+function getGraphPlotScheme() {
+    $.ajax({
+        url: "/loader-server/admin/config/report/job",
+        type: "GET",
+        contentType: "application/json",
+        dataType: "json",
+        async: false,
+        success: function(scheme) {
+            window["graphSceme"] = scheme;
+        },
+        error: function(err) {
+
+        },
+        complete: function(xhr, status) {
+        }
     });
 }
 
-function getMonitoringChildren(){
-	if(window["monitorResources"]==undefined || window["monitorResources"].length ==0) return undefined;
-	var children = [];
-	$.each(window["monitorResources"], function(index, monRes){
-		children.push({"attr":{"id":"node_"+monRes["agent"].replace(/\./g,"_"), "rel":"agent"}, "metadata":{"nodeType":"agent", "agentIndex":index},"data":monRes["agent"], "children": getResourcesChildren(monRes, index)});
-	});
-	return children;
+function createMonitoringTree(monStats) {
+    $("#monitoringTree").jstree({
+        "plugins": ["themes", "json_data", "checkbox", "ui", "types"],
+        "types": {
+            "types": {
+                "monag": {
+                    "icon": {
+                        "image": "../img/monagents.png"
+                    },
+                },
+                "agent": {
+                    "icon": {
+                        "image": "../img/metriccol.png"
+                    }
+                },
+                "resource": {
+                    "icon": {
+                        "image": "../img/timer.png"
+                    }
+                }
+            }
+        },
+        "json_data": {
+            "data": [{
+                "attr": {
+                    "id": "node_graphs",
+                    "rel": "monag"
+                },
+                "data": "MonitoringAgents",
+                "metadata": {
+                    "name": "MonitoringAgents",
+                    "nodeType": "monag"
+                },
+                "children": getMonitoringChildren(monStats)
+            }],
+            "checkbox": {
+                "override_ui": true,
+            },
+            "progressive_render": true,
+        }
+    }).bind("check_node.jstree", function(event, data) {
+        updateStateOnCheck();
+        switch (data.rslt.obj.data("nodeType")) {
+            case "agent":
+                //plotMonAgentGraphs(data.rslt.obj.data("agentIndex"));
+                var agentIndex = data.rslt.obj.data("agentIndex");
+                window["monViewModel"].isVisible(true);
+                window["monViewModel"].monAgents()[agentIndex].showAgentGraphs();
+                break;
+            case "resource":
+                //plotResourceGraphs(data.rslt.obj.data("agentIndex"), data.rslt.obj.data("resourceIndex"));
+                var agentIndex = data.rslt.obj.data("agentIndex");
+                var resourceIndex = data.rslt.obj.data("resourceIndex");
+                window["monViewModel"].isVisible(true);
+                window["monViewModel"].monAgents()[agentIndex].isVisible(true);
+                window["monViewModel"].monAgents()[agentIndex].resources()[resourceIndex].showResourceGraphs();
+                break;
+            case "monag":
+                window["monViewModel"].showMonitorGraphs();
+        }
+        setVisible();
+    }).bind("uncheck_node.jstree", function(event, data) {
+        updateStateOnUnCheck();
+        switch (data.rslt.obj.data("nodeType")) {
+            case "agent":
+                var agentIndex = data.rslt.obj.data("agentIndex");
+                window["monViewModel"].monAgents()[agentIndex].hideAgentGraphs();
+                break;
+            case "resource":
+                var agentIndex = data.rslt.obj.data("agentIndex");
+                var resourceIndex = data.rslt.obj.data("resourceIndex");
+                window["monViewModel"].monAgents()[agentIndex].resources()[resourceIndex].hideResourceGraphs();
+                break;
+            case "monag":
+                window["monViewModel"].hideMonitorGraphs();
+        }
+        setVisible();
+    });
+
+    $("#monitoringTree").bind("loaded.jstree", function(event, data) {
+        $("#monitoringTree").jstree("open_all");
+        checkTimerNodes();
+        checkMonNodes();
+    });
+    $("#monitoringTree").bind("refresh.jstree", function(event, data) {
+        $("#monitoringTree").jstree("open_all");
+        checkTimerNodes();
+        checkMonNodes();
+    });
+
+    function setVisible(){
+        var anyAgentVisible = false;
+        $.each(window["monViewModel"].monAgents(), function(index, ag){
+            var anyResourceVisible = false;
+            $.each(ag.resources(), function(ind, res){
+                if(res.isVisible()){
+                    anyResourceVisible=true;
+                }
+            });
+            if(!anyResourceVisible) ag.isVisible(false);
+            if(ag.isVisible()){
+                anyAgentVisible=true;
+            }
+        });
+        if(!anyAgentVisible) window["monViewModel"].isVisible(false);
+    }
 }
 
-function getResourcesChildren(monRes, agentIndex){
-	if(monRes["resources"]==null || monRes["resources"]==undefined || monRes["resources"].length == 0) return undefined;
-	var children = [];
-	$.each(monRes["resources"], function(index, resource){
-		children.push({"attr":{"id":"node_"+ window["monitorResources"][agentIndex]["agent"].replace(/\./g,"_") + "_" +resource, "rel":"resource"}, "metadata":{"nodeType":"resource", "agentIndex":agentIndex, "resourceIndex":index},"data":resource});
-	})
-	return children;
+function getMonitoringChildren(monStats) {
+    if (monStats == undefined || monStats.length == 0) return undefined;
+    var children = [];
+    $.each(monStats, function(index, monRes) {
+        children.push({
+            "attr": {
+                "id": "node_" + monRes["agent"].replace(/\./g, "_"),
+                "rel": "agent"
+            },
+            "metadata": {
+                "nodeType": "agent",
+                "agentIndex": index
+            },
+            "data": monRes["agent"],
+            "children": getResourcesChildren(monStats, monRes, index)
+        });
+    });
+    return children;
 }
 
-function getResourceType(resource){
-	if(resource.indexOf("jmx") !== -1) return "jmx";
-	//if(resource.indexOf("cpu") !== -1) return "cpu.total";
-	if(resource.indexOf("memory") !== -1) return "memory";
-	if(resource.indexOf("sockets") !== -1) return "sockets";
-	if(resource.indexOf("diskspace") !== -1) return "diskspace.root";
-	if(resource.indexOf("mysql") !== -1) return "mysql";
-	if(resource.indexOf('agentHealth') !== -1) return "agentHealth";
-	if(resource.indexOf("redis") !== -1) return "redis";
-	return resource;
-
+function getResourcesChildren(monStats, monRes, agentIndex) {
+    if (monRes["resources"] == null || monRes["resources"] == undefined || monRes["resources"].length == 0) return undefined;
+    var children = [];
+    $.each(monRes["resources"], function(index, resource) {
+        children.push({
+            "attr": {
+                "id": "node_" + monStats[agentIndex]["agent"].replace(/\./g, "_") + "_" + resource,
+                "rel": "resource"
+            },
+            "metadata": {
+                "nodeType": "resource",
+                "agentIndex": agentIndex,
+                "resourceIndex": index
+            },
+            "data": resource
+        });
+    })
+    return children;
 }
 
-function getMonitoringStats(jobId){
-	var jobId = getQueryParams("jobId");
-	$.ajax({
-		url: "/loader-server/jobs/" + jobId + "/monitoringStats",
-		type: "GET",
-		contentType: "application/json", 
-		dataType:"json",
-		async: false,
-		success: function(monitorResources){
-			window["monitorResources"] = monitorResources;
-			window["monitoringGraphsState"] = [];
-			$.each(monitorResources, function(agentIndex, agent){
-				var resPlot = [];
-				$.each(agent["resources"], function(resIndex, res){
-					resPlot.push(false);
-				});
-				window["monitoringGraphsState"].push(resPlot);
-			});
-			//console.log("monitoringResources:",monitorResources);
-		},
-		error: function(err){
-
-		},
-		complete: function(xhr, status){
-			console.log("Got all the resources being monitored");
-		}
-	});
+function getResourceType(resource) {
+    if (resource.indexOf("jmx") !== -1) return "jmx";
+    if (resource.indexOf("memory") !== -1) return "memory";
+    if (resource.indexOf("sockets") !== -1) return "sockets";
+    if (resource.indexOf("diskspace") !== -1) return "diskspace.root";
+    if (resource.indexOf("mysql") !== -1) return "mysql";
+    if (resource.indexOf('agentHealth') !== -1) return "agentHealth";
+    if (resource.indexOf("redis") !== -1) return "redis";
+    return resource;
 }
 
-function getGraphsData(){
-	var jobId = getQueryParams("jobId");
-	//getMonitoringStats(jobId);
-	//getGraphPlotScheme();
-	//getMonitoringStats(jobId);
-	window["monitoringStats"] = {};
-	var metricsToBePlot = window["monitorResources"];
-	//console.log("metricsToBePlot:", metricsToBePlot);
-	$.each(metricsToBePlot, function(agentIndex, metric){
-		var agentName = metric["agent"];
-		var resources = metric["resources"];
-		window["monitoringStats"][agentName]={};
-		//console.log("agentName:", agentName);
-		//console.log("resources", resources);
-		$.each(resources, function(resourceIndex, resource){
-			window["monitoringStats"][agentName][resource] = {};
-			$.ajax({
-				url: "/loader-server/jobs/" + jobId + "/monitoringStats/agents/" + agentName + "/resources/" + resource,
-				type: "GET",
-				contentType: "text/plain",
-				async: false,
-				success: function(resourceData){
-					var type = getResourceType(resource);
-					var attributesToPlot = new Array();
-					$.each(window["graphSceme"]["chartResources"][type]["charts"], function(index, chart){
-						attributesToPlot=attributesToPlot.concat(chart["keysToPlot"]);
-					});
-					var resourceDataLines = resourceData.split('\n');
-					if(resourceDataLines.length>100) addSliderToMonitoringGraphs(agentIndex, resourceIndex, 
-						resourceDataLines.length-100, window["graphSceme"]["chartResources"][type]["charts"].length); 
-					$.each(resourceDataLines, function(lineIndex, resourceDataLine){
-						if (resourceDataLine!==""){ 
-							$.each(attributesToPlot, function(metricIndex, attr){
-								if(!window["monitoringStats"][agentName][resource][attr]) window["monitoringStats"][agentName][resource][attr]=new Array();
-								try {
-									var resourceDataJson = $.parseJSON(resourceDataLine);
-									window["monitoringStats"][agentName][resource][attr].push({x: new Date(resourceDataJson[0]["time"]), y: resourceDataJson[0]["metrics"][attr]});
-								} catch (err){
-									console.log("Err in parsing", resourceDataLine);
-								} 
-							});
-						}
-					});
-				},
-				error: function(err){
-					console.log(err);
-				},
-				complete: function(xhr, status){
-					console.log("Done fetching data");
-				}
-			});
-		});
-	});
+var groupsGraphViewModel = function(jobStats) {
+    var self = this;
+    self.getGroups = function() {
+        var groups = [];
+        $.each(jobStats, function(index, group) {
+            groups.push(new groupGraphViewModel(group));
+        });
+        return groups;
+    }
+    self.groups = ko.observableArray(self.getGroups());
+    self.isVisible = ko.observable(false);
+    self.showGraphs = function(){
+        self.isVisible(true);
+        var grps = self.groups();
+        $.each(grps, function(index , grp){
+            grp.showGroupGraphs();
+        });      
+    }
+    self.hideGraphs = function(){
+        self.isVisible(false);
+        var grps = self.groups();
+        $.each(grps, function(index , grp){
+            grp.hideGroupGraphs();
+        });   
+    }
 }
 
-function getResourceType(resource){
-	if(resource.indexOf("jmx") !== -1) return "jmx";
-	if(resource.indexOf("memory") !== -1) return "memory";
-	if(resource.indexOf("sockets") !== -1) return "sockets";
-	if(resource.indexOf("diskspace") !== -1) return "diskspace.root";
-	if(resource.indexOf("mysql") !== -1) return "mysql";
-	if(resource.indexOf('agentHealth') !== -1) return "agentHealth";
-	if(resource.indexOf("redis") !== -1) return "redis";
-	return resource;
-
+var groupGraphViewModel = function(group) {
+    var self = this;
+    var groupUrl = "/loader-server/jobs/" + getQueryParams("jobId") + "/jobStats/groups/" + group["groupName"];
+    self.getFunctions = function() {
+        var functions = [];
+        $.each(group["functions"], function(k, v) {
+            functions.push(new functionGraphViewModel(v, groupUrl));
+        });
+        return functions;
+    }
+    self.groupName = ko.observable(group["groupName"]);
+    self.functions = ko.observableArray(self.getFunctions());
+    self.isVisible = ko.observable(false);
+    self.showGroupGraphs = function(){
+        self.isVisible(true);
+        var funcs = self.functions();
+        $.each(funcs, function(index, func){
+            func.showFuncGraphs();
+        });
+    }
+    self.hideGroupGraphs = function(){
+        self.isVisible(false);
+        var funcs = self.functions();
+        $.each(funcs, function(index, func){
+            func.hideFuncGraphs();
+        });
+    }
 }
 
-function plotResourceGraphs(agentIndex, resourceIndex, sliderDragged){
-	$("#monGraphs").show();
-	$("#agent-" + agentIndex).show();
-	$("#resource-" + agentIndex + "-" + resourceIndex).show();
-	if (!window["monitoringGraphsState"][agentIndex][resourceIndex] || sliderDragged){
-		var resource = window["monitorResources"][agentIndex]["resources"][resourceIndex];
-		var type = getResourceType(resource);
-		var charts = window["graphSceme"]["chartResources"][type]["charts"];
-		var agentName = window["monitorResources"][agentIndex]["agent"];
-		$.each(charts, function(chartIndex, chart){
-			formatTime = d3.time.format("%H:%M"),
-			formatMinutes = function(d) { return formatTime(new Date(d)); };
-			var chart1;
-			nv.addGraph(function() {
-	  			chart1 = nv.models.lineChart().margin({left: 80});
-				chart1.xAxis
-					.axisLabel('Time (HH:MM)')
-	    			.tickFormat(function(d) { return d3.time.format('%H:%M')(new Date(d)); });
+var functionGraphViewModel = function(func, groupUrl) {
+    var self = this;
+    var functionUrl = groupUrl + "/functions/" + func["functionName"];
+    self.functionName = func["functionName"];
+    self.getTimers = function() {
+        var timers = [];
+        $.each(func["metrics"]["timers"], function(index, timer) {
+            timers.push(new timerGraphViewModel(timer, functionUrl));
+        });
+        return timers;
+    }
+    self.getHistograms = function(){
+        var histos = [];
+        if(func["metrics"]["histograms"]==undefined) return histos;
+        $.each(func["metrics"]["histograms"], function(index, histo){
+            histos.push(new histogramGraphViewModel(histo, functionUrl));
+        });
+        return histos;
+    }
+    self.timers = ko.observableArray(self.getTimers());
+    self.counters = ko.observableArray([new countersGraphViewModel(func["metrics"]["counters"], functionUrl)]);
+    self.histograms = ko.observableArray(self.getHistograms());
+    self.isVisible = ko.observable(false);
+    self.timersVisible = ko.observable(false);
+    self.countersVisible = ko.observable(false);
+    self.histogramsVisible = ko.observable(false);
+    self.showFuncGraphs = function(){
+        self.isVisible(true);
+        self.showFuncTimersGraphs();
+        self.showFuncCounterGraphs();
+        self.showFuncHistogramGraphs();
+    }
+    self.hideFuncGraphs = function(){
+        self.isVisible(false);
+        self.hideFuncTimersGraphs();
+        self.hideFuncCounterGraphs();
+        self.hideFuncHistogramGraphs();
+    }
+    self.showFuncTimersGraphs = function(){
+        self.timersVisible(true);
+        var tmrs =  self.timers();
+        $.each(tmrs, function(index, tm){
+            tm.showTimerGraphs();
+        });
+    }
+    self.hideFuncTimersGraphs = function(){
+        self.timersVisible(false);
+        var tmrs =  self.timers();
+        $.each(tmrs, function(index, tm){
+            tm.hideTimerGraphs();
+        });
+    }
+    self.showFuncCounterGraphs = function(){
+        self.countersVisible(true);
+        var counters = self.counters();
+        counters[0].showCounterGraphs();
 
-	  			chart1.yAxis
-	      			.axisLabel('Resource')
-	      			.tickFormat(d3.format('.2s'));
-	      		var chart1PlaceHolder = "#agent-" + agentName + "-" + resource + "-" + chartIndex;
-	      		var sliderId = "#slider-" + agentName + "-" + resource + "-" + chartIndex;
-	      		sliderId = sliderId.replace(/\./g,"_");
-	      		chart1PlaceHolder = chart1PlaceHolder.replace(/\./g,"_");
-	      		var startPoint =0;
-	      		if(sliderDragged) startPoint=$(sliderId).slider("option", "value");
-	      		d3.select(chart1PlaceHolder + " svg")
-	      			.datum(getChartData(agentName, resource, chart, startPoint))
-	    			.transition().duration(500)
-	      			.call(chart1);
-	      		nv.utils.windowResize(chart1.update);
-	  			chart1.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
-	  			return chart1;
-	  		});
-	  	});
-	  	window["monitoringGraphsState"][agentIndex][resourceIndex]=true;	
-	}
+    }
+    self.hideFuncCounterGraphs = function(){
+        self.countersVisible(false);
+        var counters = self.counters();
+        counters[0].hideCounterGraphs();
+    }
+    self.showFuncHistogramGraphs = function(){
+        self.histogramsVisible(true);
+        var histos = self.histograms();
+        $.each(histos, function(index, h){
+            h.showHistogramGraphs();
+        });
+    }
+    self.hideFuncHistogramGraphs = function(){
+        self.histogramsVisible(false);
+        var histos = self.histograms();
+        $.each(histos, function(index, h){
+            h.hideHistogramGraphs();
+        });
+    }
+}
+var histogramGraphViewModel = function(histogram, functionUrl){
+    var self = this;
+    self.histogramName = "Histogram-" + histogram["name"];
+    self.availableAgents = ko.observableArray(histogram["agents"]);
+    self.selectedAgent = ko.observable("combined");
+    self.dataAvailable = ko.observable(false);
+    self.histogramUrl = ko.computed(function(){
+        return functionUrl + "/histograms/" + histogram["name"] + "/agents/" + self.selectedAgent();
+    });
+    var chartScheme = window["graphSceme"]["chartResources"]["histogram"]["charts"];
+    self.chartRows = ko.observableArray(new Array(Math.floor((chartScheme.length + 1) / 2)));
+    self.isVisible = ko.observable(false);
+    self.chartsData = {};
+    self.dataLength = ko.observable(0);
+    self.totalCharts = ko.observable(chartScheme.length);
+    self.sliderVisible = ko.observable(false);
+    self.fetchAndParse = function() {
+        var timeSeries = {};
+        $.ajax({
+            url: self.histogramUrl(),
+            type: "GET",
+            contentType: "application/json",
+            async: false,
+            success: function(histogramStats) {
+                var dataLines = histogramStats.split('\n');
+                self.dataLength(dataLines.length);
+                if(dataLines.length>100){
+                    self.sliderVisible(true);
+                }
+                for(var i=0;i<dataLines.length;i++){
+                    if (dataLines[i]=="") continue;
+                    var lineJson = $.parseJSON(dataLines[i]);
+                    $.each(lineJson, function(key, value) {
+                        if(key != "time"){
+                            if (timeSeries[key] == undefined) timeSeries[key] = new Array();
+                            timeSeries[key].push({x: new Date(lineJson["time"]), y: value});
+                        }
+                    });
+                }
+            },
+            error: function() {
+            },
+            complete: function() {
+            }
+        });
+        return timeSeries;
+    }
+    self.createIndexesMap = function(){
+        var map = [];
+        for(var i=0;i<chartScheme.length;i++) map.push({"sliderStartIndex": 0});
+        return map;
+    }
+    self.chartIndexes = self.createIndexesMap();
+    
+    self.hide = function() {
+        $(this).hide();
+    }
+    self.onAgentChange = function(data, event) {
+        var agent = self.selectedAgent();
+        if (self.chartsData[agent] == undefined) {
+            self.chartsData[agent] = divideInCharts(self.fetchAndParse(),window["graphSceme"]["chartResources"]["histogram"]["charts"]);
+        }
+        self.plot($(event.target));
+    }
+    self.refresh = function(data, event) {
+        var agent = self.selectedAgent();
+        $.each(self.chartsData, function(k,v){
+            self.chartsData[k] = undefined;
+        });
+        self.chartsData[agent] = divideInCharts(self.fetchAndParse(),window["graphSceme"]["chartResources"]["histogram"]["charts"]);
+        self.plot($(event.target)[0]);
+    }
+    self.initializeGraphs = function(currElement){
+        var agent = self.selectedAgent();
+        self.chartsData[agent] = divideInCharts(self.fetchAndParse(),window["graphSceme"]["chartResources"]["histogram"]["charts"]);
+        self.plot(currElement);
+    }
+    self.plot = function(currElement){
+        var chartScheme = window["graphSceme"]["chartResources"]["histogram"]["charts"];
+        var charts = self.chartsData[self.selectedAgent()];
+        var tmpCharts = [];
+        $.each(charts, function(index, chart){
+            var tmpChart = [];
+            var startIndex = self.chartIndexes[index].sliderStartIndex;
+            var lastIndex = startIndex + 100> self.dataLength()?self.dataLength():startIndex + 100;
+            $.each(chart, function(ind, line){
+                tmpChart.push({"key":line["key"],"color":line["color"], "values": line["values"].slice(startIndex, lastIndex)});
+            });
+            tmpCharts.push(tmpChart);
+        }); 
+        $.each(tmpCharts, function(index, tmpChart){
+            plotGraph(tmpChart, $($(currElement).parents(".histogramsGraphs")[0]).find("svg")[index], chartScheme[index]["xLegend"], chartScheme[index]["yLegend"]);
+        });  
+    }
+    self.showHistogramGraphs = function(){
+        self.isVisible(true);
+    }
+    self.hideHistogramGraphs = function(){
+        self.isVisible(false);
+    }
+    self.addSlider = function(element){
+        var st = Math.ceil(self.dataLength()/100);
+        var options={
+            min: 0,
+            max: self.dataLength()-100,
+            step:st,
+            stop: function(event, ui){
+                var k = $(event.target).attr('id');
+                self.chartIndexes[k].sliderStartIndex=ui.value;
+                self.updatePlot(k, event);
+            }
+        }
+        $(element).slider(options);
+    }
+
+    self.updatePlot = function(k, event){
+        var chartScheme = window["graphSceme"]["chartResources"]["histogram"]["charts"];
+        var charts = self.chartsData[self.selectedAgent()];
+        var tmpChart = [];
+        var startIndex = self.chartIndexes[k].sliderStartIndex;
+        var lastIndex = startIndex + 100> self.dataLength()?self.dataLength():startIndex + 100;
+        $.each(charts[k], function(ind, line){
+            tmpChart.push({"key":line["key"],"color":line["color"], "values": line["values"].slice(startIndex, lastIndex)});
+        });
+        var currElement = $(event.target)[0];
+        plotGraph(tmpChart, $($(currElement).parents(".histogramsGraphs")[0]).find("svg")[k], chartScheme[k]["xLegend"], chartScheme[k]["yLegend"]);
+    }
+
+}
+var timerGraphViewModel = function(timer, functionUrl) {
+    var self = this;
+    self.timerName = "Timer-" + timer["name"];
+    self.availableAgents = ko.observableArray(timer["agents"]);
+    self.selectedAgent = ko.observable("combined");
+    self.dataAvailable = ko.observable(false);
+    self.timerDataUrl = ko.computed(function() {
+        return functionUrl + "/timers/" + timer["name"] + "/agents/" + self.selectedAgent();
+    });
+    var chartScheme = window["graphSceme"]["chartResources"]["timer"]["charts"];
+    self.chartRows = ko.observableArray(new Array(Math.floor((chartScheme.length + 1) / 2)));
+    self.isVisible = ko.observable(false);
+    self.chartsData = {};
+    self.dataLength = ko.observable(0);
+    self.totalCharts = ko.observable(chartScheme.length);
+    self.sliderVisible = ko.observable(false);
+
+    self.fetchAndParse = function() {
+        var timeSeries = {};
+        $.ajax({
+            url: self.timerDataUrl(),
+            type: "GET",
+            contentType: "application/json",
+            async: false,
+            success: function(timerStats) {
+                var dataLines = timerStats.split('\n');
+                self.dataLength(dataLines.length);
+                if(dataLines.length>100){
+                    self.sliderVisible(true);
+                }
+                for(var i=0;i<dataLines.length;i++){
+                    if (dataLines[i]=="") continue;
+                    var lineJson = $.parseJSON(dataLines[i]);
+                    $.each(lineJson, function(key, value) {
+                        if(key != "time"){
+                            if (timeSeries[key] == undefined) timeSeries[key] = new Array();
+                            timeSeries[key].push({x: new Date(lineJson["time"]), y: value});
+                        }
+                    });
+                }
+            },
+            error: function() {
+            },
+            complete: function() {
+            }
+        });
+        return timeSeries;
+    }
+
+    self.createIndexesMap = function(){
+        var map = [];
+        for(var i=0;i<chartScheme.length;i++) map.push({"sliderStartIndex": 0});
+        return map;
+    }
+    self.chartIndexes = self.createIndexesMap();
+    
+    self.hide = function() {
+        $(this).hide();
+    }
+    self.onAgentChange = function(data, event) {
+        var agent = self.selectedAgent();
+        if (self.chartsData[agent] == undefined) {
+            self.chartsData[agent] = divideInCharts(self.fetchAndParse(),window["graphSceme"]["chartResources"]["timer"]["charts"]);
+        }
+        self.plot($(event.target));
+    }
+    self.refresh = function(data, event) {
+        var agent = self.selectedAgent();
+        $.each(self.chartsData, function(k,v){
+            self.chartsData[k] = undefined;
+        });
+        self.chartsData[agent] = divideInCharts(self.fetchAndParse(),window["graphSceme"]["chartResources"]["timer"]["charts"]);
+        self.plot($(event.target)[0]);
+    }
+    self.initializeGraphs = function(currElement){
+        var agent = self.selectedAgent();
+        self.chartsData[agent] = divideInCharts(self.fetchAndParse(),window["graphSceme"]["chartResources"]["timer"]["charts"]);
+        self.plot(currElement);
+    }
+    self.plot = function(currElement){
+        var chartScheme = window["graphSceme"]["chartResources"]["timer"]["charts"];
+        var charts = self.chartsData[self.selectedAgent()];
+        var tmpCharts = [];
+        $.each(charts, function(index, chart){
+            var tmpChart = [];
+            var startIndex = self.chartIndexes[index].sliderStartIndex;
+            var lastIndex = startIndex + 100> self.dataLength()?self.dataLength():startIndex + 100;
+            $.each(chart, function(ind, line){
+                tmpChart.push({"key":line["key"],"color":line["color"], "values": line["values"].slice(startIndex, lastIndex)});
+            });
+            tmpCharts.push(tmpChart);
+        }); 
+        $.each(tmpCharts, function(index, tmpChart){
+            plotGraph(tmpChart, $($(currElement).parents(".timerGraphs")[0]).find("svg")[index], chartScheme[index]["xLegend"], chartScheme[index]["yLegend"]);
+        });  
+    }
+    self.showTimerGraphs = function(){
+        self.isVisible(true);
+    }
+    self.hideTimerGraphs = function(){
+        self.isVisible(false);
+    }
+    self.addSlider = function(element){
+        var st = Math.ceil(self.dataLength()/100);
+        var options={
+            min: 0,
+            max: self.dataLength()-100,
+            step:st,
+            stop: function(event, ui){
+                var k = $(event.target).attr('id');
+                self.chartIndexes[k].sliderStartIndex=ui.value;
+                self.updatePlot(k, event);
+            }
+        }
+        $(element).slider(options);
+    }
+
+    self.updatePlot = function(k, event){
+        var chartScheme = window["graphSceme"]["chartResources"]["timer"]["charts"];
+        var charts = self.chartsData[self.selectedAgent()];
+        var tmpChart = [];
+        var startIndex = self.chartIndexes[k].sliderStartIndex;
+        var lastIndex = startIndex + 100> self.dataLength()?self.dataLength():startIndex + 100;
+        $.each(charts[k], function(ind, line){
+            tmpChart.push({"key":line["key"],"color":line["color"], "values": line["values"].slice(startIndex, lastIndex)});
+        });
+        var currElement = $(event.target)[0];
+        plotGraph(tmpChart, $($(currElement).parents(".timerGraphs")[0]).find("svg")[k], chartScheme[k]["xLegend"], chartScheme[k]["yLegend"]);
+    }
 }
 
-function plotMonAgentGraphs(agentIndex){
-	$("#monGraphs").show();
-	$("#agent-" + agentIndex).show();
-	var agent = window["monitorResources"][agentIndex];
-	$.each(agent["resources"], function(resIndex, resource){
-		plotResourceGraphs(agentIndex, resIndex, false);
-	});
+var countersGraphViewModel = function(counters, functionUrl){
+    var self = this;
+    self.counters = counters;
+    self.isVisible = ko.observable(false);
+    self.availableAgents = counters[0]["agents"];
+    self.selectedAgent = ko.observable("combined");
+    self.counterUrls = ko.computed(function(){
+        var urls = [];
+        $.each(self.counters, function(index, ctr){
+            urls.push({"name": ctr["name"], "url":functionUrl + "/counters/" + ctr["name"] + "/agents/" + self.selectedAgent()});
+        });
+        return urls;
+    });
+    self.dataLength = ko.observable(0);
+    self.countersData = {};
+    self.showCustomCounters = ko.observable(false);
+    self.sliderVisible = ko.computed(function(){
+        if (self.dataLength()>100) return true;
+        else return false;
+    });
+    self.chartIndexes = [{"sliderStartIndex":0},{"sliderStartIndex":0}]
+    self.fetchAndParse = function(){
+        self.countersData[self.selectedAgent()] = {};
+        $.each(self.counterUrls(), function(index, ctrUrl){
+            $.ajax({
+                url: ctrUrl["url"],
+                type: "GET",
+                contentType: "application/json",
+                async: false,
+                success: function(counterStats) {
+                    var dataLines = counterStats.split('\n');
+                    self.dataLength(dataLines.length);
+                    var ctrData = [];
+                    for(var i=0;i<dataLines.length;i++){
+                        if (dataLines[i]=="") continue;
+                        var lineJson = $.parseJSON(dataLines[i]);   
+                        ctrData.push({x: new Date(lineJson["time"]), y: lineJson["count"]});
+                    }
+                    self.countersData[self.selectedAgent()][ctrUrl["name"]] = ctrData;
+                },
+                error: function() {
+                },
+                complete: function() {
+                }
+            });   
+            pushTimeStamps = false;
+        });
+        return self.countersData;
+    }
+    self.onAgentChange = function(data, event){
+        if(self.countersData[self.selectedAgent()]==undefined){
+            self.fetchAndParse();
+        } 
+        self.plot($(event.target)[0]);
+    }
+    self.refresh = function(data, event){
+        self.countersData={};
+        self.fetchAndParse();
+        self.plot($(event.target)[0]);
+    }
+    self.plot = function(currElement, chartIndex){
+        var agent = self.selectedAgent();
+        var data = self.countersData[agent];
+        var chart1=[];
+        var chart2=[];
+        var colors = ["#2ca02c", "#d62728", "#DF01D7", "#08088A", "#FF0000", "#ff7f0e", "#1f77b4"];
+        var col1=0, col2=0;
+        $.each(data, function(key, val){
+            if(key=="error" || key=="skip" || key=="failure" || key=="count"){
+                chart1.push({"key":key,"color":colors[col1],"values":val.slice(self.chartIndexes[0]["sliderStartIndex"], 
+                    self.chartIndexes[0]["sliderStartIndex"]+100>self.dataLength()?self.dataLength():self.chartIndexes[0]["sliderStartIndex"]+100)});
+                col1=col1+1;
+                col1=col1%colors.length;  
+            } else {
+                chart2.push({"key":key,"color":colors[col2],"values":val.slice(self.chartIndexes[1]["sliderStartIndex"], 
+                    self.chartIndexes[1]["sliderStartIndex"]+100>self.dataLength()?self.dataLength():self.chartIndexes[1]["sliderStartIndex"]+100)});
+                col2=col2+1;
+                col2=col2%colors.length;  
+            }
+        });
+        if(chartIndex==1){
+            plotGraph(chart1, $($(currElement).parents(".counterGraphs")[0]).find("svg")[0], "Time (HH:MM)", "Count");
+        }
+        else if(chartIndex==2) {
+            plotGraph(chart2, $($(currElement).parents(".counterGraphs")[0]).find("svg")[1], "Time (HH:MM)", "Count");
+        }
+        else {
+            plotGraph(chart1, $($(currElement).parents(".counterGraphs")[0]).find("svg")[0], "Time (HH:MM)", "Count");
+            if(chart2.length>0){
+                self.showCustomCounters(true);
+                plotGraph(chart2, $($(currElement).parents(".counterGraphs")[0]).find("svg")[1], "Time (HH:MM)", "Count");
+            }
+        }
+    }
+    self.updatePlot = function(k, event){
+        self.plot($(event.target, k));
+    }
+    self.addSlider = function(element){
+        var st = Math.ceil(self.dataLength()/100);
+        var options={
+            min: 0,
+            max: self.dataLength()-100,
+            step:st,
+            stop: function(event, ui){
+                var k = $(event.target).attr('id');
+                self.chartIndexes[k].sliderStartIndex=ui.value;
+                self.updatePlot(k, event);
+            }
+        }
+        $(element).slider(options);
+    }
+    self.showCounterGraphs = function(){
+        self.isVisible(true);
+    }
+    self.hideCounterGraphs = function(){
+        self.isVisible(false);
+    }
+    self.initializeGraphs = function(currElement){
+        if(self.countersData[self.selectedAgent()]==undefined){
+            self.fetchAndParse();
+        }
+        self.plot(currElement);
+    }
 }
 
-function plotMonitoringGraphs(){
-	$.each(window["monitorResources"], function(index, res){
-		plotMonAgentGraphs(index);
-	})
+function divideInCharts(data, chartScheme) {
+    var timeSeriesData = [];
+    $.each(chartScheme, function(index, chart){
+        var keysToPlot = chart["keysToPlot"];
+        var linesToPlot = [];
+        $.each(keysToPlot, function(ind, k){
+            var ke = k["key"];
+            var tmp = data[ke];
+            if(tmp!=undefined){
+                var tmpJson = { 
+                    "values": tmp,
+                    "key": k["name"],
+                    "color": k["color"]
+                }
+                linesToPlot.push(tmpJson);
+            }
+         });
+        timeSeriesData.push(linesToPlot);
+    });
+    return timeSeriesData;
 }
 
-function hideResourceGraphs(agentIndex, resIndex){
-	$("#resource-" + agentIndex + "-" + resIndex).hide();
+var monitorGraphsViewModel = function(monStats) {
+    var self = this;
+    self.monStatsUrl = "/loader-server/jobs/" + getQueryParams("jobId") + "/monitoringStats"
+    self.isVisible = ko.observable(false);
+    self.getMonAgents = function(){
+        var agents = [];
+        $.each(monStats, function(index, agent){
+            agents.push(new monAgentGraphsViewModel(agent, self.monStatsUrl));
+        });
+        return agents;
+    }
+    self.monAgents  = ko.observableArray(self.getMonAgents());
+    self.showMonitorGraphs = function(){
+        self.isVisible(true);
+        $.each(self.monAgents(), function(index, monAgent){
+            monAgent.showAgentGraphs();
+        });
+    }
+    self.hideMonitorGraphs = function(){
+        self.isVisible(false);
+        $.each(self.monAgents(), function(index, monAgent){
+            monAgent.hideAgentGraphs();
+        });
+    }
 }
 
-function hideMonAgentGraphs(agentIndex){
-	$.each(window["monitorResources"][agentIndex]["resources"], function(resIndex, res){
-		hideResourceGraphs(agentIndex, resIndex);
-	})
-	$("#agent-" + agentIndex).hide();
+var monAgentGraphsViewModel = function(agent, url){
+    var self = this;
+    self.agentName = agent["agent"];
+    self.agentMonStatsUrl = url + "/agents/" + self.agentName;
+    self.getResources = function(){
+        var res = [];
+        $.each(agent["resources"],function(index, r){
+            res.push(new resourceGraphsViewModel(r, self.agentMonStatsUrl));
+        });
+        return res;
+    }
+    self.resources = ko.observableArray(self.getResources());
+    self.isVisible = ko.observable(false);
+    self.showAgentGraphs = function(){
+        self.isVisible(true);
+        $.each(self.resources(), function(index, res){
+            res.showResourceGraphs();
+        });
+    }
+    self.hideAgentGraphs = function(){
+        self.isVisible(false);
+        $.each(self.resources(), function(index, res){
+            res.hideResourceGraphs();
+        });
+    }
 }
 
-function hideMonitoringGraphs(){
-	$.each(window["monitorResources"], function(agentIndex, res){
-		hideMonAgentGraphs(agentIndex);
-	})
-	$("#monGraphs").hide();
+var resourceGraphsViewModel = function(resource, url){
+    var self = this;
+    self.resourceName = resource;
+    self.resourceUrl = url + "/resources/" + self.resourceName;
+    self.resourceData = {};
+    self.resourceMapsData = [];
+    self.resourcePlotScheme = window["graphSceme"]["chartResources"][self.resourceName];
+    self.dataLength = ko.observable(0);
+    self.sliderVisible = ko.computed(function(){
+        if(self.dataLength()>100) return true;
+        return false;
+    });
+    self.isVisible = ko.observable(false);
+    self.totalSvgRows = ko.observableArray(new Array(Math.floor((self.resourcePlotScheme["charts"].length + 1) / 2)));
+    self.totalSvgs = ko.observable(self.resourcePlotScheme["charts"].length);
+    self.createIndexesMap = function(){
+        var map=[];
+        for(var k=0;k<self.totalSvgs();k++){
+            map.push({"sliderStartIndex":0});
+        }
+        return map;
+    }
+    self.chartIndexes = self.createIndexesMap();
+    self.fetchAndParse = function(){
+        $.ajax({
+            url: self.resourceUrl,
+            type: "GET",
+            contentType: "application/json",
+            async: false,
+            success: function(resStats) {
+                var dataLines = resStats.split('\n');
+                self.dataLength(dataLines.length);
+                for(var i=0;i<dataLines.length;i++){
+                    if (dataLines[i]=="") continue;
+                    var lineJson = $.parseJSON(dataLines[i]);
+                    $.each(lineJson[0]["metrics"], function(key, val){
+                        if(self.resourceData[key]==undefined) self.resourceData[key] = [];
+                        self.resourceData[key].push({x: new Date(lineJson[0]["time"]), y: val});
+                    })
+                }
+                $.each(self.resourcePlotScheme["charts"], function(index, plot){
+                    var tmpData = {};
+                    $.each(plot["keysToPlot"], function(i,k){
+                        if(k["isRegex"]){
+                            var pat = new RegExp(k["key"], "i");
+                            $.each(self.resourceData, function(resKey, valList){
+                                if(pat.test(resKey)){
+                                    tmpData[resKey] = self.resourceData[resKey];
+                                }
+                            });
+                        } else {
+                            tmpData[k["key"]] = self.resourceData[k["key"]];
+                        }
+                    });
+                    self.resourceMapsData.push(tmpData);
+                });
+                console.log("this is resMapData",self.resourceMapsData);
+            },
+            error: function() {
+            },
+            complete: function() {
+            }
+        });    
+    }
+    self.refresh = function(data, event){
+        self.fetchAndParse();
+        self.plotAll($(event.target));
+    };
+    self.plot = function(k, currElement){
+        var startIndex = self.chartIndexes[k]["sliderStartIndex"];
+        var lastIndex = startIndex + 100>self.dataLength()?self.dataLength():startIndex + 100;
+        var tmpChart = [];
+        $.each(self.resourcePlotScheme["charts"][k]["keysToPlot"], function(index, keyToPlot){
+            if(!keyToPlot["isRegex"]){
+                tmpChart.push({"key":keyToPlot["name"],"values":self.resourceMapsData[k][keyToPlot["key"]].slice(startIndex, lastIndex),"color":keyToPlot["color"]});
+            } else {
+                var pat = new RegExp(keyToPlot["key"],"i");
+                $.each(self.resourceMapsData[k], function(resKey, listVal){
+                    if(pat.test(resKey)){
+                        tmpChart.push({"key":resKey,"values":listVal.slice(startIndex, lastIndex),"color":getRandomColor()});
+                    }
+                });
+            }
+        });
+        plotGraph(tmpChart, $($(currElement).parents(".resourceGraphs")[0]).find("svg")[k], 
+            self.resourcePlotScheme["charts"][k]["xLegend"], self.resourcePlotScheme["charts"][k]["yLegend"],".2s");
+    };
+    self.plotAll = function(currElement){
+        if(self.resourceMapsData.length==0) self.fetchAndParse();
+        for(var k=0;k<self.totalSvgs();k++){
+            self.plot(k, currElement);
+        }
+    }
+    self.initializeGraphs = function(currElement){
+        self.plotAll(currElement);
+    }
+    self.addSlider = function(element){
+        var st = Math.ceil(self.dataLength()/100);
+        var options={
+            min: 0,
+            max: self.dataLength()-100,
+            step:st,
+            stop: function(event, ui){
+                var k = $(event.target).attr('id');
+                self.chartIndexes[k].sliderStartIndex=ui.value;
+                self.plot(k, $(event.target));
+            }
+        }
+        $(element).slider(options);
+    }
+
+    self.showResourceGraphs = function(){
+        self.isVisible(true);
+    }
+
+    self.hideResourceGraphs = function(){
+        self.isVisible(false);
+    }
 }
 
+function plotGraph(data, svgElement, xAxisLabel, yAxisLabel, tickFormat){
+    if(tickFormat==undefined) tickFormat=",.2f";
+    var chart;
+    formatTime = d3.time.format("%H:%M"),
+    formatMinutes = function(d) { return formatTime(new Date(d)); };
+    nv.addGraph(function() {
+        chart = nv.models.lineChart().
+            margin({left: 80});
+        
+        chart.xAxis
+            .axisLabel(xAxisLabel)
+            .tickFormat(function(d) { return d3.time.format('%H:%M')(new Date(d)); });
 
-function getChartData(agentName, resource, chart, startIndex){
-	var returnData = new Array();
-	$.each(chart["keysToPlot"], function(attrIndex, attr){
-		var lastIndex = startIndex + 100>window["monitoringStats"][agentName][resource][attr]?window["monitoringStats"][agentName][resource][attr].length:startIndex + 100;
-		returnData.push({values: window["monitoringStats"][agentName][resource][attr].slice(startIndex, lastIndex), key: attr, color: pickColor(attrIndex)});
-	});
-	//console.log("returnData", returnData);
-	return returnData;
-}
+        chart.yAxis
+            .axisLabel(yAxisLabel)
+            .tickFormat(d3.format(tickFormat));
 
-function pickColor(index){
-	var colors = ["#ff7f0e","#a02c2c","#B40404","#0B610B", "#0B0B61", "#FE9A2E", "#0E0D0D", "#2ca02c", "#DF01D7"];
-	return colors[index%9];
-}
+        d3.select(svgElement)
+        .datum(data)
+        .transition()
+        .duration(500)
+        .call(chart);
 
-function updateStateOnCheck(){
-	var selectedTimerNodes = $.jstree._reference('#timerTree').get_checked(null, 'get_all');
-	var selectedMonNodes = $.jstree._reference('#monitoringTree').get_checked(null, 'get_all');
-	var selTimerList = [];
-	$.each(selectedTimerNodes, function(index, node){
-		console.log($(node).attr('id'));
-		selTimerList.push($(node).attr('id'));
-	});
-	if(getQueryParams('timerNodes')!=undefined){
-		$.each(getQueryParams('timerNodes').split(","), function(index, node){
-			if(selTimerList.indexOf(node)==-1) selTimerList.push(node);
-		});
-	}
-	var selMonResList = [];
-	$.each(selectedMonNodes, function(index, node){
-		console.log($(node).attr('id'));
-		selMonResList.push($(node).attr('id'));
-	});
-	if(getQueryParams('monNodes')!=undefined){
-		$.each(getQueryParams('monNodes').split(","), function(index, node){
-			if(selMonResList.indexOf(node)==-1) selMonResList.push(node);
-		});
-	}
-	var autoRefresh = getQueryParams("autoRefresh");
-	var interval = getQueryParams("interval");
-	if(autoRefresh==undefined) autoRefresh = "false";
-	if(interval==undefined) interval = "60000";
-	var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId")+ "&autoRefresh="+ autoRefresh + "&interval=" + interval + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join() ;
-	//console.log(selectedTimerNodes, selectedMonNodes);
-	history.replaceState(null, null, link);
-}
-
-function updateStateOnUnCheck(){
-	var selectedTimerNodes = $.jstree._reference('#timerTree').get_checked(null, 'get_all');
-	var selectedMonNodes = $.jstree._reference('#monitoringTree').get_checked(null, 'get_all');
-	var selTimerList = [];
-	$.each(selectedTimerNodes, function(index, node){
-		console.log($(node).attr('id'));
-		selTimerList.push($(node).attr('id'));
-	});
-	
-	var selMonResList = [];
-	$.each(selectedMonNodes, function(index, node){
-		console.log($(node).attr('id'));
-		selMonResList.push($(node).attr('id'));
-	});
-	var autoRefresh = getQueryParams("autoRefresh");
-	var interval = getQueryParams("interval");
-	if(autoRefresh==undefined) autoRefresh = "false";
-	if(interval==undefined) interval = "60000";
-	var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId")+ "&autoRefresh="+ autoRefresh + "&interval=" + interval  + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join();
-	history.replaceState(null, null, link);
+        nv.utils.windowResize(chart.update);
+        chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
+        return chart;
+    });
 }
 
 function checkTimerNodes(){
-	var selTimerList = getQueryParams('timerNodes');
-	if(selTimerList != undefined && selTimerList!=""){
-		selTimerList = selTimerList.split(",");
-		$.each(selTimerList, function(index, timer){
-			console.log("checking","#"+timer);
-			$.jstree._reference('#timerTree').check_node("#"+timer);
-			console.log("checking","#"+timer);
-		});
-	}
+    var selTimerList = getQueryParams('timerNodes');
+    if(selTimerList != undefined && selTimerList!=""){
+        selTimerList = selTimerList.split(",");
+        $.each(selTimerList, function(index, timer){
+            $.jstree._reference('#timerTree').check_node("#"+timer);
+        });
+    }
 }
 
 function checkMonNodes(){
-	var selMonResList = getQueryParams('monNodes');
-	console.log("monNodes is", selMonResList);
-	if(selMonResList!=undefined && selMonResList!=""){
-		selMonResList = selMonResList.split(",");
-		$.each(selMonResList, function(index, monRes){
-			console.log("checking","#"+monRes);
-			$.jstree._reference('#monitoringTree').check_node("#"+monRes);
-			console.log("checking ", "#" + monRes);
-		});
-	}
+    var selMonResList = getQueryParams('monNodes');
+    if(selMonResList!=undefined && selMonResList!=""){
+        selMonResList = selMonResList.split(",");
+        $.each(selMonResList, function(index, monRes){
+            $.jstree._reference('#monitoringTree').check_node("#"+monRes);
+        });
+    }
 }
 
-function addSliderToMonitoringGraphs(agentIndex, resourceIndex, length, k){
-	var st = Math.ceil(length/100);
-	var options={
-		min: 0,
-		max: length,
-		step:st,
-		stop: function(event, ui){
-			console.log("value", ui.value);
-			plotResourceGraphs(agentIndex, resourceIndex, true);
-		}
-	}
-	var agentName = window["monitorResources"][agentIndex]["agent"];
-	var resName = window["monitorResources"][agentIndex]["resources"][resourceIndex];
-	for(var i=0;i<k;i++){
-		var sldr = "#slider-" + agentName + "-" + resName + "-" + i;
-		sldr = sldr.replace(/\./g,"_");
-		$(sldr).slider(options);
-	}
+function updateStateOnCheck(){
+    var selectedTimerNodes = $.jstree._reference('#timerTree').get_checked(null, 'get_all');
+    var selectedMonNodes = $.jstree._reference('#monitoringTree').get_checked(null, 'get_all');
+    var selTimerList = [];
+    $.each(selectedTimerNodes, function(index, node){
+        selTimerList.push($(node).attr('id'));
+    });
+    if(getQueryParams('timerNodes')!=undefined){
+        $.each(getQueryParams('timerNodes').split(","), function(index, node){
+            if(selTimerList.indexOf(node)==-1) selTimerList.push(node);
+        });
+    }
+    var selMonResList = [];
+    $.each(selectedMonNodes, function(index, node){
+        selMonResList.push($(node).attr('id'));
+    });
+    if(getQueryParams('monNodes')!=undefined){
+        $.each(getQueryParams('monNodes').split(","), function(index, node){
+            if(selMonResList.indexOf(node)==-1) selMonResList.push(node);
+        });
+    }
+    var autoRefresh = getQueryParams("autoRefresh");
+    var interval = getQueryParams("interval");
+    if(autoRefresh==undefined) autoRefresh = "false";
+    if(interval==undefined) interval = "60000";
+    var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId")+ "&autoRefresh="+ autoRefresh + "&interval=" + interval + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join() ;
+    history.replaceState(null, null, link);
 }
 
+function updateStateOnUnCheck(){
+    var selectedTimerNodes = $.jstree._reference('#timerTree').get_checked(null, 'get_all');
+    var selectedMonNodes = $.jstree._reference('#monitoringTree').get_checked(null, 'get_all');
+    var selTimerList = [];
+    $.each(selectedTimerNodes, function(index, node){
+        selTimerList.push($(node).attr('id'));
+    });
+    
+    var selMonResList = [];
+    $.each(selectedMonNodes, function(index, node){
+        selMonResList.push($(node).attr('id'));
+    });
+    var autoRefresh = getQueryParams("autoRefresh");
+    var interval = getQueryParams("interval");
+    if(autoRefresh==undefined) autoRefresh = "false";
+    if(interval==undefined) interval = "60000";
+    var link = window.location.origin+ "/graphreports.html" + "?&jobId=" + getQueryParams("jobId")+ "&autoRefresh="+ autoRefresh + "&interval=" + interval  + "&monNodes=" + selMonResList.join() + "&timerNodes=" + selTimerList.join();
+    history.replaceState(null, null, link);
+}
+
+function getRandomColor(){
+    var colors = ["#ff7f0e", "#1f77b4", "#2ca02c", "#d62728", "#DF01D7", "#08088A", "#FF0000"];
+    return colors[Math.floor((Math.random()*6))];
+}

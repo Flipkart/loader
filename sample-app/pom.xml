@@ -5,11 +5,11 @@
     <parent>
         <groupId>com.flipkart.perf</groupId>
         <artifactId>loader</artifactId>
-        <version>0.3.0</version>
+        <version>1.0.0</version>
     </parent>
     <groupId>com.flipkart.perf</groupId>
     <artifactId>sample-app</artifactId>
-    <version>0.3.0</version>
+    <version>1.0.0</version>
     <name>sample-app</name>
     <url>http://maven.apache.org</url>
 

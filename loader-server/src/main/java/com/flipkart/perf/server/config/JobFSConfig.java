@@ -10,15 +10,17 @@ public class JobFSConfig {
     private String runsPath;
     private String runPath;
     private String runFile;
-    private String jobRunNameFile;
+    private String jobRunFile;
     private String jobsPath;
     private String jobPath;
     private String jobStatusFile;
     private String runJobsFile;
     private String jobStatsPath;
     private String jobGroupStatsPath;
-    private String jobGroupTimersStatsPath;
-    private String jobGroupCountersStatsPath;
+    private String jobFunctionStatsPath;
+    private String jobFunctionTimersStatsPath;
+    private String jobFunctionCountersStatsPath;
+    private String jobFunctionHistogramStatsPath;
     private String jobMetricStatsFile;
     private String jobMonitoringStatsPath;
     private String jobResourceMonitoringFile;
@@ -26,6 +28,15 @@ public class JobFSConfig {
     private String runningJobsFile;
     private String queuedJobsFile;
     private String jobGroupConfFile;
+
+    private String workflowJobsPath;
+    private String workflowJobPath;
+    private String workflowJobStatusPath;
+
+    private String scheduledWorkflowsPath;
+    private String scheduledWorkflowPath;
+    private String scheduledWorkflowRunningFile;
+    private String scheduledWorkflowJobsFile;
 
     public String getBusinessUnitsPath() {
         return businessUnitsPath;
@@ -71,12 +82,12 @@ public class JobFSConfig {
         this.runFile = runFile;
     }
 
-    public String getJobRunNameFile(String jobId) {
-        return jobRunNameFile.replace("{jobId}", jobId);
+    public String getJobRunFile(String jobId) {
+        return jobRunFile.replace("{jobId}", jobId);
     }
 
-    public void setJobRunNameFile(String jobRunNameFile) {
-        this.jobRunNameFile = jobRunNameFile;
+    public void setJobRunFile(String jobRunFile) {
+        this.jobRunFile = jobRunFile;
     }
 
     public String getRunsPath() {
@@ -145,12 +156,11 @@ public class JobFSConfig {
         this.jobStatsPath = jobStatsPath;
     }
 
-
-
-    public String getJobFunctionStatsFile(String jobId, String groupName, String metricType, String metricName, String agentIp) {
+    public String getJobFunctionStatsFile(String jobId, String groupName, String functionName, String metricType, String metricName, String agentIp) {
         return jobMetricStatsFile.
                 replace("{jobId}", jobId).
                 replace("{groupName}", groupName).
+                replace("{functionName}", functionName).
                 replace("{metricType}", metricType).
                 replace("{metricName}", metricName).
                 replace("{agentIp}", agentIp);
@@ -197,24 +207,112 @@ public class JobFSConfig {
                 replace("{groupName}", groupName);
     }
 
-    public String getJobGroupTimersStatsPath(String jobId, String groupName) {
-        return jobGroupTimersStatsPath.
+    public String getJobFunctionStatsPath(String jobId, String groupName, String functionName) {
+        return jobFunctionStatsPath.
                 replace("{jobId}", jobId).
-                replace("{groupName}", groupName);
+                replace("{groupName}", groupName).
+                replace("{functionName}", functionName);
     }
 
-    public void setJobGroupTimersStatsPath(String jobGroupTimersStatsPath) {
-        this.jobGroupTimersStatsPath = jobGroupTimersStatsPath;
+    public void setJobFunctionStatsPath(String jobFunctionStatsPath) {
+        this.jobFunctionStatsPath = jobFunctionStatsPath;
     }
 
-    public String getJobGroupCountersStatsPath(String jobId, String groupName) {
-        return jobGroupCountersStatsPath.
+    public String getJobFunctionTimersStatsPath(String jobId, String groupName, String functionName) {
+        return jobFunctionTimersStatsPath.
                 replace("{jobId}", jobId).
-                replace("{groupName}", groupName);
+                replace("{groupName}", groupName).
+                replace("{functionName}", functionName);
     }
 
-    public void setJobGroupCountersStatsPath(String jobGroupCountersStatsPath) {
-        this.jobGroupCountersStatsPath = jobGroupCountersStatsPath;
+    public void setJobFunctionTimersStatsPath(String jobFunctionTimersStatsPath) {
+        this.jobFunctionTimersStatsPath = jobFunctionTimersStatsPath;
+    }
+
+    public String getJobFunctionCountersStatsPath(String jobId, String groupName, String functionName) {
+        return jobFunctionCountersStatsPath.
+                replace("{jobId}", jobId).
+                replace("{groupName}", groupName).
+                replace("{functionName}", functionName);
+    }
+
+    public void setJobFunctionCountersStatsPath(String jobFunctionCountersStatsPath) {
+        this.jobFunctionCountersStatsPath = jobFunctionCountersStatsPath;
+    }
+
+    public String getJobFunctionHistogramStatsPath(String jobId, String groupName, String functionName) {
+        return jobFunctionHistogramStatsPath.
+                replace("{jobId}", jobId).
+                replace("{groupName}", groupName).
+                replace("{functionName}", functionName);
+    }
+
+    public void setJobFunctionHistogramStatsPath(String jobFunctionHistogramStatsPath) {
+        this.jobFunctionHistogramStatsPath = jobFunctionHistogramStatsPath;
+    }
+
+    public String getWorkflowJobsPath() {
+        return workflowJobsPath;
+    }
+
+    public JobFSConfig setWorkflowJobsPath(String workflowJobsPath) {
+        this.workflowJobsPath = workflowJobsPath;
+        return this;
+    }
+
+    public String getWorkflowJobPath(String workflowJobId) {
+        return this.workflowJobPath.replace("{workflowId}", workflowJobId);
+    }
+
+    public JobFSConfig setWorkflowJobPath(String workflowJobPath) {
+        this.workflowJobPath = workflowJobPath;
+        return this;
+    }
+
+    public String getWorkflowJobStatusPath(String workflowJobId) {
+        return this.workflowJobStatusPath.replace("{workflowId}", workflowJobId);
+    }
+
+    public JobFSConfig setWorkflowJobStatusPath(String workflowJobStatusPath) {
+        this.workflowJobStatusPath = workflowJobStatusPath;
+        return this;
+    }
+
+
+    public String getScheduledWorkflowsPath() {
+        return scheduledWorkflowsPath;
+    }
+
+    public JobFSConfig setScheduledWorkflowsPath(String scheduledWorkflowsPath) {
+        this.scheduledWorkflowsPath = scheduledWorkflowsPath;
+        return this;
+    }
+
+    public String getScheduledWorkflowPath(String workflowName) {
+        return this.scheduledWorkflowPath.replace("{workflowName}", workflowName);
+    }
+
+    public JobFSConfig setScheduledWorkflowPath(String scheduledWorkflowPath){
+        this.scheduledWorkflowPath = scheduledWorkflowPath;
+        return this;
+    }
+
+    public String getScheduledWorkflowRunningFile(String workflowName) {
+        return this.scheduledWorkflowRunningFile.replace("{workflowName}", workflowName);
+    }
+
+    public JobFSConfig setScheduledWorkflowRunningFile(String scheduledWorkflowRunningFile) {
+        this.scheduledWorkflowRunningFile = scheduledWorkflowRunningFile;
+        return this;
+    }
+
+    public String getScheduledWorkflowJobsFile(String workflowName) {
+        return this.scheduledWorkflowJobsFile.replace("{workflowName}", workflowName);
+    }
+
+    public JobFSConfig setScheduledWorkflowJobsFile(String scheduledWorkflowJobsFile) {
+        this.scheduledWorkflowJobsFile = scheduledWorkflowJobsFile;
+        return this;
     }
 }
 

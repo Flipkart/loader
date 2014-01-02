@@ -23,7 +23,7 @@ public class HttpGetRunTestClass {
                                         addParam(HttpGet.IP_PASS_ON_BODY, false).
                                         addParam(HttpGet.IP_EXPECTED_STATUS_CODE, 200).
                                         setDumpData(true))).
-                start(UUID.randomUUID().toString());
+                start(UUID.randomUUID().toString(), 12345);
 
     }
 }

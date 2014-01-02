@@ -9,14 +9,17 @@ package com.flipkart.perf.server.config;
  */
 
 import com.yammer.dropwizard.config.Configuration;
+import nitinka.jmetrics.JMetricConfig;
 
 public class LoaderServerConfiguration extends Configuration {
     private String appName;
+    private ScheduledExecutorConfig scheduledExecutorConfig;
     private ResourceStorageFSConfig resourceStorageFSConfig;
     private AgentConfig agentConfig;
     private MonitoringAgentConfig monitoringAgentConfig;
     private JobFSConfig jobFSConfig;
     private DataFixConfig dataFixConfig;
+    private JMetricConfig jMetricConfig;
     private String reportConfigFile;
     private static LoaderServerConfiguration instance;
 
@@ -85,6 +88,30 @@ public class LoaderServerConfiguration extends Configuration {
     public LoaderServerConfiguration setDataFixConfig(DataFixConfig dataFixConfig) {
         this.dataFixConfig = dataFixConfig;
         return this;
+    }
+
+    public JMetricConfig getjMetricConfig() {
+        return jMetricConfig;
+    }
+
+    public void setjMetricConfig(JMetricConfig jMetricConfig) {
+        this.jMetricConfig = jMetricConfig;
+    }
+
+    public static LoaderServerConfiguration getInstance() {
+        return instance;
+    }
+
+    public static void setInstance(LoaderServerConfiguration instance) {
+        LoaderServerConfiguration.instance = instance;
+    }
+
+    public ScheduledExecutorConfig getScheduledExecutorConfig() {
+        return scheduledExecutorConfig;
+    }
+
+    public void setScheduledExecutorConfig(ScheduledExecutorConfig scheduledExecutorConfig) {
+        this.scheduledExecutorConfig = scheduledExecutorConfig;
     }
 }
 
