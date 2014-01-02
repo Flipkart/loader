@@ -5,11 +5,11 @@
     <parent>
         <groupId>com.flipkart.perf</groupId>
         <artifactId>loader</artifactId>
-        <version>0.3.0</version>
+        <version>1.0.0</version>
     </parent>
     <groupId>perf.operation.redis</groupId>
     <artifactId>loader-redis-operations</artifactId>
-    <version>0.3.0</version>
+    <version>1.0.0</version>
     <name>loader-redis-operations</name>
     <url>redis://maven.apache.org</url>
 
@@ -26,16 +26,16 @@
         <dependency>
             <groupId>com.flipkart.perf</groupId>
             <artifactId>loader-core</artifactId>
-            <version>0.3.0</version>
+            <version>1.0.0</version>
             <scope>provided</scope>
         </dependency>
-<dependency>
-    <groupId>redis.clients</groupId>
-    <artifactId>jedis</artifactId>
-    <version>2.0.0</version>
-    <type>jar</type>
-    <scope>compile</scope>
-</dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.0.0</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

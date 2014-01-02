@@ -4,11 +4,11 @@
     <parent>
         <groupId>com.flipkart.perf</groupId>
         <artifactId>loader</artifactId>
-        <version>0.3.0</version>
+        <version>1.0.0</version>
     </parent>
     <groupId>com.flipkart.perf</groupId>
     <artifactId>monitoring-service</artifactId>
-    <version>0.3.0</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>monitoring-service</name>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>com.flipkart.perf</groupId>
             <artifactId>utilities</artifactId>
-            <version>0.3.0</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.yammer.dropwizard</groupId>

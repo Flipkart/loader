@@ -4,12 +4,12 @@
     <parent>
         <groupId>com.flipkart.perf</groupId>
         <artifactId>loader</artifactId>
-        <version>0.3.0</version>
+        <version>1.0.0</version>
     </parent>
 
     <groupId>com.flipkart.perf</groupId>
     <artifactId>loader-server</artifactId>
-    <version>0.3.0</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>loader-server</name>
@@ -19,17 +19,17 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-<repositories>
-    <repository>
-        <id>nitinka.mvn.repo</id>
-        <url>https://github.com/nitinka/mvn-repo/raw/master</url>
-        <!-- use snapshot version -->
-        <snapshots>
-            <enabled>true</enabled>
-            <updatePolicy>always</updatePolicy>
-        </snapshots>
-    </repository>
-</repositories>
+    <repositories>
+        <repository>
+            <id>nitinka.mvn.repo</id>
+            <url>https://github.com/nitinka/mvn-repo/raw/master</url>
+            <!-- use snapshot version -->
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>com.flipkart.perf</groupId>
             <artifactId>loader-core</artifactId>
-            <version>0.3.0</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
