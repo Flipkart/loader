@@ -4,11 +4,14 @@ package com.flipkart.perf.server.domain;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import com.flipkart.perf.common.util.FileHelper;
 
+import com.flipkart.perf.server.cache.JobsCache;
 import com.flipkart.perf.server.config.JobFSConfig;
 import com.flipkart.perf.server.config.LoaderServerConfiguration;
+import com.flipkart.perf.server.exception.InvalidJobStateException;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
 import com.flipkart.perf.server.util.ResponseBuilder;
 import org.slf4j.Logger;
@@ -134,32 +137,31 @@ public class PerformanceRun {
                 readValue(new File(LoaderServerConfiguration.instance().getJobFSConfig().getRunFile(runName)), PerformanceRun.class);
     }
 
-    public void delete(boolean deleteJobs) throws IOException {
-        if(deleteJobs) {
-            File runJobsFile = new File(LoaderServerConfiguration.instance().getJobFSConfig().getRunJobsFile(this.runName));
-            if(runJobsFile.exists())  {
-                BufferedReader jobReader = null;
-                try {
-                    jobReader = new BufferedReader(new InputStreamReader(new FileInputStream(runJobsFile)));
-                    String runJob;
-                    while((runJob = jobReader.readLine()) != null) {
-                        if(!runJob.trim().equals("")) {
-                            File jobPath = new File(LoaderServerConfiguration.instance().getJobFSConfig().getJobPath(runJob));
-                            if(jobPath.exists()) {
-                                FileHelper.remove(jobPath.getAbsolutePath());
-                            }
-                        }
+    public void delete() throws IOException {
+        File runJobsFile = new File(LoaderServerConfiguration.instance().getJobFSConfig().getRunJobsFile(this.runName));
+        if(runJobsFile.exists())  {
+            BufferedReader jobReader = null;
+            try {
+                jobReader = new BufferedReader(new InputStreamReader(new FileInputStream(runJobsFile)));
+                String jobId;
+                while((jobId = jobReader.readLine()) != null) {
+                    if(!jobId.trim().equals("")) {
+                        Job job = JobsCache.getJob(jobId);
+                        job.delete();
                     }
                 }
-                catch (IOException e) {
-                    logger.error("Error while deleting Job details for run "+this.runName,e);
-                } finally {
-                    if(jobReader != null)
-                        jobReader.close();
-                }
+            }
+            catch (IOException e) {
+                logger.error("Error while deleting Job details for run "+this.runName,e);
+            } catch (ExecutionException e) {
+                logger.error("Error while deleting Job details for run " + this.runName, e);
+            } catch (InvalidJobStateException e) {
+                logger.error("Error while deleting Job details for run " + this.runName, e);
+            } finally {
+                if(jobReader != null)
+                    jobReader.close();
             }
         }
-
 
         FileHelper.remove(LoaderServerConfiguration.instance().getJobFSConfig().getRunPath(runName));
         BusinessUnit businessUnit = BusinessUnit.build(this.getBusinessUnit());

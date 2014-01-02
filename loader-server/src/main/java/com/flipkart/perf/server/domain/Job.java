@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutionException;
 
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.domain.Load;
+import com.flipkart.perf.server.exception.InvalidJobStateException;
 import com.flipkart.perf.server.util.ResponseBuilder;
 import nitinka.jmetrics.JMetric;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -694,13 +695,13 @@ public  class Job {
         this.logLevel = logLevel;
     }
 
-    public void delete() {
+    public void delete() throws InvalidJobStateException {
         if(this.isCompleted()) {
             FileHelper.remove(configuration.getJobFSConfig().getJobPath(this.jobId));
             JobsCache.removeJob(this.jobId);
         }
         else {
-            throw new WebApplicationException(ResponseBuilder.badRequest("Job id "+this.jobId+" not completed yet"));
+            throw new InvalidJobStateException("Job id "+this.jobId+" not completed yet");
         }
     }
 }
