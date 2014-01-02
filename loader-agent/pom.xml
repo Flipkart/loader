@@ -4,11 +4,11 @@
     <parent>
         <groupId>com.flipkart.perf</groupId>
         <artifactId>loader</artifactId>
-        <version>0.3.0</version>
+        <version>1.0.0</version>
     </parent>
     <groupId>com.flipkart.perf</groupId>
     <artifactId>loader-agent</artifactId>
-    <version>0.3.0</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>loader-agent</name>
@@ -24,15 +24,15 @@
             <name>Jetty Releases</name>
             <url>https://oss.sonatype.org/content/repositories/jetty-releases</url>
         </repository>
-<repository>
-        <id>nitinka.mvn.repo</id>
-        <url>https://github.com/nitinka/mvn-repo/raw/master</url>
-        <!-- use snapshot version -->
-        <snapshots>
-            <enabled>true</enabled>
-            <updatePolicy>always</updatePolicy>
-        </snapshots>
-    </repository>
+        <repository>
+            <id>nitinka.mvn.repo</id>
+            <url>https://github.com/nitinka/mvn-repo/raw/master</url>
+            <!-- use snapshot version -->
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.flipkart.perf</groupId>
             <artifactId>utilities</artifactId>
-            <version>0.3.0</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey.contribs</groupId>
