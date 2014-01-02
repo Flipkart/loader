@@ -4,12 +4,12 @@
     <parent>
         <groupId>com.flipkart.perf</groupId>
         <artifactId>loader</artifactId>
-        <version>0.3.0</version>
+        <version>1.0.0</version>
     </parent>
 
     <groupId>com.flipkart.perf</groupId>
     <artifactId>loader-server</artifactId>
-    <version>0.3.0</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>loader-server</name>
@@ -18,6 +18,18 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>nitinka.mvn.repo</id>
+            <url>https://github.com/nitinka/mvn-repo/raw/master</url>
+            <!-- use snapshot version -->
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -38,8 +50,18 @@
         <dependency>
             <groupId>com.flipkart.perf</groupId>
             <artifactId>loader-core</artifactId>
-            <version>0.3.0</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.unboundid</groupId>
+            <artifactId>unboundid-ldapsdk</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yammer.dropwizard</groupId>
+            <artifactId>dropwizard-auth</artifactId>
+            <version>0.6.1</version>
         </dependency>
         <dependency>
             <groupId>com.yammer.dropwizard</groupId>
@@ -60,6 +82,16 @@
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.9.9-RC1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>nitinka.jmetrics</groupId>
+            <artifactId>JMetrics</artifactId>
+            <version>0.1.3</version>
         </dependency>
     </dependencies>
     <build>

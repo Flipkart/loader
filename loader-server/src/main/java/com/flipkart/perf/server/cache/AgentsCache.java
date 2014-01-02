@@ -74,10 +74,7 @@ public class AgentsCache {
         List<LoaderAgent> freeAgents = new ArrayList<LoaderAgent>();
         for(LoaderAgent loaderAgent : agentInfoMap.values()) {
             if(loaderAgent.getStatus().equals(LoaderAgent.LoaderAgentStatus.FREE)) {
-                AgentHelper.refreshAgentInfo(loaderAgent);
-                if(loaderAgent.getStatus().equals(LoaderAgent.LoaderAgentStatus.FREE)) {
-                    freeAgents.add(loaderAgent);
-                }
+                freeAgents.add(loaderAgent);
             }
         }
         return freeAgents;

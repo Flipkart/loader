@@ -2,7 +2,9 @@ package com.flipkart.perf.domain;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,11 +17,17 @@ public class GroupFunction implements Cloneable {
     private String functionClass;
     private boolean dumpData ;
     private Map<String,Object> params ;
-    
+    private List<String> customTimers;
+    private List<String> customCounters;
+    private List<String> customHistograms;
+
     public GroupFunction() {
     	this.dumpData = false;
     	this.functionClass = null;
     	this.params = new HashMap<String, Object>();
+        this.customTimers = new ArrayList<String>();
+        this.customCounters = new ArrayList<String>();
+        this.customHistograms = new ArrayList<String>();
     }
 
     public GroupFunction(String functionalityName) {
@@ -75,11 +83,53 @@ public class GroupFunction implements Cloneable {
         return (GroupFunction) super.clone();
     }
 
+    public List<String> getCustomTimers() {
+        return customTimers;
+    }
+
+    public GroupFunction setCustomTimers(List<String> customTimers) {
+        this.customTimers = customTimers;
+        return this;
+    }
+
+    public GroupFunction addCustomTimer(String customTimer) {
+        this.customTimers.add(customTimer);
+        return this;
+    }
+
+    public List<String> getCustomCounters() {
+        return customCounters;
+    }
+
+    public GroupFunction setCustomCounters(List<String> customCounters) {
+        this.customCounters = customCounters;
+        return this;
+    }
+
+    public GroupFunction addCustomCounter(String customCounter) {
+        this.customCounters.add(customCounter);
+        return this;
+    }
+
+    public List<String> getCustomHistograms() {
+        return customHistograms;
+    }
+
+    public GroupFunction setCustomHistograms(List<String> customHistograms) {
+        this.customHistograms = customHistograms;
+        return this;
+    }
+
     @JsonIgnore
     public String uniqueFunctionName() {
         return this.functionalityName
                 + "." + this.functionClass
                 + "." + FUNCTION_NAME;
+    }
+
+    public GroupFunction addCustomHistogram(String customHistogram) {
+        this.customHistograms.add(customHistogram);
+        return this;
     }
 
     void validate() {

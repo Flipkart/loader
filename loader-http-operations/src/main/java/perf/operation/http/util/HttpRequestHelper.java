@@ -91,7 +91,7 @@ public class HttpRequestHelper {
                 Integer.parseInt(proxyInfoMap.get("port").toString())));
     }
 
-    public static void setFollowRedirects(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) {
+    public static void setFollowRedirects(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) throws IOException {
         requestBuilder.setFollowRedirects(context.getParameterAsBoolean(Constants.IP_FOLLOW_REDIRECTS).booleanValue());
     }
 
@@ -116,7 +116,7 @@ public class HttpRequestHelper {
      * @param requestBuilder
      */
     public static void addRequestBody(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder)
-            throws FileNotFoundException {
+            throws IOException {
         Object bodyStringObj = context.getParameter(Constants.IP_BODY_STRING);
         if(bodyStringObj != null) {
             requestBuilder.setBody(bodyStringObj.toString());
@@ -142,7 +142,7 @@ public class HttpRequestHelper {
      * @param context
      * @param requestBuilder
      */
-    public static void setCharacterEncoding(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) {
+    public static void setCharacterEncoding(FunctionContext context, AsyncHttpClient.BoundRequestBuilder requestBuilder) throws IOException {
         requestBuilder.setBodyEncoding(context.getParameterAsString(Constants.IP_BODY_ENCODING, "UTF-8"));
     }
 
@@ -152,6 +152,7 @@ public class HttpRequestHelper {
                                 setName(Constants.IP_COOKIES).
                                 setMandatory(false).
                                 setDefaultValue("[]").
+                                setType(FunctionParameter.ParameterType.LIST).
                                 setDescription("Proxy for the request as json. Eg : [{'name' : 'value'}]"));
     }
 
@@ -161,6 +162,7 @@ public class HttpRequestHelper {
                                 setName(Constants.IP_PROXY).
                                 setMandatory(false).
                                 setDefaultValue("{}").
+                                setType(FunctionParameter.ParameterType.MAP).
                                 setDescription("Proxy for the request as json. Eg : {'host' : '127.0.0.1', 'port' : '1234'}"));
     }
 
@@ -170,6 +172,7 @@ public class HttpRequestHelper {
                                 setName(Constants.IP_QUERY_PARAMETERS).
                                 setMandatory(false).
                                 setDefaultValue("{}").
+                                setType(FunctionParameter.ParameterType.MAP).
                                 setDescription("Http Request Query Parameters as json"));
     }
 
@@ -179,6 +182,7 @@ public class HttpRequestHelper {
                                 setName(Constants.IP_PARAMETERS).
                                 setMandatory(false).
                                 setDefaultValue("{}").
+                                setType(FunctionParameter.ParameterType.MAP).
                                 setDescription("Http Request Parameters as json"));
     }
 
@@ -188,6 +192,7 @@ public class HttpRequestHelper {
                                 setName(Constants.IP_HEADERS).
                                 setMandatory(false).
                                 setDefaultValue("{}").
+                                setType(FunctionParameter.ParameterType.MAP).
                                 setDescription("Http Request Headers as json. Eg: {'content-type' : 'application/json', 'accept' : 'application/json'}"));
     }
 

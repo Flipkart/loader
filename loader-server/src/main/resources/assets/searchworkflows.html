@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+	</style>
+	<script type="text/javascript">
+		$(function(){
+			var workflowSearchModel = function(){
+				var self = this;
+				self.workflows = ko.observableArray(new Array());
+				self.onSearchClick = function searchWorkflows(){
+					var runName = $("#runName").val();
+					var workflowName = $("#workflowName").val();
+					$.ajax({
+						url: "/loader-server/scheduledWorkFlows?runName=" + runName + "&workflowName=" + workflowName,
+						contentType: "application/json", 
+						dataType:"json",
+						type:"GET",
+						async:false,
+						success: function(data){
+							var wfs = []
+							$.each(data, function(index, workflow){
+							wfs.push({"workflowName": workflow["name"], "workflowUrl":"updatescheduledworkflow.html?&workflowName=" + workflow["name"]});
+							});	
+							self.workflows(wfs);
+						},
+						error: function(e){
+							console.log("Error");
+						},
+						complete: function(xhr, status){
+							console.log(status);
+						}
+					});
+				}
+			}
+			ko.applyBindings(new workflowSearchModel());
+		});
+	</script>
+</head>
+<body>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+		  $("#navigation").load('header.html');
+	    })
+	</script>
+	<!--navigation bar ends-->
+	<!--breadcrumbs make it dynamic-->
+	<ul class="breadcrumb">
+  		<li><a href="index.htm">Home</a> <span class="divider">/</span></li>
+  		<li><a href="#">Search Workflows</a> <span class="divider">/</span></li>
+	</ul>
+	<!--breadcrumbs end-->
+	<div class="row-fluid">
+		<div class="span12">
+			<div class="row-fluid">
+				<div class="span5">
+					<label class="span3">Workflow Name</label>
+					<input id="workflowName" type="text" class="input-large"> 
+				</div>
+				<div class="span5">
+					<label class="span3">Run Name</label>
+					<input id="runName" type="text" class="input-large">
+				</div>
+				<div class="span2">
+					<button class="btn" data-bind="click: onSearchClick">Search</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<table id="workflows" class="table table-bordered">
+			<thead>
+				<tr>
+					<th>Workflow Name</th>
+				</tr>
+			</thead>
+			<tbody data-bind="foreach: workflows">
+				<tr>
+					<td><a data-bind="attr: {'href': workflowUrl}, text: workflowName"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</body>
+</html>

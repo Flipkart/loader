@@ -60,6 +60,10 @@ public class JobsCache {
         return null;
     }
 
+    public static void removeJob(String jobId) {
+        jobs.invalidate(jobId);
+    }
+
     public static void put(String jobId, Job job) {
         jobs.put(jobId, job);
     }

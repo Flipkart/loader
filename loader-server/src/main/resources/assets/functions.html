@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+	<script type="text/javascript" src="js/knockout-2.3.0-min.js"></script>
+	<script type="text/javascript" src="js/functions.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<style type="text/css">
+		.navbar .header-border {
+			border-bottom:4px solid #E47911;
+		}
+		.inner-well {
+			background-color: white;
+		}
+	</style>
+</head>
+<body>
+	<!--Navigation Bar-->
+	<div id="navigation">
+	</div>
+	<script>
+		$(function(){
+			$("#navigation").load('header.html');
+			getAllFunctions();
+			console.log("clicking" , $("#packages .row-fluid a").first());
+			$("#packages .row-fluid a").first().click();
+			$("#functions .row-fluid a").first().click();
+		});
+	</script>
+	<!--Navigation bar ends here-->
+	<!--Adding the breadcrumb-->
+	<ul class="breadcrumb">
+  		<li><a href="index.htm">Home</a> <span class="divider">/</span></li>
+  		<li><a href="#">Functions</a> <span class="divider">/</span></li>
+	</ul>
+	<!--Breadcrumb ends-->
+	<div class="row-fluid">
+		<div class="span3">
+			<div class="row-fluid">
+				<form>
+					<legend>Packages</legend>
+					<div id="packages" class="well inner-well scrollable" style="max-height:40%" data-bind="foreach: packages">
+						<div class="row-fluid">
+							<a data-bind="text: packageName, click: $parent.onPkgClick"></a>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="row-fluid">
+				<form>
+					<legend>Functions</legend>
+					<div id="functions" class="well inner-well scrollable" style="max-height:40%" data-bind="foreach: packageFunctions">
+						<div class="row-fluid">
+							<a data-bind="text: functionName, click: $parent.onFunctionClick"></a>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		<div class="span9">
+			<div class="row-fluid">
+				<form>
+					<legend>Description</legend>
+					<div class="well inner-well">
+						<div class="row-fluid">
+							<label class="span2"><strong>Function Class :</strong></label>
+							<div class="span10"><span data-bind="text: functionDetails().function"></span></div>
+						</div>
+						<div class="row-fluid">
+							<label class="span2"><strong>Description :</strong></label>
+							<div class="span10" data-bind="text: functionDetails().description"></div>
+						</div>
+						<div class="row-fluid">
+							<h3>Input Parameters</h3>
+							<hr>
+							<div class="span12">
+								<label class="span3"><strong>Parameter Name</strong></label>
+								<label class="span2"><strong>Parameter Type</strong></label>
+								<label class="span2"><strong>Default Value</strong></label>
+								<label class="span5"><strong>Description</strong></label>
+							</div>
+							<div class="span12" data-bind="foreach: functionDetails().inputParameters">
+								<div class="row-fluid" style="word-break:break-all">
+									<label class="span3"><strong><span data-bind="text: name"></span><span style="color:red;" data-bind="visible: mandatory">*</span></strong></label>
+									<label class="span2"><span data-bind="text: type"></span></label>
+									<label class="span2"><span data-bind="text: defaultValue"></span></label>
+									<label class="span5"><span data-bind="text: description"></span></label>
+								</div>
+							</div>
+						</div>
+						<div class="row-fluid">
+							<h3>Output Parameters</h3>
+							<hr>
+							<div class="span12">
+								<label class="span3"><strong>Parameter Name</strong></label>
+								<label class="span2"><strong>Parameter Type</strong></label>
+								<label class="span2"><strong>Default Value</strong></label>
+								<label class="span5"><strong>Description</strong></label>
+							</div>
+							<div class="span12" data-bind="foreach: functionDetails().outputParameters">
+								<div class="row-fluid" style="word-break:break-all">
+									<label class="span3"><strong><span data-bind="text: name"></span></strong></label>
+									<label class="span2"><span data-bind="text: type"></span></label>
+									<label class="span2"><span data-bind="text: defaultValue"></span></label>
+									<label class="span5"><span data-bind="text: description"></span></label>
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+

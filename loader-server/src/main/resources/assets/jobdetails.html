@@ -12,6 +12,7 @@
 		.navbar .header-border {
 			border-bottom:4px solid #E47911;
 		}
+		textarea { resize:none; }
 	</style>
 </head>
 <body>
@@ -61,7 +62,6 @@
 	  		    <div class="row-fluid">
 		  			<div class="span8">
 	  				<label class="span3"><strong>Run Name</strong></label>
-<!-- 	  				<p class="span9" id="runName" data-bind="text: runName"></p> -->	  			
 						<a class="span9" id="runName" data-bind="attr: {'href': runUrl}, text: runName"></a>
 					</div>
 		  			<div class="span4">
@@ -69,17 +69,24 @@
 		  				<p class="span8" data-bind="text: endTime"></p>
 		  			</div>
 		  		</div>
+		  		<div class="row-fluid">
+		  			<div class="span6">
+		  				<label class="span4"><strong>Remarks</strong></label>
+		  				<textarea class="span8" rows="3" id="remarks" data-bind="value: remarks"></textarea>
+		  			</div>
+		  		</div>
 	  		  </fieldset>
 			</form>
 		<!--Buttons(stop job, reports)-->
 		<div class="btn-group pull-left">
   			<button id="stopJob" data-bind="attr: {'class': stopBtnClass}" onClick="stopJob()">Stop</button>
+  			<button id="deleteJob" class="btn"  data-bind="attr: {'class':deleteBtnClass}" onClick="deleteJob()">Delete</button>
   			<button id="generateLogs" class="btn" data-bind="attr: {'class': logsBtnClass}" onClick="generateLogs()">Logs</button>
   			<button id="generateGraphs" class="btn" data-bind="attr: {'class': graphsBtnClass}" onClick="generateGraphs()">Reports</button>
   			<button id="reRun" class="btn" data-bind="attr: {'class': reRunBtnClass}" onClick="reRun()">Rerun</button>
 		</div>
 		<br/>
-		<hr>
+		<br/>
 		<!--List of agents used for the job-->
 		<table id="jobAgents" class="table table-bordered">
 			<caption class="text-left"><strong>Agents Used</strong></caption>

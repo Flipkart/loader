@@ -20,7 +20,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -53,9 +55,8 @@ public class AgentResource {
     @Timed
     synchronized public LoaderAgent addAgent(@Context HttpServletRequest request,
                                              Map registrationParams) throws IOException, ExecutionException, InterruptedException {
-
         AgentsCache.addAgent(new LoaderAgent(request.getRemoteAddr(), registrationParams));
-        return AgentsCache.getAgentInfo(request.getRemoteAddr());
+        return AgentsCache.getAgentInfo(request.getRemoteAddr()).setFree();
     }
 
     @Produces(MediaType.APPLICATION_JSON)
@@ -98,6 +99,20 @@ public class AgentResource {
             throws IOException, ExecutionException, InterruptedException {
         if(AgentsCache.removeAgent(agentIp) == null)
             throw new WebApplicationException(ResponseBuilder.agentNotRegistered(agentIp));
+    }
+
+    @Path("/{agentIp}/tags")
+    @Produces(MediaType.APPLICATION_JSON)
+    @PUT
+    @Timed
+    synchronized public LoaderAgent addTags(@PathParam("agentIp") String agentIp, Set<String> tags)
+            throws IOException, ExecutionException, InterruptedException {
+
+        LoaderAgent agent = AgentsCache.getAgentInfo(agentIp);
+        if(agent != null)
+            return agent.setTags(tags);
+
+        throw new WebApplicationException(ResponseBuilder.agentNotRegistered(agentIp));
     }
 
     @Path("/{agentIp}/disable")

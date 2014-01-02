@@ -1,5 +1,6 @@
 package com.flipkart.perf.agent.job;
 
+import com.flipkart.perf.agent.client.JobClient;
 import com.flipkart.perf.common.jackson.ObjectMapperUtil;
 import com.flipkart.perf.common.util.FileHelper;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -25,13 +26,16 @@ public class AgentJob {
     public static enum JOB_STATUS {
         QUEUED, RUNNING, COMPLETED, KILLED, ERROR;
     }
+
     private static Logger log = LoggerFactory.getLogger(AgentJob.class);
     private static final JobFSConfig jobFSConfig = LoaderAgentConfiguration.instance().getJobFSConfig();
     private static final ObjectMapper objectMapper = ObjectMapperUtil.instance();
-    private String jobId, jobCmd;
     private JOB_STATUS jobStatus = JOB_STATUS.QUEUED;
+
+    private String jobId, jobCmd;
     private long startTime, endTime;
     private int jmxPort;
+    private int httpPort;
 
     public String getJobId() {
         return jobId;
@@ -58,6 +62,15 @@ public class AgentJob {
     public AgentJob setJmxPort(int jmxPort) {
         this.jmxPort = jmxPort;
         return this;
+    }
+
+    public AgentJob setHttpPort(int httpPort) {
+        this.httpPort = httpPort;
+        return this;
+    }
+
+    public int getHttpPort() {
+        return httpPort;
     }
 
     public JOB_STATUS getJobStatus() {
@@ -106,10 +119,7 @@ public class AgentJob {
     }
 
     public AgentJob kill() throws IOException, InterruptedException, ExecutionException {
-        String killCmd = "kill -9 `ps aux | grep "+jobId+" | grep -v grep | tr -s \" \" \":\" |cut -f 2 -d \":\"`";
-        log.info("Killing Job with Job Id :"+jobId);
-        Runtime.getRuntime().exec(new String[]{"/bin/sh","-c",killCmd}).
-                waitFor();
+        JobClient.killJob(this.jobId);
         killed();
         return this;
     }

@@ -12,13 +12,11 @@ import perf.operation.http.util.HttpResponseHelper;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+
 /**
  * Does Http Get Operation
  */
-/*
-    Example docs to follow :
-    - http://jfarcand.wordpress.com/2010/12/21/going-asynchronous-using-asynchttpclient-the-basic/
- */
+
 public class HttpGet extends PerformanceFunction implements Constants {
     private AsyncHttpClient asyncHttpClient;
 
@@ -37,6 +35,7 @@ public class HttpGet extends PerformanceFunction implements Constants {
         Response response = HttpRequestHelper.executeRequest(context, requestBuilder);
 
         if(HttpResponseHelper.successfulRequest(context, response)) {
+            context.updateHistogram("body-size", response.getResponseBody().length());
             HttpResponseHelper.passOnResponse(context, response);
         }
     }
@@ -67,6 +66,11 @@ public class HttpGet extends PerformanceFunction implements Constants {
                 "This Performance function is useful in doing Http Get Operation",
                 "Time out for request is 120seconds"
         });
+    }
+
+    @Override
+    public List<String> customHistograms() {
+        return Arrays.asList(new String[]{"body-size"});
     }
 }
 

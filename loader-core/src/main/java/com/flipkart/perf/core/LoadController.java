@@ -1,12 +1,18 @@
 package com.flipkart.perf.core;
 
+import com.flipkart.perf.common.util.ClassHelper;
+import com.flipkart.perf.datagenerator.DataGenerator;
+import com.flipkart.perf.datagenerator.DataGeneratorInfo;
 import com.flipkart.perf.domain.Group;
+import com.flipkart.perf.domain.GroupFunction;
 import com.flipkart.perf.domain.Load;
 import com.flipkart.perf.common.util.Clock;
+import com.flipkart.perf.inmemorydata.SharedDataInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -34,12 +40,30 @@ public class LoadController extends Thread{
         this.groupMap   =   load.groupMap();
         logger.info(jobId+" Number of groups : "+this.groupMap.size());
 
+        attachSetupGroup(load.getSetupGroup());
+        attachTearDownGroup(load.getTearDownGroup());
         validateCyclicDependency(); //Seems to be becoming expensive
 
+        LinkedHashMap<String, SharedDataInfo> sharedDataInfoMap = new LinkedHashMap<String, SharedDataInfo>();
         for(Group group : this.groupMap.values()) {
             this.addGroup(group);
+
+            for(GroupFunction groupFunction : group.getFunctions()) {
+                Object object = ClassHelper.getClassInstance(groupFunction.getFunctionClass(), new Class[]{}, new Object[]{});
+                Method method = ClassHelper.getMethod(groupFunction.getFunctionClass() , "sharedData", new Class[]{});
+                sharedDataInfoMap.putAll((LinkedHashMap<String, SharedDataInfo>) method.invoke(object, new Object[]{}));
+            }
         }
+
+        Map<String, DataGenerator> globalDataGenerators = new HashMap<String, DataGenerator>();
+        Map<String, DataGeneratorInfo> dataGeneratorInfoMap = load.getDataGenerators();
+        for(String dataGeneratorName : dataGeneratorInfoMap.keySet())  {
+            globalDataGenerators.put(dataGeneratorName,DataGenerator.buildDataGenerator(dataGeneratorInfoMap.get(dataGeneratorName)));
+        }
+
+        FunctionContext.initialize(sharedDataInfoMap, globalDataGenerators);
     }
+
 
     /**
      * Creating Group Dependency and Group Controller for given group
@@ -54,11 +78,47 @@ public class LoadController extends Thread{
     }
 
     /**
+     * Simply mark all groups dependent on this group
+     * @param setupGroup
+     */
+    private void attachSetupGroup(Group setupGroup) {
+        if(setupGroup != null) {
+            if(setupGroup.getRepeats() <=0 && setupGroup.getDuration() <= 0)
+                return;
+            if(setupGroup.getFunctions().size() == 0)
+                return;
+
+            for(Group group : this.groupMap.values()) {
+                group.dependsOn(setupGroup.getName());
+            }
+            this.groupMap.put(setupGroup.getName(), setupGroup);
+        }
+    }
+
+    /**
+     * Simply mark teardown group dependent on all groups
+     * @param tearDownGroup
+     */
+    private void attachTearDownGroup(Group tearDownGroup) {
+        if(tearDownGroup != null) {
+            if(tearDownGroup.getRepeats() <=0 && tearDownGroup.getDuration() <= 0)
+                return;
+            if(tearDownGroup.getFunctions().size() == 0)
+                return;
+
+            for(Group group : this.groupMap.values()) {
+                tearDownGroup.dependsOn(group.getName());
+            }
+            this.groupMap.put(tearDownGroup.getName(), tearDownGroup);
+        }
+    }
+
+    /**
      * Validate cyclic dependencies in the group
      */
-    private void validateCyclicDependency() {
+    private void validateCyclicDependency() throws Exception {
         for(String group : groupMap.keySet()) {
-            String dependencyGraph  =   getDependencyGraph(group);
+            String dependencyGraph = validateCyclicDependency(group, this.groupMap.get(group).getDependOnGroups(), group);
             logger.info(jobId+" Dependency graph for '"+group+"' is '"+dependencyGraph+"'");
             String[] dependencies   =   dependencyGraph.split("->");
             if(dependencies.length > 1)
@@ -82,7 +142,7 @@ public class LoadController extends Thread{
                         throw new RuntimeException(dependencyFlow);
                     // Following code will check first level dependency
                     if(this.groupMap.get(depGroup).getDependOnGroups().contains(depGroup)){
-                        throw new RuntimeException(dependencyFlow+" -> "+depGroup);
+                        throw new RuntimeException("Group Dependency Flow '" +dependencyFlow+" -> "+depGroup + "' is Cyclic");
                     }
                 }
                 // Following Code will help in checking transitive dependency
@@ -95,23 +155,12 @@ public class LoadController extends Thread{
         return dependencyFlow;
     }
 
-    private String getDependencyGraph(String group) {
-        String dependencyGraph  = group;
-        try {
-            dependencyGraph = validateCyclicDependency(group, this.groupMap.get(group).getDependOnGroups(), dependencyGraph);
-        } catch (Exception e) {
-            dependencyGraph = e.getLocalizedMessage();
-        }
-        return dependencyGraph;
-    }
-
     /**
      * Function that starts the load generation
      */
     public void run() {
         logger.info("****"+jobId+" LOAD CONTROLLER STARTED****");
         long startTime = Clock.milliTick();
-
         while(true) {
             ArrayList<GroupController> groupsToRun = new ArrayList<GroupController>();
             int groupsCanNotStartThisTime = 0;

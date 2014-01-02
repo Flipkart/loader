@@ -14,6 +14,8 @@ import java.io.*;
 import java.lang.String;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Compute both agent and overall timer files.
@@ -21,7 +23,6 @@ import java.util.concurrent.ExecutionException;
 public class GroupConfConsolidationThread extends Thread {
 
     private static ObjectMapper objectMapper;
-    private final int checkInterval;
     private final JobFSConfig jobFSConfig;
     private boolean stop = false;
     private List<String> aliveJobs;
@@ -69,17 +70,21 @@ public class GroupConfConsolidationThread extends Thread {
         FILE_EXTENSION = "stats";
     }
 
-    private GroupConfConsolidationThread(JobFSConfig jobFSConfig, int checkInterval) {
+    private GroupConfConsolidationThread(JobFSConfig jobFSConfig) {
         this.jobFSConfig = jobFSConfig;
-        this.checkInterval = checkInterval;
         this.aliveJobs = new ArrayList<String>();
         this.fileAlreadyReadLinesMap = new HashMap<String, Long>();
         this.fileCachedContentMap = new HashMap<String, List>();
     }
 
-    public static GroupConfConsolidationThread initialize(JobFSConfig jobFSConfig, int checkInterval) {
+    public static GroupConfConsolidationThread initialize(ScheduledExecutorService scheduledExecutorService, JobFSConfig jobFSConfig, int interval) {
         if(thread == null) {
-            thread = new GroupConfConsolidationThread(jobFSConfig, checkInterval);
+            thread = new GroupConfConsolidationThread(jobFSConfig);
+            scheduledExecutorService.scheduleWithFixedDelay(thread,
+                    1000,
+                    interval,
+                    TimeUnit.MILLISECONDS);
+
         }
         return thread;
     }
@@ -89,34 +94,17 @@ public class GroupConfConsolidationThread extends Thread {
     }
 
     public void run() {
-        while(keepRunning()) {
-            synchronized (this.aliveJobs) {
-                for(String jobId : this.aliveJobs) {
-                    try {
-                        crunchRealTimeGroupConf(jobId);
-                    } catch (FileNotFoundException e) {
-                        logger.error("Error While Crunching stats for job "+jobId,e);
-                    } catch (IOException e) {
-                        logger.error("Error While Crunching stats for job "+jobId,e);
-                    } catch (ExecutionException e) {
-                        logger.error("Error While Crunching stats for job "+jobId,e);
-                    }
+        synchronized (this.aliveJobs) {
+            for(String jobId : this.aliveJobs) {
+                try {
+                    crunchRealTimeGroupConf(jobId);
+                } catch (FileNotFoundException e) {
+                    logger.error("Error While Crunching stats for job "+jobId,e);
+                } catch (IOException e) {
+                    logger.error("Error While Crunching stats for job "+jobId,e);
+                } catch (ExecutionException e) {
+                    logger.error("Error While Crunching stats for job "+jobId,e);
                 }
-            }
-            checkInterval();
-        }
-    }
-
-    private void checkInterval() {
-        logger.debug("Sleeping for " + this.checkInterval + "ms");
-        int totalInterval = 0;
-        int granularSleep = 200;
-        while(totalInterval < this.checkInterval && !this.stop) {
-            try {
-                Clock.sleep(granularSleep);
-                totalInterval += granularSleep;
-            } catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
         }
     }
@@ -281,14 +269,6 @@ public class GroupConfConsolidationThread extends Thread {
         return ((currentTimeMS - firstLineTimeMS) > ((isAgentStats ? 20 : 60) + 30) * MathConstant.THOUSAND) || jobOver(jobId); // Crunch if data is older than 60 + 30 seconds
     }
 
-    private boolean keepRunning() {
-        return !stop;
-    }
-
-    public void stopIt() {
-        stop = true;
-    }
-
     public void addJob(String jobId) {
         synchronized (this.aliveJobs) {
             this.aliveJobs.add(jobId);
@@ -304,11 +284,5 @@ public class GroupConfConsolidationThread extends Thread {
 
     private boolean jobOver(String jobId) {
         return !this.aliveJobs.contains(jobId);
-    }
-
-    public static void main(String[] args) throws IOException, ExecutionException {
-        GroupConfConsolidationThread t = new GroupConfConsolidationThread(null, 10000);
-        long startTime = Clock.nsTick();
-        t.crunchRealTimeGroupConfFile("", new File("/var/log/loader-server/jobs/8c085353-53b5-40a2-a62c-1e05bf4a0fa8/jobStats/SampleGroup/realTimeConf/agents/combined/data"));
     }
 }

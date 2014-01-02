@@ -5,7 +5,7 @@
     <groupId>com.flipkart.perf</groupId>
     <artifactId>loader</artifactId>
     <packaging>pom</packaging>
-    <version>0.3.0</version>
+    <version>1.0.0</version>
     <name>Parent Project For All Performance Projects</name>
 
     <modules>
@@ -16,6 +16,7 @@
         <module>monitoring-service</module>
         <module>loader-http-operations</module>
         <module>loader-common-operations</module>
+        <module>loader-redis-operations</module>
         <module>sample-app</module>
     </modules>
     <licenses>

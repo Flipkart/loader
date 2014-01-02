@@ -1,5 +1,13 @@
 appName: "Loader Server"
 
+scheduledExecutorConfig:
+  threadPoolSize: 10
+  counterCompoundThreadInterval: 10000
+  counterThroughputThreadInterval: 10000
+  groupConfConsolidationThreadInterval: 10000
+  jobDispatcherThreadInterval: 1000
+  timerComputationThreadInterval: 10000
+
 resourceStorageFSConfig:
   udfLibsPath: "/usr/share/loader-server/libs"
   udfUnDeployedLibsPath: "/usr/share/loader-server/unDeployedLibs"
@@ -30,20 +38,34 @@ jobFSConfig:
   runFile: "/var/log/loader-server/runs/{runName}/run.json"
   runJobsFile: "/var/log/loader-server/runs/{runName}/jobs.txt"
   jobsPath: "/var/log/loader-server/jobs"
-  jobRunNameFile: "/var/log/loader-server/jobs/{jobId}/runName.txt"
+  jobRunFile: "/var/log/loader-server/jobs/{jobId}/run.json"
   jobPath: "/var/log/loader-server/jobs/{jobId}"
   jobStatusFile: "/var/log/loader-server/jobs/{jobId}/status.json"
   jobStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats"
   jobGroupStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}"
-  jobGroupTimersStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/timers"
-  jobGroupCountersStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/counters"
-  jobMetricStatsFile: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/{metricType}/{metricName}/agents/{agentIp}/data.stats"
+  jobFunctionStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/functions/{functionName}"
+  jobFunctionTimersStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/functions/{functionName}/timers"
+  jobFunctionCountersStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/functions/{functionName}/counters"
+  jobFunctionHistogramStatsPath: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/functions/{functionName}/histograms"
+  jobMetricStatsFile: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/functions/{functionName}/{metricType}/{metricName}/agents/{agentIp}/data.stats"
   jobMonitoringStatsPath: "/var/log/loader-server/jobs/{jobId}/monitoringStats"
   jobResourceMonitoringFile: "/var/log/loader-server/jobs/{jobId}/monitoringStats/agents/{agentIp}/Resources/{resource}.txt"
   jobHealthStatusFile: "/var/log/loader-server/jobs/{jobId}/monitoringStats/agents/{agentIp}/Resources/agentHealth.txt"
   runningJobsFile: "/var/log/loader-server/jobs/runningJobs"
   queuedJobsFile: "/var/log/loader-server/jobs/queuedJobs"
   jobGroupConfFile: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/realTimeConf/agents/{agentIp}/data.stats"
+  workflowJobsPath: "/var/log/loader-server/workflowJobs"
+  workflowJobPath:  "/var/log/loader-server/workflowJobs/{workflowId}"
+  workflowJobStatusPath: "/var/log/loader-server/workflowJobs/{workflowId}/status.json"
+  scheduledWorkflowsPath: "/var/log/loader-server/workflows"
+  scheduledWorkflowPath: "/var/log/loader-server/workflows/{workflowName}"
+  scheduledWorkflowRunningFile: "/var/log/loader-server/workflows/{workflowName}/runningWorkflowJobs"
+  scheduledWorkflowJobsFile: "/var/log/loader-server/workflows/{workflowName}/workflowJobs"
+
+jMetricConfig:
+  archivalEngineClass: "nitinka.jmetrics.archive.RRD4JArchivingEngine"
+  configParams:
+    basePath: "/var/log/loader-server/systemStats"
 
 reportConfigFile: /etc/loader-server/reportConfig.json
 
