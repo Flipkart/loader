@@ -169,7 +169,7 @@ public class BusinessUnitResource {
                           @QueryParam("deleteJobs") @DefaultValue("false")BooleanParam deleteJobs) throws IOException {
         BusinessUnit businessUnit = BusinessUnit.businessUnitExistsOrException(businessUnitName);
         businessUnit.teamExistOrException(teamName).runExistsOrException(run);
-        PerformanceRun.runExistsOrException(run).delete(deleteJobs.get());
+        PerformanceRun.runExistsOrException(run).delete();
     }
 
 }
