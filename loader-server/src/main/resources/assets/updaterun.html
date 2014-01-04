@@ -76,7 +76,7 @@
             });
             initializeState(true);
             window.onbeforeunload = function(){
-                console.log("changes made", window.viewModel.hasChanged());
+                if(window.updatePressed) return null;
                 if(window.viewModel.hasChanged()){
                     console.log("changes made");
                     return "You have unsaved changes, If you move away you will loose your changes.";
@@ -1370,7 +1370,7 @@
         <div class="offset4">
             <div class="btn-group">
                 <button class="btn" onClick="updateRun()">Update</button>
-                <button class="btn" onClick="executeRun()">Execute</button>
+                <button class="btn" onClick="execRun()">Execute</button>
             </div>
         </div>
     </div>

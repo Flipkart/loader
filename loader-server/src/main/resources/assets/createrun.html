@@ -73,6 +73,7 @@
             });
             initializeState(true);
             window.onbeforeunload = function(){
+                if(window.createPressed) return null;
                 if(window.viewModel.hasChanged())
                 return "You have unsaved changes, If you move away you will loose your changes.";
                 return null;
