@@ -226,7 +226,7 @@ var runJsonViewModel = function(){
         createTree();
         selectNode(self.nodeId);
     }
-    self.isInitialized = ko.observable(false);
+    self.isInitialized =false;
     self.isDirty = ko.computed(function(){
         console.log("called");
         self.runName();
@@ -234,7 +234,7 @@ var runJsonViewModel = function(){
         self.desc();
         self.loadPart();
         self.selectedTeam();
-        if(!self.isInitialized()){
+        if(!self.isInitialized){
             //self.isInitialized = true;
             return false;
         }
@@ -314,7 +314,7 @@ var loadPartViewModel =  function(){
     self.deleteDataGenerator = function(dg){
         self.dataGenerators.remove(dg);
     }
-    self.isInitialized = ko.observable(false);
+    self.isInitialized = false;
     self.isDirty = ko.computed(function(){
         console.log("called lp");
         self.loadPartName();
@@ -325,7 +325,7 @@ var loadPartViewModel =  function(){
         self.logLevel();
         self.setupGroup();
         self.tearDownGroup();
-        if(!self.isInitialized()){
+        if(!self.isInitialized){
             //self.isInitialized = true;
             return false;
         }
@@ -411,7 +411,7 @@ var groupViewModel = function(){
     self.deleteDataGenerator = function(dg){
         self.dataGenerators.remove(dg);
     }
-    self.isInitialized = ko.observable(false);
+    self.isInitialized = false;
     self.isDirty = ko.computed(function(){
         console.log("updated group");
         self.groupName();
@@ -428,7 +428,7 @@ var groupViewModel = function(){
         self.params();
         self.timers();
         self.threadResources();
-        if(!self.isInitialized()){
+        if(!self.isInitialized){
             //self.isInitialized = true;
             return false;
         }
@@ -461,13 +461,13 @@ var timerViewModel = function(){
     self.threads = ko.observable(1);
     self.throughput = ko.observable(-1);
     self.duration = ko.observable(-1);
-    self.isInitialized = ko.observable(false);
+    self.isInitialized = false;
     self.isDirty=ko.computed(function(){
         self.timerName();
         self.threads();
         self.duration();
         self.throughput();
-        if(!self.isInitialized()){
+        if(!self.isInitialized){
             //self.isInitialized = true;
             return false;
         }
@@ -529,7 +529,7 @@ var functionViewModel = function(){
     self.selectedHistograms = ko.observableArray([]);
     self.selectedCustomTimers = ko.observableArray([]);
     self.selectedCustomCounters = ko.observableArray([]);
-    self.isInitialized = ko.observable(false);
+    self.isInitialized = false;
     self.isDirty = ko.computed(function(){
         self.functionName();
         self.selectedFunction();
@@ -537,7 +537,7 @@ var functionViewModel = function(){
         self.selectedHistograms();
         self.selectedCustomTimers();
         self.selectedCustomCounters();
-        if(!self.isInitialized()){
+        if(!self.isInitialized){
             //self.isInitialized = true;
             return false;
         }
@@ -628,12 +628,12 @@ var inputParamViewModel = function(inputParam){
         if(self.isList) return self.returnList();
         if(self.isHashMap) return self.returnMap();
     }
-    self.isInitialized = ko.observable(false);
+    self.isInitialized = false;
     self.isDirty = ko.computed(function(){
         self.scalarValue();
         self.listValue();
         self.mapValue();
-        if(!self.isInitialized()){
+        if(!self.isInitialized){
             //self.isInitialized = true;
             return false;
         }
@@ -711,7 +711,7 @@ var dataGeneratorViewModel = function(){
     self.removeFromSelectionList = function(elem){
         self.selectionList.remove(elem);
     }
-    self.isInitialized = ko.observable(false);
+    self.isInitialized = false;
     self.isDirty = ko.computed(function(){
         console.log("updated datagen")
         self.generatorName();
@@ -724,7 +724,7 @@ var dataGeneratorViewModel = function(){
         self.closedString();
         self.distributionInfoList();
         self.selectionList();
-        if(!self.isInitialized()){
+        if(!self.isInitialized){
             //self.isInitialized = true;
             return false;
         }
@@ -785,12 +785,12 @@ var monitoringViewModel = function(){
     self.defaultResourcesId = "defaultResourcesId_" + self.createdAt;
     self.monitorResourcesId = "monitorResourcesId_" + self.createdAt;
     self.monitorResourcesHref = "#" + self.monitorResourcesId;
-    self.isInitialized = ko.observable(false);
+    self.isInitialized = false;
     self.isDirty = ko.computed(function(){
         self.agent();
         self.onDemandCollectors();
         self.selectedResources();
-        if(!self.isInitialized()){
+        if(!self.isInitialized){
             //self.isInitialized = true;
             return false;
         }
@@ -843,12 +843,12 @@ var OnDemandCollector = function(collectors){
         return cls;
     });
     self.interval = ko.observable(20);
-    self.isInitialized = ko.observable(false);
+    self.isInitialized = false;
     self.isDirty = ko.computed(function(){
         self.colName();
         self.selectedCollector();
         self.interval();
-        if(!self.isInitialized()){
+        if(!self.isInitialized){
             //self.isInitialized = true;
             return false;
         }
@@ -1495,6 +1495,7 @@ function selectNode(node){
 }
 
 function createRun(){
+    window.createPressed = true;
     var runJson ={};
     if(window.selectedView=='json'){
         runJson = $.parseJSON($("#runJson").val());
@@ -1513,7 +1514,6 @@ function createRun(){
         $("#alertMsg").css("display", "block");
         return;
     }
-    initializeState(false);
     $.ajax({
         url:"loader-server/runs",
         contentType: "application/json", 
@@ -1828,6 +1828,7 @@ function getCollectorType(klass, collectors){
 }
 
 function updateRun(){
+    window.updatePressed = true;
     var runJson ={};
     if(window.selectedView=='json'){
         runJson = $.parseJSON($("#runJson").val());
@@ -1897,51 +1898,52 @@ function updateRun(){
 }
 
 function execRun(){
-    executeRun(getQueryParams("runName"));
+    var runName =  getQueryParams("runName");
+    executeRun(runName);
 }
 
 function initializeState(value){
     var model = window.viewModel;
-    window.viewModel.isInitialized(value);
+    window.viewModel.isInitialized=value;
     $.each(window.viewModel.loadPart(), function(index, lPart){
-        lPart.isInitialized(value);
+        lPart.isInitialized=value;
         $.each(lPart.groups(), function(index, grp){
-            grp.isInitialized(value);
+            grp.isInitialized=value;
             $.each(grp.functions(), function(index, func){
-                func.isInitialized(value);
+                func.isInitialized=value;
                 $.each(func.availableParameters().inputParameters(), function(pIndex, inputParam){
-                    inputParam.isInitialized(value);
+                    inputParam.isInitialized=value;
                 });
             });
             $.each(grp.dataGenerators(), function(dIndex, dataGen){
-                dataGen.isInitialized(value);
+                dataGen.isInitialized=value;
             });
             $.each(grp.timers(), function(tIndex, timer){
-                timer.isInitialized(value);
+                timer.isInitialized=value;
             });
         });
         $.each(lPart.dataGenerators(), function(dIndex, dataGen){
-            dataGen.isInitialized(value);
+            dataGen.isInitialized=value;
         });
-        lPart.setupGroup().isInitialized(value);
+        lPart.setupGroup().isInitialized=value;
         $.each(lPart.setupGroup().functions(), function(index, func){
-            func.isInitialized(value);
+            func.isInitialized=value;
         });
         $.each(lPart.setupGroup().dataGenerators(), function(index, dataGen){
-            dataGen.isInitialized(value);
+            dataGen.isInitialized=value;
         });
-        lPart.tearDownGroup().isInitialized(value);
+        lPart.tearDownGroup().isInitialized=value;
         $.each(lPart.tearDownGroup().functions(), function(index, func){
-            func.isInitialized(value);
+            func.isInitialized=value;
         });
         $.each(lPart.tearDownGroup().dataGenerators(), function(index, dataGen){
-            dataGen.isInitialized(value);
+            dataGen.isInitialized=value;
         });
     });
     $.each(model.metricCollections(), function(index, metricCollector){
-        metricCollector.isInitialized(value);
+        metricCollector.isInitialized=value;
         $.each(metricCollector.onDemandCollectors(), function(oIndex, odCol){
-            odCol.isInitialized(value);
+            odCol.isInitialized=value;
         });
     });
 }
