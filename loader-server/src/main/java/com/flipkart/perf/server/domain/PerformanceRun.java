@@ -2,6 +2,7 @@ package com.flipkart.perf.server.domain;
 
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -14,6 +15,8 @@ import com.flipkart.perf.server.config.LoaderServerConfiguration;
 import com.flipkart.perf.server.exception.InvalidJobStateException;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
 import com.flipkart.perf.server.util.ResponseBuilder;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +33,13 @@ public class PerformanceRun {
     private List<OnDemandMetricCollection> onDemandMetricCollections;
     private List<MetricCollection> metricCollections;
     private String description = "";
+    private int currentVersion = 1;
+    private int version = 1;
+
+    private static final JobFSConfig  jobFSConfig = LoaderServerConfiguration.instance().getJobFSConfig();
     private static Logger logger = LoggerFactory.getLogger(PerformanceRun.class);
+    private static final ObjectMapper mapper = ObjectMapperUtil.instance();
+
     public String getRunName() {
         return runName;
     }
@@ -67,6 +76,14 @@ public class PerformanceRun {
         return this;
     }
 
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
     public int agentsNeeded() {
         int totalAgentsNeeded = 0;
         for(LoadPart loadPart : this.getLoadParts()) {
@@ -76,7 +93,6 @@ public class PerformanceRun {
     }
 
     public boolean exists() {
-        JobFSConfig jobFSConfig = LoaderServerConfiguration.instance().getJobFSConfig();
         return new File(jobFSConfig.getRunPath(runName)).exists();
     }
 
@@ -91,16 +107,43 @@ public class PerformanceRun {
         businessUnit.getTeam(this.getTeam()).getRuns().remove(this.getRunName());
         businessUnit.persist();
 
+        newRun.setVersion(latestVersion(newRun.runName) +  1);
         newRun.persist();
         businessUnit = BusinessUnit.build(newRun.businessUnit);
         businessUnit.addRuns(newRun.team, Arrays.asList(new String[]{newRun.runName})).persist();
     }
 
+    /**
+     * Return Latest version of given run
+     * @param runName
+     * @return
+     * @throws IOException
+     */
+    public static int latestVersion(String runName) throws IOException {
+        File runMetaFile = new File(jobFSConfig.getRunMetaInfoFile(runName));
+        if(runMetaFile.exists()) {
+            RunMeta runMeta = mapper.readValue(new File(jobFSConfig.getRunMetaInfoFile(runName)), RunMeta.class);
+            return runMeta.getLatestVersion();
+        }
+        else {
+            return 0;
+        }
+    }
+
     public void persist() throws IOException {
-        JobFSConfig jobFSConfig = LoaderServerConfiguration.instance().getJobFSConfig();
-        String runFile = jobFSConfig.getRunFile(runName);
+        String runFile = jobFSConfig.getRunFile(runName, version);
         FileHelper.createFilePath(runFile);
-        ObjectMapperUtil.instance().writerWithDefaultPrettyPrinter().writeValue(new File(runFile), this);
+        ObjectMapper mapper = ObjectMapperUtil.instance();
+        mapper.writerWithDefaultPrettyPrinter().writeValue(new File(runFile), this);
+
+        // Updating the Version
+        RunMeta runMeta = new RunMeta();
+        if(version > 1){
+            runMeta = mapper.readValue(new File(jobFSConfig.getRunMetaInfoFile(runName)), RunMeta.class);
+            runMeta.setLatestVersion(version);
+
+        }
+        mapper.writerWithDefaultPrettyPrinter().writeValue(new File(jobFSConfig.getRunMetaInfoFile(runName)), runMeta);
     }
 
     public String getBusinessUnit() {
@@ -130,15 +173,28 @@ public class PerformanceRun {
     }
 
     public static PerformanceRun runExistsOrException(String runName) throws IOException {
-        if(!new File(LoaderServerConfiguration.instance().getJobFSConfig().getRunPath(runName)).exists()) {
+        return runExistsOrException(runName, "latest");
+    }
+
+    public static PerformanceRun runExistsOrException(String runName, String version) throws IOException {
+        if(!new File(jobFSConfig.getRunPath(runName)).exists()) {
             throw new WebApplicationException(ResponseBuilder.runNameDoesNotExist(runName));
         }
-        return ObjectMapperUtil.instance().
-                readValue(new File(LoaderServerConfiguration.instance().getJobFSConfig().getRunFile(runName)), PerformanceRun.class);
+        return mapper.
+                readValue(new File(jobFSConfig.getRunFile(runName, runVersion(runName, version))), PerformanceRun.class);
+    }
+
+    private static int runVersion(String runName, String version) throws IOException {
+        if("LATEST".equalsIgnoreCase(version)) {
+            return latestVersion(runName);
+        }
+        else {
+            return Integer.parseInt(version);
+        }
     }
 
     public void delete() throws IOException {
-        File runJobsFile = new File(LoaderServerConfiguration.instance().getJobFSConfig().getRunJobsFile(this.runName));
+        File runJobsFile = new File(jobFSConfig.getRunJobsFile(this.runName));
         if(runJobsFile.exists())  {
             BufferedReader jobReader = null;
             try {
@@ -163,9 +219,17 @@ public class PerformanceRun {
             }
         }
 
-        FileHelper.remove(LoaderServerConfiguration.instance().getJobFSConfig().getRunPath(runName));
+        FileHelper.remove(jobFSConfig.getRunPath(runName));
         BusinessUnit businessUnit = BusinessUnit.build(this.getBusinessUnit());
         businessUnit.getTeam(this.team).getRuns().remove(this.runName);
         businessUnit.persist();
+    }
+
+    public static List<String> versions(String runName) {
+        File runVersionsPath = new File(jobFSConfig.getRunVersionsPath(runName));
+        if(runVersionsPath.exists()) {
+            return Arrays.asList(runVersionsPath.list());
+        }
+        return new ArrayList<String>();  //To change body of created methods use File | Settings | File Templates.
     }
 }

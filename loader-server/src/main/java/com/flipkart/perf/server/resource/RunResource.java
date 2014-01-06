@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -83,8 +84,9 @@ public class RunResource {
     @GET
     @Path(value = "/{runName}")
     @Timed
-    public PerformanceRun getRun(@PathParam("runName") String runName) throws IOException {
-        return PerformanceRun.runExistsOrException(runName);
+    public PerformanceRun getRun(@PathParam("runName") String runName)
+            throws IOException, InterruptedException, ExecutionException, JobException {
+        return getRun(runName, "LATEST");
     }
 
     /**
@@ -122,6 +124,27 @@ public class RunResource {
             throws IOException, ExecutionException, InterruptedException, JobException {
         PerformanceRun run = PerformanceRun.runExistsOrException(runName);
         run.delete();
+    }
+
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{runName}/versions")
+    @GET
+    @Timed
+    public List<String> getVersions(@PathParam("runName") String runName)
+            throws IOException, ExecutionException, InterruptedException, JobException {
+        PerformanceRun.runExistsOrException(runName);
+        return PerformanceRun.versions(runName);
+    }
+
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{runName}/versions/{version}")
+    @GET
+    @Timed
+    public PerformanceRun getRun(@PathParam("runName") String runName,
+                                 @PathParam("version") @DefaultValue("LATEST") String version)
+            throws IOException, ExecutionException, InterruptedException, JobException {
+        return PerformanceRun.runExistsOrException(runName, version);
     }
 
     @Produces(MediaType.APPLICATION_JSON)
