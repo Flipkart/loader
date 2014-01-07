@@ -39,6 +39,7 @@ jobFSConfig:
   runMetaInfoFile: "/var/log/loader-server/runs/{runName}/meta.properties"
   runFile: "/var/log/loader-server/runs/{runName}/versions/{version}/run.json"
   runJobsFile: "/var/log/loader-server/runs/{runName}/versions/{version}/jobs.txt"
+  runAllJobsFile: "/var/log/loader-server/runs/{runName}/jobs.txt"
   jobsPath: "/var/log/loader-server/jobs"
   jobRunFile: "/var/log/loader-server/jobs/{jobId}/run.json"
   jobPath: "/var/log/loader-server/jobs/{jobId}"

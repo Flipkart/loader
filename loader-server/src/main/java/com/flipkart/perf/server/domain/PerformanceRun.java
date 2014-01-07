@@ -180,11 +180,16 @@ public class PerformanceRun {
         if(!new File(jobFSConfig.getRunPath(runName)).exists()) {
             throw new WebApplicationException(ResponseBuilder.runNameDoesNotExist(runName));
         }
+
+        if(!new File(jobFSConfig.getRunFile(runName, runVersion(runName, version))).exists()) {
+            throw new WebApplicationException(ResponseBuilder.runNameDoesNotExist(runName + " Version " + version));
+        }
+
         return mapper.
                 readValue(new File(jobFSConfig.getRunFile(runName, runVersion(runName, version))), PerformanceRun.class);
     }
 
-    private static int runVersion(String runName, String version) throws IOException {
+    public static int runVersion(String runName, String version) throws IOException {
         if("LATEST".equalsIgnoreCase(version)) {
             return latestVersion(runName);
         }
@@ -194,7 +199,7 @@ public class PerformanceRun {
     }
 
     public void delete() throws IOException {
-        File runJobsFile = new File(jobFSConfig.getRunJobsFile(this.runName));
+        File runJobsFile = new File(jobFSConfig.getRunAllJobsFile(this.runName));
         if(runJobsFile.exists())  {
             BufferedReader jobReader = null;
             try {

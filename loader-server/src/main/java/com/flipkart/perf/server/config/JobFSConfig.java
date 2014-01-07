@@ -23,6 +23,7 @@ public class JobFSConfig {
     private String jobPath;
     private String jobStatusFile;
     private String runJobsFile;
+    private String runAllJobsFile;
     private String jobStatsPath;
     private String jobGroupStatsPath;
     private String jobFunctionStatsPath;
@@ -143,8 +144,9 @@ public class JobFSConfig {
         this.runPath = runPath;
     }
 
-    public String getRunJobsFile(String runName) {
-        return runJobsFile.replace("{runName}", runName);
+    public String getRunJobsFile(String runName, int version) {
+        return runJobsFile.replace("{runName}", runName).
+                replace("{version}", String.valueOf(version));
     }
 
     public void setRunJobsFile(String runJobsFile) {
@@ -342,6 +344,14 @@ public class JobFSConfig {
 
     public void setRunVersionsPath(String runVersionsPath) {
         this.runVersionsPath = runVersionsPath;
+    }
+
+    public String getRunAllJobsFile(String runName) {
+        return runAllJobsFile.replace("{runName}", runName);
+    }
+
+    public void setRunAllJobsFile(String runAllJobsFile) {
+        this.runAllJobsFile = runAllJobsFile;
     }
 }
 

@@ -9,6 +9,7 @@ package com.flipkart.perf.server.domain;
  */
 public class JobRequest {
     private String runName;
+    private String runVersion;
 
     public String getRunName() {
         return runName;
@@ -18,4 +19,14 @@ public class JobRequest {
         this.runName = runName;
         return this;
     }
+
+    public String getRunVersion() {
+        return runVersion;
+    }
+
+    public JobRequest setRunVersion(String runVersion) {
+        this.runVersion = runVersion;
+        return this;
+    }
+
 }

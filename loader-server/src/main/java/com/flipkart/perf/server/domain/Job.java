@@ -45,6 +45,7 @@ public  class Job {
 
     private String jobId;
     private String runName;
+    private int runVersion;
     private Date startTime, endTime;
     private JOB_STATUS jobStatus;
     private String failedToStartReason = ""; // Will be set only in case when job failed to start
@@ -569,7 +570,7 @@ public  class Job {
     }
 
     public void persistRunInfo() throws IOException {
-        String runFile = configuration.getJobFSConfig().getRunFile(this.runName);
+        String runFile = configuration.getJobFSConfig().getRunFile(this.runName, runVersion);
         PerformanceRun performanceRun = objectMapper.readValue(new File(runFile) , PerformanceRun.class);
 
         // Add file containing run name in job folder
@@ -579,11 +580,19 @@ public  class Job {
 
         // Adding job ids in run folder file
         String runName = performanceRun.getRunName();
-        String runJobsFile = configuration.getJobFSConfig().getRunJobsFile(runName);
+        String runJobsFile = configuration.getJobFSConfig().getRunJobsFile(runName, runVersion);
         FileHelper.createFilePath(runJobsFile);
         FileHelper.persistStream(new ByteArrayInputStream((jobId + "\n").getBytes()),
                 runJobsFile,
                 true);
+
+        // Adding job ids in run folder file
+        String runAllJobsFile = configuration.getJobFSConfig().getRunAllJobsFile(runName);
+        FileHelper.createFilePath(runAllJobsFile);
+        FileHelper.persistStream(new ByteArrayInputStream((jobId + "\n").getBytes()),
+                runAllJobsFile,
+                true);
+
     }
 
     @JsonIgnore
@@ -621,7 +630,7 @@ public  class Job {
         File runsPath = new File(configuration.getJobFSConfig().getRunsPath());
         for(File runPath : runsPath.listFiles()) {
             if(runPath.getName().toUpperCase().contains(searchRunName.toUpperCase())) {
-                File runJobsFile = new File(configuration.getJobFSConfig().getRunJobsFile(runPath.getName()));
+                File runJobsFile = new File(configuration.getJobFSConfig().getRunAllJobsFile(runPath.getName()));
                 if(runJobsFile.exists()) {
                     BufferedReader runJobsFileReader = FileHelper.bufferedReader(runJobsFile.getAbsolutePath());
                     String runJobId;
@@ -693,6 +702,15 @@ public  class Job {
 
     public void setLogLevel(String logLevel) {
         this.logLevel = logLevel;
+    }
+
+    public int getRunVersion() {
+        return runVersion;
+    }
+
+    public Job setRunVersion(int runVersion) {
+        this.runVersion = runVersion;
+        return this;
     }
 
     public void delete() throws InvalidJobStateException {

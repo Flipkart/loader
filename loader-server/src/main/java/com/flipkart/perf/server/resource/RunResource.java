@@ -126,6 +126,21 @@ public class RunResource {
         run.delete();
     }
 
+    @Produces(MediaType.APPLICATION_JSON)
+    @GET
+    @Path("/{runName}/jobs")
+    @Timed
+    public Set<String> getAllRunJobs(@PathParam("runName") String runName) throws IOException {
+        PerformanceRun.runExistsOrException(runName);
+        Set<String> jobs = new HashSet<String>();
+        String runJobsFile = jobFSConfig.getRunAllJobsFile(runName);
+        BufferedReader br = FileHelper.bufferedReader(runJobsFile);
+        String jobId = null;
+        while((jobId = br.readLine()) != null)
+            jobs.add(jobId);
+        FileHelper.close(br);
+        return jobs;
+    }
 
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{runName}/versions")
@@ -149,12 +164,13 @@ public class RunResource {
 
     @Produces(MediaType.APPLICATION_JSON)
     @GET
-    @Path("/{runName}/jobs")
+    @Path("/{runName}/versions/{version}/jobs")
     @Timed
-    public Set<String> getRunJobs(@PathParam("runName") String runName) throws IOException {
-        PerformanceRun.runExistsOrException(runName);
+    public Set<String> getRunJobs(@PathParam("runName") String runName,
+                                  @PathParam("version") @DefaultValue("LATEST") String version) throws IOException {
+        PerformanceRun.runExistsOrException(runName, version);
         Set<String> jobs = new HashSet<String>();
-        String runJobsFile = jobFSConfig.getRunJobsFile(runName);
+        String runJobsFile = jobFSConfig.getRunJobsFile(runName, PerformanceRun.runVersion(runName, version));
         BufferedReader br = FileHelper.bufferedReader(runJobsFile);
         String jobId = null;
         while((jobId = br.readLine()) != null)
