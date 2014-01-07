@@ -1,55 +1,54 @@
 {
-    "businessUnit": "sample",
-    "team": "sample",
-    "runName": "SampleHttpGetFor30Seconds",
-    "loadParts": [
-        {
-            "name": "SampleLoadPart",
-            "agents": 1,
-            "classes": [
-                "perf.operation.http.function.HttpGet"
-            ],
-            "inputFileResources": [],
-            "load": {
-                "groups": [
-                    {
-                        "name": "SampleGroup",
-                        "groupStartDelay": 0,
-                        "threadStartDelay": 0,
-                        "throughput": 50,
-                        "repeats": -1,
-                        "duration": 30000,
-                        "threads": 2,
-                        "warmUpRepeats": -1,
-                        "functions": [
-                            {
-                                "functionalityName": "HttpGet",
-                                "functionClass": "perf.operation.http.function.HttpGet",
-                                "dumpData": true,
-                                "params": {
-                                    "url": "http://localhost:8888/loader-agent/jobs",
-                                    "expectedStatusCode": "200",
-                                    "followRedirects": "false",
-                                    "headers": "{}",
-                                    "parameters": "{}",
-                                    "queryParameters": "{}",
-                                    "proxy": "{}",
-                                    "cookies": "[]"
-                                },
-                                "customTimers": [],
-                                "customCounters": [],
-                                "customHistograms": []
-                            }
-                        ],
-                        "dependOnGroups": [],
-                        "params": {},
-                        "timers": [],
-                        "threadResources": []
-                    }
-                ]
-            }
-        }
-    ],
-    "onDemandMetricCollections": [],
-    "metricCollections": []
+  "businessUnit" : "sample",
+  "team" : "sample",
+  "runName" : "SampleHttpGetFor30Seconds",
+  "loadParts" : [ {
+    "name" : "LoadPart1",
+    "agents" : 1,
+    "classes" : [ "perf.operation.http.function.HttpGet" ],
+    "inputFileResources" : [ ],
+    "load" : {
+      "logLevel" : "INFO",
+      "setupGroup" : null,
+      "groups" : [ {
+        "name" : "SampleGroup1",
+        "groupStartDelay" : 0,
+        "threadStartDelay" : 0,
+        "throughput" : 50.0,
+        "repeats" : -1,
+        "duration" : 30000,
+        "threads" : 1,
+        "warmUpRepeats" : -1,
+        "functions" : [ {
+          "functionalityName" : "HttpGetFunction",
+          "functionClass" : "perf.operation.http.function.HttpGet",
+          "dumpData" : true,
+          "params" : {
+            "url" : "http://localhost:8888/loader-agent/jobs",
+            "expectedStatusCode" : 200,
+            "followRedirects" : false,
+            "headers" : { },
+            "parameters" : { },
+            "queryParameters" : { },
+            "proxy" : { },
+            "cookies" : [ ]
+          },
+          "customTimers" : [ ],
+          "customCounters" : [ ],
+          "customHistograms" : [ "body-size" ]
+        } ],
+        "dependOnGroups" : [ ],
+        "params" : { },
+        "timers" : [ ],
+        "threadResources" : [ ],
+        "dataGenerators" : { }
+      } ],
+      "tearDownGroup" : null,
+      "dataGenerators" : { }
+    },
+    "agentTags" : [ "sample" ]
+  } ],
+  "onDemandMetricCollections" : [ ],
+  "metricCollections" : [ ],
+  "description" : "This performance Run does 10000 Http Get calls at 50 Request Per Second(TPS) Rate.\nIts going to hit local loader agent only."
 }
