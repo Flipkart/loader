@@ -1,172 +1,534 @@
 {
-    "chartResources": {
-        "loadavg": {
-            "resource": "loadavg",
-            "charts": [
-                {
-                    "title": "Load",
-                    "keysToPlot": [
-                        "01",
-                        "05",
-                        "15"
-                    ]
-                }
-            ]
-        },
-        "vmstats": {
-            "resource": "vmstats",
-            "charts": []
-        },
-        "mysql": {
-            "resource": "mysql",
-            "charts": [
-                {
-                    "title": "Threads",
-                    "keysToPlot": [
-                        "Threads_running",
-                        "Threads_cached",
-                        "Threads_connected",
-                        "Connections"
-                    ]
-                },
-                {
-                    "title": "Table_Status",
-                    "keysToPlot": [
-                        "Com_lock_tables",
-                        "Com_stmt_execute",
-                        "Table_locks_waited",
-                        "Innodb_deadlocks"
-                    ]
-                },
-                {
-                    "title": "QueriesAndData",
-                    "keysToPlot": [
-                        "Slow_queries",
-                        "Queries",
-                        "Bytes_sent",
-                        "Bytes_received"
-                    ]
-                }
-            ]
-        },
-        "cpu.total": {
-            "resource": "cpu.total",
-            "charts": [
-                {
-                    "title": "CPU",
-                    "keysToPlot": [
-                        "system",
-                        "user",
-                        "idle"
-                    ]
-                }
-            ]
-        },
-        "cpu": {
-            "resource": "cpu",
-            "charts": [
-                {
-                    "title": "cpu",
-                    "keysToPlot": [
-                        "percent"
-                    ]
-                }
-            ]
-        },
-        "passenger_stats": {
-            "resource": "passenger_stats",
-            "charts": [
-                {
-                    "title": "passenger_stats",
-                    "keysToPlot": [
-                        "total_apache_memory",
-                        "total_passenger_mem",
-                        "apache_passenger_cpu",
-                        "total_nginx_mem"
-                    ]
-                }
-            ]
-        },
-        "sockets": {
-            "resource": "sockets",
-            "charts": [
-                {
-                    "title": "Mem",
-                    "keysToPlot": [
-                        "tcp_mem",
-                        "udp_mem"
-                    ]
-                },
-                {
-                    "title": "Sockets In Use",
-                    "keysToPlot": [
-                        "tcp_inuse",
-                        "udp_inuse"
-                    ]
-                }
-            ]
-        },
-        "diskspace.root": {
-            "resource": "diskspace.root",
-            "charts": [
-                {
-                    "title": "Diskspace",
-                    "keysToPlot": [
-                        "byte_used",
-                        "byte_free"
-                    ]
-                }
-            ]
-        },
-        "jmx": {
-            "resource": "jmx",
-            "charts": [
-                {
-                    "title": "Memory",
-                    "keysToPlot": [
-                        "memory.heapMemory.usagePercentage",
-                        "memory.nonHeapMemory.usagePercentage"
-                    ]
-                },
-                {
-                    "title": "SystemLoad",
-                    "keysToPlot": [
-                        "os.systemAverageLoad"
-                    ]
-                },
-                {
-                    "title": "GCCount",
-                    "keysToPlot": [
-                        "gc.ParNew.count",
-                        "gc.ConcurrentMarkSweep.count"
-                    ]
-                }
-            ]
-        },
-        "memory": {
-            "resource": "memory",
-            "charts": [
-                {
-                    "title": "Physical Memory",
-                    "keysToPlot": [
-                        "MemTotal",
-                        "MemFree",
-                        "Cached",
-                        "Active",
-                        "Buffers",
-                        "Dirty"
-                    ]
-                },
-                {
-                    "title": "Swap",
-                    "keysToPlot": [
-                        "SwapTotal",
-                        "SwapFree",
-                        "SwapCached"
-                    ]
-                }
-            ]
+  "chartResources": {
+    "loadavg": {
+      "resource": "loadavg",
+      "charts": [
+        {
+          "title": "Load",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Load (%)",
+          "keysToPlot": [
+            {
+              "key": "01",
+              "name": "Last 1 Min",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "05",
+              "name": "Last 5 Min",
+              "color": "#1f77b4"
+            },
+            {
+              "key": "15",
+              "name": "Last 15 Min",
+              "color": "#2ca02c"
+            }
+          ]
         }
+      ]
+    },
+    "timer": {
+      "resource": "timer",
+      "charts": [
+        {
+          "title": "Percentiles",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Response Time (ms)",
+          "keysToPlot": [
+            {
+              "key": "fiftieth",
+              "name": "50th",
+              "color": "#2ca02c"
+            },
+            {
+              "key": "seventyFifth",
+              "name": "75th",
+              "color": "#d62728"
+            },
+            {
+              "key": "ninetieth",
+              "name": "90th",
+              "color": "#DF01D7"
+            },
+            {
+              "key": "ninetyFifth",
+              "name": "95th",
+              "color": "#08088A"
+            },
+            {
+              "key": "ninetyEight",
+              "name": "98th",
+              "color": "#FF0000"
+            }
+          ]
+        },
+        {
+          "title": "Throughputs",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "TPS",
+          "keysToPlot": [
+            {
+              "key": "dumpThroughput",
+              "name": "Dump Throughput",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "overAllThroughput",
+              "name": "Over All Throughput",
+              "color": "#1f77b4"
+            }
+          ]
+        },
+        {
+          "title": "Min-Max",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Response Time (ms)",
+          "keysToPlot": [
+            {
+              "key": "min",
+              "name": "Min",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "max",
+              "name": "Max",
+              "color": "#1f77b4"
+            }
+          ]
+        },
+        {
+          "title": "Means",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Response Mean (ms)",
+          "keysToPlot": [
+            {
+              "key": "dumpMean",
+              "name": "Dump Mean",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "overallMean",
+              "name": "Over All Mean",
+              "color": "#1f77b4"
+            }
+          ]
+        }
+      ]
+    },
+    "histogram": {
+      "resource": "histogram",
+      "charts": [
+        {
+          "title": "Percentiles",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Value",
+          "keysToPlot": [
+            {
+              "key": "fiftieth",
+              "name": "50th",
+              "color": "#2ca02c"
+            },
+            {
+              "key": "seventyFifth",
+              "name": "75th",
+              "color": "#d62728"
+            },
+            {
+              "key": "ninetieth",
+              "name": "90th",
+              "color": "#DF01D7"
+            },
+            {
+              "key": "ninetyFifth",
+              "name": "95th",
+              "color": "#08088A"
+            },
+            {
+              "key": "ninetyEight",
+              "name": "98th",
+              "color": "#FF0000"
+            }
+          ]
+        },
+        {
+          "title": "Min-Max",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Response Time (ms)",
+          "keysToPlot": [
+            {
+              "key": "min",
+              "name": "Min",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "max",
+              "name": "Max",
+              "color": "#1f77b4"
+            }
+          ]
+        },
+        {
+          "title": "Means",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Response Mean (ms)",
+          "keysToPlot": [
+            {
+              "key": "dumpMean",
+              "name": "Dump Mean",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "overallMean",
+              "name": "Over All Mean",
+              "color": "#1f77b4"
+            }
+          ]
+        }
+      ]
+    },
+    "vmstats": {
+      "resource": "vmstats",
+      "charts": [
+        
+      ]
+    },
+    "mysql": {
+      "resource": "mysql",
+      "charts": [
+        {
+          "title": "Threads",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Number of Threads",
+          "keysToPlot": [
+            {
+              "key": "Threads_running",
+              "name": "Threads Running",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "Threads_cached",
+              "name": "Threads Cached",
+              "color": "#1f77b4"
+            },
+            {
+              "key": "Threads_connected",
+              "name": "Threads Connected",
+              "color": "#2ca02c"
+            },
+            {
+              "key": "Connections",
+              "name": "Connections",
+              "color": "#d62728"
+            }
+          ]
+        },
+        {
+          "title": "Table_Status",
+          "xLegend": null,
+          "yLegend": null,
+          "keysToPlot": [
+            {
+              "key": "Com_lock_tables",
+              "name": "Com Lock Tables",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "Com_stmt_execute",
+              "name": "Com Stmt Execute",
+              "color": "#1f77b4"
+            },
+            {
+              "key": "Table_locks_waited",
+              "name": "Table Locks Waited",
+              "color": "#2ca02c"
+            },
+            {
+              "key": "Innodb_deadlocks",
+              "name": "Innodb Deadlocks",
+              "color": "#d62728"
+            }
+          ]
+        },
+        {
+          "title": "QueriesAndData",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "DB Metrices",
+          "keysToPlot": [
+            {
+              "key": "Slow_queries",
+              "name": "Slow Queries",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "Queries",
+              "name": "Queries",
+              "color": "#1f77b4"
+            },
+            {
+              "key": "Bytes_sent",
+              "name": "Bytes Sent",
+              "color": "#2ca02c"
+            },
+            {
+              "key": "Bytes_received",
+              "name": "Bytes Recieved",
+              "color": "#d62728"
+            }
+          ]
+        }
+      ]
+    },
+    "cpu.total": {
+      "resource": "cpu.total",
+      "charts": [
+        {
+          "title": "CPU",
+          "xLegend": null,
+          "yLegend": null,
+          "keysToPlot": [
+            {
+              "key": "system",
+              "name": "System",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "user",
+              "name": "User",
+              "color": "#1f77b4"
+            },
+            {
+              "key": "idle",
+              "name": "Idle",
+              "color": "#2ca02c"
+            }
+          ]
+        }
+      ]
+    },
+    "cpu": {
+      "resource": "cpu",
+      "charts": [
+        {
+          "title": "cpu",
+          "xLegend": null,
+          "yLegend": null,
+          "keysToPlot": [
+            {
+              "key": "percent",
+              "name": "cpu",
+              "color": "#ff7f0e"
+            }
+          ]
+        }
+      ]
+    },
+    "passenger_stats": {
+      "resource": "passenger_stats",
+      "charts": [
+        {
+          "title": "passenger_stats",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Passenger Stats",
+          "keysToPlot": [
+            {
+              "key": "total_apache_memory",
+              "name": "Total Apache Memory",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "total_passenger_mem",
+              "name": "Total Passenger Memory",
+              "color": "#1f77b4"
+            },
+            {
+              "key": "apache_passenger_cpu",
+              "name": "Apache Passenger CPU",
+              "color": "#2ca02c"
+            },
+            {
+              "key": "total_nginx_mem",
+              "name": "Total Nginx Memory",
+              "color": "#d62728"
+            }
+          ]
+        }
+      ]
+    },
+    "sockets": {
+      "resource": "sockets",
+      "charts": [
+        {
+          "title": "Mem",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Memory",
+          "keysToPlot": [
+            {
+              "key": "tcp_mem",
+              "name": "TCP Memory",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "udp_mem",
+              "name": "UDP Memory",
+              "color": "#1f77b4"
+            }
+          ]
+        },
+        {
+          "title": "Sockets In Use",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Sockets",
+          "keysToPlot": [
+            {
+              "key": "tcp_inuse",
+              "name": "TCP Inuse",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "udp_inuse",
+              "name": "UDP Inuse",
+              "color": "#1f77b4"
+            }
+          ]
+        }
+      ]
+    },
+    "diskspace.root": {
+      "resource": "diskspace.root",
+      "charts": [
+        {
+          "title": "Diskspace",
+          "xLegend": null,
+          "yLegend": null,
+          "keysToPlot": [
+            {
+              "key": "byte_used",
+              "name": "Byte Used",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "byte_free",
+              "name": "Byte Free",
+              "color": "#1f77b4"
+            }
+          ]
+        }
+      ]
+    },
+    "jmx": {
+      "resource": "jmx",
+      "charts": [
+        {
+          "title": "Memory",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Memosr Usage (%)",
+          "keysToPlot": [
+            {
+              "key": "memory.heapMemory.usagePercentage",
+              "name": "Heap Memory Usage",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "memory.nonHeapMemory.usagePercentage",
+              "name": "Non Heap Memory usage",
+              "color": "#1f77b4"
+            }
+          ]
+        },
+        {
+          "title": "SystemLoad",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Load (%)",
+          "keysToPlot": [
+            {
+              "key": "os.systemAverageLoad",
+              "name": "System Avg Load",
+              "color": "#ff7f0e"
+            }
+          ]
+        },
+        {
+          "title": "GCCount",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "GC Metrices",
+          "keysToPlot": [
+            {
+              "key": "gc.ParNew.count",
+              "name": "Par New Count",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "gc.ConcurrentMarkSweep.count",
+              "name": "Mark Sweep Count",
+              "color": "#1f77b4"
+            }
+          ]
+        }
+      ]
+    },
+    "memory": {
+      "resource": "memory",
+      "charts": [
+        {
+          "title": "Physical Memory",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "RAM Usage (%)",
+          "keysToPlot": [
+            {
+              "key": "MemTotal",
+              "name": "Total Memory",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "MemFree",
+              "name": "Free Memory",
+              "color": "#1f77b4"
+            },
+            {
+              "key": "Cached",
+              "name": "Cached",
+              "color": "#2ca02c"
+            },
+            {
+              "key": "Active",
+              "name": "Active",
+              "color": "#d62728"
+            },
+            {
+              "key": "Buffers",
+              "name": "Buffers",
+              "color": "#DF01D7"
+            },
+            {
+              "key": "Dirty",
+              "name": "Dirty",
+              "color": "#08088A"
+            }
+          ]
+        },
+        {
+          "title": "Swap",
+          "xLegend": "Time (HH:MM)",
+          "yLegend": "Swap Memory (%)",
+          "keysToPlot": [
+            {
+              "key": "SwapTotal",
+              "name": "Swap Total",
+              "color": "#ff7f0e"
+            },
+            {
+              "key": "SwapFree",
+              "name": "",
+              "color": "#1f77b4"
+            },
+            {
+              "key": "SwapCached",
+              "name": "",
+              "color": "#2ca02c"
+            }
+          ]
+        }
+      ]
     }
+  }
 }
-
