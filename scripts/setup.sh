@@ -11,6 +11,7 @@ $CODE_ROOT/DEBIAN/$PKG.preinst
 echo "\n****Copying Config Files"
 cp $CODE_ROOT/config/reportConfig.json /etc/$PKG/reportConfig.json
 cp $CODE_ROOT/config/dataFixers.json /etc/$PKG/dataFixers.json
+cp $CODE_ROOT/config/reportConfig.json /etc/$PKG/reportConfig.json
 
 #Setting up Core Libraries
 echo "\n****Copying loader-core libraries for loader-server"
