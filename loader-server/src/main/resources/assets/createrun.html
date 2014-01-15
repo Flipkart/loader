@@ -54,6 +54,7 @@
             getBusinessUnits();
             getInputResourceFiles();
             getAllFunctionClasses();
+            window.selectedView = 'ui';
             window.viewModel = new runJsonViewModel();
             ko.applyBindings(window.viewModel);
             createTree();
@@ -63,6 +64,7 @@
                 $("#showJsonLI").removeClass('active');
                 $("#showUILI").addClass('active');
                 $("#UI").show();
+                window.selectedView = 'ui';
             });
             $("#showJson").click(function(){
                 $("#UI").hide();
@@ -70,6 +72,7 @@
                 $("#showJsonLI").addClass('active');
                 $("#runJson").val(JSON.stringify(createJsonFromView(), undefined, 4));
                 $("#JSON").show();
+                window.selectedView = 'json';
             });
             initializeState(true);
             window.onbeforeunload = function(){
