@@ -13,9 +13,6 @@ public class GraphKeys {
     private String color;
     private boolean isRegex;
 
-    public GraphKeys(){
-
-    }
     public String getKey() {
         return key;
     }
