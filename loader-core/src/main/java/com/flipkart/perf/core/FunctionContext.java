@@ -114,7 +114,13 @@ public class FunctionContext {
         String valueString = value.toString();
 
         if(!(value instanceof String)) {
-            valueString = mapper.writeValueAsString(value).replace("\\\"","");
+            try {
+                valueString = mapper.writeValueAsString(value).replace("\\\"","");
+            }
+            catch(org.codehaus.jackson.map.JsonMappingException e) {
+                logger.warn("Error while converting object to string", e);
+                return value;
+            }
         }
 
         Matcher matcher = variablePattern.matcher(valueString);
