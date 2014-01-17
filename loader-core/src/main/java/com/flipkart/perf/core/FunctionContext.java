@@ -118,7 +118,7 @@ public class FunctionContext {
                 valueString = mapper.writeValueAsString(value).replace("\\\"","");
             }
             catch(org.codehaus.jackson.map.JsonMappingException e) {
-                logger.warn("Error while converting object to string", e);
+                logger.debug("Error while converting object to string. Ignore it.");
                 return value;
             }
         }
