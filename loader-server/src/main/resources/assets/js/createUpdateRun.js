@@ -502,11 +502,15 @@ var functionViewModel = function(){
     self.nodeId = "node_" + self.createdAt;
     self.availableParameters = ko.computed(function(){
         var functionName = self.selectedFunction();
+        var params = {};
         if (typeof functionName == 'undefined' || functionName == undefined || functionName == "Choose Class") { 
-            return [];
+            params["inputParameters"] = ko.observableArray([]);
+            params["histograms"] = ko.observableArray([]);
+            params["customCounters"] = ko.observableArray([]);
+            params["customTimers"] = ko.observableArray([]);
+            return params;
         }
         var inputParams= [];
-        var params = {};
         $.ajax({url: "/loader-server/functions/" + functionName + "?classInfo=true",
             contentType: "application/json", 
             type:"GET",
@@ -1501,6 +1505,7 @@ function createRun(){
     var runJson ={};
     if(window.selectedView=='json'){
         runJson = $.parseJSON($("#runJson").val());
+        window.viewModel.runName(runJson["runName"]);
     } else {
         runJson = createJsonFromView();
     } 
@@ -1567,55 +1572,116 @@ function createRun(){
 }
 
 function checkValidity(runJson){
+    console.log("I am getting ", runJson);
     var lpNames = [];
+    var result = {"isValid":true,"alertMessage":""};
     $.each(runJson["loadParts"], function(lIndex, lPart){
         if(lpNames.indexOf(lPart["name"])==-1){
             lpNames.push(lPart["name"]);
         } else {
-            return {"isValid": false, "alertMessage":"Please use different names for loadparts."};
+            result["isValid"]=false;
+            result["alertMessage"]="Please use different names for loadparts.";
+            return false;
+        }
+        var setupGroup = lPart["load"]["setupGroup"];
+        if(setupGroup!=null){
+            var funcNames = [];
+            $.each(setupGroup["functions"], function(fIndex, func){
+                if(funcNames.indexOf(func["functionalityName"])!=-1){
+                    result["isValid"]=false;
+                    result["alertMessage"]="Please use different names for functions in " + setupGroup["name"] + ".";
+                    return false; 
+                }
+                if(func["functionalityName"].indexOf(" ")!=-1 || func["functionalityName"]==""){
+                    result["isValid"]=false;
+                    result["alertMessage"]="Invalid function name " + func["functionalityName"] + ", Blank/Space/Tabs not allowed in name.";
+                    return false; 
+                }
+                if(func["functionClass"].indexOf("Choose")!=-1){
+                    result["isValid"]=false;
+                    result["alertMessage"]="Invalid function class in " + func["functionalityName"] + ", You need to select a class.";
+                }
+                funcNames.push(func["functionalityName"]);
+            });    
+        }
+        var tearDownGroup = lPart["load"]["tearDownGroup"];
+        if(tearDownGroup!=null){
+            var funcNames = [];
+            $.each(tearDownGroup["functions"], function(fIndex, func){
+                if(funcNames.indexOf(func["functionalityName"])!=-1){
+                    result["isValid"]=false;
+                    result["alertMessage"]="Please use different names for functions in " + tearDownGroup["name"] + ".";
+                    return false; 
+                }
+                if(func["functionalityName"].indexOf(" ")!=-1 || func["functionalityName"]==""){
+                    result["isValid"]=false;
+                    result["alertMessage"]="Invalid function name " + func["functionalityName"] + ", Blank/Space/Tabs not allowed in name.";
+                    return false; 
+                }
+                if(func["functionClass"].indexOf("Choose")!=-1){
+                    result["isValid"]=false;
+                    result["alertMessage"]="Invalid function class in " + func["functionalityName"] + ", You need to select a class.";
+                }
+                funcNames.push(func["functionalityName"]);
+            });    
         }
         var grpNames = [];
         $.each(lPart["load"]["groups"], function(gIndex, grp){
             if(grpNames.indexOf(grp["name"])!=-1){
-                return {"isValid": false, "alertMessage":"Please use different names for groups in " + lPart["name"] + "."};
+                result["isValid"]=false;
+                result["alertMessage"]="Please use different names for groups in " + lPart["name"] + ".";
+                return false;
             }
-            if(grp["name"].indexOf(" ")!=-1){
-                return {"isValid": false, "alertMessage":"Invalid group name " + grp["name"] + ", Space/tabs not allowd in name."}
+            if(grp["name"].indexOf(" ")!=-1 || grp["name"]==""){
+                result["isValid"]=false;
+                result["alertMessage"]="Invalid group name " + grp["name"] + ", Blank/Space/tabs not allowed in name.";
+                return false; 
             }
             grpNames.push(grp["name"]);
             var funcNames = [];
             $.each(grp["functions"], function(fIndex, func){
                 if(funcNames.indexOf(func["functionalityName"])!=-1){
-                    return {"isValid": false, "alertMessage":"Please use different names for functions in " + grp["name"] + "."};
+                    result["isValid"]=false;
+                    result["alertMessage"]="Please use different names for functions in " + grp["name"] + ".";
+                    return false; 
                 }
-                if(func["functionalityName"].indexOf(" ")!=-1){
-                    return {"isValid": false, "alertMessage":"Invalid function name " + func["functionalityName"] + "."};
+                if(func["functionalityName"].indexOf(" ")!=-1 || func["functionalityName"]==""){
+                    result["isValid"]=false;
+                    result["alertMessage"]="Invalid function name " + func["functionalityName"] + ", Blank/Space/Tabs not allowed in name.";
+                    return false; 
                 }
-                if(func["functionClass"]=="Choose Class"){
-                    return {"isValid": false, "alertMessage":"Invalid function class in " + func["functionalityName"] + ", You need to select a class."};
+                if(func["functionClass"].indexOf("Choose")!=-1){
+                    result["isValid"]=false;
+                    result["alertMessage"]="Invalid function class in " + func["functionalityName"] + ", You need to select a class.";
                 }
+                funcNames.push(func["functionalityName"]);
             });
         });
     });
     var colNames = [];
     $.each(runJson["metricCollections"], function(iindex, collector){
-        if(colNames.indexOf(collector["agent"])!=-1)
-            return {"isValid": false, "alertMessage": "Do you really want two monitoring agent with same IP " + collector["agent"] + ", club them together"}
+        if(colNames.indexOf(collector["agent"])!=-1){
+            result["isValid"]=false;
+            result["alertMessage"]="Do you really want two monitoring agent with same IP " + collector["agent"] + ", club them together";
+            return false;
+        }
     });
     var colNames = [];
     $.each(runJson["onDemandMetricCollections"], function(iindex, agent){
         var colNames = [];
         $.each(agent["collectors"], function(index, collector){
             if(colNames.indexOf(collector["name"])!=-1){
-                return {"isValid": false, "alertMessage":"You have two collectors with same name for agent " + agent["agent"] + ", You will loose data for one."}
+                result["isValid"]=false;
+                result["alertMessage"]="You have two collectors with same name for agent " + agent["agent"] + ", You will loose data for one.";
+                return false;
             }
         });
     });
-    return {"isValid": true, "alertMessage":""};
+    return result;
 }
 
 function goToUpdate(){
-    window.location = "/updaterun.html?&runName=" + window.viewModel.runName();
+    //window.location = "/updaterun.html?&runName=" + window.viewModel.runName();
 }
 
 function getQueryParams(sParam) {
@@ -1838,6 +1904,7 @@ function updateRun(){
         runJson = createJsonFromView();
     } 
     var result = checkValidity(runJson);
+    console.log("result is",result);
     var isValid = result["isValid"];
     var alertMsg = result["alertMessage"];
     if (!isValid){

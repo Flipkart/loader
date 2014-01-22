@@ -64,6 +64,7 @@
                 $("#showJsonLI").removeClass('active');
                 $("#showUILI").addClass('active');
                 $("#UI").show();
+                $("#btngrp").addClass("offset4");
                 window.selectedView = 'ui';
             });
             $("#showJson").click(function(){
@@ -72,6 +73,7 @@
                 $("#showJsonLI").addClass('active');
                 $("#runJson").val(JSON.stringify(createJsonFromView(), undefined, 4));
                 $("#JSON").show();
+                $("#btngrp").removeClass("offset4");
                 window.selectedView = 'json';
             });
             initializeState(true);
@@ -1369,9 +1371,9 @@
         </div>
     </div>
     <div class="row-fluid">
-        <div class="offset4">
+        <div id="btngrp" class="offset4">
             <div class="btn-group">
-                <button class="btn" onClick="createRun()">Ceate</button>
+                <button class="btn" onClick="createRun()">Create</button>
             </div>
         </div>
     </div>
