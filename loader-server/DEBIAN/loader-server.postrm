@@ -10,5 +10,12 @@ fi
 
 [ -e "/usr/share/$PKG/app" ] && rm -rf "/usr/share/$PKG/app"
 [ -e "/usr/share/$PKG/lib" ] && rm -rf "/usr/share/$PKG/lib"
-
+while true; do
+    read -p "Do you wish to remove jobs data this program?" yn
+    case $yn in
+        [Yy]* ) [ -e "/var/log/$PKG" ] && rm -rf "/var/log/$PKG"; break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 exit 0

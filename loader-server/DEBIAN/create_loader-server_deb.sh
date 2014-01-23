@@ -13,7 +13,7 @@ LOADER_CORE_CODE_ROOT="../../loader-core"
 LOADER_HTTP_OPERATIONS_CODE_ROOT="../../loader-http-operations"
 LOADER_COMMON_OPERATIONS_CODE_ROOT="../../loader-common-operation"
 PACKAGE_ROOT="./loader-server"
-VERSION=1.0.2
+VERSION=1.0.3
 ARCH=all
 
 echo "Pre requisite to create this package : mvn clean compile package install -Dmaven.test.skip=true at loader2.0 level"
