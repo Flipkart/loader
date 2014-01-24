@@ -13,6 +13,9 @@
 		}
 		.inner-well {
 			background-color: white;
+			display:block;
+    		max-height: 180px;
+    		overflow:scroll;
 		}
 	</style>
 </head>
@@ -41,7 +44,7 @@
 			<div class="row-fluid">
 				<form>
 					<legend>Packages</legend>
-					<div id="packages" class="well inner-well scrollable" style="max-height:40%" data-bind="foreach: packages">
+					<div id="packages" class="well inner-well" data-bind="foreach: packages">
 						<div class="row-fluid">
 							<a data-bind="text: packageName, click: $parent.onPkgClick"></a>
 						</div>
@@ -51,7 +54,7 @@
 			<div class="row-fluid">
 				<form>
 					<legend>Functions</legend>
-					<div id="functions" class="well inner-well scrollable" style="max-height:40%" data-bind="foreach: packageFunctions">
+					<div id="functions" class="well inner-well" data-bind="foreach: packageFunctions">
 						<div class="row-fluid">
 							<a data-bind="text: functionName, click: $parent.onFunctionClick"></a>
 						</div>
