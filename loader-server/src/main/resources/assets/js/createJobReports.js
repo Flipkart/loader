@@ -615,7 +615,11 @@ var groupGraphViewModel = function(group) {
     self.getFunctions = function() {
         var functions = [];
         $.each(group["functions"], function(k, v) {
-            functions.push(new functionGraphViewModel(v, groupUrl));
+            try {
+                functions.push(new functionGraphViewModel(v, groupUrl));
+            } catch(err) {
+                console.log("ERROR: functionGraphViewModel creation failed with " + err);
+            }
         });
         return functions;
     }
@@ -644,21 +648,35 @@ var functionGraphViewModel = function(func, groupUrl) {
     self.functionName = func["functionName"];
     self.getTimers = function() {
         var timers = [];
+        if(func["metrics"]["timers"]==undefined) return timers;
         $.each(func["metrics"]["timers"], function(index, timer) {
-            timers.push(new timerGraphViewModel(timer, functionUrl));
+            try {
+                timers.push(new timerGraphViewModel(timer, functionUrl));
+            } catch (err){
+                console.log("ERROR: Creation of timerGraphViewModel failed with " + err);
+            }
         });
         return timers;
     }
+    
     self.getHistograms = function(){
         var histos = [];
         if(func["metrics"]["histograms"]==undefined) return histos;
         $.each(func["metrics"]["histograms"], function(index, histo){
-            histos.push(new histogramGraphViewModel(histo, functionUrl));
+            try {
+                histos.push(new histogramGraphViewModel(histo, functionUrl));
+            } catch (err){
+                console.log("ERROR: Creation of histogramGraphViewModel failed with " + err);
+            }
         });
         return histos;
     }
     self.timers = ko.observableArray(self.getTimers());
-    self.counters = ko.observableArray([new countersGraphViewModel(func["metrics"]["counters"], functionUrl)]);
+    try {
+        self.counters = ko.observableArray([new countersGraphViewModel(func["metrics"]["counters"], functionUrl)]);
+    } catch (err){
+        console.log("ERROR: Creation of countersGraphViewModel failed with " + err);
+    }
     self.histograms = ko.observableArray(self.getHistograms());
     self.isVisible = ko.observable(false);
     self.timersVisible = ko.observable(false);

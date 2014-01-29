@@ -1542,7 +1542,7 @@ function createRun(){
                     $("#alertMsg").append("<h4>Success!!</h4> Run Created successfully!!");
                     $("#alertMsg").append("<br>Redirecting to update run page...");
                     $("#alertMsg").css("display", "block");
-                    setTimeout(function(){goToUpdate();},5000);
+                    setTimeout(function(){goToUpdate();},3000);
                     break;
                 case 409:
                     $("#alertMsg").empty();
@@ -1681,7 +1681,7 @@ function checkValidity(runJson){
 }
 
 function goToUpdate(){
-    //window.location = "/updaterun.html?&runName=" + window.viewModel.runName();
+    window.location = "/updaterun.html?&runName=" + window.viewModel.runName();
 }
 
 function getQueryParams(sParam) {
