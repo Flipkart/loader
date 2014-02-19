@@ -574,8 +574,9 @@ var inputParamViewModel = function(inputParam){
     self.getList = function(){
         if(!self.isList) return [];
         //var list = $.parseJSON(inputParam["defaultValue"]);
-				var list = inputParam["defaultValue"];
+		var list = inputParam["defaultValue"];
         var params = [];
+        if(list==null || list==undefined) return params;
         $.each(list, function(index, param){
             params.push({"keyValue": ko.observable(param)});
         });
@@ -584,8 +585,9 @@ var inputParamViewModel = function(inputParam){
     self.getMap = function(){
         if(!self.isHashMap) return [];
         //var map =  $.parseJSON(inputParam["defaultValue"]);
-				var map = inputParam["defaultValue"];
+		var map = inputParam["defaultValue"];
         var params = [];
+        if(map==null || map==undefined) return params;
         $.each(map, function(k,v){
             params.push({"name": ko.observable(k), "keyValue":ko.observable(v)});
         });
