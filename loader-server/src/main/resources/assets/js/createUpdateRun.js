@@ -228,7 +228,6 @@ var runJsonViewModel = function(){
     }
     self.isInitialized =false;
     self.isDirty = ko.computed(function(){
-        console.log("called");
         self.runName();
         self.selectedBu();
         self.desc();
@@ -245,7 +244,6 @@ var runJsonViewModel = function(){
         var lpChanged = false;
         $.each(self.loadPart(), function(lIndex, loadPart){
             if(loadPart.hasChanged()){ 
-                console.log(lIndex + " has changed")
                 lpChanged = true; 
             }
         });
@@ -316,7 +314,6 @@ var loadPartViewModel =  function(){
     }
     self.isInitialized = false;
     self.isDirty = ko.computed(function(){
-        console.log("called lp");
         self.loadPartName();
         self.agents();
         self.dataGenerators();
@@ -413,7 +410,6 @@ var groupViewModel = function(){
     }
     self.isInitialized = false;
     self.isDirty = ko.computed(function(){
-        console.log("updated group");
         self.groupName();
         self.groupStartDelay();
         self.threadStartDelay();
@@ -443,7 +439,7 @@ var groupViewModel = function(){
         if(funcChanged) return true;
         var dataGenChanged = false;
         $.each(self.dataGenerators(), function(dIndex, dataGen){
-            if(dataGen.hasChanged()) {console.log("datagen changed");dataGenChanged =true;}
+            if(dataGen.hasChanged()) {dataGenChanged =true;}
         });
         if(dataGenChanged) return true;
         var timerChanged = false;
@@ -721,7 +717,6 @@ var dataGeneratorViewModel = function(){
     }
     self.isInitialized = false;
     self.isDirty = ko.computed(function(){
-        console.log("updated datagen")
         self.generatorName();
         self.generatorType();
         self.startValue();
@@ -1574,7 +1569,6 @@ function createRun(){
 }
 
 function checkValidity(runJson){
-    console.log("I am getting ", runJson);
     var lpNames = [];
     var result = {"isValid":true,"alertMessage":""};
     $.each(runJson["loadParts"], function(lIndex, lPart){
@@ -1783,19 +1777,27 @@ function createFunctionModel(func){
     funcModel.selectedCustomCounters(func["customCounters"]);
     $.each(funcModel.availableParameters().inputParameters(), function(index, inputParam){
         if(inputParam.isScalar){
-            inputParam.scalarValue(func["params"][inputParam.key]);
+            if(func["params"][inputParam.key]!=undefined || func["params"][inputParam.key]!=null){
+                inputParam.scalarValue(func["params"][inputParam.key]);
+            } else {
+                inputParam.scalarValue(("");
+            }
         } else {
             if(inputParam.isList){
                 var list = [];
-                $.each(func["params"][inputParam.key], function(keyIndex, param){
-                    list.push({"keyValue": ko.observable(param)});
-                });
+                if(func["params"][inputParam.key]!=undefined || func["params"][inputParam.key]!=null){
+                    $.each(func["params"][inputParam.key], function(keyIndex, param){
+                        list.push({"keyValue": ko.observable(param)});
+                    });
+                }
                 inputParam.listValue(list);
             } else {
                 var mapList = [];
-                $.each(func["params"][inputParam.key], function(k,v){
-                    mapList.push({"name":ko.observable(k.replace(/"/g,"")), "keyValue":ko.observable(v)});
-                });
+                if(func["params"][inputParam.key]!=undefined || func["params"][inputParam.key]!=null){
+                    $.each(func["params"][inputParam.key], function(k,v){
+                        mapList.push({"name":ko.observable(k.replace(/"/g,"")), "keyValue":ko.observable(v)});
+                    });
+                }
                 inputParam.mapValue(mapList);
             }
         } 
@@ -1906,7 +1908,6 @@ function updateRun(){
         runJson = createJsonFromView();
     } 
     var result = checkValidity(runJson);
-    console.log("result is",result);
     var isValid = result["isValid"];
     var alertMsg = result["alertMessage"];
     if (!isValid){
