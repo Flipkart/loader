@@ -1777,15 +1777,15 @@ function createFunctionModel(func){
     funcModel.selectedCustomCounters(func["customCounters"]);
     $.each(funcModel.availableParameters().inputParameters(), function(index, inputParam){
         if(inputParam.isScalar){
-            if(func["params"][inputParam.key]!=undefined || func["params"][inputParam.key]!=null){
+            if(func["params"][inputParam.key]!=undefined && func["params"][inputParam.key]!=null){
                 inputParam.scalarValue(func["params"][inputParam.key]);
             } else {
-                inputParam.scalarValue(("");
+                inputParam.scalarValue("");
             }
         } else {
             if(inputParam.isList){
                 var list = [];
-                if(func["params"][inputParam.key]!=undefined || func["params"][inputParam.key]!=null){
+                if(func["params"][inputParam.key]!=undefined && func["params"][inputParam.key]!=null){
                     $.each(func["params"][inputParam.key], function(keyIndex, param){
                         list.push({"keyValue": ko.observable(param)});
                     });
@@ -1793,7 +1793,7 @@ function createFunctionModel(func){
                 inputParam.listValue(list);
             } else {
                 var mapList = [];
-                if(func["params"][inputParam.key]!=undefined || func["params"][inputParam.key]!=null){
+                if(func["params"][inputParam.key]!=undefined && func["params"][inputParam.key]!=null){
                     $.each(func["params"][inputParam.key], function(k,v){
                         mapList.push({"name":ko.observable(k.replace(/"/g,"")), "keyValue":ko.observable(v)});
                     });
