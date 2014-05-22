@@ -41,6 +41,7 @@ public abstract class DataGenerator {
 
             case RANDOM_DISTRIBUTION:
                 return new RandomDistribution(CollectionHelper.transformList((List) info.getInputDetails().get("distributionInfoList"), RandomDistribution.DistributionInfo.class));
+
             default:
                 throw new RuntimeException("Don't know how to create Data Generator of Type "+info.getGeneratorType());
         }
