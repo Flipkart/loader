@@ -1,7 +1,6 @@
 package com.flipkart.perf.core;
 
-import com.flipkart.perf.datagenerator.DataGenerator;
-import com.flipkart.perf.datagenerator.DataGeneratorInfo;
+import com.flipkart.perf.datagenerator.*;
 import com.flipkart.perf.domain.Group;
 import com.flipkart.perf.domain.GroupTimer;
 import com.flipkart.perf.domain.GroupFunction;
@@ -52,6 +51,11 @@ public class GroupController {
 
         this.groupDataGenerators = new HashMap<String, DataGenerator>();
         Map<String, DataGeneratorInfo> dataGeneratorInfoMap = group.getDataGenerators();
+
+        this.groupDataGenerators.put("INBUILD_TIMESTAMP_MS",new TimeStampMS());
+        this.groupDataGenerators.put("INBUILD_TIMESTAMP_SEC",new TimeStampSec());
+        this.groupDataGenerators.put("INBUILD_CURRENT_DATE",new CurrentDate());
+
         for(String dataGeneratorName : dataGeneratorInfoMap.keySet())  {
             this.groupDataGenerators.put(dataGeneratorName,DataGenerator.buildDataGenerator(dataGeneratorInfoMap.get(dataGeneratorName)));
         }

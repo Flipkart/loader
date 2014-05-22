@@ -173,6 +173,10 @@ public class SequentialFunctionExecutor extends Thread {
                     SyncFunctionExecutor fe = this.fExecutors.get(functionNo).
                             setParams(new Object[]{functionContext});
 
+                    if(logger.isDebugEnabled()) { // Avoiding time consuming operations behind exclusive if condition
+                        logger.debug("Execution Function "+fe.getFunctionalityName() +" with parameters "+functionContext.getParameters());
+                    }
+
                     fe.execute();
 
                     functionCounter.executed();
