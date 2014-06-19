@@ -1,0 +1,26 @@
+#! /bin/bash -e
+
+PKG=fk-alert-service
+USERNAME=fk-erp-flo-ops
+USERID=4050
+GROUPNAME=fk-erp-flo-ops
+GROUPID=4050
+
+if [ "$1" == "configure" ]; then
+		#create users if they don't exist
+		if ! getent group $GROUPNAME > /dev/null; then
+				groupadd -g $GROUPID $GROUPNAME || echo "$PKG : Adding group $GROUPNAME <<FAILURE>>"| tee -a /var/log/dpkg.log || true
+		fi
+
+		if ! getent passwd $USERID > /dev/null; then
+				useradd -g $GROUPID -u $USERID $USERNAME  || echo "$PKG : Adding user $USERNAME <<FAILURE>>" | tee -a /var/log/dpkg.log || true
+		fi
+
+		chown -Rf $USERID:$GROUPID /var/log/flipkart/$PKG || true
+        	chown -Rf $USERID:$GROUPID /etc/diamond || true
+fi
+
+#easy_install mysql
+echo "CPUCollector.conf copied. Restart Diamond"
+
+exit 0
