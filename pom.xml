@@ -17,6 +17,7 @@
         <module>loader-http-operations</module>
         <module>loader-common-operations</module>
         <module>loader-redis-operations</module>
+        <module>loader-activemq-operations</module>
         <module>sample-app</module>
     </modules>
     <licenses>
