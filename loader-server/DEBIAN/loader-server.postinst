@@ -11,7 +11,9 @@ platformLib=/usr/share/$PKG/platformLibs
 if [ -d "$platformLib" ]; then
 
  cd /usr/share/$PKG/platformLibs
- rm *.jar
+ if [ "$(ls *.jar | wc -l)" -ge "1" ]; then
+  rm *.jar
+ fi
  unzip platform.zip
 fi
 
