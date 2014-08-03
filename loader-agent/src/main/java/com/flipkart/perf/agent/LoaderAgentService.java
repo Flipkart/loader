@@ -73,7 +73,7 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
             public void run() {
                 logger.info("DeRegistering from server");
                 try {
-                    LoaderServerClient.buildClient(configuration.getServerInfo()).deRegister();
+                	LoaderServerClient.buildClient(configuration.getServerInfo()).deRegister();
                 } catch (IOException e) {
                     logger.error("",e);
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.

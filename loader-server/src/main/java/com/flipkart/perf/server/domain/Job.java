@@ -6,15 +6,19 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.domain.Load;
 import com.flipkart.perf.server.exception.InvalidJobStateException;
 import com.flipkart.perf.server.util.ResponseBuilder;
+
 import nitinka.jmetrics.JMetric;
+
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +52,8 @@ public  class Job {
     private Date startTime, endTime;
     private JOB_STATUS jobStatus;
     private String failedToStartReason = ""; // Will be set only in case when job failed to start
-    private Map<String,AgentJobStatus> agentsJobStatus = new HashMap<String, AgentJobStatus>();
-    private Set<String> monitoringAgents;
+    private Map<String,AgentJobStatus> agentsJobStatus = new ConcurrentHashMap<String, AgentJobStatus>();
+    private Set<String> monitoringAgents = new ConcurrentHashSet<String>();
     private String remarks = "";
     private String logLevel = "INFO";
 
@@ -66,9 +70,9 @@ public  class Job {
 
     public static class AgentJobStatus {
         private String agentIp;
-        private Boolean inStress;
-        private JOB_STATUS job_status;
-        private Map<String, Object> healthStatus = new HashMap<String,Object>();
+        private volatile Boolean inStress;
+        private volatile JOB_STATUS job_status;
+        private Map<String, Object> healthStatus = new ConcurrentHashMap<String,Object>();
 
         public String getAgentIp() {
             return agentIp;
@@ -94,11 +98,13 @@ public  class Job {
 
         public AgentJobStatus setHealthStatus(Map<String, Object> healthStatus) {
             if(healthStatus != null) {
-                this.healthStatus = healthStatus;
-                if(inStress == null) {
-                    Object inStressObject = this.healthStatus.remove("inStress");
-                    this.inStress = inStressObject == null ? false : Boolean.parseBoolean(inStressObject.toString());
-                }
+            	synchronized(this.healthStatus) {
+            		this.healthStatus = new ConcurrentHashMap<String, Object>(healthStatus);
+            		if(inStress == null) {
+            			Object inStressObject = this.healthStatus.remove("inStress");
+            			this.inStress = inStressObject == null ? false : Boolean.parseBoolean(inStressObject.toString());
+            		}
+            	}
             }
             return this;
         }
@@ -115,8 +121,8 @@ public  class Job {
 
     public Job() {
         this.jobStatus = JOB_STATUS.QUEUED;
-        this.monitoringAgents = new HashSet<String>();
-        this.agentsJobStatus = new LinkedHashMap<String, AgentJobStatus>();
+        this.monitoringAgents = new ConcurrentHashSet<String>();
+        this.agentsJobStatus = new ConcurrentHashMap<String, AgentJobStatus>();
     }
 
     // All Getters and Setters
@@ -170,7 +176,10 @@ public  class Job {
     }
 
     public void setMonitoringAgents(Set<String> monitoringAgents) {
-        this.monitoringAgents = monitoringAgents;
+    	synchronized(this.monitoringAgents) {
+    		this.monitoringAgents.clear();
+    		this.monitoringAgents.addAll(monitoringAgents);
+    	}
     }
 
     public Map<String, AgentJobStatus> getAgentsJobStatus() {

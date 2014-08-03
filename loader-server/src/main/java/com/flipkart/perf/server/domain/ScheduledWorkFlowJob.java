@@ -37,7 +37,7 @@ public class ScheduledWorkFlowJob {
 
     private String workFlowId;
     private ArrayList<Job> runningJobs;
-    private STATUS status;
+    private volatile STATUS status;
     private String workflowName;
 
     public ScheduledWorkFlowJob(String workFlowId, String workflowName){
@@ -205,6 +205,7 @@ public class ScheduledWorkFlowJob {
         return result.subList(startIndex,lastIndex);
     }
 
+    // both reads and writes - need to be synchronized for consistent data to be written
     public static void deleteWorkflowJob(String workflowJobId) throws IOException {
         String workflowJobPath = LoaderServerConfiguration.instance().getJobFSConfig().getWorkflowJobPath(workflowJobId);
         File file = new File(workflowJobPath);
@@ -214,9 +215,11 @@ public class ScheduledWorkFlowJob {
         FileHelper.deleteRecursively(file);
         File workflowJobsFile = new File(LoaderServerConfiguration.instance().getJobFSConfig().
                 getScheduledWorkflowJobsFile(workflow.getWorkflowName()));
-        ArrayList<String> allWorkflowJobIds = objectMapper.readValue(workflowJobsFile, ArrayList.class);
-        allWorkflowJobIds.remove(workflowJobId);
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(workflowJobsFile,allWorkflowJobIds);
+        synchronized(ScheduledWorkFlowJob.class) {
+        	ArrayList<String> allWorkflowJobIds = objectMapper.readValue(workflowJobsFile, ArrayList.class);
+        	allWorkflowJobIds.remove(workflowJobId);
+        	objectMapper.writerWithDefaultPrettyPrinter().writeValue(workflowJobsFile,allWorkflowJobIds);
+        }
     }
 
 }

@@ -12,20 +12,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.flipkart.perf.common.constant.MathConstant;
 import com.flipkart.perf.common.util.Clock;
 import com.flipkart.perf.common.util.FileHelper;
-import org.codehaus.jackson.map.ObjectMapper;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.flipkart.perf.server.config.JobFSConfig;
 import com.flipkart.perf.server.domain.TimerStatsInstance;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
-
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Histogram;
 import com.yammer.metrics.core.MetricName;
@@ -106,15 +107,17 @@ public class TimerComputationThread extends Thread {
     private TimerComputationThread(JobFSConfig jobFSConfig) {
         this.jobFSConfig = jobFSConfig;
         this.aliveJobs = new ArrayList<String>();
-        this.fileAlreadyReadLinesMap = new HashMap<String, Long>();
-        this.fileHistogramMap = new HashMap<String, Histogram>();
-        this.fileTimerStatsMap = new HashMap<String, TimerStatsStamp>();
-        this.fileCachedContentMap = new HashMap<String, List>();
+        this.fileAlreadyReadLinesMap = new ConcurrentHashMap<String, Long>();
+        this.fileHistogramMap = new ConcurrentHashMap<String, Histogram>();
+        this.fileTimerStatsMap = new ConcurrentHashMap<String, TimerStatsStamp>();
+        this.fileCachedContentMap = new ConcurrentHashMap<String, List>();
     }
 
     public static TimerComputationThread initialize(ScheduledExecutorService scheduledExecutorService, JobFSConfig jobFSConfig, int interval) {
         if(thread == null) {
-            thread = new TimerComputationThread(jobFSConfig);
+        	synchronized(TimerComputationThread.class) {
+        		thread = new TimerComputationThread(jobFSConfig);
+        	}
             scheduledExecutorService.scheduleWithFixedDelay(thread,
                     1000,
                     interval,
@@ -165,7 +168,8 @@ public class TimerComputationThread extends Thread {
         // Populate remaining content in a list
         List<String> cachedContent = this.fileCachedContentMap.get(jobFile.getAbsolutePath());
         if(cachedContent == null) {
-            cachedContent = new LinkedList<String>();
+        	// use array list - faster. Also synchronize the list - frequent writes + writes more than gets
+            cachedContent = Collections.synchronizedList(new ArrayList<String>());
             this.fileCachedContentMap.put(jobFile.getAbsolutePath(), cachedContent);
         }
         String line = null;
@@ -345,6 +349,7 @@ public class TimerComputationThread extends Thread {
         }
     }
 
+    // called from within synchronized block only
     private boolean jobOver(String jobId) {
         return !this.aliveJobs.contains(jobId);
     }

@@ -1,15 +1,20 @@
 package com.flipkart.perf.agent.client;
 
+import com.ning.http.client.AsyncCompletionHandler;
+import com.ning.http.client.AsyncHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 import com.flipkart.perf.common.jackson.ObjectMapperUtil;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.flipkart.perf.agent.config.ServerInfo;
 
 import javax.ws.rs.core.MediaType;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
@@ -94,7 +99,7 @@ public class LoaderServerClient {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public void notifyJobIsOver(String jobId, String jobStatus) throws IOException, ExecutionException, InterruptedException {
+    public void notifyJobIsOver(final String jobId, String jobStatus) throws IOException, ExecutionException, InterruptedException {
         AsyncHttpClient.BoundRequestBuilder b = httpClient.
                 preparePut("http://" + this.getHost() + ":" +
                         this.getPort() +
@@ -103,12 +108,17 @@ public class LoaderServerClient {
                                 replace("{jobStatus}", jobStatus)).
                 setHeader("Content-Type", MediaType.APPLICATION_JSON);
 
-        Future<Response> r = b.execute();
-        r.get();
-        if(r.get().getStatusCode() != 204) {
-            logger.error("Delete on "+RESOURCE_JOB_OVER.
-                    replace("{jobId}", jobId));
-        }
+        Future<Response> r = b.execute(new AsyncCompletionHandler<Response>() {
+
+			@Override
+			public Response onCompleted(Response r) throws Exception {
+				if(r.getStatusCode() != 204) {
+		            logger.error("Delete on "+RESOURCE_JOB_OVER.
+		                    replace("{jobId}", jobId));
+		        }
+				return r;
+			}
+		});
     }
 
     /**
@@ -131,7 +141,7 @@ public class LoaderServerClient {
                                 replace("{file}", trimmedFileName)).
                 setBody(new FileInputStream(filePath));
 
-        b.execute().get();
+        b.execute();
     }
 
     public static LoaderServerClient buildClient(ServerInfo serverInfo) {
@@ -147,7 +157,7 @@ public class LoaderServerClient {
                         RESOURCE_JOB_HEALTH_STATUS.
                                 replace("{jobId}", jobId)).
                 setBody(jobHealthStatus);
-        b.execute().get();
+        b.execute();
     }
 
     public void deRegister() throws IOException, ExecutionException, InterruptedException {
@@ -157,6 +167,6 @@ public class LoaderServerClient {
                         ":" +
                         this.getPort() +
                         RESOURCE_AGENTS);
-        b.execute().get();
+        b.execute();
     }
 }

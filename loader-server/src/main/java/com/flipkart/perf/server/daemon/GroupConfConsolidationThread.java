@@ -3,9 +3,11 @@ package com.flipkart.perf.server.daemon;
 import com.flipkart.perf.common.constant.MathConstant;
 import com.flipkart.perf.common.util.Clock;
 import com.flipkart.perf.common.util.FileHelper;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.flipkart.perf.server.config.JobFSConfig;
 import com.flipkart.perf.server.cache.JobsCache;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
@@ -13,6 +15,7 @@ import com.flipkart.perf.server.util.ObjectMapperUtil;
 import java.io.*;
 import java.lang.String;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -73,13 +76,15 @@ public class GroupConfConsolidationThread extends Thread {
     private GroupConfConsolidationThread(JobFSConfig jobFSConfig) {
         this.jobFSConfig = jobFSConfig;
         this.aliveJobs = new ArrayList<String>();
-        this.fileAlreadyReadLinesMap = new HashMap<String, Long>();
-        this.fileCachedContentMap = new HashMap<String, List>();
+        this.fileAlreadyReadLinesMap = new ConcurrentHashMap<String, Long>();
+        this.fileCachedContentMap = new ConcurrentHashMap<String, List>();
     }
 
     public static GroupConfConsolidationThread initialize(ScheduledExecutorService scheduledExecutorService, JobFSConfig jobFSConfig, int interval) {
         if(thread == null) {
-            thread = new GroupConfConsolidationThread(jobFSConfig);
+        	synchronized(GroupConfConsolidationThread.class) {
+        		thread = new GroupConfConsolidationThread(jobFSConfig);
+        	}
             scheduledExecutorService.scheduleWithFixedDelay(thread,
                     1000,
                     interval,
