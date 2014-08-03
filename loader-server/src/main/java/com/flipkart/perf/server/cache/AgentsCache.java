@@ -4,9 +4,9 @@ package com.flipkart.perf.server.cache;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory;
 
 import com.flipkart.perf.server.config.AgentConfig;
 import com.flipkart.perf.server.domain.LoaderAgent;
-import com.flipkart.perf.server.util.AgentHelper;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
 
 public class AgentsCache {
+	// has to be concurrent- both read and writes
     private static Map<String, LoaderAgent> agentInfoMap;
     private static AgentConfig agentConfig;
     private static ObjectMapper objectMapper = ObjectMapperUtil.instance();
@@ -25,7 +25,7 @@ public class AgentsCache {
 
     public static void initialize(AgentConfig agentConfig) {
         AgentsCache.agentConfig = agentConfig;
-        agentInfoMap = new HashMap<String, LoaderAgent>();
+        agentInfoMap = new ConcurrentHashMap<String, LoaderAgent>();
         try {
             loadCache();
         } catch (IOException e) {
@@ -38,7 +38,7 @@ public class AgentsCache {
     }
 
     public static void setAgentInfoMap(Map<String, LoaderAgent> agentInfoMap) {
-        AgentsCache.agentInfoMap = agentInfoMap;
+        AgentsCache.agentInfoMap = new ConcurrentHashMap<String, LoaderAgent>(agentInfoMap);
     }
 
     public static void addAgent(LoaderAgent agent) throws IOException {

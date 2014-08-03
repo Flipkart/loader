@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutionException;
  * To change this template use File | Settings | File Templates.
  */
 public class AgentRegistrationThread extends Thread{
-    private boolean registered = false;
+    private volatile boolean registered = false;
     private int registrationInterval = 10000;
     private final LoaderServerClient serverClient;
     private final Map<String, Object> registrationParams;
@@ -27,8 +27,10 @@ public class AgentRegistrationThread extends Thread{
 
     public static AgentRegistrationThread initialize(LoaderServerClient serverClient, Map<String,Object> registrationParams) {
         if(registrationThread == null) {
-            registrationThread = new AgentRegistrationThread(serverClient, registrationParams);
-            registrationThread.start();
+        	synchronized (AgentRegistrationThread.class) {
+        		registrationThread = new AgentRegistrationThread(serverClient, registrationParams);
+			}
+        	registrationThread.start();
         }
         return registrationThread;
     }

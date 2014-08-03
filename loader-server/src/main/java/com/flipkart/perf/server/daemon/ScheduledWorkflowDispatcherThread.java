@@ -3,10 +3,13 @@ package com.flipkart.perf.server.daemon;
 import com.flipkart.perf.server.domain.Job;
 import com.flipkart.perf.server.domain.JobRequest;
 import com.flipkart.perf.server.domain.ScheduledWorkFlowJob;
+
 import org.eclipse.jetty.util.BlockingArrayQueue;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 /**
@@ -18,7 +21,7 @@ import java.util.concurrent.BlockingQueue;
  */
 public class ScheduledWorkflowDispatcherThread implements Runnable {
     private static BlockingQueue<ScheduledWorkFlowJob> workflowQueue;
-    private static ArrayList<ScheduledWorkFlowJob> runningWorkFlows;
+    private static List<ScheduledWorkFlowJob> runningWorkFlows;
     private static boolean keepRunning;
     private static final ScheduledWorkflowDispatcherThread INSTANCE = new ScheduledWorkflowDispatcherThread();
 
@@ -77,7 +80,8 @@ public class ScheduledWorkflowDispatcherThread implements Runnable {
 
     public static void initialize(){
         workflowQueue = new BlockingArrayQueue<ScheduledWorkFlowJob>();
-        runningWorkFlows = new ArrayList<ScheduledWorkFlowJob>();
+        // again we have both read and writes into the list- hence synchronization
+        runningWorkFlows = Collections.synchronizedList(new ArrayList<ScheduledWorkFlowJob>());
         keepRunning = true;
     }
 
@@ -101,7 +105,7 @@ public class ScheduledWorkflowDispatcherThread implements Runnable {
         workflowQueue.add(r);
     }
 
-    public static ArrayList<ScheduledWorkFlowJob> getRunningWorkflows() {
+    public static List<ScheduledWorkFlowJob> getRunningWorkflows() {
         return runningWorkFlows;
     }
 

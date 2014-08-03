@@ -41,8 +41,11 @@ public class LibCache {
     }
 
     public static LibCache initialize(ResourceStorageFSConfig storageConfig) throws IOException {
-        if(self == null)
-            self = new LibCache(storageConfig);
+        if(self == null) {
+        	synchronized(self) {
+        		self = new LibCache(storageConfig);
+        	}
+        }
         return self;
     }
 
@@ -93,7 +96,7 @@ public class LibCache {
         return classLibMap;
     }
 
-    public List classesExist(String[] classes) {
+    public List<String> classesExist(String[] classes) {
         List<String> classesNotDeployed = new ArrayList<String>();
         for(String className : classes)
             if(!classLibMap.containsKey(className))

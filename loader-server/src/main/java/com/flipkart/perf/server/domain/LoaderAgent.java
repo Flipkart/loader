@@ -3,11 +3,13 @@ package com.flipkart.perf.server.domain;
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.server.config.LoaderServerConfiguration;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
+
 import nitinka.jmetrics.JMetric;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created with IntelliJ IDEA.
@@ -24,7 +26,7 @@ public class LoaderAgent {
 
     private String ip;
     private Map<String,Object> attributes;
-    private LoaderAgentStatus status;
+    private volatile LoaderAgentStatus status;
     private List<String> runningJobs;
     private Set<String> tags;
 
@@ -34,7 +36,7 @@ public class LoaderAgent {
 
     public LoaderAgent(String ip, Map<String,Object> agentAttributes) {
         this.ip = ip;
-        this.attributes = agentAttributes;
+        this.attributes = new ConcurrentHashMap<String, Object>(agentAttributes);
         this.status = LoaderAgentStatus.FREE;
         this.runningJobs = new ArrayList<String>();
         tags = new LinkedHashSet<String>();
@@ -93,16 +95,22 @@ public class LoaderAgent {
     }
 
     public LoaderAgent setFree() throws IOException {
-        this.status = LoaderAgentStatus.FREE;
-        JMetric.offerMetric("agents.free", 1);
-        persist();
+    	if(this.status != LoaderAgentStatus.FREE) {
+    		this.status = LoaderAgentStatus.FREE;
+    		JMetric.offerMetric("agents.free", 1);
+    		// parallel writes possible
+    		persist();
+    	}
         return this;
     }
 
     public LoaderAgent setBusy() throws IOException {
-        this.status = LoaderAgentStatus.BUSY;
-        JMetric.offerMetric("agents.busy", 1);
-        persist();
+    	if(this.status != LoaderAgentStatus.BUSY) {
+    		this.status = LoaderAgentStatus.BUSY;
+    		JMetric.offerMetric("agents.busy", 1);
+    		// parallel writes possible
+    		persist();
+    	}
         return this;
     }
 
@@ -112,23 +120,29 @@ public class LoaderAgent {
     }
 
     public LoaderAgent setDisabled() throws IOException {
-        this.status = LoaderAgentStatus.DISABLED;
-        JMetric.offerMetric("agents.disabled", 1);
-        persist();
+    	if(this.status != LoaderAgentStatus.DISABLED) {
+    		this.status = LoaderAgentStatus.DISABLED;
+    		JMetric.offerMetric("agents.disabled", 1);
+    		persist();
+    	}
         return this;
     }
 
     public LoaderAgent setNotReachable() throws IOException {
-        this.status = LoaderAgentStatus.NOT_REACHABLE;
-        JMetric.offerMetric("agents.notReachable", 1);
-        persist();
+    	if(this.status != LoaderAgentStatus.NOT_REACHABLE) {
+    		this.status = LoaderAgentStatus.NOT_REACHABLE;
+    		JMetric.offerMetric("agents.notReachable", 1);
+    		persist();
+    	}
         return this;
     }
 
     public LoaderAgent setDRegistered() throws IOException {
-        this.status = LoaderAgentStatus.D_REGISTERED;
-        JMetric.offerMetric("agents.dRegistered", 1);
-        persist();
+    	if(this.status != LoaderAgentStatus.D_REGISTERED) {
+    		this.status = LoaderAgentStatus.D_REGISTERED;
+    		JMetric.offerMetric("agents.dRegistered", 1);
+    		persist();
+    	}
         return this;
     }
 

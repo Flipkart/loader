@@ -42,8 +42,11 @@ public class JobProcessorThread extends Thread{
     }
 
     public static JobProcessorThread initialize(JobProcessorConfig jobProcessorConfig, JobFSConfig jobFSConfig) throws IOException, InterruptedException, ExecutionException {
-        if(instance == null)
-            instance = new JobProcessorThread(jobProcessorConfig, jobFSConfig);
+        if(instance == null) {
+        	synchronized(JobProcessorThread.class) {
+        		instance = new JobProcessorThread(jobProcessorConfig, jobFSConfig);
+        	}
+        }
 
         instance.cleanIncompleteJobs();
         return instance;

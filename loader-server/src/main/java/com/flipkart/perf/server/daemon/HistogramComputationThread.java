@@ -11,12 +11,14 @@ import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Histogram;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.stats.Snapshot;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Compute both agent and overall timer files.
@@ -34,7 +36,7 @@ public class HistogramComputationThread extends Thread {
     private Map<String,HistogramStatsStamp> fileTimerStatsMap;       // This would be further improved once i implement small file approach for big timer files
     private Map<String,List> fileCachedContentMap;
 
-    private static HistogramComputationThread thread;
+    private static volatile HistogramComputationThread thread;
     private static Logger logger;
     private static final String FILE_EXTENSION;
 
@@ -84,15 +86,17 @@ public class HistogramComputationThread extends Thread {
         this.jobFSConfig = jobFSConfig;
         this.checkInterval = checkInterval;
         this.aliveJobs = new ArrayList<String>();
-        this.fileAlreadyReadLinesMap = new HashMap<String, Long>();
-        this.fileHistogramMap = new HashMap<String, Histogram>();
-        this.fileTimerStatsMap = new HashMap<String, HistogramStatsStamp>();
-        this.fileCachedContentMap = new HashMap<String, List>();
+        this.fileAlreadyReadLinesMap = new ConcurrentHashMap<String, Long>();
+        this.fileHistogramMap = new ConcurrentHashMap<String, Histogram>();
+        this.fileTimerStatsMap = new ConcurrentHashMap<String, HistogramStatsStamp>();
+        this.fileCachedContentMap = new ConcurrentHashMap<String, List>();
     }
 
     public static HistogramComputationThread initialize(JobFSConfig jobFSConfig, int checkInterval) {
         if(thread == null) {
-            thread = new HistogramComputationThread(jobFSConfig, checkInterval);
+        	synchronized(HistogramComputationThread.class) {
+        		thread = new HistogramComputationThread(jobFSConfig, checkInterval);
+        	}
         }
         return thread;
     }
@@ -155,7 +159,7 @@ public class HistogramComputationThread extends Thread {
         // Populate remaining content in a list
         List<String> cachedContent = this.fileCachedContentMap.get(jobFile.getAbsolutePath());
         if(cachedContent == null) {
-            cachedContent = new LinkedList<String>();
+            cachedContent = Collections.synchronizedList(new ArrayList<String>());
             this.fileCachedContentMap.put(jobFile.getAbsolutePath(), cachedContent);
         }
         String line = null;

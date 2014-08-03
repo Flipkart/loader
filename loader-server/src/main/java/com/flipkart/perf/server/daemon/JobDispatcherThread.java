@@ -1,7 +1,5 @@
 package com.flipkart.perf.server.daemon;
 
-import com.flipkart.perf.common.util.Clock;
-import com.flipkart.perf.server.config.JobFSConfig;
 import com.flipkart.perf.server.domain.LoadPart;
 import com.flipkart.perf.server.util.AgentHelper;
 import org.slf4j.Logger;
@@ -95,13 +93,14 @@ public class JobDispatcherThread extends Thread{
 
     public static JobDispatcherThread initialize(ScheduledExecutorService scheduledExecutorService, int interval) {
         if(thread == null) {
-            thread = new JobDispatcherThread();
-            thread.start();
-            scheduledExecutorService.scheduleWithFixedDelay(thread,
-                    1000,
-                    interval,
-                    TimeUnit.MILLISECONDS);
-
+        	synchronized(JobDispatcherThread.class) {
+        		thread = new JobDispatcherThread();
+        		thread.start();
+        		scheduledExecutorService.scheduleWithFixedDelay(thread,
+        				1000,
+        				interval,
+        				TimeUnit.MILLISECONDS);
+        	}
         }
         return thread;
     }
@@ -119,7 +118,7 @@ public class JobDispatcherThread extends Thread{
 
     public void removeJobRequest(Job job) throws InterruptedException, ExecutionException, IOException {
         synchronized (jobRequestQueue) {
-            jobRequestQueue.add(job);
+            jobRequestQueue.remove(job);
             job.killed();
         }
     }
