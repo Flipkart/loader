@@ -32,6 +32,7 @@ public class JedisFunctions {
 	
 	public void register(Long id, String templateName, String requestMethod, String params, 
 			Map<String,String> requestHeaders, String url, String content) throws JsonProcessingException {
+		requestIds.put(id,templateName);
 		registerUrl(id, templateName, url);
 		registerRequest(id, templateName, content);
 		registerParams(id, templateName, params);
@@ -56,11 +57,11 @@ public class JedisFunctions {
 	}
 	
 	public synchronized void registerRequestHeaders(Long id,String templateName,Map<String,String> requestHeaders) throws JsonProcessingException {
-		jedisWrapper.set(".params."+id, templateName, mapper.writeValueAsString(requestHeaders));
+		jedisWrapper.set(".headers."+id, templateName, mapper.writeValueAsString(requestHeaders));
 	}
 	
 	public synchronized Map<String,String> getRequestHeaders(Long id,String templateName) throws JsonParseException, JsonMappingException, IOException {
-		return mapper.readValue(jedisWrapper.get(".params."+id, templateName), new TypeReference<Map<String,String>>(){});
+		return mapper.readValue(jedisWrapper.get(".headers."+id, templateName), new TypeReference<Map<String,String>>(){});
 	}
 	
 	public void registerUrl(Long id,String templateName,String url) {

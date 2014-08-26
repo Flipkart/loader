@@ -1,11 +1,6 @@
-templateFileBasePath:/Users/tushar.mahapatra/templates/
-
-env:
-
 http:
   port: 9000
   adminPort: 9001
-  connectorType: blocking
-  minThreads: 8
-  maxThreads: 1024
-  acceptorThreads: 1
+    
+templateFileBasePath: "/Users/tushar.mahapatra/templates/"
+

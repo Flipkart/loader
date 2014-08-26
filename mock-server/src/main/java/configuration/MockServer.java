@@ -3,6 +3,7 @@ package configuration;
 import resource.MockServerResource;
 import server.MockServerService;
 import server.impl.MockServerServiceImpl;
+import templates.Template;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -28,6 +29,7 @@ public class MockServer extends Service<MockServerConfiguration> {
 	@Override
 	public void run(MockServerConfiguration configuration, Environment env)
 			throws Exception {
+		Template.loadAllTemplates("/Users/tushar.mahapatra/templates");
 		injector = Guice.createInjector(new AbstractModule() {
 			
 			@Override

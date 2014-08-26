@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -23,6 +25,8 @@ import javax.ws.rs.core.Response;
 import server.MockServerService;
 import templates.Template;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -36,7 +40,7 @@ public class MockServerResource {
 	private MockServerService mockServerService;
 	
 	private MockServerConfiguration config;
-	private AtomicLong id;
+	private AtomicLong id = new AtomicLong(1l);
 	
 	@Inject
 	public MockServerResource(MockServerService mockServerService, MockServerConfiguration config) {
@@ -44,20 +48,50 @@ public class MockServerResource {
 		this.config = config;
 	}
 	
+	@POST
+	@Path("/proxy/{extension : .*}")
+	public Response mockResponsePost(@QueryParam("persist") @DefaultValue("true") boolean shouldPersist, 
+			@PathParam(value = "extension") String extension, 
+			@QueryParam("callbackUrl") String callbackUrl, 
+			@Context HttpServletRequest request, String requestBody)
+	{
+		return getMockResponse(shouldPersist, extension, callbackUrl, request, requestBody);
+	}
+	
+	@PUT
+	@Path("/proxy/{extension : .*}")
+	public Response mockResponsePut(@QueryParam("persist") @DefaultValue("true") boolean shouldPersist, 
+			@PathParam(value = "extension") String extension, 
+			@QueryParam("callbackUrl") String callbackUrl, 
+			@Context HttpServletRequest request, String requestBody)
+	{
+		return getMockResponse(shouldPersist, extension, callbackUrl, request, requestBody);
+	}
+	
 	@GET
 	@Path("/proxy/{extension : .*}")
 	public Response mockResponse(@QueryParam("persist") @DefaultValue("true") boolean shouldPersist, 
 			@PathParam(value = "extension") String extension, 
 			@QueryParam("callbackUrl") String callbackUrl, 
-			@Context HttpServletRequest request) throws IOException 
+			@Context HttpServletRequest request)
 	{
+		return getMockResponse(shouldPersist, extension, callbackUrl, request, null);
+	}
+	
+	private Response getMockResponse(boolean shouldPersist, String extension, String callbackUrl, HttpServletRequest request, String requestBody) {
 		try {
 			Template template = Template.getTemplateForUrl(extension);
-			String mockResponse = mockServerService.getMockResponse(id.get(), request, shouldPersist, template);
-			if(!template.isAsync())
+			String mockResponse = mockServerService.getMockResponse(id.get(), requestBody, shouldPersist, template);
+			if(!template.isAsync()) {
+				if(null != template.getWaitTimeInSec())
+					Thread.sleep(template.getWaitTimeInSec()*1000);
 				return Response.ok(mockResponse).build();
+			}
 			else
-				return Response.ok().build();
+				return Response.ok("Async request completed.").build();
+		} catch(Exception e) {
+			e.printStackTrace();
+			return Response.status(207).build();
 		}
 		finally {
 			id.addAndGet(1);
@@ -66,12 +100,9 @@ public class MockServerResource {
 	
 	@POST
 	@Path("/register/{templateName}")
-	@Consumes(MediaType.TEXT_HTML)
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response registerAsyncTemplate(@PathParam(value = "templateName")String templateName, 
-			@QueryParam("urlEndpoint") String urlEndpoint, 
-			@QueryParam("urlRegexPattern") String urlRegexPattern,
-			@QueryParam("params") String params,
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_HTML)
+	public Response registerTemplate(@PathParam(value = "templateName")String templateName, 
 			@QueryParam("async") @DefaultValue("true") boolean async,
 			@Context HttpServletRequest request, 
 			String requestBody) throws IOException {
@@ -82,9 +113,21 @@ public class MockServerResource {
 			String headerName = headerNames.nextElement();
 			headers.put(headerName,request.getHeader(headerName));
 		}
-		Template.createTemplate(requestBody, templateName, config.getTemplateFileBasePath(), async, 
-				urlRegexPattern, urlEndpoint, request.getMethod(), params, headers);
-		return Response.ok().build();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode node = mapper.reader(ObjectNode.class).readValue(requestBody);
+		String urlEndpoint = node.get("urlEndpoint").asText();
+		String urlRegexPattern = node.get("urlRegexPattern").asText();
+		String params = node.get("params").asText();
+		Long waitTimeInSec = node.get("waitTimeInSec").asLong();
+		Long fireCallbackAfter = node.get("fireCallbackAfter").asLong();
+		String content = "";
+		if(null != node.get("content"))
+			content = node.get("content").toString();
+		
+		Template.createTemplate(content, templateName, config.getTemplateFileBasePath(), async, 
+				urlRegexPattern, urlEndpoint, request.getMethod(), params, headers, waitTimeInSec, fireCallbackAfter);
+		return Response.ok("Successfully Registered Template- "+templateName).build();
 	}
 	
 	@GET
@@ -94,5 +137,14 @@ public class MockServerResource {
 	public Response getTemplate(@PathParam(value = "templateName") String templateName, @Context Request request) {
 		Response response = Response.ok(Template.getTemplate(templateName)).build();
 		return response;
+	}
+	
+	@POST
+	@Path("/callbacks")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_HTML)
+	public Response triggerCallbacks() throws IOException, InterruptedException, ExecutionException {
+		mockServerService.hitCallbacks();
+		return Response.ok("callbacks done.").build();
 	}
 }

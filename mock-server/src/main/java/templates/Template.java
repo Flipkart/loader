@@ -3,11 +3,11 @@ package templates;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +31,6 @@ import lombok.Setter;
 @JsonSnakeCase
 public class Template {
 	
-	@JsonIgnore
 	private String content;
 	private String templateName;
 	private String urlEndpoint;
@@ -40,9 +39,9 @@ public class Template {
 	private Map<String,String> staticHeaders;
 	private String params;
 	private String urlRegexPattern;
+	private Long waitTimeInSec;
+	private Long fireCallbackAfter;
 	
-	@JsonIgnore
-	private static Map<String,Template> templates = new HashMap<String, Template>();
 	@JsonIgnore
 	private static Map<String,Template> urlRegexTemplateAssoc = new HashMap<String, Template>();
 	@JsonIgnore
@@ -63,36 +62,13 @@ public class Template {
 		return substitutor.replace(params);
 	}
 	
-	public String loadTemplate(String filePath) throws IOException {
-		File file = new File(filePath);
-		BufferedReader reader = null;
-		InputStreamReader inputStreamReader = null;
-		try {
-			inputStreamReader = new InputStreamReader(new FileInputStream(file));
-			reader = new BufferedReader(inputStreamReader);
-			String l;
-			StringBuffer templateBuffer = new StringBuffer();
-			while((l = reader.readLine()) != null) {
-				templateBuffer.append(l);
-			}
-			if(templateBuffer.length() > 0)
-				content = templateBuffer.toString();
-			templateName = file.getName();
-			templates.put(file.getName(), this);
-			return content;
-		}
-		finally {
-			if(null != inputStreamReader)
-				inputStreamReader.close();
-			if(null != reader)
-				reader.close();
-		}
-	}
-	
 	public static void createTemplate(String content, String fileName, String templateFileBasePath, 
-			boolean async, String urlRegexPattern, String urlEndpoint, String requestMethod, String params, Map<String,String> staticHeaders) throws IOException {
+			boolean async, String urlRegexPattern, String urlEndpoint, String requestMethod, String params, Map<String,String> staticHeaders, Long waitTimeInSec, Long fireCallbackAfter) throws IOException {
 		
 		File file = new File(templateFileBasePath+"/"+fileName);
+		if(!file.exists()) {
+			file.createNewFile();
+		}
 		OutputStreamWriter outputStreamWriter = null;
 		BufferedWriter writer = null;
 		try {
@@ -109,14 +85,28 @@ public class Template {
 			template.setRequestMethod(requestMethod);
 			template.setStaticHeaders(staticHeaders);
 			template.setParams(params);
+			template.setWaitTimeInSec(waitTimeInSec);
+			template.setFireCallbackAfter(fireCallbackAfter);
 			
 			File templateAssocs = new File(templateFileBasePath+"/assoc");
-			List<Template> templates = mapper.readValue(templateAssocs, new TypeReference<List<Template>>() {});
+			if(!templateAssocs.exists()) {
+				templateAssocs.createNewFile();
+			}
+			List<Template> templates = new ArrayList<Template>();
+			if(!isFileEmpty(templateAssocs))
+				templates = mapper.readValue(templateAssocs, new TypeReference<List<Template>>() {});
+			for(Template t:templates)
+				if(t.getTemplateName().equalsIgnoreCase(template.getTemplateName())) {
+					templates.remove(t);
+					break;
+				}
 			templates.add(template);
+			
 			mapper.writeValue(templateAssocs, templates);
 			
-			Template.templates.put(fileName, template);
 			urlRegexTemplateAssoc.put(urlRegexPattern, template);
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 		finally {
 			if(writer != null)
@@ -125,38 +115,35 @@ public class Template {
 				outputStreamWriter.close();
 		}
 	}
-		
-	public static void loadAllTemplates(String templateFileBasePath) throws IOException {
-		File baseFolder = new File(templateFileBasePath);
-		File[] files = baseFolder.listFiles();
-		
-		for(File file:files) {
-			if(!file.isFile()) continue;
-			Template template = new Template();
-			template.loadTemplate(file.getPath());
-			templates.put(file.getName(),template);
+	
+	private static boolean isFileEmpty(File file) throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader(file));     
+		if (br.readLine() == null) {
+		    return true;
 		}
+		return false;
+	}
 		
+	public static void loadAllTemplates(String templateFileBasePath) throws IOException {		
 		File templateAssocs = new File(templateFileBasePath+"/assoc");	
 		List<Template> templates = mapper.readValue(templateAssocs, new TypeReference<List<Template>>() {});
 		for(Template template:templates) {
-			template.loadTemplate(templateFileBasePath+template.getTemplateName());
 			urlRegexTemplateAssoc.put(template.getUrlRegexPattern(), template);
 		}
-	}
-	
-	public static Template getTemplate(String templateName) {
-		// fileName same as templateName
-		Template template = templates.get(templateName);
-		if(null != template)
-			return template;
-		else return null;
 	}
 	
 	public static Template getTemplateForUrl(String url) {
 		for(String regex:urlRegexTemplateAssoc.keySet()) {
 			if (Pattern.matches(regex, url))
 				return urlRegexTemplateAssoc.get(regex);
+		}
+		return null;
+	}
+
+	public static Template getTemplate(String templateName2) {
+		for(Template t:urlRegexTemplateAssoc.values()) {
+			if(t.getTemplateName().equalsIgnoreCase(templateName2))
+				return t;
 		}
 		return null;
 	}
