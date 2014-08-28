@@ -7,7 +7,7 @@ import templates.Template;
 
 public interface MockServerService {
 
-	String getMockResponse(Long id,String requestBody,boolean shouldPersist, Template template) throws IOException;
+	String getMockResponse(Long id,String requestBody,boolean shouldPersist, Template template, long delay) throws IOException;
 	
 	void hitCallbacks() throws IOException, InterruptedException, ExecutionException;
 }

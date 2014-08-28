@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.lang.StringUtils;
@@ -32,7 +34,7 @@ public class MockServerServiceImpl implements MockServerService {
 	}
 
 	@SuppressWarnings("unchecked")
-	public String getMockResponse(Long id,String requestBody,boolean shouldPersist, Template template) throws IOException {
+	public String getMockResponse(final Long id,String requestBody,boolean shouldPersist, Template template, long delay) throws IOException {
 
 		String response,params,url;
 		if(null != requestBody) {
@@ -50,9 +52,48 @@ public class MockServerServiceImpl implements MockServerService {
 		}
 
 		// convert mock request to response
-		if(shouldPersist) {
+		if(shouldPersist && template.isAsync()) {
 			functions.register(id, template.getTemplateName(), template.getRequestMethod(), 
 					params, template.getStaticHeaders(), url, response);
+			final Timer timer = new Timer();
+			final TimerTask task = new TimerTask() {
+
+				@Override
+				public void run() {
+					try {
+						String templateName = functions.getTemplateNameForId(id);
+						String requestBody = functions.getRequest(id, templateName);
+						String url = functions.getUrl(id, templateName);
+						String requestMethod = functions.getRequestMethod(id, templateName);
+						Map<String, String> requestHeaders = functions.getRequestHeaders(id, templateName);
+						String params = functions.getParams(id, templateName);
+						url = !url.contains("?") && !StringUtils.isEmpty(params)?url+"?"+params:url+params;
+
+						RequestBuilder builder = new RequestBuilder();
+						builder.setBody(requestBody);
+						for(Entry<String,String> e: requestHeaders.entrySet()) {
+							builder.addHeader(e.getKey(), e.getValue());
+						}
+
+						@SuppressWarnings("resource")
+						AsyncHttpClient client = new AsyncHttpClient();
+
+						if(requestMethod == null || "POST".equalsIgnoreCase(requestMethod)) 
+							client.preparePost(url); 
+						else if("GET".equalsIgnoreCase(requestMethod)) 
+							client.prepareGet(url);
+						else if("PUT".equalsIgnoreCase(requestMethod)) 
+							client.preparePut(url);
+						else if("DELETE".equalsIgnoreCase(requestMethod)) 
+							client.prepareDelete(url);
+
+						client.executeRequest(builder.build()).get();
+					} catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+			};
+			timer.schedule(task, delay);
 		}
 		return response;
 	}

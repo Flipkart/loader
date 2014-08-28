@@ -80,8 +80,15 @@ public class MockServerResource {
 	
 	private Response getMockResponse(boolean shouldPersist, String extension, String callbackUrl, HttpServletRequest request, String requestBody) {
 		try {
-			Template template = Template.getTemplateForUrl(extension);
-			String mockResponse = mockServerService.getMockResponse(id.get(), requestBody, shouldPersist, template);
+			String method = request.getMethod();
+			Template template = Template.getTemplate(extension, requestBody, method);
+			long fireCallbackAfter = 0;
+			if(template.getFireCallbackAfter() != null)
+				fireCallbackAfter = template.getFireCallbackAfter();
+			
+			String mockResponse = mockServerService.getMockResponse(id.get(), requestBody
+					, shouldPersist, template, fireCallbackAfter);
+			
 			if(!template.isAsync()) {
 				if(null != template.getWaitTimeInSec())
 					Thread.sleep(template.getWaitTimeInSec()*1000);
@@ -120,13 +127,22 @@ public class MockServerResource {
 		String urlRegexPattern = node.get("urlRegexPattern").asText();
 		String params = node.get("params").asText();
 		Long waitTimeInSec = node.get("waitTimeInSec").asLong();
-		Long fireCallbackAfter = node.get("fireCallbackAfter").asLong();
+		Long fireCallbackAfter = null;
+		if(node.get("fireCallbackAfter") != null)
+			fireCallbackAfter = node.get("fireCallbackAfter").asLong();
+		int priority = node.get("priority").asInt();
+		String requestBodyRegexPattern = null;
+		if(node.get("requestBodyRegexPattern") != null)
+			requestBodyRegexPattern = node.get("requestBodyRegexPattern").asText();
 		String content = "";
 		if(null != node.get("content"))
 			content = node.get("content").toString();
+		String method = node.get("method").asText();
 		
 		Template.createTemplate(content, templateName, config.getTemplateFileBasePath(), async, 
-				urlRegexPattern, urlEndpoint, request.getMethod(), params, headers, waitTimeInSec, fireCallbackAfter);
+				urlRegexPattern, urlEndpoint, method, params, headers, 
+				waitTimeInSec, fireCallbackAfter, priority, requestBodyRegexPattern);
+		
 		return Response.ok("Successfully Registered Template- "+templateName).build();
 	}
 	

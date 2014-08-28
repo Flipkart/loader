@@ -8,7 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -29,7 +29,7 @@ import lombok.Setter;
 @Setter
 @ThreadSafe
 @JsonSnakeCase
-public class Template {
+public class Template implements Comparable<Template> {
 	
 	private String content;
 	private String templateName;
@@ -41,9 +41,11 @@ public class Template {
 	private String urlRegexPattern;
 	private Long waitTimeInSec;
 	private Long fireCallbackAfter;
+	private int priority;
+	private String requestBodyRegexPattern;
 	
 	@JsonIgnore
-	private static Map<String,Template> urlRegexTemplateAssoc = new HashMap<String, Template>();
+	private static List<Template> templates = new ArrayList<Template>();
 	@JsonIgnore
 	private static ObjectMapper mapper = new ObjectMapper();
 		
@@ -63,7 +65,9 @@ public class Template {
 	}
 	
 	public static void createTemplate(String content, String fileName, String templateFileBasePath, 
-			boolean async, String urlRegexPattern, String urlEndpoint, String requestMethod, String params, Map<String,String> staticHeaders, Long waitTimeInSec, Long fireCallbackAfter) throws IOException {
+			boolean async, String urlRegexPattern, String urlEndpoint, String requestMethod
+			, String params, Map<String,String> staticHeaders, Long waitTimeInSec
+			, Long fireCallbackAfter, int priority, String requestBodyRegexPattern) throws IOException {
 		
 		File file = new File(templateFileBasePath+"/"+fileName);
 		if(!file.exists()) {
@@ -87,6 +91,8 @@ public class Template {
 			template.setParams(params);
 			template.setWaitTimeInSec(waitTimeInSec);
 			template.setFireCallbackAfter(fireCallbackAfter);
+			template.setPriority(priority);
+			template.setRequestBodyRegexPattern(requestBodyRegexPattern);
 			
 			File templateAssocs = new File(templateFileBasePath+"/assoc");
 			if(!templateAssocs.exists()) {
@@ -101,10 +107,10 @@ public class Template {
 					break;
 				}
 			templates.add(template);
-			
 			mapper.writeValue(templateAssocs, templates);
-			
-			urlRegexTemplateAssoc.put(urlRegexPattern, template);
+			Template.templates.add(template);
+			// sort according to priority
+			Collections.sort(Template.templates);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -128,24 +134,44 @@ public class Template {
 		File templateAssocs = new File(templateFileBasePath+"/assoc");	
 		List<Template> templates = mapper.readValue(templateAssocs, new TypeReference<List<Template>>() {});
 		for(Template template:templates) {
-			urlRegexTemplateAssoc.put(template.getUrlRegexPattern(), template);
+			Template.templates.add(template);
 		}
+		Collections.sort(Template.templates);
 	}
 	
-	public static Template getTemplateForUrl(String url) {
-		for(String regex:urlRegexTemplateAssoc.keySet()) {
-			if (Pattern.matches(regex, url))
-				return urlRegexTemplateAssoc.get(regex);
+	public static Template getTemplate(String url, String requestBody, String requestMethod) {
+		boolean passed = false;
+		for(Template template:templates) {
+			if(url != null && template.getUrlRegexPattern() != null) {
+				passed =  Pattern.matches(template.getUrlRegexPattern(), url);
+				if(!passed) continue;
+			}
+			if(requestMethod != null && template.getRequestMethod() != null) {
+				passed = template.getRequestMethod().equalsIgnoreCase(requestMethod);
+				if(!passed) continue;
+			}
+			if(requestBody != null && template.getRequestBodyRegexPattern() != null) {
+				passed = Pattern.matches(template.getRequestBodyRegexPattern(), requestBody);
+				if(!passed) continue;
+			}
+			return template;
 		}
 		return null;
 	}
 
 	public static Template getTemplate(String templateName2) {
-		for(Template t:urlRegexTemplateAssoc.values()) {
-			if(t.getTemplateName().equalsIgnoreCase(templateName2))
-				return t;
+		for(Template template:templates) {
+			if(template.getTemplateName().equalsIgnoreCase(templateName2))
+				return template;
 		}
 		return null;
+	}
+
+	/**
+	 * for use  by comparator
+	 */
+	public int compareTo(Template template) {
+		return this.getPriority()-template.getPriority();
 	}
 	
 }
