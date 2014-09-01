@@ -31,7 +31,7 @@ public class MockServer extends Service<MockServerConfiguration> {
 	@Override
 	public void run(final MockServerConfiguration configuration, Environment env)
 			throws Exception {
-		Template.loadAllTemplates("/Users/tushar.mahapatra/templates");
+		Template.loadAllTemplates(configuration.getTemplateFileBasePath());
 		injector = Guice.createInjector(new AbstractModule() {
 			
 			@Override

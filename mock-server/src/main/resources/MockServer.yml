@@ -2,5 +2,5 @@ http:
   port: 9000
   adminPort: 9001
     
-templateFileBasePath: "/Users/tushar.mahapatra/templates/"
+templateFileBasePath: "/Users/tushar.mahapatra/templates"
 

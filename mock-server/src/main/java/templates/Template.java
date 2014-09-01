@@ -123,16 +123,20 @@ public class Template implements Comparable<Template> {
 	}
 	
 	private static boolean isFileEmpty(File file) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(file));     
-		if (br.readLine() == null) {
+		BufferedReader br = new BufferedReader(new FileReader(file));   
+		String content;
+		if ((content=br.readLine()) == null || content.trim().isEmpty()) {
 		    return true;
 		}
 		return false;
 	}
 		
 	public static void loadAllTemplates(String templateFileBasePath) throws IOException {		
-		File templateAssocs = new File(templateFileBasePath+"/assoc");	
-		List<Template> templates = mapper.readValue(templateAssocs, new TypeReference<List<Template>>() {});
+		File templateAssocs = new File(templateFileBasePath+"/assoc");
+		List<Template> templates = new ArrayList<Template>();
+		if(!isFileEmpty(templateAssocs))
+			templates = mapper.readValue(templateAssocs, new TypeReference<List<Template>>() {});
+			
 		for(Template template:templates) {
 			Template.templates.add(template);
 		}

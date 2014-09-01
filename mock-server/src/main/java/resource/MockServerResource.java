@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response;
 import server.MockServerService;
 import templates.Template;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Inject;
@@ -150,8 +151,9 @@ public class MockServerResource {
 	@Path("/template/{templateName}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_HTML)
-	public Response getTemplate(@PathParam(value = "templateName") String templateName, @Context Request request) {
-		Response response = Response.ok(Template.getTemplate(templateName)).build();
+	public Response getTemplate(@PathParam(value = "templateName") String templateName, @Context Request request) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		Response response = Response.ok(mapper.writeValueAsString(Template.getTemplate(templateName))).build();
 		return response;
 	}
 	
