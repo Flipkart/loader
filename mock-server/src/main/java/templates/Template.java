@@ -136,8 +136,8 @@ public class Template implements Comparable<Template> {
 		List<Template> templates = new ArrayList<Template>();
 		if(!isFileEmpty(templateAssocs))
 			templates = mapper.readValue(templateAssocs, new TypeReference<List<Template>>() {});
-			
-		for(Template template:templates) {
+		
+        for(Template template:templates) {
 			Template.templates.add(template);
 		}
 		Collections.sort(Template.templates);

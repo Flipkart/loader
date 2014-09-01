@@ -1,0 +1,4 @@
+*********USE THE BELOW COMMAND TO LAUNCH INSTANCE*********
+**Configure the templateFileBasepath to the folder where templates should be saved**
+
+>$ sudo java -Ddw.templateFileBasePath=/Users/himanshu.virmani/templates -jar target/mock-server.jar server src/main/resources/MockServer.yml

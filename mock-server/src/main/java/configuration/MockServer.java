@@ -16,8 +16,7 @@ import com.yammer.dropwizard.config.Environment;
 @Singleton
 public class MockServer extends Service<MockServerConfiguration> {
 
-	public MockServerConfiguration configuration;
-	public Injector injector;
+	private Injector injector;
 	
 	public static void main(String[] args) throws Exception {
 		new MockServer().run(args);

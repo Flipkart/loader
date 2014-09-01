@@ -87,11 +87,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
+        <!--<dependency>
 			<groupId>com.yammer.dropwizard</groupId>
 			<artifactId>dropwizard-hibernate</artifactId>
 			<version>0.6.2.patched</version>
-		</dependency>
+        </dependency>-->
 		<dependency>
 			<groupId>com.yammer.dropwizard</groupId>
 			<artifactId>dropwizard-db</artifactId>

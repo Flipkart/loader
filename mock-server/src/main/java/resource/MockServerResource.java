@@ -139,7 +139,6 @@ public class MockServerResource {
 		if(null != node.get("content"))
 			content = node.get("content").toString();
 		String method = node.get("method").asText();
-		
 		Template.createTemplate(content, templateName, config.getTemplateFileBasePath(), async, 
 				urlRegexPattern, urlEndpoint, method, params, headers, 
 				waitTimeInSec, fireCallbackAfter, priority, requestBodyRegexPattern);
