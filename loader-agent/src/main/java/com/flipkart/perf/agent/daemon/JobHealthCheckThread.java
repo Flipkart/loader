@@ -3,9 +3,11 @@ package com.flipkart.perf.agent.daemon;
 import com.flipkart.perf.common.jackson.ObjectMapperUtil;
 import com.flipkart.perf.common.jmx.JMXConnection;
 import com.flipkart.perf.common.util.Clock;
+
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.flipkart.perf.agent.client.LoaderServerClient;
 import com.flipkart.perf.agent.config.JobProcessorConfig;
 import com.flipkart.perf.agent.job.AgentJob;
@@ -17,6 +19,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 public class JobHealthCheckThread extends Thread {
@@ -30,8 +33,8 @@ public class JobHealthCheckThread extends Thread {
 
     private JobHealthCheckThread(LoaderServerClient serverClient, JobProcessorConfig jobProcessorConfig) {
         this.agentJobs = new LinkedList<AgentJob>();
-        this.jobJmxConnectionMap = new HashMap<String, JMXConnection>();
-        this.jobHealthStatusMap = new HashMap<String, JobHealthStatus>();
+        this.jobJmxConnectionMap = new ConcurrentHashMap<String, JMXConnection>();
+        this.jobHealthStatusMap = new ConcurrentHashMap<String, JobHealthStatus>();
         this.serverClient = serverClient;
         this.jobProcessorConfig = jobProcessorConfig;
         JobHealthStatus.CPU_USAGE_STRESS_LEVEL = jobProcessorConfig.getCpuUsageThreshold();
@@ -40,7 +43,9 @@ public class JobHealthCheckThread extends Thread {
 
     public static JobHealthCheckThread initialize(LoaderServerClient serverClient, JobProcessorConfig jobProcessorConfig) {
         if(instance == null) {
-            instance = new JobHealthCheckThread(serverClient, jobProcessorConfig);
+        	synchronized(JobHealthCheckThread.class) {
+        		instance = new JobHealthCheckThread(serverClient, jobProcessorConfig);
+        	}
             instance.start();
         }
         return instance;

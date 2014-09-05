@@ -3,12 +3,15 @@ package com.flipkart.perf.server.daemon;
 import com.flipkart.perf.common.constant.MathConstant;
 import com.flipkart.perf.common.util.FileHelper;
 import com.flipkart.perf.config.FSConfig;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.flipkart.perf.server.config.JobFSConfig;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -24,7 +27,7 @@ public class CounterCompoundThread extends Thread {
     private Map<String,FileTouchPoint> fileTouchPointMap;
     private Map<String,LastCrunchPoint> fileLastCrunchPointMap;
 
-    private static CounterCompoundThread thread;
+    private static volatile CounterCompoundThread thread;
     private static final long CLUB_CRUNCH_DURATION_MS; // Club and crunch duration to calculate throughput
     private static final long CRUNCH_DATA_OLDER_THAN_MS; // As long as job is alive crunch data which is older than 30 secs
     private static Logger logger;
@@ -86,14 +89,16 @@ public class CounterCompoundThread extends Thread {
     private CounterCompoundThread(JobFSConfig jobFSConfig) {
         this.jobFSConfig = jobFSConfig;
         this.aliveJobs = new ArrayList<String>();
-        this.fileCachedContentMap = new HashMap<String, List<String>>();
-        this.fileTouchPointMap = new HashMap<String, FileTouchPoint>();
-        this.fileLastCrunchPointMap = new HashMap<String, LastCrunchPoint>();
+        this.fileCachedContentMap = new ConcurrentHashMap<String, List<String>>();
+        this.fileTouchPointMap = new ConcurrentHashMap<String, FileTouchPoint>();
+        this.fileLastCrunchPointMap = new ConcurrentHashMap<String, LastCrunchPoint>();
     }
 
     public static CounterCompoundThread initialize(ScheduledExecutorService scheduledExecutorService, JobFSConfig jobFSConfig, int interval) {
         if(thread == null) {
-            thread = new CounterCompoundThread(jobFSConfig);
+        	synchronized(CounterCompoundThread.class) {
+        		thread = new CounterCompoundThread(jobFSConfig);
+        	}
             scheduledExecutorService.scheduleWithFixedDelay(thread,
                     1000,
                     interval,

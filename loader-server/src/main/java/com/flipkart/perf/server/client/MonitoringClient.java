@@ -7,15 +7,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import javax.ws.rs.core.MediaType;
-import org.codehaus.jackson.map.ObjectMapper;
 
+import javax.ws.rs.core.MediaType;
+
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.flipkart.perf.server.domain.MetricPublisherRequest;
 import com.flipkart.perf.server.domain.OnDemandCollectorRequest;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
-
+import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
 
@@ -67,21 +69,24 @@ public class MonitoringClient {
     public List<String> getResources() throws ExecutionException, InterruptedException, IOException {
         List<String> resources = new ArrayList<String>();
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
-                prepareGet("http://"+this.getHost()+":" +
-                        this.getPort() +
-                        RESOURCE_RESOURCES).
-                setHeader("Content-Type", MediaType.APPLICATION_JSON);
+        try {
+        	AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+        			prepareGet("http://"+this.getHost()+":" +
+        					this.getPort() +
+        					RESOURCE_RESOURCES).
+        					setHeader("Content-Type", MediaType.APPLICATION_JSON);
 
-        Future<Response> r = b.execute();
-        r.get();
-        if(r.get().getStatusCode() == 200) {
-            resources = objectMapper.readValue(r.get().getResponseBody(), List.class);
+        	Future<Response> r = b.execute();
+        	r.get();
+        	if(r.get().getStatusCode() == 200) {
+        		resources = objectMapper.readValue(r.get().getResponseBody(), List.class);
+        	}
+        	else {
+        		log.error("Get on "+RESOURCE_RESOURCES);
+        	}
+        } finally {
+        	asyncHttpClient.close();
         }
-        else {
-            log.error("Get on "+RESOURCE_RESOURCES);
-        }
-        asyncHttpClient.close();
 
         return resources;
     }
@@ -95,26 +100,29 @@ public class MonitoringClient {
      * @throws IOException
      */
     public Map getResources(String resourceList, int count) throws ExecutionException, InterruptedException, IOException {
-        Map resources = new HashMap();
+    	Map resources = new HashMap();
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
-                prepareGet("http://"+this.getHost()+":" +
-                        this.getPort() +
-                        RESOURCE_RESOURCE.
-                                replace("{resources}",resourceList) +
-                        "?count="+count).
-                setHeader("Content-Type", MediaType.APPLICATION_JSON);
+        try {
+        	AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+        			prepareGet("http://"+this.getHost()+":" +
+        					this.getPort() +
+        					RESOURCE_RESOURCE.
+        					replace("{resources}",resourceList) +
+        					"?count="+count).
+        					setHeader("Content-Type", MediaType.APPLICATION_JSON);
 
-        Future<Response> r = b.execute();
-        r.get();
-        if(r.get().getStatusCode() == 200) {
-            resources = objectMapper.readValue(r.get().getResponseBody(), Map.class);
+        	Future<Response> r = b.execute();
+        	r.get();
+        	if(r.get().getStatusCode() == 200) {
+        		resources = objectMapper.readValue(r.get().getResponseBody(), Map.class);
+        	}
+        	else {
+        		log.error("Get on "+RESOURCE_RESOURCE.
+        				replace("{resources}", resourceList));
+        	}
+        } finally {
+        	asyncHttpClient.close();
         }
-        else {
-            log.error("Get on "+RESOURCE_RESOURCE.
-                    replace("{resources}", resourceList));
-        }
-        asyncHttpClient.close();
 
         return resources;
     }
@@ -122,21 +130,24 @@ public class MonitoringClient {
     public List getOnDemandResources() throws IOException, ExecutionException, InterruptedException {
         List resources = new ArrayList();
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
-                prepareGet("http://"+this.getHost()+":" +
-                        this.getPort() +
-                        RESOURCE_ON_DEMAND_RESOURCES).
-                setHeader("Content-Type", MediaType.APPLICATION_JSON);
+        try {
+        	AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+        			prepareGet("http://"+this.getHost()+":" +
+        					this.getPort() +
+        					RESOURCE_ON_DEMAND_RESOURCES).
+        					setHeader("Content-Type", MediaType.APPLICATION_JSON);
 
-        Future<Response> r = b.execute();
-        r.get();
-        if(r.get().getStatusCode() == 200) {
-            resources = objectMapper.readValue(r.get().getResponseBody(), List.class);
+        	Future<Response> r = b.execute();
+        	r.get();
+        	if(r.get().getStatusCode() == 200) {
+        		resources = objectMapper.readValue(r.get().getResponseBody(), List.class);
+        	}
+        	else {
+        		log.error("Get on "+RESOURCE_ON_DEMAND_RESOURCES);
+        	}
+        } finally {
+        	asyncHttpClient.close();
         }
-        else {
-            log.error("Get on "+RESOURCE_ON_DEMAND_RESOURCES);
-        }
-        asyncHttpClient.close();
 
         return resources;
 
@@ -145,29 +156,32 @@ public class MonitoringClient {
     public Map getOnDemandResource(String resource) throws IOException, ExecutionException, InterruptedException {
         Map resourceInfo = new HashMap();
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
-                prepareGet("http://"+this.getHost()+":" +
-                        this.getPort() +
-                        RESOURCE_ON_DEMAND_RESOURCE.
-                                replace("{resource}", resource)).
-                setHeader("Content-Type", MediaType.APPLICATION_JSON);
+        try {
+        	AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
+        			prepareGet("http://"+this.getHost()+":" +
+        					this.getPort() +
+        					RESOURCE_ON_DEMAND_RESOURCE.
+        					replace("{resource}", resource)).
+        					setHeader("Content-Type", MediaType.APPLICATION_JSON);
 
-        Future<Response> r = b.execute();
-        r.get();
-        if(r.get().getStatusCode() == 200) {
-            resourceInfo = objectMapper.readValue(r.get().getResponseBody(), Map.class);
+        	Future<Response> r = b.execute();
+        	r.get();
+        	if(r.get().getStatusCode() == 200) {
+        		resourceInfo = objectMapper.readValue(r.get().getResponseBody(), Map.class);
+        	}
+        	else {
+        		log.error("Get on "+RESOURCE_ON_DEMAND_RESOURCE);
+        	}
+        } finally {
+        	asyncHttpClient.close();
         }
-        else {
-            log.error("Get on "+RESOURCE_ON_DEMAND_RESOURCE);
-        }
-        asyncHttpClient.close();
 
         return resourceInfo;
 
     }
 
     public void raiseOnDemandResourceRequest(OnDemandCollectorRequest request) throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        final AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 preparePost("http://"+this.getHost()+":" +
                         this.getPort() +
@@ -175,16 +189,21 @@ public class MonitoringClient {
                 setHeader("Content-Type", MediaType.APPLICATION_JSON).
                 setBody(objectMapper.writeValueAsBytes(request));
 
-        Future<Response> r = b.execute();
-        r.get();
-        if(r.get().getStatusCode() != 204) {
-            log.error("Post on "+RESOURCE_ON_DEMAND_RESOURCES_REQUESTS);
-        }
-        asyncHttpClient.close();
+        Future<Response> r = b.execute(new AsyncCompletionHandler<Response>() {
+
+			@Override
+			public Response onCompleted(Response r) throws Exception {
+				if(r.getStatusCode() != 204) {
+		            log.error("Post on "+RESOURCE_ON_DEMAND_RESOURCES_REQUESTS);
+		        }
+				asyncHttpClient.close();
+				return r;
+			}
+		});
     }
 
-    public void deleteOnDemandResourceRequest(String requestId) throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+    public void deleteOnDemandResourceRequest(final String requestId) throws IOException, ExecutionException, InterruptedException {
+        final AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 prepareDelete("http://" + this.getHost() + ":" +
                         this.getPort() +
@@ -192,17 +211,22 @@ public class MonitoringClient {
                                 replace("{requestId}", requestId)).
                 setHeader("Content-Type", MediaType.APPLICATION_JSON);
 
-        Future<Response> r = b.execute();
-        r.get();
-        if(r.get().getStatusCode() != 204) {
-            log.error("Post on "+RESOURCE_ON_DEMAND_RESOURCES_REQUEST.
-                    replace("{requestId}", requestId));
-        }
-        asyncHttpClient.close();
+        Future<Response> r = b.execute(new AsyncCompletionHandler<Response>() {
+
+			@Override
+			public Response onCompleted(Response r) throws Exception {
+				if(r.getStatusCode() != 204) {
+		            log.error("Post on "+RESOURCE_ON_DEMAND_RESOURCES_REQUEST.
+		                    replace("{requestId}", requestId));
+		        }
+				asyncHttpClient.close();
+				return r;
+			}
+		});
     }
 
     public void raiseMetricPublishRequest(MetricPublisherRequest request) throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        final AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 preparePost("http://"+this.getHost()+":" +
                         this.getPort() +
@@ -210,17 +234,22 @@ public class MonitoringClient {
                 setHeader("Content-Type", MediaType.APPLICATION_JSON).
                 setBody(objectMapper.writeValueAsBytes(request));
 
-        Future<Response> r = b.execute();
-        r.get();
-        if(r.get().getStatusCode() != 204) {
-            log.error("Post on "+RESOURCE_PUBLISH_RESOURCE_REQUESTS);
-        }
-        asyncHttpClient.close();
+        Future<Response> r = b.execute(new AsyncCompletionHandler<Response>() {
+
+			@Override
+			public Response onCompleted(Response r) throws Exception {
+				if(r.getStatusCode() != 204) {
+		            log.error("Post on "+RESOURCE_PUBLISH_RESOURCE_REQUESTS);
+		        }
+		        asyncHttpClient.close();
+				return r;
+			}
+		});        
 
     }
 
-    public void deletePublishResourceRequest(String requestId) throws IOException, ExecutionException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+    public void deletePublishResourceRequest(final String requestId) throws IOException, ExecutionException, InterruptedException {
+        final AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
         AsyncHttpClient.BoundRequestBuilder b = asyncHttpClient.
                 prepareDelete("http://" + this.getHost() + ":" +
                         this.getPort() +
@@ -228,12 +257,18 @@ public class MonitoringClient {
                                 replace("{requestId}", requestId)).
                 setHeader("Content-Type", MediaType.APPLICATION_JSON);
 
-        Future<Response> r = b.execute();
-        r.get();
-        if(r.get().getStatusCode() != 204) {
-            log.error("Post on "+RESOURCE_PUBLISH_RESOURCE_REQUEST.
-                    replace("{requestId}", requestId));
-        }
-        asyncHttpClient.close();
+        Future<Response> r = b.execute(new AsyncCompletionHandler<Response>() {
+
+			@Override
+			public Response onCompleted(Response r) throws Exception {
+				if(r.getStatusCode() != 204) {
+		            log.error("Post on "+RESOURCE_PUBLISH_RESOURCE_REQUEST.
+		                    replace("{requestId}", requestId));
+		        }
+		        asyncHttpClient.close();
+				return r;
+			}
+		});
+        
     }
 }

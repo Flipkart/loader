@@ -10,16 +10,18 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.flipkart.perf.common.constant.MathConstant;
 import com.flipkart.perf.common.util.Clock;
 import com.flipkart.perf.common.util.FileHelper;
-import org.codehaus.jackson.map.ObjectMapper;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.flipkart.perf.server.config.JobFSConfig;
 import com.flipkart.perf.server.util.ObjectMapperUtil;
 
@@ -35,7 +37,7 @@ public class CounterThroughputThread extends Thread {
     private Map<String,FileTouchPoint> fileTouchPointMap;
     private Map<String,LastPoint> fileLastCrunchPointMap;
 
-    private static CounterThroughputThread thread;
+    private static volatile CounterThroughputThread thread;
 
     private static ObjectMapper objectMapper;
     private static Logger logger;
@@ -107,13 +109,15 @@ public class CounterThroughputThread extends Thread {
     private CounterThroughputThread(JobFSConfig jobFSConfig) {
         this.jobFSConfig = jobFSConfig;
         this.aliveJobs = new ArrayList<String>();
-        this.fileTouchPointMap = new HashMap<String, FileTouchPoint>();
-        this.fileLastCrunchPointMap = new HashMap<String, LastPoint>();
+        this.fileTouchPointMap = new ConcurrentHashMap<String, FileTouchPoint>();
+        this.fileLastCrunchPointMap = new ConcurrentHashMap<String, LastPoint>();
     }
 
     public static CounterThroughputThread initialize(ScheduledExecutorService scheduledExecutorService, JobFSConfig jobFSConfig, int interval) {
         if(thread == null) {
-            thread = new CounterThroughputThread(jobFSConfig);
+        	synchronized(CounterThroughputThread.class) {
+        		thread = new CounterThroughputThread(jobFSConfig);
+        	}
             scheduledExecutorService.scheduleWithFixedDelay(thread,
                     1000,
                     interval,
