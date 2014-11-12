@@ -1,5 +1,11 @@
 package com.flipkart.perf.server.config;
 
+import com.flipkart.perf.server.domain.PerformanceRun;
+
+import java.io.IOException;
+
+import static com.flipkart.perf.server.domain.PerformanceRun.latestVersion;
+
 /**
  * Manages Performance Job related Files
  */
@@ -10,11 +16,14 @@ public class JobFSConfig {
     private String runsPath;
     private String runPath;
     private String runFile;
+    private String runVersionsPath;
+    private String runMetaInfoFile;
     private String jobRunFile;
     private String jobsPath;
     private String jobPath;
     private String jobStatusFile;
     private String runJobsFile;
+    private String runAllJobsFile;
     private String jobStatsPath;
     private String jobGroupStatsPath;
     private String jobFunctionStatsPath;
@@ -66,8 +75,13 @@ public class JobFSConfig {
         this.jobResourceMonitoringFile = jobResourceMonitoringFile;
     }
 
-    public String getRunFile(String runName) {
-        return runFile.replace("{runName}", runName);
+    public String getRunFile(String runName, int version) {
+        return runFile.replace("{runName}", runName).
+                replace("{version}", String.valueOf(version));
+    }
+
+    public String getRunFile(String runName) throws IOException {
+        return getRunFile(runName, latestVersion(runName));
     }
 
     public String getJobMonitoringStatsPath(String jobId) {
@@ -130,8 +144,9 @@ public class JobFSConfig {
         this.runPath = runPath;
     }
 
-    public String getRunJobsFile(String runName) {
-        return runJobsFile.replace("{runName}", runName);
+    public String getRunJobsFile(String runName, int version) {
+        return runJobsFile.replace("{runName}", runName).
+                replace("{version}", String.valueOf(version));
     }
 
     public void setRunJobsFile(String runJobsFile) {
@@ -313,6 +328,30 @@ public class JobFSConfig {
     public JobFSConfig setScheduledWorkflowJobsFile(String scheduledWorkflowJobsFile) {
         this.scheduledWorkflowJobsFile = scheduledWorkflowJobsFile;
         return this;
+    }
+
+    public String getRunMetaInfoFile(String runName) {
+        return runMetaInfoFile.replace("{runName}", runName);
+    }
+
+    public void setRunMetaInfoFile(String runMetaInfoFile) {
+        this.runMetaInfoFile = runMetaInfoFile;
+    }
+
+    public String getRunVersionsPath(String runName) {
+        return runVersionsPath.replace("{runName}", runName);
+    }
+
+    public void setRunVersionsPath(String runVersionsPath) {
+        this.runVersionsPath = runVersionsPath;
+    }
+
+    public String getRunAllJobsFile(String runName) {
+        return runAllJobsFile.replace("{runName}", runName);
+    }
+
+    public void setRunAllJobsFile(String runAllJobsFile) {
+        this.runAllJobsFile = runAllJobsFile;
     }
 }
 

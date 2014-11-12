@@ -165,8 +165,7 @@ public class BusinessUnitResource {
     @Timed
     public void deleteRun(@PathParam("businessUnit") String businessUnitName,
                           @PathParam("team") String teamName,
-                          @PathParam("run") String run,
-                          @QueryParam("deleteJobs") @DefaultValue("false")BooleanParam deleteJobs) throws IOException {
+                          @PathParam("run") String run) throws IOException {
         BusinessUnit businessUnit = BusinessUnit.businessUnitExistsOrException(businessUnitName);
         businessUnit.teamExistOrException(teamName).runExistsOrException(run);
         PerformanceRun.runExistsOrException(run).delete();

@@ -106,8 +106,8 @@ public class JobResource {
     @POST
     @Timed
     public Job submitJob(JobRequest jobRequest) throws IOException {
-        runExistsOrException(jobRequest.getRunName()); 
-   			return raiseJobRequest(jobRequest);
+        PerformanceRun.runExistsOrException(jobRequest.getRunName(), jobRequest.getRunVersion());
+        return raiseJobRequest(jobRequest);
     }
 
     /**
@@ -490,17 +490,12 @@ public class JobResource {
     private Job raiseJobRequest(JobRequest jobRequest) throws IOException {
         Job job = new Job().
                 setJobId(UUID.randomUUID().toString()).
-                setRunName(jobRequest.getRunName());
+                setRunName(jobRequest.getRunName()).
+                setRunVersion(PerformanceRun.runVersion(jobRequest.getRunName(),jobRequest.getRunVersion()));
 
         job.persistRunInfo();
         JobDispatcherThread.instance().addJobRequest(job);
         return job;
-    }
-
-    private void runExistsOrException(String runName) {
-        if(!new File(jobFSConfig.getRunPath(runName)).exists()) {
-            throw new WebApplicationException(ResponseBuilder.runNameDoesNotExist(runName));
-        }
     }
 
     private Job jobExistsOrException(String jobId) throws IOException, ExecutionException {
