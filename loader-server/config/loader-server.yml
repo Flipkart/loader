@@ -56,7 +56,7 @@ jobFSConfig:
   jobHealthStatusFile: "/var/log/loader-server/jobs/{jobId}/monitoringStats/agents/{agentIp}/Resources/agentHealth.txt"
   runningJobsFile: "/var/log/loader-server/jobs/runningJobs"
   queuedJobsFile: "/var/log/loader-server/jobs/queuedJobs"
-  jobGroupConfFile: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/realTimeConf/agents/{agentIp}/data.stats"
+  jobGroupConfFile: "/var/log/loader-server/jobs/{jobId}/jobStats/{groupName}/conf/realTimeConf/agents/{agentIp}/data.stats"
   workflowJobsPath: "/var/log/loader-server/workflowJobs"
   workflowJobPath:  "/var/log/loader-server/workflowJobs/{workflowId}"
   workflowJobStatusPath: "/var/log/loader-server/workflowJobs/{workflowId}/status.json"

@@ -190,6 +190,8 @@ public class PerformanceRun {
     }
 
     public static int runVersion(String runName, String version) throws IOException {
+        if(version == null)
+            version = "LATEST";
         if("LATEST".equalsIgnoreCase(version)) {
             return latestVersion(runName);
         }

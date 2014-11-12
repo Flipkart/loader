@@ -2,9 +2,11 @@ package perf.server.domain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.open.perf.domain.Group;
-import com.open.perf.domain.GroupFunction;
-import com.open.perf.domain.Load;
+import com.flipkart.perf.domain.Group;
+import com.flipkart.perf.domain.GroupFunction;
+import com.flipkart.perf.domain.Load;
+import com.flipkart.perf.server.domain.LoadPart;
+import com.flipkart.perf.server.domain.PerformanceRun;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,12 +74,12 @@ public class PerformanceShortInput {
 
         List<Group> groups = new ArrayList<Group>();
         for(GroupShortInput groupShortInput : this.getGroups()) {
-            Group group = new Group().setName(groupShortInput.groupName)
+            Group group = new Group().setName(groupShortInput.groupName);
         }
         Load load = new Load();
 
         LoadPart loadPart = new LoadPart();
-        loadPart.setAgents(Arrays.asList(new String[]{"127.0.0.1"}))
+        loadPart.setAgents(1);
 
         performanceRun.setRunName(this.runName);
 

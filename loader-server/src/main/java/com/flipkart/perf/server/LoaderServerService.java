@@ -87,8 +87,8 @@ public class LoaderServerService extends Service<LoaderServerConfiguration> {
         workFlowDispatcher.start();
         WorkflowScheduler.initialize();
 
-        JMetric.initialize(configuration.getjMetricConfig());
-        environment.addResource(new JMetricController());
+//        JMetric.initialize(configuration.getjMetricConfig());
+//        environment.addResource(new JMetricController());
 
         environment.addResource(new JobResource(configuration.getAgentConfig(),
                 configuration.getJobFSConfig()));

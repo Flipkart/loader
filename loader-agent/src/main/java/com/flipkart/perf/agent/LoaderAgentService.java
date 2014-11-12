@@ -53,8 +53,8 @@ public class LoaderAgentService extends Service<LoaderAgentConfiguration> {
         JobProcessorThread.initialize(configuration.getJobProcessorConfig(),
                 configuration.getJobFSConfig());
 
-        JMetric.initialize(configuration.getjMetricConfig());
-        environment.addResource(new JMetricController());
+//        JMetric.initialize(configuration.getjMetricConfig());
+//        environment.addResource(new JMetricController());
 
         environment.addResource(new DeployResourcesResource(configuration.getResourceStorageFSConfig()));
         environment.addResource(new AdminResource(configuration));

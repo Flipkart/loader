@@ -41,11 +41,7 @@ public class LibCache {
     }
 
     public static LibCache initialize(ResourceStorageFSConfig storageConfig) throws IOException {
-        if(self == null) {
-        	synchronized(self) {
-        		self = new LibCache(storageConfig);
-        	}
-        }
+        self = new LibCache(storageConfig);
         return self;
     }
 
