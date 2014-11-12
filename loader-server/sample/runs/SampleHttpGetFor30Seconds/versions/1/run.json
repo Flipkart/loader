@@ -1,7 +1,7 @@
 {
   "businessUnit" : "sample",
   "team" : "sample",
-  "runName" : "SampleHttpGetFor10000Times",
+  "runName" : "SampleHttpGetFor30Seconds",
   "loadParts" : [ {
     "name" : "LoadPart1",
     "agents" : 1,
@@ -15,8 +15,8 @@
         "groupStartDelay" : 0,
         "threadStartDelay" : 0,
         "throughput" : 50.0,
-        "repeats" : 10000,
-        "duration" : -1,
+        "repeats" : -1,
+        "duration" : 30000,
         "threads" : 1,
         "warmUpRepeats" : -1,
         "functions" : [ {
@@ -50,5 +50,6 @@
   } ],
   "onDemandMetricCollections" : [ ],
   "metricCollections" : [ ],
-  "description" : "This performance Run does 10000 Http Get calls at 50 Request Per Second(TPS) Rate.\nIts going to hit local loader agent only."
+  "description" : "This performance Run does 10000 Http Get calls at 50 Request Per Second(TPS) Rate.\nIts going to hit local loader agent only.",
+  "version" : 1
 }

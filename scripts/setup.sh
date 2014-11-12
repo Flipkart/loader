@@ -25,10 +25,10 @@ cp ../loader-common-operations/target/loader-common-operations-*-jar-with-depend
 
 #Setting Sample Runs
 echo "\n****Setting up Sample Performance Run Schemas"
-mkdir -p /var/log/loader-server/runs/SampleHttpGetFor10000Times
-cp ../loader-server/sample/runs/SampleHttpGetFor10000Times.json /var/log/loader-server/runs/SampleHttpGetFor10000Times/run.json
-mkdir -p /var/log/loader-server/runs/SampleHttpGetFor30Seconds
-cp ../loader-server/sample/runs/SampleHttpGetFor30Seconds.json /var/log/loader-server/runs/SampleHttpGetFor30Seconds/run.json
+#mkdir -p /var/log/loader-server/runs/SampleHttpGetFor10000Times
+cp -r ../loader-server/sample/runs/SampleHttpGetFor10000Times /var/log/loader-server/runs/
+#mkdir -p /var/log/loader-server/runs/SampleHttpGetFor30Seconds
+cp -r ../loader-server/sample/runs/SampleHttpGetFor30Seconds /var/log/loader-server/runs/
 
 # Setting up loader agent
 echo "\n===============Setting up Loader Agent file system================\n"
