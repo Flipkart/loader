@@ -1,7 +1,9 @@
 package com.flipkart.perf.domain;
 
 import com.flipkart.perf.datagenerator.DataGeneratorInfo;
+import com.sun.management.OperatingSystemMXBean;
 
+import java.lang.management.ManagementFactory;
 import java.util.*;
 
 public class Group {
@@ -11,7 +13,8 @@ public class Group {
     private int threadStartDelay ;
 
     private static final int DEFAULT_DURATION = 5 * 24 * 60 * 60 * 1000;
-    private static final int DEFAULT_THROUGHPUT = 15000; // per second
+    private static int noOfProcessor;
+    private static final int DEFAULT_THROUGHPUT;
     private float throughput;
     private long repeats ;
     private long duration;
@@ -28,6 +31,11 @@ public class Group {
     private List<String> customTimers;
     private List<String> customCounters;
     private Map<String, DataGeneratorInfo> dataGenerators;
+
+    static {
+        noOfProcessor = ((OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getAvailableProcessors();
+        DEFAULT_THROUGHPUT = (noOfProcessor / 2) * 7500;  //15000; // per second
+    }
 
     public Group(){
         this.functions = new ArrayList<GroupFunction>();
