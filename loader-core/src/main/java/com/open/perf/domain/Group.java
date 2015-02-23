@@ -2,6 +2,7 @@ package com.open.perf.domain;
 
 import org.apache.log4j.Logger;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +17,9 @@ public class Group {
     private int threadStartDelay ;
 
     private static final int DEFAULT_DURATION = 5 * 24 * 60 * 60 * 1000;
-    private static final int DEFAULT_THROUGHPUT = 15000; // per second
+    //private static final int DEFAULT_THROUGHPUT  = 15000; // per second
+    private static int noOfProcessor;
+    private static final int DEFAULT_THROUGHPUT;
     private float throughput;
     private long repeats ;
     private long duration;
@@ -35,6 +38,8 @@ public class Group {
 
     static {
         logger = Logger.getLogger(Group.class.getName());
+        noOfProcessor = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
+        DEFAULT_THROUGHPUT = (noOfProcessor / 2) * 7500;  //15000; // per second
     }
 
     public Group(){
