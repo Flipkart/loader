@@ -4,6 +4,5 @@ Section: web
 Priority: optional
 Architecture: all
 Essential: no
-Depends: sun-java6-jre
 Maintainer: Nitin Kumar Agarwal [nitinka@flipkart.com]
 Description: Admin Server to manager Load Generation
