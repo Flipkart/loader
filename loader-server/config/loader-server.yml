@@ -86,10 +86,10 @@ http:
     - logFormat: |-
         %-5p [%d{ISO8601}] [%X{reqId} %X{txnId}] %c{1.}: %m
         %ex
-      currentLogFilename: "/var/log/flipkart/sp/fk-sp-fulfilment-oms/requests.log"
+      currentLogFilename: "/var/log/loader-server/loader-server.log"
       archivedFileCount: 1
       type: file
-      archivedLogFilenamePattern: "/var/log/flipkart/sp/fk-sp-fulfilment-oms/requests-%d.log.gz"
+      archivedLogFilenamePattern: "/var/log/loader-server/loader-server-%d.log.gz"
       archive: true
 
 logging:
@@ -99,9 +99,9 @@ logging:
     logFormat: |-
       %-5p [%d{ISO8601}] [%X{reqId} %X{txnId}] %c{1.}: %m
       %ex
-    archivedLogFilenamePattern: "/var/log/flipkart/sp/fk-sp-fulfilment-oms/app-%d.log.gz"
+    archivedLogFilenamePattern: "/var/log/loader-server/loader-server-%d.log.gz"
     threshold: ALL
-    currentLogFilename: "/var/log/flipkart/sp/fk-sp-fulfilment-oms/app.log"
+    currentLogFilename: "/var/log/loader-server/loader-server.log"
     type: file
     archivedFileCount: 1
     archive: true
