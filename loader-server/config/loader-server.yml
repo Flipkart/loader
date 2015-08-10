@@ -80,6 +80,16 @@ http:
   port: 9999
   adminPort: 9991
   rootPath: "/loader-server/*"
+  requestLog:
+    file:
+      currentLogFilename: /var/log/loader-server/loader-server.log
+      archivedLogFilenamePattern: /var/log/loader-server/loader-server-%d.log.gz
+      archivedFileCount: 1
+      enabled: true
+      archive: true
+      logFormat: ! "%-5p [%d{ISO8601}] [%X{reqId} %X{txnId}] %replace(%c: %m){'\n',
+        '\n '}%n%replace(%ex){'(?m)^(.)',' $1'}%nopex"
+      timeZone: IST
 
 logging:
   level: INFO
