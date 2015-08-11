@@ -82,14 +82,20 @@ http:
   rootPath: "/loader-server/*"
   requestLog:
     file:
-      currentLogFilename: /var/log/loader-server/loader-server.log
-      archivedLogFilenamePattern: /var/log/loader-server/loader-server-%d.log.gz
+      currentLogFilename: "/var/log/loader-server/loader-server.log"
+      archivedLogFilenamePattern: "/var/log/loader-server/loader-server-%d.log.gz"
       archivedFileCount: 1
       enabled: true
       archive: true
-      logFormat: ! "%-5p [%d{ISO8601}] [%X{reqId} %X{txnId}] %replace(%c: %m){'\n',
-        '\n '}%n%replace(%ex){'(?m)^(.)',' $1'}%nopex"
       timeZone: IST
 
 logging:
   level: INFO
+  file:
+    enabled: true
+    timeZone: Asia/Kolkata
+    threshold: ALL
+    currentLogFilename: "/var/log/loader-server/loader-server.log"
+    archivedLogFilenamePattern: "/var/log/loader-server/loader-server-%d.log.gz"
+    archivedFileCount: 1
+    archive: true
