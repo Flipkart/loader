@@ -10,7 +10,7 @@ PACKAGE=loader-agent
 LOADER_BASE_ROOT="../../"
 CODE_ROOT="../"
 PACKAGE_ROOT="./loader-agent"
-VERSION=1.0.2
+VERSION=1.0.3
 ARCH=all
 
 echo "Pre requisite to create this package : mvn clean compile package install -Dmaven.test.skip=true at loader2.0 level"
