@@ -11,7 +11,7 @@ LOADER_BASE_ROOT="../../"
 CODE_ROOT="../"
 LOADER_CORE_CODE_ROOT="../../loader-core"
 LOADER_HTTP_OPERATIONS_CODE_ROOT="../../loader-http-operations"
-LOADER_COMMON_OPERATIONS_CODE_ROOT="../../loader-common-operation"
+LOADER_COMMON_OPERATIONS_CODE_ROOT="../../loader-common-operations"
 PACKAGE_ROOT="./loader-server"
 VERSION=1.0.14
 ARCH=all
@@ -46,7 +46,7 @@ cp -R $CODE_ROOT/target/*.jar $PACKAGE_ROOT/usr/share/$PACKAGE/app/
 cp -R $CODE_ROOT/target/lib/*.jar $PACKAGE_ROOT/usr/share/$PACKAGE/lib/
 cp -R $LOADER_CORE_CODE_ROOT/target/platform.zip $PACKAGE_ROOT/usr/share/$PACKAGE/platformLibs/
 cp -R $LOADER_HTTP_OPERATIONS_CODE_ROOT/target/loader-http-operations-*-jar-with-dependencies.jar $PACKAGE_ROOT/usr/share/$PACKAGE/unDeployedLibs/
-cp -R $LOADER_COMMON_OPERATIONS_CODE_ROOT=/target/loader-common-operations-*-jar-with-dependencies.jar $PACKAGE_ROOT/usr/share/$PACKAGE/unDeployedLibs/
+cp -R $LOADER_COMMON_OPERATIONS_CODE_ROOT/target/loader-common-operations-*-jar-with-dependencies.jar $PACKAGE_ROOT/usr/share/$PACKAGE/unDeployedLibs/
 
 LOADER_HTTP_OPERATIONS_CODE_ROOT="../../loader-http-operations"
 LOADER_COMMON_OPERATIONS_CODE_ROOT="../../loader-common-operation"
