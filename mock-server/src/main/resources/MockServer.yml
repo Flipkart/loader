@@ -1,0 +1,6 @@
+http:
+  port: 9000
+  adminPort: 9001
+
+templateFileBasePath: configure_at_runtime_using_-Ddw.
+
