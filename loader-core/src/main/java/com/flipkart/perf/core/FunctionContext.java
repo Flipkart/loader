@@ -439,7 +439,7 @@ public class FunctionContext {
         return this;
     }
 
-    long getTimeNS() {
+    public long getTimeNS() {
         return time;
     }
 
